@@ -1,0 +1,11 @@
+{
+    "parameters": {
+        "width": {
+            "unit": "second"
+        },
+        "increment": {
+            "unit": "second"
+        }
+    },
+    "version": 0.1
+}
