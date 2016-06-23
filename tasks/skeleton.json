@@ -1,0 +1,22 @@
+{
+    "scope": [
+        [
+            {
+                "start": null,
+                "end":  0,
+                "house": ":",
+                "resident": ":",
+                "location": ":"
+            }
+        ]
+    ],
+    "streams": [
+        {
+            "sources": [
+                null
+            ],
+            "modality": null,
+            "streamId": ""
+        }
+    ]
+}

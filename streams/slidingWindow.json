@@ -1,0 +1,17 @@
+{
+    "parameters": {
+        "width": {
+            "dtype": "float",
+            "unit": "second"
+        },
+        "increment": {
+            "dtype": "float",
+            "unit": "second"
+        },
+        "modality": {
+            "dtype": "string",
+            "unit": null
+        }
+    },
+    "version": "0.1"
+}
