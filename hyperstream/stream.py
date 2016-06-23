@@ -21,5 +21,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-class Stream(object):
-    pass
+import simplejson as json
+import logging
+from sphere_connector.utils import Printable
+
+class Stream(Printable):
+    def __init__(self, stype, parameters, version):
+        self.stype = stype
+        self.parameters = parameters
+        self.version = version

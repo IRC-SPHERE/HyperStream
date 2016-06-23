@@ -1,4 +1,5 @@
 {
+    "stype": "preprocessor",
     "parameters": {
         "width": {
             "dtype": "float",
@@ -13,5 +14,6 @@
             "unit": null
         }
     },
-    "version": "0.1"
+    "version": "0.1",
+    "description": "Sliding Window with width and increment for given modality"
 }

@@ -22,6 +22,3 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import hyperstream as hs
-import simplejson as json
-
-# Load tasks.json

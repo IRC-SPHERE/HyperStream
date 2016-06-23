@@ -1,5 +1,6 @@
 {
     "version": "0.1",
-    "type": "classifier",
-    "parameters": {}
+    "stype": "classifier",
+    "parameters": {},
+    "description": "Dumb classifier that always outputs 0 with probability 1"
 }
