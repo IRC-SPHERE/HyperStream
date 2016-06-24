@@ -1,0 +1,14 @@
+{
+    "slidingWindow_3s1.5s_0.1": {
+        "parameters": {
+            "width": 3.0,
+            "increment": 1.5,
+            "modality": "wearable"
+        },
+        "version": "0.1"
+    },
+    "dumbClassifier__1.0": {
+        "parameters": {},
+        "version": "1.0"
+    }
+}

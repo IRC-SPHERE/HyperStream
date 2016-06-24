@@ -1,4 +1,6 @@
 {
+    "name": "Straw man",
+    "description": "Basic test task",
     "scopes": [
         [
             {
@@ -13,30 +15,13 @@
     "streams": [
         {
             "sources": [],
-            "streamId": "slidingWindow",
-            "stype": "preprocessor",
-            "parameters": {
-                "width": 3.0,
-                "increment": 1.5,
-                "modality": "wearable"
-            },
-            "version": "0.1"
+            "streamId": "slidingWindow_3s1.5s_0.1"
         },
         {
-            "sources": [{
-                "streamId": "slidingWindow",
-                "stype": "preprocessor",
-                "parameters": {
-                    "width": 3.0,
-                    "increment": 1.5,
-                    "modality": "wearable"
-                },
-                "version": "0.1"
-            }],
-            "streamId": "dumbClassifier",
-            "stype": "classifier",
-            "parameters": {},
-            "version": "0.1"
+            "sources": [
+                "slidingWindow_3s1.5s_0.1"
+            ],
+            "streamId": "dumbClassifier__1.0"
         }
     ]
 }

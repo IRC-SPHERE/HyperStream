@@ -1,19 +1,22 @@
 {
-    "stype": "preprocessor",
-    "parameters": {
-        "width": {
-            "dtype": "float",
-            "unit": "second"
+    "0.1": {
+        "stype": "preprocessor",
+        "parameters": {
+            "width": {
+                "dtype": "float",
+                "unit": "second"
+            },
+            "increment": {
+                "dtype": "float",
+                "unit": "second"
+            },
+            "modality": {
+                "dtype": "string",
+                "unit": null
+            }
         },
-        "increment": {
-            "dtype": "float",
-            "unit": "second"
-        },
-        "modality": {
-            "dtype": "string",
-            "unit": null
-        }
-    },
-    "version": "0.1",
-    "description": "Sliding Window with width and increment for given modality"
+        "name": "Sliding Window",
+        "description": "Sliding Window with width and increment for given modality",
+        "releaseNotes": ""
+    }
 }

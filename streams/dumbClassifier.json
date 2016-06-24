@@ -1,6 +1,9 @@
 {
-    "version": "0.1",
-    "stype": "classifier",
-    "parameters": {},
-    "description": "Dumb classifier that always outputs 0 with probability 1"
+    "1.0": {
+        "stype": "classifier",
+        "parameters": {},
+        "name": "Dumb classifier",
+        "description": "Dumb classifier that always outputs 0 with probability 1",
+        "releaseNotes": ""
+    }
 }

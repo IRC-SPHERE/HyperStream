@@ -1,6 +1,9 @@
 {
-    "version": "1.0",
-    "stype": "",
-    "parameters": {},
-    "description": ""
+    "1.0": {
+        "stype": "",
+        "parameters": {},
+        "name": "",
+        "description": "",
+        "releaseNotes": ""
+    }
 }
