@@ -21,5 +21,5 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from task import Task, Tasks
+from flow import Flow, Flows
 from stream import Stream, Streams

@@ -31,12 +31,9 @@ initialise_logger(path='/tmp', filename='hyperstream_online')
 
 import hyperstream as hs
 
-TASK_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "tasks")
+FLOW_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "flows")
 STREAM_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "streams")
 
 streams = hs.Streams(STREAM_PATH)
-tasks = hs.Tasks(streams.streams, TASK_PATH)
-
-for task in tasks.tasks:
-    # print(task)
-    task.execute()
+flows = hs.Flows(streams.streams, FLOW_PATH)
+flows.execute_all()
