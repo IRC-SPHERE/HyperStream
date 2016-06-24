@@ -26,7 +26,18 @@ import logging
 from sphere_connector.utils import Printable
 
 class Stream(Printable):
-    def __init__(self, stype, parameters, version):
+    def __init__(self, streamId, stype, parameters, version, sources=None, modality=None):
+        self.streamId = streamId
         self.stype = stype
         self.parameters = parameters
         self.version = version
+        # self.sources = [Stream(s) for s in sources]
+        self.sources = []
+        if sources:
+            for s in sources:
+                try:
+                    self.sources.append(Stream(**s))
+                except TypeError as e:
+                    logging.error(e)
+                    print(s)
+                    raise e

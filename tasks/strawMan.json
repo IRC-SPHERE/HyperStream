@@ -1,5 +1,5 @@
 {
-    "scope": [
+    "scopes": [
         [
             {
                 "start": null,
@@ -12,10 +12,9 @@
     ],
     "streams": [
         {
-            "sources": [
-                null
-            ],
+            "sources": [],
             "streamId": "slidingWindow",
+            "stype": "preprocessor",
             "parameters": {
                 "width": 3.0,
                 "increment": 1.5,
@@ -26,14 +25,16 @@
         {
             "sources": [{
                 "streamId": "slidingWindow",
+                "stype": "preprocessor",
                 "parameters": {
                     "width": 3.0,
                     "increment": 1.5,
                     "modality": "wearable"
                 },
-                "version": "0.1",
+                "version": "0.1"
             }],
             "streamId": "dumbClassifier",
+            "stype": "classifier",
             "parameters": {},
             "version": "0.1"
         }

@@ -21,4 +21,18 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+import os
+import sys
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.realpath(__file__)), "sphere_connector_package"))
+
+from sphere_connector.utils import initialise_logger
+
+initialise_logger(path='/tmp', filename='hyperstream_online')
+
 import hyperstream as hs
+
+TASK_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "tasks")
+
+tasks = hs.Tasks(TASK_PATH)
+for task in tasks.tasks:
+    print(task)

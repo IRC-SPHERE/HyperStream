@@ -1,5 +1,5 @@
 {
-    "scope": [
+    "scopes": [
         [
             {
                 "start": null,
@@ -15,8 +15,9 @@
             "sources": [
                 null
             ],
-            "modality": null,
-            "streamId": ""
+            "parameters": null,
+            "streamId": "",
+            "stype": ""
         }
     ]
 }

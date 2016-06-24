@@ -21,28 +21,34 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+import os
 import simplejson as json
 import logging
 from sphere_connector.utils import Printable
-from . import Stream
-
-TASK_PATH = 'tasks'
+from stream import Stream
 
 class Tasks(Printable):
     tasks = []
-    def __init__(self):
-        for fname in os.listdir(TASK_PATH):
-            if fname.endswith(".json") and fname is not "skeleton.json":
+    def __init__(self, path):
+        for fname in os.listdir(path):
+            if fname.endswith(".json") and fname != "skeleton.json":
                 try:
                     logging.info('Reading ' + fname)
-                    with open(fname, 'r') as f:
+                    with open(os.path.join(path, fname), 'r') as f:
                         taskObj = json.load(f)
                         task = Task(**taskObj)
                         self.tasks.append(task)
                 except (OSError, IOError) as e:
-                    raise logging.error(fname + ' error: ' + str(e))
+                    logging.error(str(fname) + ' error: ' + str(e))
 
 class Task(Printable):
-    def __init__(self, scope, streams):
-        self.scope = scope
-        self.streams = [Stream(**s) for s in streams]
+    def __init__(self, scopes, streams):
+        self.scopes = scopes
+        # self.streams = [Stream(**s) for s in streams]
+        self.streams = []
+        for s in streams:
+            try:
+                self.streams.append(Stream(**s))
+            except TypeError as e:
+                logging.error(e)
+                #raise e
