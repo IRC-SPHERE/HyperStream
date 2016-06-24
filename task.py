@@ -26,29 +26,42 @@ import simplejson as json
 import logging
 from sphere_connector.utils import Printable
 from stream import Stream
+from copy import deepcopy
 
 class Tasks(Printable):
     tasks = []
-    def __init__(self, path):
+    def __init__(self, all_streams, path):
         for fname in os.listdir(path):
             if fname.endswith(".json") and fname != "skeleton.json":
                 try:
                     logging.info('Reading ' + fname)
                     with open(os.path.join(path, fname), 'r') as f:
                         taskObj = json.load(f)
-                        task = Task(**taskObj)
+                        task = Task(all_streams, **taskObj)
                         self.tasks.append(task)
                 except (OSError, IOError) as e:
                     logging.error(str(fname) + ' error: ' + str(e))
 
 class Task(Printable):
-    def __init__(self, scopes, streams):
+    def __init__(self, all_streams, name, description, scopes, streams):
+        self.name = name
+        self.description = description
         self.scopes = scopes
-        # self.streams = [Stream(**s) for s in streams]
         self.streams = []
         for s in streams:
-            try:
-                self.streams.append(Stream(**s))
-            except TypeError as e:
-                logging.error(e)
-                #raise e
+            stream = deepcopy(all_streams[s['streamId']])
+            sources = s['sources']
+            if sources:
+                logging.info("Parsing sources [ " + ", ".join(sources) + " ]")
+                for s in sources:
+                    if s not in all_streams:
+                        logging.error("Source not found: " + s)
+                    else:
+                        # logging.info("Found source: " + s)
+                        stream.sources.append(deepcopy(all_streams[s]))
+            self.streams.append(stream)
+
+    def execute(self):
+        print(self)
+        for s in self.streams:
+            s.execute()

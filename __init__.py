@@ -22,4 +22,4 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from task import Task, Tasks
-from stream import Stream
+from stream import Stream, Streams

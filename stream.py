@@ -21,23 +21,54 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+import os
 import simplejson as json
 import logging
+from copy import deepcopy
 from sphere_connector.utils import Printable
 
+
+class Streams(Printable):
+    streams = {}
+    def __init__(self, path):
+        with open(os.path.join(path, "streamIds.json"), 'r') as f:
+            stream_ids = json.load(f)
+            for sid in stream_ids:
+                # Load the stream details
+                d = stream_ids[sid].copy()
+                stream_name, parameter_settings, version = sid.split("_")
+                with open(os.path.join(path, stream_name + ".json")) as s:
+                    stream_versions = json.load(s)
+                    found = False
+                    for v in stream_versions:
+                        if v == version:
+                            d.update(**stream_versions[v])
+                            found = True
+                    if not found:
+                        logging.error("Not found stream with appropriate version: " + s)
+                self.streams[sid] = Stream(sid, **d)
+
+
 class Stream(Printable):
-    def __init__(self, streamId, stype, parameters, version, sources=None, modality=None):
+    def __init__(self, streamId, version, name, description, stype,
+                 parameters, modality=None, releaseNotes=None):
         self.streamId = streamId
+        self.version = version
         self.stype = stype
         self.parameters = parameters
-        self.version = version
-        # self.sources = [Stream(s) for s in sources]
+        self.name = name
+        self.modality = modality
+        self.description = description
+        self.releaseNotes = releaseNotes
         self.sources = []
-        if sources:
-            for s in sources:
-                try:
-                    self.sources.append(Stream(**s))
-                except TypeError as e:
-                    logging.error(e)
-                    print(s)
-                    raise e
+
+    def execute(self):
+        logging.info("Executing " + self.streamId)
+        # Ensure all sources have been executed, if not, execute
+        if self.sources:
+            logging.info("Looping through sources")
+            for s in self.sources:
+                s.execute()
+
+    def __repr__(self):
+        return str(self)
