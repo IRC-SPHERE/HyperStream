@@ -28,21 +28,25 @@ from sphere_connector.utils import Printable
 from stream import Stream
 from copy import deepcopy
 
-class Tasks(Printable):
-    tasks = []
+class Flows(Printable):
+    flows = []
     def __init__(self, all_streams, path):
         for fname in os.listdir(path):
             if fname.endswith(".json") and fname != "skeleton.json":
                 try:
                     logging.info('Reading ' + fname)
                     with open(os.path.join(path, fname), 'r') as f:
-                        taskObj = json.load(f)
-                        task = Task(all_streams, **taskObj)
-                        self.tasks.append(task)
+                        flowObj = json.load(f)
+                        flow = Flow(all_streams, **flowObj)
+                        self.flows.append(flow)
                 except (OSError, IOError) as e:
                     logging.error(str(fname) + ' error: ' + str(e))
 
-class Task(Printable):
+    def execute_all(self):
+        for flow in self.flows:
+            flow.execute()
+
+class Flow(Printable):
     def __init__(self, all_streams, name, description, scopes, streams):
         self.name = name
         self.description = description
