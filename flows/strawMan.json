@@ -1,8 +1,8 @@
 {
     "name": "Straw man",
     "description": "Basic test task",
-    "scopes": [
-        [
+    "scopes": {
+        "H1R1":
             {
                 "start": null,
                 "end":  0,
@@ -10,18 +10,18 @@
                 "resident": "1",
                 "location": ":"
             }
-        ]
+        }
     ],
     "streams": [
         {
             "sources": [],
-            "streamId": "slidingWindow_3s1.5s_0.1"
+            "streamId": "SWRaw",
+            "scope": "H1R1"
         },
         {
-            "sources": [
-                "slidingWindow_3s1.5s_0.1"
-            ],
-            "streamId": "dumbClassifier__1.0"
+            "sources": [ "SWRaw" ],
+            "streamId": "dumbClassifier__1.0",
+            "scope": "H1R1"            
         }
     ]
 }
