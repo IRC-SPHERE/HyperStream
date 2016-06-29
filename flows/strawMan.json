@@ -3,11 +3,15 @@
     "description": "Basic test task",
     "scopes": {
         "H1R1": {
-            "start": null,
-            "end": 0,
-            "house": "1",
-            "resident": "1",
-            "location": ":"
+            "time_offset": {
+                "start": null,
+                "end": 0
+            },
+            "stream_filter": {
+                "house": "1",
+                "resident": "1",
+                "location": ":"
+            }
         }
     },
     "streams": [

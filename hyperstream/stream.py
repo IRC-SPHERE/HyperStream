@@ -51,10 +51,12 @@ from sphere_connector_package.sphere_connector.utils import Printable
 
 
 class Stream(Printable):
-    def __init__(self, stream, code):
+    sources = []
+
+    def __init__(self, stream, code, scope):
         self.streamId = stream
         self.code = code
-        self.sources = []
+        self.scope = scope
 
     def execute(self):
         logging.info("Executing stream " + self.streamId)

@@ -27,6 +27,7 @@ import logging
 from sphere_connector_package.sphere_connector.utils import Printable
 from stream import Stream
 from copy import deepcopy
+from scope import Scope
 
 
 class FlowCollection(Printable):
@@ -53,10 +54,17 @@ class Flow(Printable):
     def __init__(self, code_collection, name, description, scopes, streams):
         self.name = name
         self.description = description
-        self.scopes = scopes
+        self.scopes = {}
         self.streams = []
+
+        for sc in scopes:
+            scope = Scope(sc, **scopes[sc])
+            self.scopes[sc] = scope
+
         for s in streams:
             code = deepcopy(code_collection.codes[s['code']])
+
+            scope = self.scopes[s['scope']]
 
             sources = s['sources']
             if sources:
@@ -67,10 +75,14 @@ class Flow(Printable):
                     else:
                         # logging.info("Found source: " + s)
                         sources.append(deepcopy(code_collection.codes[src]))
-            stream = Stream(s['stream'], code)
+
+            stream = Stream(s['stream'], code, scope)
             self.streams.append(stream)
 
     def execute(self):
         print(self)
         for s in self.streams:
             s.execute()
+
+    def __repr__(self):
+        return str(self)
