@@ -24,20 +24,22 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 import os
 import simplejson as json
 import logging
-from sphere_connector.utils import Printable
+from sphere_connector_package.sphere_connector.utils import Printable
 from stream import Stream
 from copy import deepcopy
 
-class Flows(Printable):
+
+class FlowCollection(Printable):
     flows = []
-    def __init__(self, all_streams, path):
+
+    def __init__(self, code_collection, path):
         for fname in os.listdir(path):
             if fname.endswith(".json") and fname != "skeleton.json":
                 try:
                     logging.info('Reading ' + fname)
                     with open(os.path.join(path, fname), 'r') as f:
-                        flowObj = json.load(f)
-                        flow = Flow(all_streams, **flowObj)
+                        flow_definition = json.load(f)
+                        flow = Flow(code_collection, **flow_definition)
                         self.flows.append(flow)
                 except (OSError, IOError) as e:
                     logging.error(str(fname) + ' error: ' + str(e))
@@ -46,23 +48,26 @@ class Flows(Printable):
         for flow in self.flows:
             flow.execute()
 
+
 class Flow(Printable):
-    def __init__(self, all_streams, name, description, scopes, streams):
+    def __init__(self, code_collection, name, description, scopes, streams):
         self.name = name
         self.description = description
         self.scopes = scopes
         self.streams = []
         for s in streams:
-            stream = deepcopy(all_streams[s['streamId']])
+            code = deepcopy(code_collection.codes[s['code']])
+
             sources = s['sources']
             if sources:
                 logging.info("Parsing sources [ " + ", ".join(sources) + " ]")
-                for s in sources:
-                    if s not in all_streams:
-                        logging.error("Source not found: " + s)
+                for src in sources:
+                    if src not in code_collection.codes:
+                        logging.error("Code not found: " + src)
                     else:
                         # logging.info("Found source: " + s)
-                        stream.sources.append(deepcopy(all_streams[s]))
+                        sources.append(deepcopy(code_collection.codes[src]))
+            stream = Stream(s['stream'], code)
             self.streams.append(stream)
 
     def execute(self):

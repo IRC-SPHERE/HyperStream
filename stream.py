@@ -21,49 +21,44 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-import os
-import simplejson as json
+# import os
+# import simplejson as json
 import logging
-from copy import deepcopy
-from sphere_connector.utils import Printable
+# from copy import deepcopy
+from sphere_connector_package.sphere_connector.utils import Printable
 
 
-class Streams(Printable):
-    streams = {}
-    def __init__(self, path):
-        with open(os.path.join(path, "streamIds.json"), 'r') as f:
-            stream_ids = json.load(f)
-            for sid in stream_ids:
-                # Load the stream details
-                d = stream_ids[sid].copy()
-                stream_name, parameter_settings, version = sid.split("_")
-                with open(os.path.join(path, stream_name + ".json")) as s:
-                    stream_versions = json.load(s)
-                    found = False
-                    for v in stream_versions:
-                        if v == version:
-                            d.update(**stream_versions[v])
-                            found = True
-                    if not found:
-                        logging.error("Not found stream with appropriate version: " + s)
-                self.streams[sid] = Stream(sid, **d)
+# class Streams(Printable):
+#     streams = {}
+#
+#     def __init__(self, path):
+#         with open(os.path.join(path, "streamIds.json"), 'r') as f:
+#             stream_ids = json.load(f)
+#             for sid in stream_ids:
+#                 # Load the stream details
+#                 d = stream_ids[sid]
+#                 # stream_name, parameter_settings, version = sid.split("_")
+#                 with open(os.path.join(path, d["code"] + ".json")) as s:
+#                     stream_versions = json.load(s)
+#                     found = False
+#                     for v in stream_versions:
+#                         if v == d["version"]:
+#                             d.update(**stream_versions[v])
+#                             found = True
+#                     if not found:
+#                         logging.error("Not found stream with appropriate version: " + sid["code"])
+#                 self.streams[sid] = Stream(sid, **d)
 
 
 class Stream(Printable):
-    def __init__(self, streamId, version, name, description, stype,
-                 parameters, modality=None, releaseNotes=None):
-        self.streamId = streamId
-        self.version = version
-        self.stype = stype
-        self.parameters = parameters
-        self.name = name
-        self.modality = modality
-        self.description = description
-        self.releaseNotes = releaseNotes
+    def __init__(self, stream, code):
+        self.streamId = stream
+        self.code = code
         self.sources = []
 
     def execute(self):
-        logging.info("Executing " + self.streamId)
+        logging.info("Executing stream " + self.streamId)
+        self.code.execute()
         # Ensure all sources have been executed, if not, execute
         if self.sources:
             logging.info("Looping through sources")
