@@ -17,7 +17,8 @@
         },
         "version": "0.1"
     },
-    "dumbClassifier__1.0": {
+    "DC": {
+        "code": "dumbClassifier",
         "parameters": {},
         "version": "1.0"
     }

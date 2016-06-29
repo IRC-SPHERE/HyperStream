@@ -2,6 +2,13 @@
     "name": "Straw man",
     "description": "Basic test task",
     "scopes": {
+        "global": {
+            "start": null,
+            "end": 0,
+            "house": ":",
+            "resident": ":",
+            "location": ":"
+        },
         "H1R1": {
             "start": null,
             "end": 0,
@@ -15,12 +22,18 @@
             "sources": [],
             "code": "SW",
             "stream": "SW.Raw",
-            "scope": "H1R1"
+            "scope": "global"
         },
         {
             "sources": [ "SW.Raw" ],
             "code": "SW",
-            "stream": "DC.SW.Raw",
+            "stream": "SW.SW.Raw",
+            "scope": ""
+        },
+        {
+            "sources": [ "SW.SW.Raw" ],
+            "code": "DC",
+            "stream": "DC.SW.SW.Raw",
             "scope": "H1R1"            
         }
     ]
