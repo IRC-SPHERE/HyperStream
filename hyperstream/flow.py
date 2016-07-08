@@ -34,16 +34,16 @@ class FlowCollection(Printable):
     flows = []
 
     def __init__(self, code_collection, path):
-        for fname in os.listdir(path):
-            if fname.endswith(".json") and fname != "skeleton.json":
+        for filename in os.listdir(os.path.join(path, "active")):
+            if filename.endswith(".json") and filename != "skeleton.json":
                 try:
-                    logging.info('Reading ' + fname)
-                    with open(os.path.join(path, fname), 'r') as f:
+                    logging.info('Reading ' + filename)
+                    with open(os.path.join(path, filename), 'r') as f:
                         flow_definition = json.load(f)
                         flow = Flow(code_collection, **flow_definition)
                         self.flows.append(flow)
                 except (OSError, IOError) as e:
-                    logging.error(str(fname) + ' error: ' + str(e))
+                    logging.error(str(filename) + ' error: ' + str(e))
 
     def execute_all(self):
         for flow in self.flows:

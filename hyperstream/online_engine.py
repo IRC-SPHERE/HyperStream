@@ -22,18 +22,35 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import os
-# import sys
+import sys
 # sys.path.insert(1, os.path.join(os.path.dirname(os.path.realpath(__file__)), "sphere_connector_package"))
-from sphere_connector_package.sphere_connector.utils import initialise_logger
+import logging
+from sphere_connector_package import sphere_connector as sc
+from sphere_connector_package.sphere_connector.config import BasicConfig
 from flow import FlowCollection
 from code import CodeCollection
 from client import Client
+try:
+    from pymongo.errors import ServerSelectionTimeoutError
+except ImportError:
+    ServerSelectionTimeoutError = None
+
+
+def try_connect(basic_config):
+    if ServerSelectionTimeoutError:
+        try:
+            return Client(basic_config.mongo)
+        except ServerSelectionTimeoutError as e:
+            logging.warn(e.message)
+            sys.exit()
+    else:
+        return Client(basic_config.mongo)
 
 
 class OnlineEngine(object):
     def __init__(self, hyperstream_config):
-        initialise_logger(path='/tmp', filename='hyperstream_online')
-
+        sc.utils.initialise_logger(path='/tmp', filename='hyperstream_online')
+        self.sphere_client = try_connect(BasicConfig(True, False))
         self.codes = CodeCollection(hyperstream_config.stream_path)
         self.flows = FlowCollection(self.codes, hyperstream_config.flow_path)
         self.client = Client(hyperstream_config.mongo)

@@ -1,0 +1,59 @@
+{
+  "process": {
+    "environmental": false,
+    "video": false,
+    "wearable": false,
+    "annotations": false
+  },
+  "process_on_startup": false,
+  "mongo": {
+    "host": "localhost",
+    "port": 27018,
+    "tz_aware": true,
+    "username": "dbuser",
+    "password": "rYYr7QEeD5",
+    "authentication_database": "admin",
+    "db": "hyperstream",
+    "modalities": {
+      "environmental": {
+        "collection": "environmental",
+        "date_time_field": "dt",
+        "fields": {
+          "dt": 1,
+          "uid": 1,
+          "e": 1,
+          "m": 1,
+          "n": 1,
+          "s": 1,
+          "sn": 1
+        }
+      },
+      "wearable": {
+        "collection": "wearable",
+        "date_time_field": "wts",
+        "event": "m",
+        "fields": {
+          "wts": 1,
+          "uid": 1,
+          "aid": 1,
+          "m": 1
+        }
+      },
+      "video": {
+        "collection": "video",
+        "date_time_field": "dt",
+        "event": "e",
+        "element_name": "n",
+        "fields": {
+          "dt": 1,
+          "e": 1,
+          "uid": 1,
+          "n": 1
+        }
+      },
+      "annotations": {
+        "collection": "annotations"
+      }
+    }
+  }
+}
