@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2016 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,28 +20,28 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import os
+import simplejson as json
 import logging
 from sphere_connector_package.sphere_connector.utils import Printable
+from ..flow import Flow
 
 
-class Stream(Printable):
-    scope = {}
+class FlowCollection(Printable):
+    flows = []
 
-    def __init__(self, stream_id, kernel, sources, parameters, stream_type):
-        self.stream_id = stream_id
-        self.kernel = kernel
-        self.sources = sources
-        self.parameters = parameters
-        self.stream_type = stream_type
+    def __init__(self, stream_collection, path):
+        for filename in os.listdir(os.path.join(path, "active")):
+            if filename.endswith(".json") and filename != "skeleton.json":
+                try:
+                    logging.info('Reading ' + filename)
+                    with open(os.path.join(path, "active", filename), 'r') as f:
+                        flow_definition = json.load(f)
+                        flow = Flow(stream_collection, **flow_definition)
+                        self.flows.append(flow)
+                except (OSError, IOError) as e:
+                    logging.error(str(filename) + ' error: ' + str(e))
 
-    def execute(self):
-        logging.info("Executing stream " + self.stream_id)
-        self.kernel.execute()
-        # Ensure all sources have been executed, if not, execute
-        if self.sources:
-            logging.info("Looping through sources")
-            for s in self.sources:
-                s.execute()
-
-    def __repr__(self):
-        return str(self)
+    def execute_all(self):
+        for flow in self.flows:
+            flow.execute()

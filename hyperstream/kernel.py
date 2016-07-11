@@ -21,48 +21,22 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-import os
-import simplejson as json
 import logging
 from sphere_connector_package.sphere_connector.utils import Printable
 
 
-class CodeCollection(Printable):
-    codes = {}
-
-    def __init__(self, path):
-        with open(os.path.join(path, "codeIds.json"), 'r') as f:
-            code_ids = json.load(f)
-            for cid in code_ids:
-                # Load the code details
-                d = code_ids[cid]
-                with open(os.path.join(path, d["code"] + ".json")) as s:
-                    stream_versions = json.load(s)
-                    found = False
-                    for v in stream_versions:
-                        if v == d["version"]:
-                            d.update(**stream_versions[v])
-                            found = True
-                    if not found:
-                        logging.error("Not found stream with appropriate version: " + cid["code"])
-                    else:
-                        self.codes[cid] = Code(**d)
-
-
-class Code(Printable):
-    def __init__(self, code, version, name, description, stype, parameters, modality=None, releaseNotes=None):
-        self.codeId = code
+class Kernel(Printable):
+    def __init__(self, runner, kernel_id, version, name, description, release_notes=None):
+        self.kernel_id = kernel_id
+        self.runner = runner
         self.version = version
-        self.stype = stype
-        self.parameters = parameters
         self.name = name
-        self.modality = modality
         self.description = description
-        self.releaseNotes = releaseNotes
-        self.sources = []
+        self.releaseNotes = release_notes
+        self.version = version
 
     def execute(self):
-        logging.info("Executing code: " + self.codeId)
+        logging.info("Executing kernel: " + self.kernel_id)
 
     def __repr__(self):
         return str(self)

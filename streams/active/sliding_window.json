@@ -1,6 +1,6 @@
 {
     "0.1": {
-        "stype": "preprocessor",
+        "stream_type": "preprocessor",
         "parameters": {
             "width": {
                 "dtype": "float",
@@ -17,6 +17,6 @@
         },
         "name": "Sliding Window",
         "description": "Sliding Window with width and increment for given modality",
-        "releaseNotes": ""
+        "release_notes": ""
     }
 }
