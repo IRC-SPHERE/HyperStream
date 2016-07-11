@@ -26,6 +26,17 @@ import logging
 from sphere_connector_package.sphere_connector.utils import Printable
 from ..kernel import Kernel
 import imp
+from ..interfaces import StandardInput, StandardOutput, RawInput
+
+
+INPUT_TYPES = {
+    "raw": RawInput,
+    "standard": StandardInput
+}
+
+OUTPUT_TYPES = {
+    "standard": StandardOutput
+}
 
 
 class KernelCollection(Printable):
@@ -41,4 +52,16 @@ class KernelCollection(Printable):
                 except ImportError:
                     logging.error("Not found kernel with appropriate version: " + d["name"])
                     raise
-                self.kernels[kernel_id] = Kernel(src.Runner(), kernel_id, **d)
+
+                if d['input_type'] not in INPUT_TYPES:
+                    raise NotImplementedError("Unknown input type: " + d['input_type'])
+                input_interface = INPUT_TYPES[d['input_type']]().get_data
+
+                if d['output_type'] not in OUTPUT_TYPES:
+                    raise NotImplementedError("Unknown output type: " + d['output_type'])
+                output_interface = OUTPUT_TYPES[d['output_type']]().put_data
+
+                del d['input_type']
+                del d['output_type']
+
+                self.kernels[kernel_id] = Kernel(src.Runner(input_interface, output_interface), kernel_id, **d)
