@@ -20,38 +20,14 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-
-import os
-import simplejson as json
 import logging
-from sphere_connector_package.sphere_connector.utils import Printable
-from stream import Stream
 from copy import deepcopy
+from sphere_connector_package.sphere_connector.utils import Printable
 from scope import Scope
 
 
-class FlowCollection(Printable):
-    flows = []
-
-    def __init__(self, code_collection, path):
-        for filename in os.listdir(os.path.join(path, "active")):
-            if filename.endswith(".json") and filename != "skeleton.json":
-                try:
-                    logging.info('Reading ' + filename)
-                    with open(os.path.join(path, filename), 'r') as f:
-                        flow_definition = json.load(f)
-                        flow = Flow(code_collection, **flow_definition)
-                        self.flows.append(flow)
-                except (OSError, IOError) as e:
-                    logging.error(str(filename) + ' error: ' + str(e))
-
-    def execute_all(self):
-        for flow in self.flows:
-            flow.execute()
-
-
 class Flow(Printable):
-    def __init__(self, code_collection, name, description, scopes, streams):
+    def __init__(self, stream_collection, name, description, scopes, streams):
         self.name = name
         self.description = description
         self.scopes = {}
@@ -62,21 +38,8 @@ class Flow(Printable):
             self.scopes[sc] = scope
 
         for s in streams:
-            code = deepcopy(code_collection.codes[s['code']])
-
-            scope = self.scopes[s['scope']]
-
-            sources = s['sources']
-            if sources:
-                logging.info("Parsing sources [ " + ", ".join(sources) + " ]")
-                for src in sources:
-                    if src not in code_collection.codes:
-                        logging.error("Code not found: " + src)
-                    else:
-                        # logging.info("Found source: " + s)
-                        sources.append(deepcopy(code_collection.codes[src]))
-
-            stream = Stream(s['stream'], code, scope)
+            stream = deepcopy(stream_collection.streams[s['stream_id']])
+            stream.scope = self.scopes[s['scope']]
             self.streams.append(stream)
 
     def execute(self):

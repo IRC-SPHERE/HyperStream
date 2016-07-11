@@ -23,15 +23,35 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 # import logging
 from sphere_connector_package.sphere_connector.utils import Printable
-from datetime import timedelta
+from datetime import timedelta, datetime
+from dateutil.parser import parse
+
+
+def parse_time(start, end):
+    now = datetime.now()
+    if isinstance(start, int):
+        offset = timedelta(seconds=start)
+        start_time = now - offset
+    elif start is None:
+        start_time = datetime(1970, 1, 1)
+    else:
+        start_time = parse(start)
+
+    if isinstance(end, int):
+        # TODO: add check for future (negative values) and ensure that start < end
+        offset = timedelta(seconds=end)
+        end_time = now - offset
+    else:
+        end_time = parse(end)
+
+    return [start_time, end_time]
 
 
 class Scope(Printable):
-    def __init__(self, scope_id, time_offset, stream_filter):
-        self.scope_id = scope_id
-        self.time_offset_start = timedelta(seconds=time_offset["start"]) if time_offset["start"] else None
-        self.time_offset_end = timedelta(seconds=time_offset["end"])
-        self.stream_filter = stream_filter
+    def __init__(self, _id, time, filters):
+        self.scope_id = _id
+        [self.start, self.end] = parse_time(time['start'], time['end'])
+        self.filters = filters
 
     def __repr__(self):
         return str(self)
