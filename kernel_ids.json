@@ -3,12 +3,16 @@
         "name": "Sliding Window",
         "version": "0.1",
         "description": "Sliding Window with width and increment for given modality",
-        "release_notes": ""
+        "release_notes": "",
+        "input_type": "raw",
+        "output_type": "standard"
     },
     "dumb_classifier": {
         "name": "Dumb Classifier",
         "version": "1.0",
         "description": "Dumb classifier that always outputs 0 with probability 1",
-        "release_notes": ""
+        "release_notes": "",
+        "input_type": "standard",
+        "output_type": "standard"
     }
 }
