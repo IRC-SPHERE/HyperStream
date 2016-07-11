@@ -2,24 +2,28 @@
     "name": "",
     "description": "",
     "scopes": [
-        [
-            {
-                "start": null,
-                "end":  0,
-                "house": ":",
-                "resident": ":",
-                "location": ":"
+        {
+            "global": {
+                "time": {
+                    "start": null,
+                    "end": 0
+                },
+                "filters": {
+                    "house": ":",
+                    "resident": ":",
+                    "location": ":"
+                }
             }
-        ]
+        }
     ],
     "streams": [
         {
             "sources": [
                 null
             ],
+            "scope": "global",
             "parameters": null,
-            "streamId": "",
-            "stype": ""
+            "stream_id": ""
         }
     ]
 }

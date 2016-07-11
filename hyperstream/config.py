@@ -37,6 +37,7 @@ class HyperStreamConfig(Printable):
                 self.mongo = config['mongo']
                 self.stream_path = config['stream_path']
                 self.flow_path = config['flow_path']
+                self.kernel_path = config['kernel_path']
 
         except (OSError, IOError, TypeError) as e:
             # raise

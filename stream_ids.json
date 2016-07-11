@@ -1,0 +1,28 @@
+{
+    "SW.wearable": {
+        "kernel_id": "sliding_window",
+        "parameters": {
+            "width": 3.0,
+            "increment": 1.5,
+            "modality": "wearable"
+        },
+        "sources": [],
+        "stream_type": "preprocessor"
+    },
+    "SW.video": {
+        "kernel_id": "sliding_window",
+        "parameters": {
+            "width": 1.0,
+            "increment": 1.0,
+            "modality": "video"
+        },
+        "sources": [],
+        "stream_type": "preprocessor"
+    },
+    "DC.SW.video": {
+        "kernel_id": "dumb_classifier",
+        "parameters": {},
+        "sources": [ "SW.video" ],
+        "stream_type": "classifier"
+    }
+}

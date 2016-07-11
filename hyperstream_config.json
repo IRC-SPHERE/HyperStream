@@ -9,5 +9,6 @@
         "authentication_database": "admin"
     },
     "flow_path": "flows",
-    "stream_path": "streams"
+    "stream_path": "streams",
+    "kernel_path": "kernels"
 }

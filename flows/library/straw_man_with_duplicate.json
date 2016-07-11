@@ -3,22 +3,22 @@
     "description": "Basic test task",
     "scopes": {
         "global": {
-            "time_offset": {
+            "time": {
                 "start": null,
                 "end": 0
             },
-            "stream_filter": {
+            "filters": {
                 "house": ":",
                 "resident": ":",
                 "location": ":"
             }
         },
         "H1R1": {
-            "time_offset": {
+            "time": {
                 "start": null,
                 "end": 0
             },
-            "stream_filter": {
+            "filters": {
                 "house": "1",
                 "resident": "1",
                 "location": ":"
@@ -28,8 +28,8 @@
     "streams": [
         {
             "sources": [],
-            "code": "SW",
-            "stream": "SW.Raw",
+            "kernel_id": "SW",
+            "stream_id": "SW.Raw",
             "scope": "global"
         },
         {
@@ -37,14 +37,14 @@
             "parameters": {
                 "width": 2.0
             },
-            "code": "SW",
-            "stream": "SW.SW.Raw",
+            "kernel_id": "SW",
+            "stream_id": "SW.SW.Raw",
             "scope": "H1R1"
         },
         {
             "sources": [ "SW.SW.Raw" ],
-            "code": "DC",
-            "stream": "DC.SW.SW.Raw",
+            "kernel_id": "DC",
+            "stream_id": "DC.SW.SW.Raw",
             "scope": "H1R1"
         }
     ]
