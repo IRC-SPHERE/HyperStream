@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2016 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,30 +20,10 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+from output import Output
 import logging
-from sphere_connector_package.sphere_connector.utils import Printable
 
 
-class Stream(Printable):
-    scope = {}
-
-    def __init__(self, stream_id, kernel, sources, parameters, stream_type):
-        self.stream_id = stream_id
-        self.kernel = kernel
-        self.sources = sources
-        self.parameters = parameters
-        self.stream_type = stream_type
-
-    def execute(self):
-        logging.info("Executing stream " + self.stream_id)
-
-        self.kernel.runner.execute(self.parameters, self.scope)
-
-        # Ensure all sources have been executed, if not, execute
-        if self.sources:
-            logging.info("Looping through sources")
-            for s in self.sources:
-                s.execute()
-
-    def __repr__(self):
-        return str(self)
+class StandardOutput(Output):
+    def put_data(self, params):
+        logging.debug("Putting data (standard output)")
