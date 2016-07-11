@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2016 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,28 +20,28 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+from datetime import timedelta, datetime
+from mongoengine import connect, EmbeddedDocument
+from mongoengine import Document, DateTimeField, StringField, EmbeddedDocumentListField, IntField, EmbeddedDocumentField
 import logging
-from sphere_connector_package.sphere_connector.utils import Printable
+# from collections import defaultdict
+import pytz
 
 
-class Stream(Printable):
-    scope = {}
+# class Instance(Document):
+#     streamId = StringField(required=True, min_length=1, max_length=512),
+#     streamType = StringField(required=True, min_length=1, max_length=512),
+#     filters = EmbeddedDocumentField(required=True),
+#     version = StringField(required=True, min_length=1, max_length=512),
+#     value = EmbeddedDocumentField(required=True)
+#
+#     meta = {
+#         'collection': 'streams',
+#         'indexes': [{'fields': ['streamId']}],
+#         'ordering': ['start']
+#     }
 
-    def __init__(self, stream_id, kernel, sources, parameters, stream_type):
-        self.stream_id = stream_id
-        self.kernel = kernel
-        self.sources = sources
-        self.parameters = parameters
-        self.stream_type = stream_type
 
-    def execute(self):
-        logging.info("Executing stream " + self.stream_id)
-        self.kernel.execute()
-        # Ensure all sources have been executed, if not, execute
-        if self.sources:
-            logging.info("Looping through sources")
-            for s in self.sources:
-                s.execute()
-
-    def __repr__(self):
-        return str(self)
+class Interface(object):
+    def __init__(self): #, session, batch_input_function, iterable_input_function, batch_output_function, iterable_output_function):
+        pass
