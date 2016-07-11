@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2016 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,28 +20,31 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import simplejson as json
 import logging
+from copy import deepcopy
 from sphere_connector_package.sphere_connector.utils import Printable
+from ..stream import Stream
 
 
-class Stream(Printable):
-    scope = {}
+class StreamCollection(Printable):
+    streams = {}
 
-    def __init__(self, stream_id, kernel, sources, parameters, stream_type):
-        self.stream_id = stream_id
-        self.kernel = kernel
-        self.sources = sources
-        self.parameters = parameters
-        self.stream_type = stream_type
+    def __init__(self, kernel_collection):
+        with open("stream_ids.json", 'r') as f:
+            stream_ids = json.load(f)
+            for stream_id in stream_ids:
+                d = stream_ids[stream_id]
+                kernel = kernel_collection.kernels[d['kernel_id']]
 
-    def execute(self):
-        logging.info("Executing stream " + self.stream_id)
-        self.kernel.execute()
-        # Ensure all sources have been executed, if not, execute
-        if self.sources:
-            logging.info("Looping through sources")
-            for s in self.sources:
-                s.execute()
+                sources = []
+                if d['sources']:
+                    logging.info("Parsing sources [ " + ", ".join(d['sources']) + " ]")
+                    for source in d['sources']:
+                        if source not in self.streams:
+                            logging.error("Source stream not yet defined: " + source)
+                            continue
+                        else:
+                            sources.append(deepcopy(self.streams[source]))
 
-    def __repr__(self):
-        return str(self)
+                self.streams[stream_id] = Stream(stream_id, kernel, sources, d['parameters'], d['stream_type'])

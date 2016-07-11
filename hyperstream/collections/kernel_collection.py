@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2016 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,28 +20,25 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import os
+import simplejson as json
 import logging
 from sphere_connector_package.sphere_connector.utils import Printable
+from ..kernel import Kernel
+import imp
 
 
-class Stream(Printable):
-    scope = {}
+class KernelCollection(Printable):
+    kernels = {}
 
-    def __init__(self, stream_id, kernel, sources, parameters, stream_type):
-        self.stream_id = stream_id
-        self.kernel = kernel
-        self.sources = sources
-        self.parameters = parameters
-        self.stream_type = stream_type
-
-    def execute(self):
-        logging.info("Executing stream " + self.stream_id)
-        self.kernel.execute()
-        # Ensure all sources have been executed, if not, execute
-        if self.sources:
-            logging.info("Looping through sources")
-            for s in self.sources:
-                s.execute()
-
-    def __repr__(self):
-        return str(self)
+    def __init__(self, kernel_path):
+        with open("kernel_ids.json", 'r') as f:
+            kernel_ids = json.load(f)
+            for kernel_id in kernel_ids:
+                d = kernel_ids[kernel_id]
+                try:
+                    src = imp.load_source(kernel_id, os.path.join(kernel_path, kernel_id, d["version"], "runner.py"))
+                except ImportError:
+                    logging.error("Not found kernel with appropriate version: " + d["name"])
+                    raise
+                self.kernels[kernel_id] = Kernel(src.Runner(), kernel_id, **d)

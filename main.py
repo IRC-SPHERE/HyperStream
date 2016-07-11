@@ -20,28 +20,11 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import logging
-from sphere_connector_package.sphere_connector.utils import Printable
 
+from hyperstream.config import HyperStreamConfig
+from hyperstream.online_engine import OnlineEngine
 
-class Stream(Printable):
-    scope = {}
-
-    def __init__(self, stream_id, kernel, sources, parameters, stream_type):
-        self.stream_id = stream_id
-        self.kernel = kernel
-        self.sources = sources
-        self.parameters = parameters
-        self.stream_type = stream_type
-
-    def execute(self):
-        logging.info("Executing stream " + self.stream_id)
-        self.kernel.execute()
-        # Ensure all sources have been executed, if not, execute
-        if self.sources:
-            logging.info("Looping through sources")
-            for s in self.sources:
-                s.execute()
-
-    def __repr__(self):
-        return str(self)
+if __name__ == '__main__':
+    hyperstream_config = HyperStreamConfig()
+    online_engine = OnlineEngine(hyperstream_config)
+    online_engine.execute()
