@@ -1,0 +1,7 @@
+{
+    "streamId": "String",
+    "type": "Int",
+    "filters": "Dict",
+    "version": "String",
+    "value": "Object"
+}

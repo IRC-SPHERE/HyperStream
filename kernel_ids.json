@@ -1,0 +1,14 @@
+{
+    "sliding_window": {
+        "name": "Sliding Window",
+        "version": "0.1",
+        "description": "Sliding Window with width and increment for given modality",
+        "release_notes": ""
+    },
+    "dumb_classifier": {
+        "name": "Dumb Classifier",
+        "version": "1.0",
+        "description": "Dumb classifier that always outputs 0 with probability 1",
+        "release_notes": ""
+    }
+}

@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2016 University of Bristol
+Copyright (c) 2014-2015 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,27 +21,24 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import logging
+import simplejson as json
+import os
 from sphere_connector_package.sphere_connector.utils import Printable
 
 
-class Stream(Printable):
-    scope = {}
+class HyperStreamConfig(Printable):
+    def __init__(self):
+        self.mongo = None
 
-    def __init__(self, stream_id, kernel, sources, parameters, stream_type):
-        self.stream_id = stream_id
-        self.kernel = kernel
-        self.sources = sources
-        self.parameters = parameters
-        self.stream_type = stream_type
+        try:
+            with open('hyperstream_config.json', 'r') as f:
+                logging.info('Reading ' + os.path.abspath(f.name))
+                config = json.load(f)
+                self.mongo = config['mongo']
+                self.stream_path = config['stream_path']
+                self.flow_path = config['flow_path']
+                self.kernel_path = config['kernel_path']
 
-    def execute(self):
-        logging.info("Executing stream " + self.stream_id)
-        self.kernel.execute()
-        # Ensure all sources have been executed, if not, execute
-        if self.sources:
-            logging.info("Looping through sources")
-            for s in self.sources:
-                s.execute()
-
-    def __repr__(self):
-        return str(self)
+        except (OSError, IOError, TypeError) as e:
+            # raise
+            logging.error("Configuration error: " + str(e))
