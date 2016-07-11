@@ -27,7 +27,6 @@ import logging
 # from collections import defaultdict
 import pytz
 
-
 # class Instance(Document):
 #     streamId = StringField(required=True, min_length=1, max_length=512),
 #     streamType = StringField(required=True, min_length=1, max_length=512),
@@ -43,5 +42,22 @@ import pytz
 
 
 class Interface(object):
-    def __init__(self): #, session, batch_input_function, iterable_input_function, batch_output_function, iterable_output_function):
-        pass
+    input_data = None
+    output_data = None
+
+    def __init__(self, input_function, output_function):  # TODO: separate batch & incremental inputs/outputs
+        self.input_function = input_function
+        self.output_function = output_function
+
+    def execute(self, input_parameters, scope):
+        # Get data
+        self.input_data = self.input_function(input_parameters, scope)
+
+        # Do computation
+        self.compute()
+
+        # Send data back
+        self.output_function(self.output_data)
+
+    def compute(self):
+        raise NotImplementedError()

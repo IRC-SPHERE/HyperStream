@@ -35,8 +35,5 @@ class Kernel(Printable):
         self.releaseNotes = release_notes
         self.version = version
 
-    def execute(self):
-        logging.info("Executing kernel: " + self.kernel_id)
-
     def __repr__(self):
         return str(self)
