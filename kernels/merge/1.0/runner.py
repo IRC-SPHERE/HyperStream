@@ -5,5 +5,5 @@ import logging
 class Runner(Interface):
     logging.debug("Merge runner created")
 
-    def compute(self):
+    def compute(self, stream):
         self.output_data = self.input_data
