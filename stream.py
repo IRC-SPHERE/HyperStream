@@ -37,7 +37,7 @@ class Stream(Printable):
     def execute(self):
         logging.info("Executing stream " + self.stream_id)
 
-        self.kernel.runner.execute(self.parameters, self.scope)
+        self.kernel.runner.execute(self)
 
         # Ensure all sources have been executed, if not, execute
         if self.sources:
