@@ -1,5 +1,5 @@
 {
-    "SW.wearable": {
+    "SW.rss": {
         "kernel_id": "sliding_window",
         "parameters": {
             "width": 3.0,
@@ -21,10 +21,10 @@
         "sources": [],
         "stream_type": "preprocessor"
     },
-    "[SW.wearable, SW.video]": {
+    "[SW.rss, SW.video]": {
         "kernel_id": "merge",
         "parameters": {},
-        "sources": [ "SW.wearable", "SW.video" ],
+        "sources": [ "SW.rss", "SW.video" ],
         "stream_type": "aggregator"
     },
     "DC.SW.video": {
@@ -33,9 +33,9 @@
         "sources": [ "SW.video" ],
         "stream_type": "classifier"
     },
-    "DC.[SW.wearable, SW.video]": {
+    "DC.[SW.rss, SW.video]": {
         "kernel_id": "dumb_classifier",
-        "sources": [ "[SW.wearable, SW.video]" ],
+        "sources": [ "[SW.rss, SW.video]" ],
         "parameters": {},
         "stream_type": "classifier"
     }

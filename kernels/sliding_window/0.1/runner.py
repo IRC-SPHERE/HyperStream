@@ -19,17 +19,18 @@ class Runner(Interface):
         # TODO: INCLUDE INCREMENT
         # TODO: APPLY FILTERS
         # TODO: DEAL WITH META-DATA AGGREGATION
+        # TODO: DEAL WITH MULTI-DIMENSIONAL ARRAYS
 
         self.output_data = []
         for g in grouper:
             result = {
                 'datetime': g[1].index[-1].to_datetime(),
-                'value': g[1].values.ravel(),
+                'value': g[1].values.ravel().tolist(),
                 'stream_id': stream.stream_id,
                 'stream_type': stream.stream_type,
                 'filters': stream.scope.filters,
                 'version': stream.kernel.version,
-                'meta': {}
+                'metadata': {}
             }
             self.output_data.append(result)
 
