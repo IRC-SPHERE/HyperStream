@@ -34,16 +34,16 @@ class Stream(Printable):
         self.parameters = parameters
         self.stream_type = stream_type
 
-    def execute(self):
+    def execute(self, clients, configs):
         logging.info("Executing stream " + self.stream_id)
 
-        self.kernel.runner.execute(self)
+        self.kernel.runner.execute(self, clients, configs)
 
         # Ensure all sources have been executed, if not, execute
         if self.sources:
             logging.info("Looping through sources")
             for s in self.sources:
-                s.execute()
+                s.execute(clients, configs)
 
     def __repr__(self):
         return str(self)

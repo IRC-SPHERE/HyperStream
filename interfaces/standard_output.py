@@ -20,10 +20,16 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from output import Output
 import logging
+
+from output import Output
+from instance import Instance
 
 
 class StandardOutput(Output):
-    def put_data(self, stream, data):
+    def put_data(self, stream, data, clients, configs):
         logging.debug("Putting data (standard output)")
+        for d in data:
+            instance = Instance(**d)
+            instance.save()
+
