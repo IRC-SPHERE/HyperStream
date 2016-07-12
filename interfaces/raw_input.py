@@ -43,14 +43,51 @@ class RawInput(Input):
         experiment = Experiment(client, experiment_config, basic_config)
 
         if stream.parameters["modality"] == "annotations":
+            modality = experiment.annotations
             data = experiment.annotations.get_data()
         elif stream.parameters["modality"] == "environmental":
+            modality = experiment.environmental
             data = experiment.environmental.get_data()
         elif stream.parameters["modality"] == "video":
+            modality = experiment.video
             data = experiment.video.get_data()
         elif stream.parameters["modality"] == "wearable":
-            data = experiment.wearable.get_data()
+            modality = experiment.wearable
+            if stream.parameters["element"] == "xyz":
+                data = experiment.wearable.get_data(include_xyz=True, include_mag=False, include_rss=False)
+            elif stream.parameters["element"] == "mag":
+                data = experiment.wearable.get_data(include_xyz=False, include_mag=True, include_rss=False)
+            elif stream.parameters["element"] == "rss":
+                data = experiment.wearable.get_data(include_xyz=False, include_mag=False, include_rss=True)
+            elif stream.parameters["element"] == ":":
+                data = experiment.wearable.get_data(include_xyz=True, include_mag=True, include_rss=True)
+            else:
+                raise RuntimeError("Unknown element for raw data input {}".format(stream.parameters["element"]))
         else:
             raise RuntimeError("Unknown modality for raw data input {}".format(stream.parameters["modality"]))
 
-        return data
+        # We need to so a small amount of processing to convert the sphere_connector format to the standard format
+        return self.convert_to_standard_format(stream, modality, data)
+
+    @staticmethod
+    def convert_to_standard_format(stream, modality, data):
+        data_standard = []
+        for d in data:
+            if len(modality.sensors) == 1:
+                value = d[next(iter(modality.sensors))]
+            else:
+                value = dict((v, d[v]) for v in modality.sensors)
+
+            dd = {
+                "stream_id": stream.stream_id,
+                "stream_type": stream.stream_type,
+                "filters": stream.scope.filters,
+                "meta": {"uid": d["uid"], "aid": d["aid"]} if "aid" in d else {"uid": d["uid"]},
+                "datetime": d["datetime"],
+                "value": value,
+                "version": stream.kernel.version
+            }
+
+            data_standard.append(dd)
+
+        return data_standard
