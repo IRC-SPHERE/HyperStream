@@ -20,25 +20,6 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from datetime import timedelta, datetime
-from mongoengine import connect, EmbeddedDocument
-from mongoengine import Document, DateTimeField, StringField, EmbeddedDocumentListField, IntField, EmbeddedDocumentField
-import logging
-# from collections import defaultdict
-import pytz
-
-# class Instance(Document):
-#     streamId = StringField(required=True, min_length=1, max_length=512),
-#     streamType = StringField(required=True, min_length=1, max_length=512),
-#     filters = EmbeddedDocumentField(required=True),
-#     version = StringField(required=True, min_length=1, max_length=512),
-#     value = EmbeddedDocumentField(required=True)
-#
-#     meta = {
-#         'collection': 'streams',
-#         'indexes': [{'fields': ['streamId']}],
-#         'ordering': ['start']
-#     }
 
 
 class Interface(object):
@@ -49,15 +30,15 @@ class Interface(object):
         self.input_function = input_function
         self.output_function = output_function
 
-    def execute(self, input_parameters, scope):
+    def execute(self, stream):
         # Get data
-        self.input_data = self.input_function(input_parameters, scope)
+        self.input_data = self.input_function(stream)
 
         # Do computation
         self.compute()
 
         # Send data back
-        self.output_function(self.output_data)
+        self.output_function(stream, self.output_data)
 
     def compute(self):
         raise NotImplementedError()
