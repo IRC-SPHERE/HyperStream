@@ -35,10 +35,10 @@ class Interface(object):
         self.input_data = self.input_function(stream)
 
         # Do computation
-        self.compute()
+        self.compute(stream)
 
         # Send data back
         self.output_function(stream, self.output_data)
 
-    def compute(self):
+    def compute(self, stream):
         raise NotImplementedError()
