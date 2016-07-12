@@ -23,5 +23,5 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 class Input(object):
-    def get_data(self, params, scope):
+    def get_data(self, stream):
         pass

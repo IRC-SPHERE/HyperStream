@@ -25,5 +25,5 @@ import logging
 
 
 class StandardOutput(Output):
-    def put_data(self, params):
+    def put_data(self, stream, data):
         logging.debug("Putting data (standard output)")
