@@ -16,7 +16,7 @@
     },
     "streams": [
         {
-            "stream_id": "SW.wearable",
+            "stream_id": "SW.rss",
             "scope": "global"
         }
     ]

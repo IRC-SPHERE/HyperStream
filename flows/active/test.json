@@ -12,7 +12,7 @@
     },
     "streams": [
         {
-            "stream_id": "SW.wearable",
+            "stream_id": "SW.rss",
             "scope": "global"
         },
         {
@@ -20,11 +20,11 @@
             "scope": "global"
         },
         {
-            "stream_id": "[SW.wearable, SW.video]",
+            "stream_id": "[SW.rss, SW.video]",
             "scope": "global"
         },
         {
-            "stream_id": "DC.[SW.wearable, SW.video]",
+            "stream_id": "DC.[SW.rss, SW.video]",
             "scope": "global"
         }
     ]
