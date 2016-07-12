@@ -23,7 +23,34 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from input import Input
 import logging
 
+from sphere_connector_package.sphere_connector.client import Client
+from sphere_connector_package.sphere_connector.config import BasicConfig
+from sphere_connector_package.sphere_connector.config import ExperimentConfig
+from sphere_connector_package.sphere_connector.experiment import Experiment
+
+basic_config = BasicConfig(include_redcap=False)
+client = Client(basic_config.mongo)
+
 
 class RawInput(Input):
-    def get_data(self, params, scope):
-        logging.debug("Getting data (raw input)")
+    def get_data(self, stream):
+        logging.debug("Getting data {} (raw input)".format(stream.stream_id))
+        logging.debug(stream.parameters)
+        logging.debug(stream.scope)
+        logging.debug(stream.sources)
+        experiment_config = ExperimentConfig(experiment_start=stream.scope.start, experiment_end=stream.scope.end,
+                                             experiment_id=stream.stream_id)
+        experiment = Experiment(client, experiment_config, basic_config)
+
+        if stream.parameters["modality"] == "annotations":
+            data = experiment.annotations.get_data()
+        elif stream.parameters["modality"] == "environmental":
+            data = experiment.environmental.get_data()
+        elif stream.parameters["modality"] == "video":
+            data = experiment.video.get_data()
+        elif stream.parameters["modality"] == "wearable":
+            data = experiment.wearable.get_data()
+        else:
+            raise RuntimeError("Unknown modality for raw data input {}".format(stream.parameters["modality"]))
+
+        return data

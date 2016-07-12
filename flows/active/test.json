@@ -1,0 +1,31 @@
+{
+    "name": "Test flow",
+    "description": "Want to test some of the main features, such as merging streams",
+    "scopes": {
+        "global": {
+            "time": {
+                "start": "2016-04-28T19:00:00.000Z",
+                "end": "2016-04-28T20:00:00.000Z"
+            },
+            "filters": {}
+        }
+    },
+    "streams": [
+        {
+            "stream_id": "SW.wearable",
+            "scope": "global"
+        },
+        {
+            "stream_id": "SW.video",
+            "scope": "global"
+        },
+        {
+            "stream_id": "[SW.wearable, SW.video]",
+            "scope": "global"
+        },
+        {
+            "stream_id": "DC.[SW.wearable, SW.video]",
+            "scope": "global"
+        }
+    ]
+}

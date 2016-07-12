@@ -4,7 +4,8 @@
         "parameters": {
             "width": 3.0,
             "increment": 1.5,
-            "modality": "wearable"
+            "modality": "wearable",
+            "element": "RSS"
         },
         "sources": [],
         "stream_type": "preprocessor"
@@ -14,15 +15,28 @@
         "parameters": {
             "width": 1.0,
             "increment": 1.0,
-            "modality": "video"
+            "modality": "video",
+            "element": "2DBB"
         },
         "sources": [],
         "stream_type": "preprocessor"
+    },
+    "[SW.wearable, SW.video]": {
+        "kernel_id": "merge",
+        "parameters": {},
+        "sources": [ "SW.wearable", "SW.video" ],
+        "stream_type": "aggregator"
     },
     "DC.SW.video": {
         "kernel_id": "dumb_classifier",
         "parameters": {},
         "sources": [ "SW.video" ],
+        "stream_type": "classifier"
+    },
+    "DC.[SW.wearable, SW.video]": {
+        "kernel_id": "dumb_classifier",
+        "sources": [ "[SW.wearable, SW.video]" ],
+        "parameters": {},
         "stream_type": "classifier"
     }
 }

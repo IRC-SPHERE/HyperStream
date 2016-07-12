@@ -23,5 +23,5 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 class Output(object):
-    def put_data(self, data):
+    def put_data(self, stream, data):
         pass
