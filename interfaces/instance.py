@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2016 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,32 +20,20 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import logging
-from copy import deepcopy
-from sphere_connector_package.sphere_connector.utils import Printable
-from scope import Scope
+from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField
 
 
-class Flow(Printable):
-    def __init__(self, stream_collection, name, description, scopes, streams):
-        self.name = name
-        self.description = description
-        self.scopes = {}
-        self.streams = []
+class Instance(Document):
+    stream_id = StringField(required=True, min_length=1, max_length=512)
+    stream_type = StringField(required=True, min_length=1, max_length=512)
+    datetime = DateTimeField(required=True)
+    filters = DictField(required=False)
+    metadata = DictField(required=False)
+    version = StringField(required=True, min_length=1, max_length=512)
+    value = DynamicField(required=True)
 
-        for sc in scopes:
-            scope = Scope(sc, **scopes[sc])
-            self.scopes[sc] = scope
-
-        for s in streams:
-            stream = deepcopy(stream_collection.streams[s['stream_id']])
-            stream.scope = self.scopes[s['scope']]
-            self.streams.append(stream)
-
-    def execute(self, clients, configs):
-        print(self)
-        for s in self.streams:
-            s.execute(clients, configs)
-
-    def __repr__(self):
-        return str(self)
+    meta = {
+        'collection': 'streams',
+        'indexes': [{'fields': ['stream_id']}],
+        'ordering': ['start']
+    }

@@ -23,23 +23,26 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from input import Input
 import logging
 
-from sphere_connector_package.sphere_connector.client import Client
-from sphere_connector_package.sphere_connector.config import BasicConfig
+# from sphere_connector_package.sphere_connector.client import Client
+# from sphere_connector_package.sphere_connector.config import BasicConfig
 from sphere_connector_package.sphere_connector.config import ExperimentConfig
 from sphere_connector_package.sphere_connector.experiment import Experiment
 
-basic_config = BasicConfig(include_redcap=False)
-client = Client(basic_config.mongo)
+# basic_config = BasicConfig(include_redcap=False)
+# client = Client(basic_config.mongo)
 
 
 class RawInput(Input):
-    def get_data(self, stream):
+    def get_data(self, stream, clients, configs):
         logging.debug("Getting data {} (raw input)".format(stream.stream_id))
         logging.debug(stream.parameters)
         logging.debug(stream.scope)
         logging.debug(stream.sources)
         experiment_config = ExperimentConfig(experiment_start=stream.scope.start, experiment_end=stream.scope.end,
                                              experiment_id=stream.stream_id)
+
+        client = clients['sphere']
+        basic_config = configs['basic_config']
         experiment = Experiment(client, experiment_config, basic_config)
 
         if stream.parameters["modality"] == "annotations":

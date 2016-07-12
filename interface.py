@@ -30,15 +30,15 @@ class Interface(object):
         self.input_function = input_function
         self.output_function = output_function
 
-    def execute(self, stream):
+    def execute(self, stream, clients, configs):
         # Get data
-        self.input_data = self.input_function(stream)
+        self.input_data = self.input_function(stream, clients, configs)
 
         # Do computation
         self.compute(stream)
 
         # Send data back
-        self.output_function(stream, self.output_data)
+        self.output_function(stream, self.output_data, clients, configs)
 
     def compute(self, stream):
         raise NotImplementedError()

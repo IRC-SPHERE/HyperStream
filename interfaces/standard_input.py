@@ -21,29 +21,11 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from input import Input
-# from datetime import timedelta, datetime
-# from mongoengine import connect, EmbeddedDocument
-# from mongoengine import Document, DateTimeField, StringField, EmbeddedDocumentListField, IntField, EmbeddedDocumentField
 import logging
-# # from collections import defaultdict
-# import pytz
-
-# class Instance(Document):
-#     streamId = StringField(required=True, min_length=1, max_length=512),
-#     streamType = StringField(required=True, min_length=1, max_length=512),
-#     filters = EmbeddedDocumentField(required=True),
-#     version = StringField(required=True, min_length=1, max_length=512),
-#     value = EmbeddedDocumentField(required=True)
-#
-#     meta = {
-#         'collection': 'streams',
-#         'indexes': [{'fields': ['streamId']}],
-#         'ordering': ['start']
-#     }
 
 
 class StandardInput(Input):
-    def get_data(self, stream):
+    def get_data(self, stream, clients, configs):
         logging.debug("Getting data {} (standard input)".format(stream.stream_id))
         logging.debug(stream.parameters)
         logging.debug(stream.scope)
