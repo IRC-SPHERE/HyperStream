@@ -21,11 +21,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import logging
-from sphere_connector_package.sphere_connector.utils import Printable
+from utils import Printable
 
 
 class Stream(Printable):
-    scope = {}
+    scope = None
+    completed = False
 
     def __init__(self, stream_id, kernel, sources, parameters, stream_type):
         self.stream_id = stream_id
@@ -37,13 +38,22 @@ class Stream(Printable):
     def execute(self, clients, configs):
         logging.info("Executing stream " + self.stream_id)
 
-        self.kernel.runner.execute(self, clients, configs)
+        if not self.scope:
+            raise RuntimeError("No scope for stream " + self.stream_id)
 
         # Ensure all sources have been executed, if not, execute
         if self.sources:
             logging.info("Looping through sources")
             for s in self.sources:
-                s.execute(clients, configs)
+                # TODO: more logic here
+                if not self.completed:
+                    s.execute(clients, configs)
+
+        # Now execute the kernel
+        self.kernel.runner.execute(self, clients, configs)
+
+        # TODO: Clearly more logic needed here!
+        self.completed = True
 
     def __repr__(self):
         return str(self)
