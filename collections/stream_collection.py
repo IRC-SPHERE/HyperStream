@@ -48,4 +48,11 @@ class StreamCollection(Printable):
                         else:
                             sources.append(self.streams[source])
 
-                self.streams[stream_id] = Stream(stream_id, kernel, sources, d['parameters'], d['stream_type'])
+                self.streams[stream_id] = Stream(
+                    stream_id=stream_id,
+                    kernel=kernel,
+                    sources=sources,
+                    parameters=d['parameters'],
+                    stream_type=d['stream_type'],
+                    filters=d['filters']
+                )

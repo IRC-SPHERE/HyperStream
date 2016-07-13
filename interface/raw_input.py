@@ -29,12 +29,9 @@ from sphere_connector_package.sphere_connector.experiment import Experiment
 
 
 class RawInput(Input):
-    def get_data(self, stream, clients, configs):
+    def get_data(self, stream, clients, configs, time_range):
         logging.debug("Getting data {} (raw input)".format(stream.stream_id))
-        # logging.debug(stream.parameters)
-        # logging.debug(stream.scope)
-        # logging.debug(stream.sources)
-        experiment_config = ExperimentConfig(experiment_start=stream.scope.start, experiment_end=stream.scope.end,
+        experiment_config = ExperimentConfig(experiment_start=time_range.start, experiment_end=time_range.end,
                                              experiment_id=stream.stream_id)
 
         client = clients['sphere']
@@ -75,7 +72,7 @@ class RawInput(Input):
             instance = Instance(
                 stream_id=stream.stream_id,
                 stream_type=stream.stream_type,
-                filters=stream.scope.filters,
+                filters=stream.filters,
                 metadata={"uid": d["uid"], "aid": d["aid"]} if "aid" in d else {"uid": d["uid"]},
                 datetime=d["datetime"],
                 value=value,
