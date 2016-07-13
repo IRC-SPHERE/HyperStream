@@ -22,7 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import logging
 from utils import Printable
-from interface import StreamStatusModel
+from stream_status import StreamStatusModel
 
 
 class Stream(Printable):
