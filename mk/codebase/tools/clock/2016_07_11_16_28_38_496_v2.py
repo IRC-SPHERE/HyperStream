@@ -17,7 +17,7 @@ class Clock(Tool):
       if not k in ('optim'):
 	kwargs2[k] = kwargs[k]
     return(kwargs2)
-  def __call__(self,start,end,writer,first,stride,optim):
+  def __call__(self,stream_def,start,end,writer,first,stride,optim):
     print('Clock running from '+str(start)+' to '+str(end)+' with stride '+str(stride))
     if start<first:
       start = first
