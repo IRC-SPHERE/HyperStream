@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2015 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,20 +20,8 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-
-import logging
-from utils import Printable
-
-
-class Kernel(Printable):
-    def __init__(self, runner, kernel_id, version, name, description, release_notes=None):
-        self.kernel_id = kernel_id
-        self.runner = runner
-        self.version = version
-        self.name = name
-        self.description = description
-        self.releaseNotes = release_notes
-        self.version = version
-
-    def __repr__(self):
-        return str(self)
+from raw_input import RawInput
+from standard_input import StandardInput
+from standard_output import StandardOutput
+from instance import Instance, InstanceModel
+from interface import Interface
