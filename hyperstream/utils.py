@@ -20,28 +20,10 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from datetime import timedelta, datetime
-from mongoengine import connect, EmbeddedDocument
-from mongoengine import Document, DateTimeField, StringField, EmbeddedDocumentListField, IntField, EmbeddedDocumentField
-import logging
-# from collections import defaultdict
-import pytz
+import pprint
 
 
-# class Instance(Document):
-#     streamId = StringField(required=True, min_length=1, max_length=512),
-#     streamType = StringField(required=True, min_length=1, max_length=512),
-#     filters = EmbeddedDocumentField(required=True),
-#     version = StringField(required=True, min_length=1, max_length=512),
-#     value = EmbeddedDocumentField(required=True)
-#
-#     meta = {
-#         'collection': 'streams',
-#         'indexes': [{'fields': ['streamId']}],
-#         'ordering': ['start']
-#     }
-
-
-class Interface(object):
-    def __init__(self): #, session, batch_input_function, iterable_input_function, batch_output_function, iterable_output_function):
-        pass
+class Printable(object):
+    def __str__(self):
+        pp = pprint.PrettyPrinter(indent=4)
+        return pp.pformat(self.__dict__)

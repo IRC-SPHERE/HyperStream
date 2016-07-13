@@ -1,28 +1,42 @@
 {
-    "SW.wearable": {
+    "SW_rss": {
         "kernel_id": "sliding_window",
         "parameters": {
             "width": 3.0,
             "increment": 1.5,
-            "modality": "wearable"
+            "modality": "wearable",
+            "element": "rss"
         },
         "sources": [],
         "stream_type": "preprocessor"
     },
-    "SW.video": {
+    "SW_video": {
         "kernel_id": "sliding_window",
         "parameters": {
-            "width": 1.0,
-            "increment": 1.0,
-            "modality": "video"
+            "width": 3.0,
+            "increment": 1.5,
+            "modality": "video",
+            "element": "2Dbb"
         },
         "sources": [],
         "stream_type": "preprocessor"
     },
-    "DC.SW.video": {
+    "[SW_rss, SW_video]": {
+        "kernel_id": "merge",
+        "parameters": {},
+        "sources": [ "SW_rss", "SW_video" ],
+        "stream_type": "aggregator"
+    },
+    "DC_SW_video": {
         "kernel_id": "dumb_classifier",
         "parameters": {},
-        "sources": [ "SW.video" ],
+        "sources": [ "SW_video" ],
+        "stream_type": "classifier"
+    },
+    "DC_[SW_rss, SW_video]": {
+        "kernel_id": "dumb_classifier",
+        "sources": [ "[SW_rss, SW_video]" ],
+        "parameters": {},
         "stream_type": "classifier"
     }
 }

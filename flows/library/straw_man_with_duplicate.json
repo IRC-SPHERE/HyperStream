@@ -29,22 +29,22 @@
         {
             "sources": [],
             "kernel_id": "SW",
-            "stream_id": "SW.Raw",
+            "stream_id": "SW_Raw",
             "scope": "global"
         },
         {
-            "sources": [ "SW.Raw" ],
+            "sources": [ "SW_Raw" ],
             "parameters": {
                 "width": 2.0
             },
             "kernel_id": "SW",
-            "stream_id": "SW.SW.Raw",
+            "stream_id": "SW_SW_Raw",
             "scope": "H1R1"
         },
         {
-            "sources": [ "SW.SW.Raw" ],
+            "sources": [ "SW_SW_Raw" ],
             "kernel_id": "DC",
-            "stream_id": "DC.SW.SW.Raw",
+            "stream_id": "DC_SW_SW_Raw",
             "scope": "H1R1"
         }
     ]

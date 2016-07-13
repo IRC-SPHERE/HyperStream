@@ -23,7 +23,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 import logging
 import simplejson as json
 import os
-from sphere_connector_package.sphere_connector.utils import Printable
+from utils import Printable
 
 
 class HyperStreamConfig(Printable):
