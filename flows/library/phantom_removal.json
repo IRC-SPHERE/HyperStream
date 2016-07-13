@@ -1,40 +1,13 @@
 {
     "name": "Phantom removal",
     "description": "Remove phantom bounding boxes from the video stream",
-    "scopes": {
-        "global": {
-            "time": {
-                "start": "2016-04-28T19:00:00.000Z",
-                "end": "2016-04-28T20:00:00.000Z"
-            },
-            "filters": {
-                "house": 1
-            }
-        },
-        "H1R1": {
-            "time": {
-                "start": null,
-                "end": 0
-            },
-            "filters": {
-                "house": "1",
-                "resident": "1",
-                "location": ":"
-            }
-        }
-    },
+    "time_ranges": [{
+        "start": "2016-04-28T19:00:00.000Z",
+        "end": "2016-04-28T20:00:00.000Z"
+    }],
     "streams": [
-        {
-            "stream_id": "SW_video",
-            "scope": "global"
-        },
-        {
-            "stream_id": "SW_rss",
-            "scope": "global"
-        },
-        {
-            "stream_id": "DC_SW_video",
-            "scope": "H1R1"
-        }
+        "SW_video",
+        "SW_rss",
+        "DC_SW_video"
     ]
 }

@@ -1,29 +1,11 @@
 {
     "name": "",
     "description": "",
-    "scopes": [
-        {
-            "global": {
-                "time": {
-                    "start": null,
-                    "end": 0
-                },
-                "filters": {
-                    "house": ":",
-                    "resident": ":",
-                    "location": ":"
-                }
-            }
-        }
-    ],
+    "time_ranges": [{
+        "start": null,
+        "end": 0
+    }],
     "streams": [
-        {
-            "sources": [
-                null
-            ],
-            "scope": "global",
-            "parameters": null,
-            "stream_id": ""
-        }
+        ""
     ]
 }

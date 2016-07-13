@@ -14,7 +14,7 @@ class Runner(Interface):
                 value=[1.0],
                 stream_id=stream.stream_id,
                 stream_type=stream.stream_type,
-                filters=stream.scope.filters,
+                filters=stream.filters,
                 version=stream.kernel.version,
                 metadata={}
             )
