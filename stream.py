@@ -22,24 +22,33 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import logging
 from utils import Printable
+from stream_status import StreamStatusModel
 
 
 class Stream(Printable):
-    scope = None
     completed = False
+    current_status = None
 
-    def __init__(self, stream_id, kernel, sources, parameters, stream_type):
+    def __init__(self, stream_id, kernel, sources, parameters, filters, stream_type):
         self.stream_id = stream_id
         self.kernel = kernel
         self.sources = sources
         self.parameters = parameters
+        self.filters = filters
         self.stream_type = stream_type
 
-    def execute(self, clients, configs):
+    def execute(self, clients, configs, time_ranges):
         logging.info("Executing stream " + self.stream_id)
 
-        if not self.scope:
-            raise RuntimeError("No scope for stream " + self.stream_id)
+        if not time_ranges:
+            raise RuntimeError("No time ranges for stream " + self.stream_id)
+
+        self.current_status = StreamStatusModel.objects(
+            stream_id=self.stream_id,
+            kernel_version=self.kernel.version
+        )
+
+
 
         # Ensure all sources have been executed, if not, execute
         if self.sources:
@@ -47,13 +56,17 @@ class Stream(Printable):
             for s in self.sources:
                 # TODO: more logic here
                 if not self.completed:
-                    s.execute(clients, configs)
+                    s.execute(clients, configs, time_ranges)
 
         # Now execute the kernel
-        self.kernel.runner.execute(self, clients, configs)
+        for time_range in time_ranges:
+            self.kernel.runner.execute(self, clients, configs, time_range)
 
         # TODO: Clearly more logic needed here!
         self.completed = True
 
     def __repr__(self):
         return str(self)
+
+    def update_status(self):
+        pass
