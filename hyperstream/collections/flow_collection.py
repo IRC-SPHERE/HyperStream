@@ -22,8 +22,9 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import os
 import simplejson as json
+from collections import OrderedDict
 import logging
-from sphere_connector_package.sphere_connector.utils import Printable
+from ..utils import Printable
 from ..flow import Flow
 
 
@@ -36,7 +37,7 @@ class FlowCollection(Printable):
                 try:
                     logging.info('Reading ' + filename)
                     with open(os.path.join(path, "active", filename), 'r') as f:
-                        flow_definition = json.load(f)
+                        flow_definition = json.load(f, object_pairs_hook=OrderedDict)
                         flow = Flow(stream_collection, **flow_definition)
                         self.flows.append(flow)
                 except (OSError, IOError) as e:

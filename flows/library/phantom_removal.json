@@ -25,15 +25,15 @@
     },
     "streams": [
         {
-            "stream_id": "SW.video",
+            "stream_id": "SW_video",
             "scope": "global"
         },
         {
-            "stream_id": "SW.rss",
+            "stream_id": "SW_rss",
             "scope": "global"
         },
         {
-            "stream_id": "DC.SW.video",
+            "stream_id": "DC_SW_video",
             "scope": "H1R1"
         }
     ]

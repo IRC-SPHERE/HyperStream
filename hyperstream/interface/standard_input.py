@@ -22,12 +22,24 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from input import Input
 import logging
+from instance import InstanceModel
 
 
 class StandardInput(Input):
     def get_data(self, stream, clients, configs):
         logging.debug("Getting data {} (standard input)".format(stream.stream_id))
-        logging.debug(stream.parameters)
-        logging.debug(stream.scope)
-        logging.debug(stream.sources)
-        return None
+        # logging.debug(stream.parameters)
+        # logging.debug(stream.scope)
+        # logging.debug(stream.sources)
+
+        data = {}
+        for source in stream.sources:
+            data[source] = []
+            for instance in InstanceModel.objects(
+                    datetime__gt=source.scope.start,
+                    datetime__lte=source.scope.end,
+                    stream_id=source.stream_id,
+                    version=source.kernel.version):
+                # logging.debug(instance)
+                data[source].append(instance)
+        return data
