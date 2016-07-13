@@ -20,32 +20,35 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import simplejson as json
-import logging
-from collections import OrderedDict
-# from copy import deepcopy
+from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField
 from ..utils import Printable
-from ..stream import Stream
 
 
-class StreamCollection(Printable):
-    streams = {}
+class InstanceModel(Document):
+    stream_id = StringField(required=True, min_length=1, max_length=512)
+    stream_type = StringField(required=True, min_length=1, max_length=512)
+    datetime = DateTimeField(required=True)
+    filters = DictField(required=False)
+    metadata = DictField(required=False)
+    version = StringField(required=True, min_length=1, max_length=512)
+    value = DynamicField(required=True)
 
-    def __init__(self, kernel_collection):
-        with open("stream_ids.json", 'r') as f:
-            stream_ids = json.load(f, object_pairs_hook=OrderedDict)
-            for stream_id in stream_ids:
-                d = stream_ids[stream_id]
-                kernel = kernel_collection.kernels[d['kernel_id']]
+    meta = {
+        'collection': 'streams',
+        'indexes': [{'fields': ['stream_id']}],
+        'ordering': ['start']
+    }
 
-                sources = []
-                if d['sources']:
-                    logging.info("Parsing sources [ " + ", ".join(d['sources']) + " ]")
-                    for source in d['sources']:
-                        if source not in self.streams:
-                            logging.error("Source stream not yet defined: " + source)
-                            continue
-                        else:
-                            sources.append(self.streams[source])
 
-                self.streams[stream_id] = Stream(stream_id, kernel, sources, d['parameters'], d['stream_type'])
+class Instance(Printable):
+    def __init__(self, stream_id, stream_type, datetime, filters, metadata, version, value):
+        self.stream_id = stream_id
+        self.stream_type = stream_type
+        self.datetime = datetime
+        self.filters = filters
+        self.metadata = metadata
+        self.version = version
+        self.value = value
+
+    def to_model(self):
+        return InstanceModel(**self.__dict__)
