@@ -66,7 +66,7 @@ def try_connect(basic_config):
 class OnlineEngine(object):
     def __init__(self, hyperstream_config):
         sc.utils.initialise_logger(path='/tmp', filename='hyperstream_online')
-        basic_config = BasicConfig(True, False)
+        basic_config = BasicConfig(include_mongo=True, include_redcap=False)
         [self.sphere_client, self.session] = try_connect(basic_config)
         self.client = Client(hyperstream_config.mongo)
         self.clients = {'hyperstream': self.client, 'sphere': self.sphere_client, 'mongoengine': self.session}

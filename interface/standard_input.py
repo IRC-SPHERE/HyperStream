@@ -26,18 +26,15 @@ from instance import InstanceModel
 
 
 class StandardInput(Input):
-    def get_data(self, stream, clients, configs):
+    def get_data(self, stream, clients, configs, time_range):
         logging.debug("Getting data {} (standard input)".format(stream.stream_id))
-        # logging.debug(stream.parameters)
-        # logging.debug(stream.scope)
-        # logging.debug(stream.sources)
 
         data = {}
         for source in stream.sources:
             data[source] = []
             for instance in InstanceModel.objects(
-                    datetime__gt=source.scope.start,
-                    datetime__lte=source.scope.end,
+                    datetime__gt=time_range.start,
+                    datetime__lte=time_range.end,
                     stream_id=source.stream_id,
                     version=source.kernel.version):
                 # logging.debug(instance)
