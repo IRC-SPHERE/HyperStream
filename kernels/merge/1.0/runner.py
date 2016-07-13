@@ -20,7 +20,7 @@ class Runner(Interface):
                 value=dict((stream_ids[i], v[i].value) for i in range(len(stream_ids))),
                 stream_id=stream.stream_id,
                 stream_type=stream.stream_type,
-                filters=stream.scope.filters,
+                filters=stream.filters,
                 version=stream.kernel.version,
                 metadata={}
             )

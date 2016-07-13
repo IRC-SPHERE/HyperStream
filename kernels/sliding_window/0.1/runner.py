@@ -28,7 +28,7 @@ class Runner(Interface):
                 value=g[1].values.ravel().tolist(),
                 stream_id=stream.stream_id,
                 stream_type=stream.stream_type,
-                filters=stream.scope.filters,
+                filters=stream.filters,
                 version=stream.kernel.version,
                 metadata={}
             )

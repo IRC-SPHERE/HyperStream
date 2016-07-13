@@ -1,31 +1,20 @@
 {
     "name": "Test flow",
     "description": "Want to test some of the main features, such as merging streams",
-    "scopes": {
-        "global": {
-            "time": {
-                "start": "2016-04-28T19:00:00.000Z",
-                "end": "2016-04-28T19:00:30.000Z"
-            },
-            "filters": {}
+    "time_ranges": [
+        {
+            "start": "2016-04-28T19:00:00.000Z",
+            "end": "2016-04-28T19:00:30.000Z"
+        },
+        {
+            "start": "2016-04-28T19:01:00.000Z",
+            "end": "2016-04-28T19:01:30.000Z"
         }
-    },
+    ],
     "streams": [
-        {
-            "stream_id": "SW_rss",
-            "scope": "global"
-        },
-        {
-            "stream_id": "SW_video",
-            "scope": "global"
-        },
-        {
-            "stream_id": "[SW_rss, SW_video]",
-            "scope": "global"
-        },
-        {
-            "stream_id": "DC_[SW_rss, SW_video]",
-            "scope": "global"
-        }
+        "SW_rss",
+        "SW_video",
+        "[SW_rss, SW_video]",
+        "DC_[SW_rss, SW_video]"
     ]
 }
