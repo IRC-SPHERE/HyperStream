@@ -1,51 +1,13 @@
 {
     "name": "Straw man",
     "description": "Basic test task",
-    "scopes": {
-        "global": {
-            "time": {
-                "start": null,
-                "end": 0
-            },
-            "filters": {
-                "house": ":",
-                "resident": ":",
-                "location": ":"
-            }
-        },
-        "H1R1": {
-            "time": {
-                "start": null,
-                "end": 0
-            },
-            "filters": {
-                "house": "1",
-                "resident": "1",
-                "location": ":"
-            }
-        }
-    },
+    "time_ranges": [{
+            "start": null,
+            "end": 0
+    }],
     "streams": [
-        {
-            "sources": [],
-            "kernel_id": "SW",
-            "stream_id": "SW_Raw",
-            "scope": "global"
-        },
-        {
-            "sources": [ "SW_Raw" ],
-            "parameters": {
-                "width": 2.0
-            },
-            "kernel_id": "SW",
-            "stream_id": "SW_SW_Raw",
-            "scope": "H1R1"
-        },
-        {
-            "sources": [ "SW_SW_Raw" ],
-            "kernel_id": "DC",
-            "stream_id": "DC_SW_SW_Raw",
-            "scope": "H1R1"
-        }
+        "SW_Raw",
+        "SW_SW_Raw",
+        "DC_SW_SW_Raw"
     ]
 }

@@ -24,38 +24,29 @@ from __future__ import absolute_import
 import logging
 from collections import OrderedDict
 from copy import deepcopy
-from .utils import Printable
-from .scope import Scope
+from .utils import Printable, parse_time
 
 
 class Flow(Printable):
-    def __init__(self, stream_collection, name, description, scopes, streams):
+    def __init__(self, stream_collection, name, description, time_ranges, streams):
         self.name = name
         self.description = description
-        self.scopes = {}
         self.streams = OrderedDict()
-        # self.stream_scopes = {}
-
-        for sc in scopes:
-            scope = Scope(sc, **scopes[sc])
-            self.scopes[sc] = scope
+        self.time_ranges = [parse_time(t['start'], t['end']) for t in time_ranges]
 
         for s in streams:
-            stream = deepcopy(stream_collection.streams[s['stream_id']])
-            stream.scope = self.scopes[s['scope']]
+            stream = deepcopy(stream_collection.streams[s])
 
             # TODO: Trouble with this deep copy is that the sources are new objects, rather than pointing to the parents
             # Current workaround is to look for parents in the object
             self.update_sources(stream)
 
-            # self.set_scopes(stream_collection, stream, s['scope'])
             self.streams[stream.stream_id] = stream
-            # self.stream_scopes[stream] = self.scopes[s['scope']]
 
     def execute(self, clients, configs):
-        print(self)
+        # print(self)
         for s in self.streams:
-            self.streams[s].execute(clients, configs)
+            self.streams[s].execute(clients, configs, self.time_ranges)
 
     def __repr__(self):
         return str(self)
@@ -65,8 +56,3 @@ class Flow(Printable):
             if stream.sources[i].stream_id in self.streams:
                 stream.sources[i] = self.streams[stream.sources[i].stream_id]
             self.update_sources(stream.sources[i])
-
-    # def set_scopes(self, stream_collection, stream, scope_id):
-    #     stream.scope = self.scopes[scope_id]
-    #     for s in stream.sources:
-    #         self.set_scopes(stream_collection, s, stream_collection.streams)

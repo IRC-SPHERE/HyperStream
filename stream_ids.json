@@ -7,6 +7,7 @@
             "modality": "wearable",
             "element": "rss"
         },
+        "filters": {},
         "sources": [],
         "stream_type": "preprocessor"
     },
@@ -18,6 +19,7 @@
             "modality": "video",
             "element": "2Dbb"
         },
+        "filters": {},
         "sources": [],
         "stream_type": "preprocessor"
     },
@@ -25,18 +27,21 @@
         "kernel_id": "merge",
         "parameters": {},
         "sources": [ "SW_rss", "SW_video" ],
+        "filters": {},
         "stream_type": "aggregator"
     },
     "DC_SW_video": {
         "kernel_id": "dumb_classifier",
         "parameters": {},
         "sources": [ "SW_video" ],
+        "filters": {},
         "stream_type": "classifier"
     },
     "DC_[SW_rss, SW_video]": {
         "kernel_id": "dumb_classifier",
         "sources": [ "[SW_rss, SW_video]" ],
         "parameters": {},
+        "filters": {},
         "stream_type": "classifier"
     }
 }
