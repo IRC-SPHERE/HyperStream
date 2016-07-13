@@ -22,11 +22,12 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import os
 import simplejson as json
+from collections import OrderedDict
 import logging
-from sphere_connector_package.sphere_connector.utils import Printable
+from ..utils import Printable
 from ..kernel import Kernel
 import imp
-from ..interfaces import StandardInput, StandardOutput, RawInput
+from ..interface import StandardInput, StandardOutput, RawInput
 
 
 INPUT_TYPES = {
@@ -44,7 +45,7 @@ class KernelCollection(Printable):
 
     def __init__(self, kernel_path):
         with open("kernel_ids.json", 'r') as f:
-            kernel_ids = json.load(f)
+            kernel_ids = json.load(f, object_pairs_hook=OrderedDict)
             for kernel_id in kernel_ids:
                 d = kernel_ids[kernel_id]
                 try:

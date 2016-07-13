@@ -20,20 +20,10 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField
+import pprint
 
 
-class Instance(Document):
-    stream_id = StringField(required=True, min_length=1, max_length=512)
-    stream_type = StringField(required=True, min_length=1, max_length=512)
-    datetime = DateTimeField(required=True)
-    filters = DictField(required=False)
-    metadata = DictField(required=False)
-    version = StringField(required=True, min_length=1, max_length=512)
-    value = DynamicField(required=True)
-
-    meta = {
-        'collection': 'streams',
-        'indexes': [{'fields': ['stream_id']}],
-        'ordering': ['start']
-    }
+class Printable(object):
+    def __str__(self):
+        pp = pprint.PrettyPrinter(indent=4)
+        return pp.pformat(self.__dict__)

@@ -22,22 +22,18 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from input import Input
 import logging
+from instance import Instance
 
-# from sphere_connector_package.sphere_connector.client import Client
-# from sphere_connector_package.sphere_connector.config import BasicConfig
 from sphere_connector_package.sphere_connector.config import ExperimentConfig
 from sphere_connector_package.sphere_connector.experiment import Experiment
-
-# basic_config = BasicConfig(include_redcap=False)
-# client = Client(basic_config.mongo)
 
 
 class RawInput(Input):
     def get_data(self, stream, clients, configs):
         logging.debug("Getting data {} (raw input)".format(stream.stream_id))
-        logging.debug(stream.parameters)
-        logging.debug(stream.scope)
-        logging.debug(stream.sources)
+        # logging.debug(stream.parameters)
+        # logging.debug(stream.scope)
+        # logging.debug(stream.sources)
         experiment_config = ExperimentConfig(experiment_start=stream.scope.start, experiment_end=stream.scope.end,
                                              experiment_id=stream.stream_id)
 
@@ -53,19 +49,10 @@ class RawInput(Input):
             data = experiment.environmental.get_data()
         elif stream.parameters["modality"] == "video":
             modality = experiment.video
-            data = experiment.video.get_data()
+            data = experiment.video.get_data(elements={stream.parameters["element"]})
         elif stream.parameters["modality"] == "wearable":
             modality = experiment.wearable
-            if stream.parameters["element"] == "xyz":
-                data = experiment.wearable.get_data(include_xyz=True, include_mag=False, include_rss=False)
-            elif stream.parameters["element"] == "mag":
-                data = experiment.wearable.get_data(include_xyz=False, include_mag=True, include_rss=False)
-            elif stream.parameters["element"] == "rss":
-                data = experiment.wearable.get_data(include_xyz=False, include_mag=False, include_rss=True)
-            elif stream.parameters["element"] == ":":
-                data = experiment.wearable.get_data(include_xyz=True, include_mag=True, include_rss=True)
-            else:
-                raise RuntimeError("Unknown element for raw data input {}".format(stream.parameters["element"]))
+            data = experiment.wearable.get_data(elements={stream.parameters["element"]})
         else:
             raise RuntimeError("Unknown modality for raw data input {}".format(stream.parameters["modality"]))
 
@@ -77,20 +64,24 @@ class RawInput(Input):
         data_standard = []
         for d in data:
             if len(modality.sensors) == 1:
-                value = d[next(iter(modality.sensors))]
+                key = next(iter(modality.sensors))
+                if key in d:
+                    value = d[key]
+                else:
+                    raise RuntimeError("Sensor data missing: " + key)
             else:
                 value = dict((v, d[v]) for v in modality.sensors)
 
-            dd = {
-                "stream_id": stream.stream_id,
-                "stream_type": stream.stream_type,
-                "filters": stream.scope.filters,
-                "meta": {"uid": d["uid"], "aid": d["aid"]} if "aid" in d else {"uid": d["uid"]},
-                "datetime": d["datetime"],
-                "value": value,
-                "version": stream.kernel.version
-            }
+            instance = Instance(
+                stream_id=stream.stream_id,
+                stream_type=stream.stream_type,
+                filters=stream.scope.filters,
+                metadata={"uid": d["uid"], "aid": d["aid"]} if "aid" in d else {"uid": d["uid"]},
+                datetime=d["datetime"],
+                value=value,
+                version=stream.kernel.version
+            )
 
-            data_standard.append(dd)
+            data_standard.append(instance)
 
-        return data_standard
+        return {'raw': data_standard}

@@ -16,7 +16,7 @@
     },
     "streams": [
         {
-            "stream_id": "SW.rss",
+            "stream_id": "SW_rss",
             "scope": "global"
         }
     ]

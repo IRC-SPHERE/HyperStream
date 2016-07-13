@@ -22,7 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 # import logging
-from sphere_connector_package.sphere_connector.utils import Printable
+from utils import Printable
 from datetime import timedelta, datetime
 from dateutil.parser import parse
 

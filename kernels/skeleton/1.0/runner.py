@@ -1,4 +1,4 @@
-from hyperstream.interface import Interface
+from hyperstream.interface import Interface, Instance
 
 
 class Runner(Interface):

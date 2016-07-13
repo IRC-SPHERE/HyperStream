@@ -23,3 +23,5 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from raw_input import RawInput
 from standard_input import StandardInput
 from standard_output import StandardOutput
+from instance import Instance, InstanceModel
+from interface import Interface
