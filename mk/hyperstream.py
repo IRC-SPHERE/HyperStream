@@ -191,8 +191,14 @@ class StreamRef(object):
     self.end = end
     self.modifier = modifier
     self.get_results_func = get_results_func
-  def __str__(self): ### TODO possibly need repr as well? or even repr instead of str?
-    return(str((self.base_id,self.stream_id,self.start,self.end,self.modifier))) ### TODO perhaps modifier needs to go to str separately? or move all to repr?
+  def __repr__(self): ### TODO possibly need repr as well? or even repr instead of str?
+    s = "StreamRef\n      BASE_ID  : " + repr(self.base_id)
+    s = s +      "\n      STREAM_ID: " + repr(self.stream_id)
+    s = s +      "\n      START    : " + repr(self.start)
+    s = s +      "\n      END      : " + repr(self.end)
+    s = s +      "\n      MODIFIER : " + repr(self.modifier)
+    s = s +      "\n    "
+    return(s)
   def __eq__(self,other):
     return(str(self)==str(other))
   def __hash__(self):
@@ -258,7 +264,25 @@ class StreamBase(object):
     raise NotImplementedError
   def get_default_ref(self):
     '''Could be overridden by deriving classes, should return the default values for start,end,modifier when referring to a stream in this streambase'''
-    return({'start':MIN_DATE,'end':delta(0),'modifier':identity})
+    return({'start':MIN_DATE,'end':delta(0),'modifier':Identity()})
+  def __repr__(self):
+    s = super(StreamBase,self).__repr__() + ' with ID: ' + str(self.state.base_id) 
+    s = s + ' and containing '+str(len(self.state.id2calc))+" streams:"
+    for stream_id in self.state.id2calc:
+      s = s + '\nSTREAM ID: ' + str(stream_id)
+      s = s + "\n  NAMES: "
+      names = []
+      for name in self.state.name2id:
+	if self.state.name2id[name]==stream_id:
+	  names.append(name)
+      s = s + ', '.join(names)
+      s = s + "\n  CALCULATED RANGES: " + repr(self.state.id2calc[stream_id])
+      s = s + "\n  STREAM DEFINITION: "
+      s = s + self.repr_stream(stream_id)
+    return(s)
+  def repr_stream(self,stream_id):
+    '''Must be over-ridden to provide details about the stream'''
+    raise NotImplementedError
   def parse_setkey(self,key):
     # ( stream_id_part [,stream_id_part]* )
     if type(key)==tuple:
@@ -315,6 +339,12 @@ class StreamDef(object): # tool with params
     self.tool = tool
     self.args = args
     self.kwargs = kwargs
+  def __repr__(self):
+    s = "StreamDef:"
+    s = s + "\n    TOOL  : " + repr(self.tool)
+    s = s + "\n    ARGS  : " + repr(self.args)
+    s = s + "\n    KWARGS: " + repr(self.kwargs)
+    return(s)
   def normalise(self):
     return(self.tool.normalise_stream_def(self))
   def __eq__(self,other):
