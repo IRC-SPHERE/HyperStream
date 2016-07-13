@@ -21,6 +21,8 @@ class ReadOnlyMemoryBase(StreamBase):
     self.up_to_timestamp = MIN_DATE
     if up_to_timestamp>MIN_DATE:
       self.update(up_to_timestamp)
+  def repr_stream(self,stream_id):
+    return('externally defined, memory-based, read-only stream')
   def update_streams(self,up_to_timestamp):
     '''Deriving classes must override this function'''
     raise NotImplementedError
@@ -71,12 +73,16 @@ class FileBase(ReadOnlyMemoryBase):
   def __init__(self,base_id,path,up_to_timestamp=MIN_DATE):
     self.path = path 
     super(FileBase,self).__init__(base_id,up_to_timestamp)
+  def repr_stream(self,stream_id):
+    s = 'externally defined by the file system, read-only stream'
+    s = s + ', currently holding ' + str(len(self.streams[stream_id])) + ' files'
+    return(s)
   def file_filter(self,sorted_file_names):
     for file_long_name in sorted_file_names:
       pattern = '^(\d\d\d\d)_(\d\d)_(\d\d)_(\d\d)_(\d\d)_(\d\d)_(\d\d\d)_(.*)$'
       matches = re.match(pattern,file_long_name)
       if matches:
-        file_timestamp = date(*[int(x) for x in matches.groups()[:-1]])
+        file_timestamp = date(*([int(x) for x in matches.groups()[:-1]]+[UTC]))
 	file_short_name = matches.groups()[-1]
         yield (file_timestamp,file_short_name,file_long_name)
   def update_streams(self,up_to_timestamp):
@@ -147,6 +153,9 @@ class MemoryBase(StreamBase):
     super(MemoryBase,self).__init__(can_calc=True,can_create=True,state=state)
     self.streams = {}
     self.max_stream_id = 0
+  def repr_stream(self,stream_id):
+    s = repr(self.state.id2def[stream_id])
+    return(s)
   def create_stream(self,stream_def):
     '''Must be overridden by deriving classes, must create the stream according to stream_def and return its unique identifier stream_id'''
     self.max_stream_id = self.max_stream_id + 1
@@ -176,11 +185,17 @@ class MemoryBase(StreamBase):
     start = stream_ref.start
     abs_start = start
     if type(start)==delta:
-      abs_start = kwargs['start'] + start
+      try:
+        abs_start = kwargs['start'] + start
+      except KeyError:
+	raise Exception('The stream reference to be calculated has a relative start time, need an absolute start time')
     end = stream_ref.end
     abs_end = end
     if type(end)==delta:
-      abs_end = kwargs['end'] + end
+      try:
+        abs_end = kwargs['end'] + end
+      except KeyError:
+	raise Exception('The stream reference to be calculated has a relative end time, need an absolute end time')
     done_calc_times = self.state.get_id2calc(stream_id)
     need_to_calc_times = TimeIntervals([(abs_start,abs_end)]) - done_calc_times
     if str(need_to_calc_times)!='':
