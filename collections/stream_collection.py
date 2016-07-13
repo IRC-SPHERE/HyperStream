@@ -22,8 +22,9 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import simplejson as json
 import logging
-from copy import deepcopy
-from sphere_connector_package.sphere_connector.utils import Printable
+from collections import OrderedDict
+# from copy import deepcopy
+from ..utils import Printable
 from ..stream import Stream
 
 
@@ -32,7 +33,7 @@ class StreamCollection(Printable):
 
     def __init__(self, kernel_collection):
         with open("stream_ids.json", 'r') as f:
-            stream_ids = json.load(f)
+            stream_ids = json.load(f, object_pairs_hook=OrderedDict)
             for stream_id in stream_ids:
                 d = stream_ids[stream_id]
                 kernel = kernel_collection.kernels[d['kernel_id']]
@@ -45,6 +46,6 @@ class StreamCollection(Printable):
                             logging.error("Source stream not yet defined: " + source)
                             continue
                         else:
-                            sources.append(deepcopy(self.streams[source]))
+                            sources.append(self.streams[source])
 
                 self.streams[stream_id] = Stream(stream_id, kernel, sources, d['parameters'], d['stream_type'])

@@ -20,16 +20,35 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import logging
-
-from output import Output
-from instance import Instance
+from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField
+from ..utils import Printable
 
 
-class StandardOutput(Output):
-    def put_data(self, stream, data, clients, configs):
-        logging.debug("Putting data (standard output)")
-        for d in data:
-            instance = Instance(**d)
-            instance.save()
+class InstanceModel(Document):
+    stream_id = StringField(required=True, min_length=1, max_length=512)
+    stream_type = StringField(required=True, min_length=1, max_length=512)
+    datetime = DateTimeField(required=True)
+    filters = DictField(required=False)
+    metadata = DictField(required=False)
+    version = StringField(required=True, min_length=1, max_length=512)
+    value = DynamicField(required=True)
 
+    meta = {
+        'collection': 'streams',
+        'indexes': [{'fields': ['stream_id']}],
+        'ordering': ['start']
+    }
+
+
+class Instance(Printable):
+    def __init__(self, stream_id, stream_type, datetime, filters, metadata, version, value):
+        self.stream_id = stream_id
+        self.stream_type = stream_type
+        self.datetime = datetime
+        self.filters = filters
+        self.metadata = metadata
+        self.version = version
+        self.value = value
+
+    def to_model(self):
+        return InstanceModel(**self.__dict__)
