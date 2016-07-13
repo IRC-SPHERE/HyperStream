@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2015 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,20 +20,26 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-
+from input import Input
 import logging
-from utils import Printable
+from instance import InstanceModel
 
 
-class Kernel(Printable):
-    def __init__(self, runner, kernel_id, version, name, description, release_notes=None):
-        self.kernel_id = kernel_id
-        self.runner = runner
-        self.version = version
-        self.name = name
-        self.description = description
-        self.releaseNotes = release_notes
-        self.version = version
+class StandardInput(Input):
+    def get_data(self, stream, clients, configs):
+        logging.debug("Getting data {} (standard input)".format(stream.stream_id))
+        # logging.debug(stream.parameters)
+        # logging.debug(stream.scope)
+        # logging.debug(stream.sources)
 
-    def __repr__(self):
-        return str(self)
+        data = {}
+        for source in stream.sources:
+            data[source] = []
+            for instance in InstanceModel.objects(
+                    datetime__gt=source.scope.start,
+                    datetime__lte=source.scope.end,
+                    stream_id=source.stream_id,
+                    version=source.kernel.version):
+                # logging.debug(instance)
+                data[source].append(instance)
+        return data

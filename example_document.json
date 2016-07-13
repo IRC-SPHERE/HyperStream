@@ -1,7 +1,9 @@
 {
-    "streamId": "String",
-    "type": "Int",
+    "stream_id": "String",
+    "stream_type": "Int",
     "filters": "Dict",
+    "meta": "dict",
+    "datetime": "datetime.datetime",
     "version": "String",
     "value": "Object"
 }

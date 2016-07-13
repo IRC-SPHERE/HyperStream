@@ -1,16 +1,14 @@
 {
-    "name": "Straw man",
-    "description": "Basic test task",
+    "name": "Phantom removal",
+    "description": "Remove phantom bounding boxes from the video stream",
     "scopes": {
         "global": {
             "time": {
-                "start": null,
-                "end": 0
+                "start": "2016-04-28T19:00:00.000Z",
+                "end": "2016-04-28T20:00:00.000Z"
             },
             "filters": {
-                "house": ":",
-                "resident": ":",
-                "location": ":"
+                "house": 1
             }
         },
         "H1R1": {
@@ -27,15 +25,15 @@
     },
     "streams": [
         {
-            "stream_id": "SW.video",
+            "stream_id": "SW_video",
             "scope": "global"
         },
         {
-            "kernel": "SW",
-            "parameters": {
-                "width": 2.0
-            },
-            "stream_id": "DC.SW.video",
+            "stream_id": "SW_rss",
+            "scope": "global"
+        },
+        {
+            "stream_id": "DC_SW_video",
             "scope": "H1R1"
         }
     ]

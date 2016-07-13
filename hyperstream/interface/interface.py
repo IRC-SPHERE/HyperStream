@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2015 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,24 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-import logging
-from utils import Printable
 
+class Interface(object):
+    input_data = None
+    output_data = None
 
-class Kernel(Printable):
-    def __init__(self, runner, kernel_id, version, name, description, release_notes=None):
-        self.kernel_id = kernel_id
-        self.runner = runner
-        self.version = version
-        self.name = name
-        self.description = description
-        self.releaseNotes = release_notes
-        self.version = version
+    def __init__(self, input_function, output_function):  # TODO: separate batch & incremental inputs/outputs
+        self.input_function = input_function
+        self.output_function = output_function
 
-    def __repr__(self):
-        return str(self)
+    def execute(self, stream, clients, configs):
+        # Get data
+        self.input_data = self.input_function(stream, clients, configs)
+
+        # Do computation
+        self.compute(stream)
+
+        # Send data back
+        self.output_function(stream, self.output_data, clients, configs)
+
+    def compute(self, stream):
+        raise NotImplementedError()
