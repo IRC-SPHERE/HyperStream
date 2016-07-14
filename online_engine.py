@@ -25,8 +25,6 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 import sys
 # sys.path.insert(1, os.path.join(os.path.dirname(os.path.realpath(__file__)), "sphere_connector_package"))
 import logging
-from sphere_connector_package import sphere_connector as sc
-from sphere_connector_package.sphere_connector.config import BasicConfig
 from collections import FlowCollection, KernelCollection, StreamCollection
 from client import Client
 from mongoengine import connect
@@ -64,17 +62,15 @@ def try_connect(basic_config):
 
 
 class OnlineEngine(object):
-    def __init__(self, hyperstream_config):
-        sc.utils.initialise_logger(path='/tmp', filename='hyperstream_online')
-        basic_config = BasicConfig(include_mongo=True, include_redcap=False)
-        [self.sphere_client, self.session] = try_connect(basic_config)
-        self.client = Client(hyperstream_config.mongo)
+    def __init__(self, configs):
+        [self.sphere_client, self.session] = try_connect(configs['sphere_connector'])
+        self.client = Client(configs['hyperstream'].mongo)
         self.clients = {'hyperstream': self.client, 'sphere': self.sphere_client, 'mongoengine': self.session}
-        self.configs = {'basic_config': basic_config, 'hyperstream': hyperstream_config}
+        self.configs = configs
 
-        self.kernels = KernelCollection(hyperstream_config.kernel_path)
+        self.kernels = KernelCollection(configs['hyperstream'].kernel_path)
         self.streams = StreamCollection(self.kernels)
-        self.flows = FlowCollection(self.streams, hyperstream_config.flow_path)
+        self.flows = FlowCollection(self.streams, configs['hyperstream'].flow_path)
 
     def execute(self):
         self.flows.execute_all(self.clients, self.configs)
