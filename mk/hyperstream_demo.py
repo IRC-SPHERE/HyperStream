@@ -110,6 +110,7 @@ room_filter = AttrDict()
 for room in rooms:
   room_filter[room] = CompFilter('uid',[uid for uid in uid_set if uid_info[uid].room==room])
 
+e = 'environmental'
 
 
 res = S['environmental',t1,t1+MINUTE,room_filter.K+Data()+List()]()

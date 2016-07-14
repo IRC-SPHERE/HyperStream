@@ -130,6 +130,11 @@ class SphereBase(StreamBase):
     return({'start':MIN_DATE,'end':self.up_to_timestamp,'modifier':Identity()})
 
 
+class AttrDict(dict):
+  def __getattr__(self,key):
+    return(self.__getitem__(key))
+  def __setattr__(self,key,value):
+    self.__setitem__(key,value)
 
 
 
