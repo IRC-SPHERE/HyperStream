@@ -1,6 +1,7 @@
 
 from datetime import datetime as date
 from datetime import timedelta as delta
+from pytz import UTC
 
 DAY = delta(days=1)
 HOUR = delta(hours=1)
@@ -9,8 +10,8 @@ SEC = delta(seconds=1)
 MSEC = delta(milliseconds=1)
 MICROSEC = delta(microseconds=1)
 MIN_DELTA = MICROSEC
-MIN_DATE = date(1,1,1)
-MAX_DATE = date(9999,12,31,23,59,59,999999)
+MIN_DATE = date(1,1,1,0,0,0,0,UTC)
+MAX_DATE = date(9999,12,31,23,59,59,999999,UTC)
 
 # e.g. -5*SEC
 
