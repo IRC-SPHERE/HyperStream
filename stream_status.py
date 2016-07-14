@@ -20,12 +20,12 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, DictField, EmbeddedDocumentListField
+from mongoengine import Document, DateTimeField, StringField, DictField, EmbeddedDocument, EmbeddedDocumentListField
 # from ..utils import Printable
 from ..utils import TimeRange
 
 
-class DateTimeRange(Document):
+class DateTimeRange(EmbeddedDocument):
     start = DateTimeField(required=True)
     end = DateTimeField(required=True)
 

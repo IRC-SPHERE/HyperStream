@@ -22,7 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import logging
 from utils import Printable, TimeRange
-from interface import StreamStatusModel
+from stream_status import StreamStatusModel
 from copy import deepcopy
 
 
