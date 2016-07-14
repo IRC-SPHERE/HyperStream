@@ -35,7 +35,7 @@ class RawInput(Input):
                                              experiment_id=stream.stream_id)
 
         client = clients['sphere']
-        basic_config = configs['basic_config']
+        basic_config = configs['sphere_connector']
         experiment = Experiment(client, experiment_config, basic_config)
 
         if stream.parameters["modality"] == "annotations":
