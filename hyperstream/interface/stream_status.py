@@ -22,6 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from mongoengine import Document, DateTimeField, StringField, DictField, EmbeddedDocumentListField
 # from ..utils import Printable
+from ..utils import TimeRange
 
 
 class DateTimeRange(Document):
@@ -43,6 +44,35 @@ class StreamStatusModel(Document):
         'ordering': ['start']
     }
 
+    @property
+    def time_ranges(self):
+        return [TimeRange(dt.start, dt.end) for dt in self.computed_ranges]
+
+    @time_ranges.setter
+    def time_ranges(self, ranges):
+        self.computed_ranges = [DateTimeRange(DateTimeField(dt.start), DateTimeField(dt.end)) for dt in ranges]
+
+    def add_time_range(self, time_range):
+        self.time_ranges.append(time_range)
+        self.update_time_ranges()
+
+    def update_time_ranges(self):
+        sorted_by_lower_bound = sorted(self.time_ranges, key=lambda r: r.start)
+        merged = []
+
+        for higher in sorted_by_lower_bound:
+            if not merged:
+                merged.append(higher)
+            else:
+                lower = merged[-1]
+                # test for intersection between lower and higher:
+                # we know via sorting that lower[0] <= higher[0]
+                if higher[0] <= lower[1]:
+                    upper_bound = max(lower[1], higher[1])
+                    merged[-1] = (lower[0], upper_bound)  # replace by merged interval
+                else:
+                    merged.append(higher)
+        self.time_ranges = merged
 
 # class StreamStatus(Printable):
 #     def __init__(self, stream_id, stream_type, last_updated, filters, computed_ranges, version):
