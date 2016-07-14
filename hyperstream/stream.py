@@ -24,6 +24,7 @@ import logging
 from utils import Printable, TimeRange
 from stream_status import StreamStatusModel
 from copy import deepcopy
+from datetime import datetime
 
 
 class Stream(Printable):
@@ -58,8 +59,8 @@ class Stream(Printable):
                 computed_ranges=[],
                 filters=self.filters
             )
-            # Add this to the database
-            self.current_status.save()
+            # (don't) Add this to the database (yet)
+            # self.current_status.save()
         else:
             self.current_status = status_docs[0]
 
@@ -74,17 +75,20 @@ class Stream(Printable):
         temp_time_ranges = deepcopy(time_ranges)
         for time_range in time_ranges:
             needs_full_computation = True
-            for (start, end) in self.current_status.time_ranges:
+            for (start, end) in self.current_status.computed_ranges:
                 if time_range.start < start:
                     if time_range.end < start:
                         continue
                     else:
                         temp_time_ranges.append(TimeRange(start=time_range.start, end=start))
+                        logging.debug("Time range partially computed {0}, new end time={1}".format(time_range, start))
                 else:
-                    if time_range.end < end:
+                    if time_range.end <= end:
                         needs_full_computation = False
+                        logging.debug("Time range fully computed {0}".format(time_range))
                     else:
                         temp_time_ranges.append(TimeRange(start=end, end=time_range.end))
+                        logging.debug("Time range partially computed {0}, new start time={1}".format(time_range, end))
             if needs_full_computation:
                 temp_time_ranges.append(time_range)
         time_ranges = temp_time_ranges
@@ -93,6 +97,7 @@ class Stream(Printable):
         for time_range in time_ranges:
             self.kernel.runner.execute(self, clients, configs, time_range)
             self.current_status.add_time_range(time_range)
+            self.current_status.last_updated = datetime.utcnow()
             self.current_status.save()
 
     def __repr__(self):
