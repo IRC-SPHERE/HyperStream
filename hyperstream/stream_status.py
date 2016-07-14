@@ -23,7 +23,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from mongoengine import Document, DateTimeField, StringField, DictField, ListField
 # , EmbeddedDocument, EmbeddedDocumentListField,
 # from ..utils import Printable
-from utils import TimeRange
+from time_range import TimeRange
 
 
 # class DateTimeRange(EmbeddedDocument):
