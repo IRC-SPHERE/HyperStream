@@ -24,7 +24,8 @@ from __future__ import absolute_import
 import logging
 from collections import OrderedDict
 from copy import deepcopy
-from .utils import Printable, parse_time
+from .utils import Printable
+from .time_range import parse_time
 
 
 class Flow(Printable):
