@@ -32,7 +32,47 @@ class Printable(object):
         pp = pprint.PrettyPrinter(indent=4)
         return pp.pformat(self.__dict__)
 
-TimeRange = namedtuple('TimeRange', ['start', 'end'])
+
+# TimeRange = namedtuple('TimeRange', ['start', 'end'])
+
+
+class TimeRange(Printable):
+    _start = None
+    _end = None
+
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+
+    def to_tuple(self):
+        return self.start, self.end
+
+    @property
+    def start(self):
+        return self._start
+
+    @start.setter
+    def start(self, val):
+        if not isinstance(val, datetime):
+            raise TypeError("start should datetime.datetime object")
+        if self._end is not None and val >= self._end:
+            raise ValueError("start should be < end")
+        self._start = val
+
+    @property
+    def end(self):
+        return self._end
+
+    @end.setter
+    def end(self, val):
+        if not isinstance(val, datetime):
+            raise TypeError("end should datetime.datetime object")
+        if self._start is not None and val <= self._start:
+            raise ValueError("start should be < end")
+        self._end = val
+
+    def __repr__(self):
+        return "TimeRange({0}, {1})".format(self._start.__repr__(), self._end.__repr__())
 
 
 def parse_time(start, end):

@@ -20,41 +20,52 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, DictField, EmbeddedDocument, EmbeddedDocumentListField
+from mongoengine import Document, DateTimeField, StringField, DictField, ListField
+# , EmbeddedDocument, EmbeddedDocumentListField,
 # from ..utils import Printable
-from ..utils import TimeRange
+from utils import TimeRange
 
 
-class DateTimeRange(EmbeddedDocument):
-    start = DateTimeField(required=True)
-    end = DateTimeField(required=True)
+# class DateTimeRange(EmbeddedDocument):
+#     start = DateTimeField(required=True)
+#     end = DateTimeField(required=True)
 
 
 class StreamStatusModel(Document):
     stream_id = StringField(required=True, min_length=1, max_length=512)
     stream_type = StringField(required=True, min_length=1, max_length=512)
     last_updated = DateTimeField(required=True)
-    computed_ranges = EmbeddedDocumentListField(document_type=DateTimeRange, required=True)
+    computed_ranges = ListField(required=True)
+    # computed_ranges = EmbeddedDocumentListField(DateTimeRange)
     filters = DictField(required=False)
     kernel_version = StringField(required=True, min_length=1, max_length=512)
 
     meta = {
-        'collection': 'streams',
+        'collection': 'stream_status',
         'indexes': [{'fields': ['stream_id']}],
         'ordering': ['start']
     }
 
     @property
     def time_ranges(self):
-        return [TimeRange(dt.start, dt.end) for dt in self.computed_ranges]
+        return [TimeRange(*dt) for dt in self.computed_ranges]
 
     @time_ranges.setter
     def time_ranges(self, ranges):
-        self.computed_ranges = [DateTimeRange(DateTimeField(dt.start), DateTimeField(dt.end)) for dt in ranges]
+        self.computed_ranges = [r.to_tuple() for r in ranges]
 
     def add_time_range(self, time_range):
-        self.time_ranges.append(time_range)
+        # new_ranges = self.time_ranges + [time_range]
+        # self.computed_ranges.append(
+        #     DateTimeRange(start=DateTimeField(time_range.start), end=DateTimeField(time_range.end)))
+        # self.update_time_ranges()
+        # return self.time_ranges
+        if not isinstance(time_range, TimeRange):
+            raise RuntimeError("Can only add TimeRange objects")
+
+        self.computed_ranges.append(time_range.to_tuple())
         self.update_time_ranges()
+        return self.time_ranges
 
     def update_time_ranges(self):
         sorted_by_lower_bound = sorted(self.time_ranges, key=lambda r: r.start)
@@ -66,10 +77,10 @@ class StreamStatusModel(Document):
             else:
                 lower = merged[-1]
                 # test for intersection between lower and higher:
-                # we know via sorting that lower[0] <= higher[0]
-                if higher[0] <= lower[1]:
-                    upper_bound = max(lower[1], higher[1])
-                    merged[-1] = (lower[0], upper_bound)  # replace by merged interval
+                # we know via sorting that lower.start <= higher.start
+                if higher.start <= lower.end:
+                    upper_bound = max(lower.end, higher.end)
+                    merged[-1] = TimeRange(lower.start, upper_bound)  # replace by merged interval
                 else:
                     merged.append(higher)
         self.time_ranges = merged
