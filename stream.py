@@ -21,8 +21,9 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import logging
-from utils import Printable
+from utils import Printable, TimeRange
 from interface import StreamStatusModel
+from copy import deepcopy
 
 
 class Stream(Printable):
@@ -43,30 +44,56 @@ class Stream(Printable):
         if not time_ranges:
             raise RuntimeError("No time ranges for stream " + self.stream_id)
 
-        self.current_status = StreamStatusModel.objects(
+        status_docs = StreamStatusModel.objects(
             stream_id=self.stream_id,
             kernel_version=self.kernel.version
         )
 
-
+        if not status_docs:
+            # This has never been run before
+            self.current_status = StreamStatusModel(
+                stream_id=self.stream_id,
+                kernel_version=self.kernel.version,
+                stream_type=self.stream_type,
+                computed_ranges=[],
+                filters=self.filters
+            )
+            # Add this to the database
+            self.current_status.save()
+        else:
+            self.current_status = status_docs[0]
 
         # Ensure all sources have been executed, if not, execute
         if self.sources:
             logging.info("Looping through sources")
             for s in self.sources:
                 # TODO: more logic here
-                if not self.completed:
-                    s.execute(clients, configs, time_ranges)
+                s.execute(clients, configs, time_ranges)
+
+        # Check here whether we need to recompute anything
+        temp_time_ranges = deepcopy(time_ranges)
+        for time_range in time_ranges:
+            needs_full_computation = True
+            for (start, end) in self.current_status.time_ranges:
+                if time_range.start < start:
+                    if time_range.end < start:
+                        continue
+                    else:
+                        temp_time_ranges.append(TimeRange(start=time_range.start, end=start))
+                else:
+                    if time_range.end < end:
+                        needs_full_computation = False
+                    else:
+                        temp_time_ranges.append(TimeRange(start=end, end=time_range.end))
+            if needs_full_computation:
+                temp_time_ranges.append(time_range)
+        time_ranges = temp_time_ranges
 
         # Now execute the kernel
         for time_range in time_ranges:
             self.kernel.runner.execute(self, clients, configs, time_range)
-
-        # TODO: Clearly more logic needed here!
-        self.completed = True
+            self.current_status.add_time_range(time_range)
+            self.current_status.save()
 
     def __repr__(self):
         return str(self)
-
-    def update_status(self):
-        pass
