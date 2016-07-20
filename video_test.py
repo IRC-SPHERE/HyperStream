@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2016 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,23 +20,31 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-
-# import os
-# sys.path.insert(1, os.path.join(os.path.dirname(os.path.realpath(__file__)), "sphere_connector_package"))
-from collections import FlowCollection, KernelCollection, StreamCollection
-from client import Client
+from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
+from dateutil.parser import parse
 
 
-class OnlineEngine(object):
-    def __init__(self, configs):
-        self.sphere_client = Client(configs['sphere_connector'].mongo)
-        self.client = Client(configs['hyperstream'].mongo)
-        self.clients = {'hyperstream': self.client, 'sphere': self.sphere_client}
-        self.configs = configs
+OLD = {
+    'start': parse("2016-07-08T12:00:00.000Z"),
+    'end': parse("2016-07-08T12:01:00.000Z")
+}
 
-        self.kernels = KernelCollection(configs['hyperstream'].kernel_path)
-        self.streams = StreamCollection(self.kernels)
-        self.flows = FlowCollection(self.streams, configs['hyperstream'].flow_path)
+NEW = {
+    'start': parse("2016-04-28T12:00:00.000Z"),
+    'end': parse("2016-04-28T12:01:00.000Z")
+}
 
-    def execute(self):
-        self.flows.execute_all(self.clients, self.configs)
+
+if __name__ == '__main__':
+    sphere_connector = SphereConnector(config_filename='config_strauss.json',
+                                       log_path='/tmp',
+                                       log_filename='video_test')
+
+    windows = [DataWindow(**d) for d in [OLD, NEW]]
+
+    for element in ["2Dbb", "silhouette"]:
+        for dw in windows:
+            data = dw.video.get_data(elements={element})
+            print("")
+            print(data[0].keys())
+            print(data[0]['video-' + element])

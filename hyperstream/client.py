@@ -20,14 +20,36 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import sys
+import logging
 import pymongo
+from mongoengine import connect
 from sphere_connector_package.sphere_connector.utils import get_value_safe
+try:
+    from pymongo.errors import ServerSelectionTimeoutError
+except ImportError:
+    ServerSelectionTimeoutError = None
 
 
 class Client(object):
-    def __init__(self, server_config):
+    client = None
+    db = None
+    session = None
+
+    def __init__(self, server_config, auto_connect=True):
         self.server_config = server_config
-        
+
+        if auto_connect:
+            if ServerSelectionTimeoutError:
+                try:
+                    self.connect(server_config)
+                except ServerSelectionTimeoutError as e:
+                    logging.warn(e.message)
+                    sys.exit()
+            else:
+                self.connect(server_config)
+
+    def connect(self, server_config):
         if 'connection_string' in server_config:
             self.client = pymongo.MongoClient(server_config['connection_string'])
             self.db = self.client[server_config['db']]
@@ -44,6 +66,14 @@ class Client(object):
                                  source=server_config['authentication_database'])
         else:
             self.db.authenticate(server_config['username'], server_config['password'])
+
+        # Mongo Engine connection
+        d = dict((k, v) for k, v in server_config.items() if k not in ['modalities', 'summaries'])
+        if 'authentication_database' in d:
+            d['authentication_source'] = d['authentication_database']
+            del d['authentication_database']
+
+        self.session = connect(**d)
 
     def get_config_value(self, key, default=None):
         return get_value_safe(self.server_config, key, default)
