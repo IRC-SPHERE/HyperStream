@@ -39,13 +39,16 @@ if __name__ == '__main__':
     sphere_connector = SphereConnector(
         config_filename='config_strauss.json',
         log_path='/tmp',
-        log_filename='video_test')
+        log_filename='video_test',
+        include_mongo=True,
+        include_redcap=False)
 
-    windows = [DataWindow(**d) for d in [OLD, NEW]]
+    windows = [DataWindow(sphere_connector, **d) for d in [OLD, NEW]]
 
     for element in ["2Dbb", "silhouette"]:
         for dw in windows:
-            data = dw.video.get_data(elements={element})
+            data = dw.video.get_data(elements={element}, filters={'bt': {'$mod': [10, 0]}})
             print("")
             print(data[0].keys())
             print(data[0]['video-' + element])
+            print(len(data))
