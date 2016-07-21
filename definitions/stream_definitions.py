@@ -31,6 +31,7 @@ class ToolDefinitionModel(Document):
     last_updated = DateTimeField(required=True)
     version = StringField(required=True, min_length=1, max_length=512)
     parameters = DictField()
+    sandbox = StringField()
 
     meta = {
         'collection': 'tool_definitions',
