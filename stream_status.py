@@ -20,7 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, DictField, ListField
+from mongoengine import Document, DateTimeField, StringField, ListField
 # , EmbeddedDocument, EmbeddedDocumentListField,
 # from ..utils import Printable
 from time_range import TimeRange
@@ -35,10 +35,8 @@ class StreamStatusModel(Document):
     stream_id = StringField(required=True, min_length=1, max_length=512)
     stream_type = StringField(required=True, min_length=1, max_length=512)
     last_updated = DateTimeField(required=True)
+    last_accessed = DateTimeField(required=True)
     computed_ranges = ListField(required=True)
-    # computed_ranges = EmbeddedDocumentListField(DateTimeRange)
-    filters = DictField(required=False)
-    kernel_version = StringField(required=True, min_length=1, max_length=512)
 
     meta = {
         'collection': 'stream_status',
