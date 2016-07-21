@@ -20,32 +20,3 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
-from dateutil.parser import parse
-
-
-OLD = {
-    'start': parse("2016-07-08T12:00:00.000Z"),
-    'end': parse("2016-07-08T12:01:00.000Z")
-}
-
-NEW = {
-    'start': parse("2016-04-28T12:00:00.000Z"),
-    'end': parse("2016-04-28T12:01:00.000Z")
-}
-
-
-if __name__ == '__main__':
-    sphere_connector = SphereConnector(
-        config_filename='config_strauss.json',
-        log_path='/tmp',
-        log_filename='video_test')
-
-    windows = [DataWindow(**d) for d in [OLD, NEW]]
-
-    for element in ["2Dbb", "silhouette"]:
-        for dw in windows:
-            data = dw.video.get_data(elements={element})
-            print("")
-            print(data[0].keys())
-            print(data[0]['video-' + element])
