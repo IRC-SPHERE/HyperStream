@@ -20,27 +20,20 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, DictField, EmbeddedDocumentListField, EmbeddedDocument
-
-
-class InputTypeModel(EmbeddedDocument):
-    input_type = StringField(required=True, min_length=1, max_length=32)
-    output_type = StringField(required=True, min_length=1, max_length=32)
+from mongoengine import Document, DateTimeField, StringField, DictField
 
 
 class ToolDefinitionModel(Document):
+    stream_id = StringField(required=True, min_length=1, max_length=512)
     name = StringField(required=True, min_length=1, max_length=512)
     description = StringField(required=True, min_length=1, max_length=4096)
     release_notes = StringField(required=True, min_length=1, max_length=4096)
     last_updated = DateTimeField(required=True)
     version = StringField(required=True, min_length=1, max_length=512)
     parameters = DictField()
-    tool_type = StringField(required=True, min_length=1, max_length=512)
-    input_types = EmbeddedDocumentListField(document_type=InputTypeModel)
 
     meta = {
         'collection': 'tool_definitions',
         'indexes': [{'fields': ['name', 'version']}],
         'ordering': ['last_updated']
     }
-
