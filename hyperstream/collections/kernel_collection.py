@@ -50,7 +50,7 @@ class KernelCollection(Printable):
                 d = kernel_ids[kernel_id]
                 try:
                     src = imp.load_source(kernel_id, os.path.join(kernel_path, kernel_id, d["version"], "runner.py"))
-                except ImportError:
+                except (IOError, ImportError):
                     logging.error("Not found kernel with appropriate version: " + d["name"])
                     raise
 

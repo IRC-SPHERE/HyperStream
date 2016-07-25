@@ -20,35 +20,28 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField
-from ..utils import Printable
+from mongoengine import Document, DateTimeField, StringField, DictField, EmbeddedDocumentListField, EmbeddedDocument
 
 
-class InstanceModel(Document):
+class StreamParameterModel(EmbeddedDocument):
+    dtype = StringField(required=True, min_length=1, max_length=32)
+    name = StringField(required=True, min_length=1, max_length=512)
+    value = DictField(required=True)
+
+
+class StreamDefinitionModel(Document):
     stream_id = StringField(required=True, min_length=1, max_length=512)
-    stream_type = StringField(required=True, min_length=1, max_length=512)
-    datetime = DateTimeField(required=True)
-    filters = DictField(required=False)
-    metadata = DictField(required=False)
+    name = StringField(required=True, min_length=1, max_length=512)
+    description = StringField(required=True, min_length=1, max_length=4096)
+    release_notes = StringField(required=True, min_length=1, max_length=4096)
+    last_updated = DateTimeField(required=True)
     version = StringField(required=True, min_length=1, max_length=512)
-    value = DynamicField(required=True)
+    parameters = EmbeddedDocumentListField(document_type=StreamParameterModel)
+    sandbox = StringField()
+    meta_data = DictField()
 
     meta = {
-        'collection': 'streams',
-        'indexes': [{'fields': ['stream_id']}],
-        'ordering': ['start']
+        'collection': 'tool_definitions',
+        'indexes': [{'fields': ['name', 'version']}],
+        'ordering': ['last_updated']
     }
-
-
-class Instance(Printable):
-    def __init__(self, stream_id, stream_type, datetime, filters, metadata, version, value):
-        self.stream_id = stream_id
-        self.stream_type = stream_type
-        self.datetime = datetime
-        self.filters = filters
-        self.metadata = metadata
-        self.version = version
-        self.value = value
-
-    def to_model(self):
-        return InstanceModel(**self.__dict__)
