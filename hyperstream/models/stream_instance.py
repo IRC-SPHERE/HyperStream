@@ -20,21 +20,35 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, DictField
+from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField
+from ..utils import Printable
 
 
-class ToolDefinitionModel(Document):
+class StreamInstanceModel(Document):
     stream_id = StringField(required=True, min_length=1, max_length=512)
-    name = StringField(required=True, min_length=1, max_length=512)
-    description = StringField(required=True, min_length=1, max_length=4096)
-    release_notes = StringField(required=True, min_length=1, max_length=4096)
-    last_updated = DateTimeField(required=True)
+    stream_type = StringField(required=True, min_length=1, max_length=512)
+    datetime = DateTimeField(required=True)
+    filters = DictField(required=False)
+    metadata = DictField(required=False)
     version = StringField(required=True, min_length=1, max_length=512)
-    parameters = DictField()
-    sandbox = StringField()
+    value = DynamicField(required=True)
 
     meta = {
-        'collection': 'tool_definitions',
-        'indexes': [{'fields': ['name', 'version']}],
-        'ordering': ['last_updated']
+        'collection': 'streams',
+        'indexes': [{'fields': ['stream_id']}],
+        'ordering': ['start']
     }
+
+
+class StreamInstance(Printable):
+    def __init__(self, stream_id, stream_type, datetime, filters, metadata, version, value):
+        self.stream_id = stream_id
+        self.stream_type = stream_type
+        self.datetime = datetime
+        self.filters = filters
+        self.metadata = metadata
+        self.version = version
+        self.value = value
+
+    def to_model(self):
+        return StreamInstanceModel(**self.__dict__)
