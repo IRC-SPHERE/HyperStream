@@ -26,7 +26,7 @@ from mongoengine import InvalidDocumentError
 
 
 class StandardOutput(Output):
-    def put_data(self, stream, data, clients, configs):
+    def put_data(self, stream, data):
         logging.debug("Putting data (standard output)")
         for d in data:
             try:

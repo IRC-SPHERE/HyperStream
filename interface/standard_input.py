@@ -22,17 +22,17 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from input import Input
 import logging
-from instance import InstanceModel
+from ..models.stream_instance import StreamInstanceModel
 
 
 class StandardInput(Input):
-    def get_data(self, stream, clients, configs, time_range):
+    def get_data(self, stream, sphere_connector, time_range):
         logging.debug("Getting data {} (standard input)".format(stream.stream_id))
 
         data = {}
         for source in stream.sources:
             data[source] = []
-            for instance in InstanceModel.objects(
+            for instance in StreamInstanceModel.objects(
                     datetime__gt=time_range.start,
                     datetime__lte=time_range.end,
                     stream_id=source.stream_id,
