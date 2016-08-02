@@ -23,7 +23,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 import logging
 from utils import Printable
 from time_range import compare_time_ranges
-from stream_status import StreamStatusModel
+from models import StreamStatusModel
 from datetime import datetime
 
 
@@ -39,25 +39,25 @@ class Stream(Printable):
         self.filters = filters
         self.stream_type = stream_type
 
-    def execute(self, clients, configs, time_ranges):
+    def execute(self, sphere_connector, time_ranges):
         logging.info("Executing stream " + self.stream_id)
 
         if not time_ranges:
             raise RuntimeError("No time ranges for stream " + self.stream_id)
 
         status_docs = StreamStatusModel.objects(
-            stream_id=self.stream_id,
-            kernel_version=self.kernel.version
+            stream_id=self.stream_id
+            # kernel_version=self.kernel.version
         )
 
         if not status_docs:
             # This has never been run before
             self.current_status = StreamStatusModel(
                 stream_id=self.stream_id,
-                kernel_version=self.kernel.version,
+                # tool_version=self.kernel.version,
                 stream_type=self.stream_type,
                 computed_ranges=[],
-                filters=self.filters
+                # filters=self.filters
             )
             # (don't) Add this to the database (yet)
             # self.current_status.save()
@@ -69,13 +69,13 @@ class Stream(Printable):
             logging.info("Looping through sources")
             for s in self.sources:
                 # TODO: more logic here
-                s.execute(clients, configs, time_ranges)
+                s.execute(sphere_connector, time_ranges)
 
         time_ranges = compare_time_ranges(desired_ranges=time_ranges, computed_ranges=self.current_status.time_ranges)
 
         # Now execute the kernel
         for time_range in time_ranges:
-            self.kernel.runner.execute(self, clients, configs, time_range)
+            self.kernel.runner.execute(self, sphere_connector, time_range)
             self.current_status.add_time_range(time_range)
             self.current_status.last_updated = datetime.utcnow()
             self.current_status.save()

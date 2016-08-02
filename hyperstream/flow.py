@@ -44,10 +44,10 @@ class Flow(Printable):
 
             self.streams[stream.stream_id] = stream
 
-    def execute(self, clients, configs):
+    def execute(self, sphere_connector):
         # print(self)
         for s in self.streams:
-            self.streams[s].execute(clients, configs, self.time_ranges)
+            self.streams[s].execute(sphere_connector, self.time_ranges)
 
     def __repr__(self):
         return str(self)

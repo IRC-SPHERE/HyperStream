@@ -7,14 +7,6 @@
         "input_type": "raw",
         "output_type": "standard"
     },
-    "sliding_window_2": {
-        "name": "Sliding Window",
-        "version": "2.0",
-        "description": "Sliding Window with width and increment for given modality",
-        "release_notes": "",
-        "input_type": "raw",
-        "output_type": "standard"
-    },
     "merge": {
         "name": "Merges two streams",
         "version": "1.0",
