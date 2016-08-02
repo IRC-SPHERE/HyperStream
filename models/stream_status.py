@@ -23,7 +23,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from mongoengine import Document, DateTimeField, StringField, ListField
 # , EmbeddedDocument, EmbeddedDocumentListField,
 # from ..utils import Printable
-from time_range import TimeRange
+from ..time_range import TimeRange
 
 
 # class DateTimeRange(EmbeddedDocument):
@@ -35,7 +35,7 @@ class StreamStatusModel(Document):
     stream_id = StringField(required=True, min_length=1, max_length=512)
     stream_type = StringField(required=True, min_length=1, max_length=512)
     last_updated = DateTimeField(required=True)
-    last_accessed = DateTimeField(required=True)
+    last_accessed = DateTimeField(required=False)
     computed_ranges = ListField(required=True)
 
     meta = {

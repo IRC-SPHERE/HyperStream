@@ -22,34 +22,28 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from input import Input
 import logging
-from instance import Instance
+from ..models.stream_instance import StreamInstance
 
-from sphere_connector_package.sphere_connector.config import ExperimentConfig
-from sphere_connector_package.sphere_connector.experiment import Experiment
+from sphere_connector_package.sphere_connector.experiment import DataWindow
 
 
 class RawInput(Input):
-    def get_data(self, stream, clients, configs, time_range):
+    def get_data(self, stream, sphere_connector, time_range):
         logging.debug("Getting data {} (raw input)".format(stream.stream_id))
-        experiment_config = ExperimentConfig(experiment_start=time_range.start, experiment_end=time_range.end,
-                                             experiment_id=stream.stream_id)
-
-        client = clients['sphere']
-        basic_config = configs['sphere_connector']
-        experiment = Experiment(client, experiment_config, basic_config)
+        data_window = DataWindow(sphere_connector, time_range.start, time_range.end, window_id=stream.stream_id)
 
         if stream.parameters["modality"] == "annotations":
-            modality = experiment.annotations
-            data = experiment.annotations.get_data()
+            modality = data_window.annotations
+            data = data_window.annotations.get_data()
         elif stream.parameters["modality"] == "environmental":
-            modality = experiment.environmental
-            data = experiment.environmental.get_data()
+            modality = data_window.environmental
+            data = data_window.environmental.get_data()
         elif stream.parameters["modality"] == "video":
-            modality = experiment.video
-            data = experiment.video.get_data(elements={stream.parameters["element"]})
+            modality = data_window.video
+            data = data_window.video.get_data(elements={stream.parameters["element"]})
         elif stream.parameters["modality"] == "wearable":
-            modality = experiment.wearable
-            data = experiment.wearable.get_data(elements={stream.parameters["element"]})
+            modality = data_window.wearable
+            data = data_window.wearable.get_data(elements={stream.parameters["element"]})
         else:
             raise RuntimeError("Unknown modality for raw data input {}".format(stream.parameters["modality"]))
 
@@ -69,7 +63,7 @@ class RawInput(Input):
             else:
                 value = dict((v, d[v]) for v in modality.sensors)
 
-            instance = Instance(
+            instance = StreamInstance(
                 stream_id=stream.stream_id,
                 stream_type=stream.stream_type,
                 filters=stream.filters,

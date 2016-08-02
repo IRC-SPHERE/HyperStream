@@ -28,15 +28,14 @@ from client import Client
 
 
 class OnlineEngine(object):
-    def __init__(self, configs):
-        self.sphere_client = Client(configs['sphere_connector'].mongo)
-        self.client = Client(configs['hyperstream'].mongo)
-        self.clients = {'hyperstream': self.client, 'sphere': self.sphere_client}
-        self.configs = configs
+    def __init__(self, sphere_connector, hyperstream_config):
+        self.sphere_connector = sphere_connector
+        self.config = hyperstream_config
+        self.client = Client(self.config.mongo)
 
-        self.kernels = KernelCollection(configs['hyperstream'].kernel_path)
+        self.kernels = KernelCollection(self.config.kernel_path)
         self.streams = StreamCollection(self.kernels)
-        self.flows = FlowCollection(self.streams, configs['hyperstream'].flow_path)
+        self.flows = FlowCollection(self.streams, self.config.flow_path)
 
     def execute(self):
-        self.flows.execute_all(self.clients, self.configs)
+        self.flows.execute_all(self.sphere_connector)

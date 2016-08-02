@@ -23,5 +23,5 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 class Input(object):
-    def get_data(self, stream, clients, configs, time_range):
+    def get_data(self, stream, sphere_connector, time_range):
         pass
