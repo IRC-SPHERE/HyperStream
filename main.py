@@ -23,16 +23,12 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.config import HyperStreamConfig
 from hyperstream.online_engine import OnlineEngine
-from sphere_connector_package import sphere_connector as sc
-from sphere_connector_package.sphere_connector.config import BasicConfig
-import logging
+from sphere_connector_package.sphere_connector import SphereConnector
 
 
 if __name__ == '__main__':
-    sc.utils.initialise_logger(path='/tmp', filename='hyperstream_online', loglevel=logging.DEBUG)
-
-    sphere_connector_config = BasicConfig(include_mongo=True, include_redcap=False)
+    sphere_connector = SphereConnector(log_filename='hyperstream_online', include_mongo=True, include_redcap=False)
     hyperstream_config = HyperStreamConfig()
 
-    online_engine = OnlineEngine({'sphere_connector': sphere_connector_config, 'hyperstream': hyperstream_config})
+    online_engine = OnlineEngine(sphere_connector, hyperstream_config)
     online_engine.execute()

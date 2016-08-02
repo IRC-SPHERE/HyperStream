@@ -20,28 +20,26 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, DictField, EmbeddedDocumentListField, EmbeddedDocument
+from mongoengine import Document, DateTimeField, StringField, DictField, MapField, EmbeddedDocument, \
+    EmbeddedDocumentField
 
 
 class StreamParameterModel(EmbeddedDocument):
     dtype = StringField(required=True, min_length=1, max_length=32)
-    name = StringField(required=True, min_length=1, max_length=512)
     value = DictField(required=True)
 
 
 class StreamDefinitionModel(Document):
     stream_id = StringField(required=True, min_length=1, max_length=512)
-    name = StringField(required=True, min_length=1, max_length=512)
-    description = StringField(required=True, min_length=1, max_length=4096)
-    release_notes = StringField(required=True, min_length=1, max_length=4096)
     last_updated = DateTimeField(required=True)
-    version = StringField(required=True, min_length=1, max_length=512)
-    parameters = EmbeddedDocumentListField(document_type=StreamParameterModel)
+    tool_name = StringField(required=True, min_length=1, max_length=512)
+    tool_version = StringField(required=True, min_length=1, max_length=512)
+    parameters = MapField(EmbeddedDocumentField(StreamParameterModel))
     sandbox = StringField()
     meta_data = DictField()
 
     meta = {
-        'collection': 'tool_definitions',
-        'indexes': [{'fields': ['name', 'version']}],
+        'collection': 'stream_definitions',
+        'indexes': [{'fields': ['stream_id', 'tool_version']}],
         'ordering': ['last_updated']
     }

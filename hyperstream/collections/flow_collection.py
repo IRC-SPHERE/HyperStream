@@ -43,6 +43,6 @@ class FlowCollection(Printable):
                 except (OSError, IOError) as e:
                     logging.error(str(filename) + ' error: ' + str(e))
 
-    def execute_all(self, clients, configs):
+    def execute_all(self, sphere_connector):
         for flow in self.flows:
-            flow.execute(clients, configs)
+            flow.execute(sphere_connector)
