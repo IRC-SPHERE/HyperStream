@@ -20,35 +20,29 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField
+import os
+import simplejson as json
+from collections import OrderedDict
+import logging
 from ..utils import Printable
+from ..models import WorkflowModel
 
 
-class StreamInstanceModel(Document):
-    stream_id = StringField(required=True, min_length=1, max_length=512)
-    stream_type = StringField(required=True, min_length=1, max_length=512)
-    datetime = DateTimeField(required=True)
-    filters = DictField(required=False)
-    metadata = DictField(required=False)
-    version = StringField(required=True, min_length=1, max_length=512)
-    value = DynamicField(required=True)
+class WorkflowCollection(Printable):
+    flows = []
 
-    meta = {
-        'collection': 'streams',
-        'indexes': [{'fields': ['stream_id']}],
-        'ordering': ['start']
-    }
+    def __init__(self, stream_collection, path):
+        for filename in os.listdir(os.path.join(path, "active")):
+            if filename.endswith(".json") and filename != "skeleton.json":
+                try:
+                    logging.info('Reading ' + filename)
+                    with open(os.path.join(path, "active", filename), 'r') as f:
+                        flow_definition = json.load(f, object_pairs_hook=OrderedDict)
+                        flow = Flow(stream_collection, **flow_definition)
+                        self.flows.append(flow)
+                except (OSError, IOError) as e:
+                    logging.error(str(filename) + ' error: ' + str(e))
 
-
-class StreamInstance(Printable):
-    def __init__(self, stream_id, stream_type, datetime, filters, metadata, version, value):
-        self.stream_id = stream_id
-        self.stream_type = stream_type
-        self.datetime = datetime
-        self.filters = filters
-        self.metadata = metadata
-        self.version = version
-        self.value = value
-
-    def to_model(self):
-        return StreamInstanceModel(**self.__dict__)
+    def execute_all(self, sphere_connector):
+        for flow in self.flows:
+            flow.execute(sphere_connector)

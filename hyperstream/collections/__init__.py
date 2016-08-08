@@ -20,7 +20,6 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from stream import StreamStatusModel, StreamDefinitionModel, StreamInstanceModel
-from tool import ToolDefinitionModel
-from workflow import WorkflowDefinitionModel, WorkflowStatusModel
-from time_range import TimeRangeModel
+from flow_collection import FlowCollection
+from kernel_collection import KernelCollection
+from stream_collection import StreamCollection
