@@ -20,15 +20,46 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, ListField
-# , EmbeddedDocument, EmbeddedDocumentListField,
-# from ..utils import Printable
-from ..time_range import TimeRange
+from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField, MapField, EmbeddedDocument, \
+    EmbeddedDocumentField, EmbeddedDocumentListField
+from time_range import TimeRangeModel
 
 
-# class DateTimeRange(EmbeddedDocument):
-#     start = DateTimeField(required=True)
-#     end = DateTimeField(required=True)
+class StreamInstanceModel(Document):
+    stream_id = StringField(required=True, min_length=1, max_length=512)
+    stream_type = StringField(required=True, min_length=1, max_length=512)
+    datetime = DateTimeField(required=True)
+    filters = DictField(required=False)
+    metadata = DictField(required=False)
+    version = StringField(required=True, min_length=1, max_length=512)
+    value = DynamicField(required=True)
+
+    meta = {
+        'collection': 'streams',
+        'indexes': [{'fields': ['stream_id']}],
+        'ordering': ['start']
+    }
+
+
+class StreamParameterModel(EmbeddedDocument):
+    dtype = StringField(required=True, min_length=1, max_length=32)
+    value = DictField(required=True)
+
+
+class StreamDefinitionModel(Document):
+    stream_id = StringField(required=True, min_length=1, max_length=512)
+    last_updated = DateTimeField(required=True)
+    tool_name = StringField(required=True, min_length=1, max_length=512)
+    tool_version = StringField(required=True, min_length=1, max_length=512)
+    parameters = MapField(EmbeddedDocumentField(StreamParameterModel))
+    sandbox = StringField()
+    meta_data = DictField()
+
+    meta = {
+        'collection': 'stream_definitions',
+        'indexes': [{'fields': ['stream_id', 'tool_version']}],
+        'ordering': ['last_updated']
+    }
 
 
 class StreamStatusModel(Document):
@@ -36,7 +67,7 @@ class StreamStatusModel(Document):
     stream_type = StringField(required=True, min_length=1, max_length=512)
     last_updated = DateTimeField(required=True)
     last_accessed = DateTimeField(required=False)
-    computed_ranges = ListField(required=True)
+    computed_ranges = EmbeddedDocumentListField(document_type=TimeRangeModel, required=True)
 
     meta = {
         'collection': 'stream_status',
@@ -44,29 +75,16 @@ class StreamStatusModel(Document):
         'ordering': ['start']
     }
 
-    @property
-    def time_ranges(self):
-        return [TimeRange(*dt) for dt in self.computed_ranges]
-
-    @time_ranges.setter
-    def time_ranges(self, ranges):
-        self.computed_ranges = [r.to_tuple() for r in ranges]
-
     def add_time_range(self, time_range):
-        # new_ranges = self.time_ranges + [time_range]
-        # self.computed_ranges.append(
-        #     DateTimeRange(start=DateTimeField(time_range.start), end=DateTimeField(time_range.end)))
-        # self.update_time_ranges()
-        # return self.time_ranges
-        if not isinstance(time_range, TimeRange):
-            raise RuntimeError("Can only add TimeRange objects")
+        if not isinstance(time_range, TimeRangeModel):
+            raise RuntimeError("Can only add TimeRangeModel objects")
 
-        self.computed_ranges.append(time_range.to_tuple())
+        self.computed_ranges.append(time_range)
         self.update_time_ranges()
-        return self.time_ranges
+        return self.computed_ranges
 
     def update_time_ranges(self):
-        sorted_by_lower_bound = sorted(self.time_ranges, key=lambda r: r.start)
+        sorted_by_lower_bound = sorted(self.computed_ranges, key=lambda r: r.start)
         merged = []
 
         for higher in sorted_by_lower_bound:
@@ -78,19 +96,7 @@ class StreamStatusModel(Document):
                 # we know via sorting that lower.start <= higher.start
                 if higher.start <= lower.end:
                     upper_bound = max(lower.end, higher.end)
-                    merged[-1] = TimeRange(lower.start, upper_bound)  # replace by merged interval
+                    merged[-1] = TimeRangeModel(start=lower.start, end=upper_bound)  # replace by merged interval
                 else:
                     merged.append(higher)
-        self.time_ranges = merged
-
-# class StreamStatus(Printable):
-#     def __init__(self, stream_id, stream_type, last_updated, filters, computed_ranges, version):
-#         self.stream_id = stream_id
-#         self.stream_type = stream_type
-#         self.last_updated = last_updated
-#         self.computed_ranges = computed_ranges
-#         self.filters = filters
-#         self.version = version
-#
-#     def to_model(self):
-#         return StreamStatusModel(**self.__dict__)
+        self.computed_ranges = merged

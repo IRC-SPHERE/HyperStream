@@ -20,7 +20,14 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from stream import StreamStatusModel, StreamDefinitionModel, StreamInstanceModel
-from tool import ToolDefinitionModel
-from workflow import WorkflowDefinitionModel, WorkflowStatusModel
-from time_range import TimeRangeModel
+from __future__ import absolute_import
+import pprint
+
+
+class Printable(object):
+    def __str__(self):
+        pp = pprint.PrettyPrinter(indent=4)
+        return pp.pformat(self.__dict__)
+
+
+# TimeRange = namedtuple('TimeRange', ['start', 'end'])
