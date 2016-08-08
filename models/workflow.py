@@ -20,7 +20,9 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, StringField, IntField, EmbeddedDocument, EmbeddedDocumentListField, ListField, MapField
+from mongoengine import Document, StringField, IntField, EmbeddedDocument, EmbeddedDocumentListField, ListField, \
+    MapField, DateTimeField
+from time_range import TimeRangeModel
 
 
 class NodeDefinitionModel(EmbeddedDocument):
@@ -39,7 +41,7 @@ class PlateDefinitionModel(EmbeddedDocument):
     values = ListField(field=IntField)
 
 
-class FlowDefinitionModel(Document):
+class WorkflowDefinitionModel(Document):
     flow_id = StringField(required=True, min_length=1, max_length=512)
     name = StringField(required=True, min_length=1, max_length=512)
     description = StringField(required=True, min_length=1, max_length=4096)
@@ -48,7 +50,52 @@ class FlowDefinitionModel(Document):
     factors = EmbeddedDocumentListField(document_type=FactorDefinitionModel, required=True)
 
     meta = {
-        'collection': 'flow_definitions',
+        'collection': 'workflow_definitions',
         'indexes': [{'fields': ['flow_id']}],
         'ordering': ['flow_id']
     }
+
+
+class WorkflowStatusModel(Document):
+    stream_id = StringField(required=True, min_length=1, max_length=512)
+    stream_type = StringField(required=True, min_length=1, max_length=512)
+    last_updated = DateTimeField(required=True)
+    last_accessed = DateTimeField(required=False)
+
+    # Time ranges requested for computation for this workflow
+    requested_ranges = EmbeddedDocumentListField(document_type=TimeRangeModel, required=True)
+
+    # Actual ranges that have been computed. Note that this can be empty to begin with
+    computed_ranges = EmbeddedDocumentListField(document_type=TimeRangeModel, required=False)
+
+    meta = {
+        'collection': 'workflow_status',
+        'indexes': [{'fields': ['stream_id']}],
+        'ordering': ['start']
+    }
+
+    def add_time_range(self, time_range):
+        if not isinstance(time_range, TimeRangeModel):
+            raise RuntimeError("Can only add TimeRangeModel objects")
+
+        self.computed_ranges.append(time_range)
+        self.update_time_ranges()
+        return self.computed_ranges
+
+    def update_time_ranges(self):
+        sorted_by_lower_bound = sorted(self.computed_ranges, key=lambda r: r.start)
+        merged = []
+
+        for higher in sorted_by_lower_bound:
+            if not merged:
+                merged.append(higher)
+            else:
+                lower = merged[-1]
+                # test for intersection between lower and higher:
+                # we know via sorting that lower.start <= higher.start
+                if higher.start <= lower.end:
+                    upper_bound = max(lower.end, higher.end)
+                    merged[-1] = TimeRangeModel(start=lower.start, end=upper_bound)  # replace by merged interval
+                else:
+                    merged.append(higher)
+        self.computed_ranges = merged

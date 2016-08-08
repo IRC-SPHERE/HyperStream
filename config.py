@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2017 University of Bristol
+Copyright (c) 2014-2015 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,25 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from stream import StreamStatusModel, StreamDefinitionModel, StreamInstanceModel
-from tool import ToolDefinitionModel
-from workflow import WorkflowDefinitionModel, WorkflowStatusModel
-from time_range import TimeRangeModel
+import logging
+import simplejson as json
+import os
+from utils import Printable
+
+
+class HyperStreamConfig(Printable):
+    def __init__(self):
+        self.mongo = None
+
+        try:
+            with open('hyperstream_config.json', 'r') as f:
+                logging.info('Reading ' + os.path.abspath(f.name))
+                config = json.load(f)
+                self.mongo = config['mongo']
+                self.stream_path = config['stream_path']
+                self.flow_path = config['flow_path']
+                self.kernel_path = config['kernel_path']
+
+        except (OSError, IOError, TypeError) as e:
+            # raise
+            logging.error("Configuration error: " + str(e))

@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2017 University of Bristol
+Copyright (c) 2014-2016 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,26 +20,19 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, DictField, MapField, EmbeddedDocument, \
-    EmbeddedDocumentField
+from collections import WorkflowCollection, ToolCollection, StreamCollection
+from client import Client
 
 
-class StreamParameterModel(EmbeddedDocument):
-    dtype = StringField(required=True, min_length=1, max_length=32)
-    value = DictField(required=True)
+class OnlineEngine(object):
+    def __init__(self, sphere_connector, hyperstream_config):
+        self.sphere_connector = sphere_connector
+        self.config = hyperstream_config
+        self.client = Client(self.config.mongo)
 
+        self.kernels = KernelCollection(self.config.kernel_path)
+        self.streams = StreamCollection(self.kernels)
+        self.flows = FlowCollection(self.streams, self.config.flow_path)
 
-class StreamDefinitionModel(Document):
-    stream_id = StringField(required=True, min_length=1, max_length=512)
-    last_updated = DateTimeField(required=True)
-    tool_name = StringField(required=True, min_length=1, max_length=512)
-    tool_version = StringField(required=True, min_length=1, max_length=512)
-    parameters = MapField(EmbeddedDocumentField(StreamParameterModel))
-    sandbox = StringField()
-    meta_data = DictField()
-
-    meta = {
-        'collection': 'stream_definitions',
-        'indexes': [{'fields': ['stream_id', 'tool_version']}],
-        'ordering': ['last_updated']
-    }
+    def execute(self):
+        self.flows.execute_all(self.sphere_connector)
