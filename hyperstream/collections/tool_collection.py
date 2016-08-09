@@ -21,11 +21,9 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import os
-import simplejson as json
-from collections import OrderedDict
 import logging
 from ..utils import Printable
-# from ..tool import Tool
+from ..models import ToolDefinitionModel
 import imp
 # from ..interface import StandardInput, StandardOutput, RawInput
 
@@ -44,15 +42,13 @@ class ToolCollection(Printable):
     tools = {}
 
     def __init__(self, tool_path):
-        with open("tool_ids.json", 'r') as f:
-            tool_ids = json.load(f, object_pairs_hook=OrderedDict)
-            for tool_id in tool_ids:
-                d = tool_ids[tool_id]
-                try:
-                    src = imp.load_source(tool_id, os.path.join(tool_path, tool_id, d["version"], "runner.py"))
-                except (IOError, ImportError):
-                    logging.error("Not found tool with appropriate version: " + d["name"])
-                    raise
+        for t in ToolDefinitionModel.objects:
+            try:
+                src = imp.load_source(t.tool_id, os.path.join(tool_path, t.tool_id, t.version, "runner.py"))
+                self.tools[t.tool_id] = src
+            except (IOError, ImportError):
+                logging.error("No tool found with appropriate version: " + t.tool_id)
+                # raise
 
                 # if d['input_type'] not in INPUT_TYPES:
                 #     raise NotImplementedError("Unknown input type: " + d['input_type'])

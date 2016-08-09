@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from stream_base import StreamBase
-from ..stream_reference import StreamRef
+from ..stream_reference import StreamReference
 from ..base_state import BaseState
 from ..modifiers import Identity
 from datetime import timedelta, datetime
@@ -63,7 +63,7 @@ class MemoryBase(StreamBase):
             for x_i in x:
                 res[x_i] = self.get_params(x[x_i], start, end)
             return res
-        elif isinstance(x, StreamRef):
+        elif isinstance(x, StreamReference):
             return x(start=start, end=end)
         else:
             return x

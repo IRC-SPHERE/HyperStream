@@ -20,8 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import StringField, ListField, BooleanField, Document, EmbeddedDocument, EmbeddedDocumentListField, \
-    IntField
+from mongoengine import StringField, ListField, BooleanField, EmbeddedDocument, EmbeddedDocumentListField, IntField
 
 
 class PlateModel(EmbeddedDocument):
@@ -30,7 +29,7 @@ class PlateModel(EmbeddedDocument):
     complement = BooleanField(default=False)
 
 
-class PlateDefinitionModel(Document):
+class PlateDefinitionModel(EmbeddedDocument):
     plate_id = StringField(required=True, min_length=1, max_length=512)
     components = EmbeddedDocumentListField(document_type=PlateModel, required=True)
 

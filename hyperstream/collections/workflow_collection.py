@@ -20,29 +20,18 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-import os
-import simplejson as json
-from collections import OrderedDict
-import logging
 from ..utils import Printable
-from ..models import WorkflowModel
+from ..models import WorkflowDefinitionModel
+from ..workflow import Workflow
 
 
 class WorkflowCollection(Printable):
-    flows = []
+    workflows = {}
 
-    def __init__(self, stream_collection, path):
-        for filename in os.listdir(os.path.join(path, "active")):
-            if filename.endswith(".json") and filename != "skeleton.json":
-                try:
-                    logging.info('Reading ' + filename)
-                    with open(os.path.join(path, "active", filename), 'r') as f:
-                        flow_definition = json.load(f, object_pairs_hook=OrderedDict)
-                        flow = Flow(stream_collection, **flow_definition)
-                        self.flows.append(flow)
-                except (OSError, IOError) as e:
-                    logging.error(str(filename) + ' error: ' + str(e))
+    def __init__(self):
+        for f in WorkflowDefinitionModel.objects:
+            self.workflows[f.workflow_id] = Workflow(f)
 
     def execute_all(self, sphere_connector):
-        for flow in self.flows:
-            flow.execute(sphere_connector)
+        for workflow in self.workflows:
+            self.workflows[workflow].execute(sphere_connector)

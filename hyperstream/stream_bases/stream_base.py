@@ -20,7 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from ..stream_reference import StreamRef
+from ..stream_reference import StreamReference
 
 
 class StreamBase(object):
@@ -88,9 +88,9 @@ class StreamBase(object):
                 raise Exception('Empty stream identifier')
             classes = [k.__class__ for k in key]
             if True in [issubclass(cls, Modifier) for cls in classes]:
-                raise Exception('Stream identifier cannot include a Modifier')
+                raise Exception('StreamReference identifier cannot include a Modifier')
             if (delta in classes) or (date in classes):
-                raise Exception('Stream identifier cannot include date or delta')
+                raise Exception('StreamReference identifier cannot include date or delta')
             return ('.'.join([str(k) for k in key]))
         else:
             return (str(key))
@@ -119,7 +119,7 @@ class StreamBase(object):
         key['base_id'] = self.state.base_id
         key['stream_id'] = self.state.get_name2id(key['stream_id'])
         key['get_results_func'] = self.get_results
-        return StreamRef(**key)
+        return StreamReference(**key)
 
     def __setitem__(self, key, value):
         key = self.parse_setkey(key)
