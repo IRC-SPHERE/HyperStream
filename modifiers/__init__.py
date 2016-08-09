@@ -20,16 +20,5 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from module_base import ModuleBase
-
-
-class ToolBase(ModuleBase):
-    def get_results(self, stream_ref, args, kwargs):
-        (version, module_importer) = super(ToolBase, self).get_results(stream_ref, args, kwargs)
-        module = module_importer()
-        class_name = stream_ref.stream_id
-        class_name = class_name[0].upper() + class_name[1:]
-        tool_class = getattr(module, class_name)
-        tool = tool_class()
-        (args, kwargs) = tool.process_params(*args, **kwargs)
-        return (StreamDef(tool, *args, **kwargs))
+from simple_modifiers import Average, CompFilter, Component, Count, Data, DelNones, First, Head, IData, Identity, \
+    ITime, Last, List, Product, Sum, Tail, Time
