@@ -20,6 +20,22 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from workflow_collection import WorkflowCollection
-from tool_collection import ToolCollection
-from stream_collection import StreamCollection
+from mongoengine import StringField, ListField, BooleanField, Document, EmbeddedDocument, EmbeddedDocumentListField, \
+    IntField
+
+
+class PlateModel(EmbeddedDocument):
+    meta_data_id = StringField(required=True, min_length=1, max_length=512)
+    values = ListField(field=IntField)
+    complement = BooleanField(default=False)
+
+
+class PlateDefinitionModel(Document):
+    plate_id = StringField(required=True, min_length=1, max_length=512)
+    components = EmbeddedDocumentListField(document_type=PlateModel, required=True)
+
+    meta = {
+        'collection': 'plate_definitions',
+        'indexes': [{'fields': ['plate_id']}],
+        'ordering': ['plate_id']
+    }
