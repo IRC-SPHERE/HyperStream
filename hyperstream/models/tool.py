@@ -36,7 +36,7 @@ class InputOutputTypeModel(EmbeddedDocument):
 
 
 class ToolDefinitionModel(Document):
-    name = StringField(required=True, min_length=1, max_length=512)
+    tool_id = StringField(required=True, min_length=1, max_length=512)
     description = StringField(required=True, min_length=1, max_length=4096)
     release_notes = StringField(required=True, min_length=1, max_length=4096)
     last_updated = DateTimeField(required=True)
@@ -47,7 +47,7 @@ class ToolDefinitionModel(Document):
 
     meta = {
         'collection': 'tool_definitions',
-        'indexes': [{'fields': ['name', 'version']}],
+        'indexes': [{'fields': ['tool_id', 'version']}],
         'ordering': ['last_updated']
     }
 

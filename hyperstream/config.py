@@ -35,9 +35,7 @@ class HyperStreamConfig(Printable):
                 logging.info('Reading ' + os.path.abspath(f.name))
                 config = json.load(f)
                 self.mongo = config['mongo']
-                self.stream_path = config['stream_path']
-                self.flow_path = config['flow_path']
-                self.kernel_path = config['kernel_path']
+                self.tool_path = config['tool_path']
 
         except (OSError, IOError, TypeError) as e:
             # raise
