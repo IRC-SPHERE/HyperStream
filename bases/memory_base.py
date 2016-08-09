@@ -25,6 +25,7 @@ from ..stream_reference import StreamRef
 from ..base_state import BaseState
 from ..modifiers import Identity
 from datetime import timedelta, datetime
+from ..time_interval import TimeIntervals
 
 
 class MemoryBase(StreamBase):
