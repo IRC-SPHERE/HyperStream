@@ -25,7 +25,73 @@ from dateutil.parser import parse
 import logging
 
 
-class TimeRange(object):
+class TimeIntervals:  # example object: (t1,t2]U(t3,t4]U...
+    def __init__(self, value=None):
+        self.value = []
+        if value:
+            for v in value:
+                if isinstance(v, (tuple, list)):
+                    if len(v) != 2:
+                        raise TypeError()
+                    v = TimeInterval(*v)
+                elif not isinstance(v, TimeInterval):
+                    raise TypeError()
+                self.value.append(v)
+
+    def __str__(self):
+        return "U".join(["(" + str(a) + "," + str(b) + "]" for (a, b) in self.value])
+
+    def __repr__(self):
+        return str(self)
+
+    def split(self, points):
+        if len(points) == 0:
+            return
+        p = points[-1]
+        for i in range(len(self.value)):
+            if (self.value[i].start < p) and (self.value[i].end > p):
+                self.value = self.value[:i] + [(self.value[i].start, p), (p, self.value[i].end)] + self.value[(i + 1):]
+        self.split(points[:-1])
+
+    def compress(self):
+        if len(self.value) == 0:
+            return
+        v = self.value[:1]
+        for i in range(1, len(self.value)):
+            if self.value[i][0] == v[-1][1]:
+                v[-1] = (v[-1][0], self.value[i].end)
+            else:
+                v.append(self.value[i])
+        self.value = v
+
+    def __add__(self, other):
+        self_points = [point for interval in self.value for point in interval]
+        other_points = [point for interval in other.value for point in interval]
+        self.split(other_points)
+        other.split(self_points)
+        v = list(set(self.value).union(set(other.value)))
+        v.sort()
+        new = TimeIntervals(v)
+        self.compress()
+        other.compress()
+        new.compress()
+        return new
+
+    def __sub__(self, other):
+        self_points = [point for interval in self.value for point in interval]
+        other_points = [point for interval in other.value for point in interval]
+        self.split(other_points)
+        other.split(self_points)
+        v = list(set(self.value).difference(set(other.value)))
+        v.sort()
+        new = TimeIntervals(v)
+        self.compress()
+        other.compress()
+        new.compress()
+        return new
+
+
+class TimeInterval(object):
     _start = None
     _end = None
 
@@ -61,7 +127,7 @@ class TimeRange(object):
         self._end = val
 
     def __repr__(self):
-        return "TimeRange({0}, {1})".format(self._start.__repr__(), self._end.__repr__())
+        return "{0}({1}, {2})".format(self.__class__.__name__, self._start.__repr__(), self._end.__repr__())
 
     def __str__(self):
         return "({0}, {1})".format(self.start, self.end)
