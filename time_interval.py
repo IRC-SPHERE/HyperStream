@@ -26,20 +26,20 @@ import logging
 
 
 class TimeIntervals:  # example object: (t1,t2]U(t3,t4]U...
-    def __init__(self, value=None):
-        self.value = []
-        if value:
-            for v in value:
+    def __init__(self, intervals=None):
+        self.intervals = []
+        if intervals:
+            for v in intervals:
                 if isinstance(v, (tuple, list)):
                     if len(v) != 2:
                         raise TypeError()
-                    v = TimeInterval(*v)
+                    v = parse_time_tuple(*v)
                 elif not isinstance(v, TimeInterval):
                     raise TypeError()
-                self.value.append(v)
+                self.intervals.append(v)
 
     def __str__(self):
-        return "U".join(["(" + str(a) + "," + str(b) + "]" for (a, b) in self.value])
+        return "U".join(["(" + str(a) + "," + str(b) + "]" for (a, b) in self.intervals])
 
     def __repr__(self):
         return str(self)
@@ -48,28 +48,30 @@ class TimeIntervals:  # example object: (t1,t2]U(t3,t4]U...
         if len(points) == 0:
             return
         p = points[-1]
-        for i in range(len(self.value)):
-            if (self.value[i].start < p) and (self.value[i].end > p):
-                self.value = self.value[:i] + [(self.value[i].start, p), (p, self.value[i].end)] + self.value[(i + 1):]
+        for i in range(len(self.intervals)):
+            if (self.intervals[i].start < p) and (self.intervals[i].end > p):
+                self.intervals = self.intervals[:i] \
+                                 + [(self.intervals[i].start, p), (p, self.intervals[i].end)] \
+                                 + self.intervals[(i + 1):]
         self.split(points[:-1])
 
     def compress(self):
-        if len(self.value) == 0:
+        if len(self.intervals) == 0:
             return
-        v = self.value[:1]
-        for i in range(1, len(self.value)):
-            if self.value[i][0] == v[-1][1]:
-                v[-1] = (v[-1][0], self.value[i].end)
+        v = self.intervals[:1]
+        for i in range(1, len(self.intervals)):
+            if self.intervals[i][0] == v[-1][1]:
+                v[-1] = (v[-1][0], self.intervals[i].end)
             else:
-                v.append(self.value[i])
-        self.value = v
+                v.append(self.intervals[i])
+        self.intervals = v
 
     def __add__(self, other):
-        self_points = [point for interval in self.value for point in interval]
+        self_points = [point for interval in self.intervals for point in interval]
         other_points = [point for interval in other.value for point in interval]
         self.split(other_points)
         other.split(self_points)
-        v = list(set(self.value).union(set(other.value)))
+        v = list(set(self.intervals).union(set(other.value)))
         v.sort()
         new = TimeIntervals(v)
         self.compress()
@@ -78,11 +80,11 @@ class TimeIntervals:  # example object: (t1,t2]U(t3,t4]U...
         return new
 
     def __sub__(self, other):
-        self_points = [point for interval in self.value for point in interval]
+        self_points = [point for interval in self.intervals for point in interval]
         other_points = [point for interval in other.value for point in interval]
         self.split(other_points)
         other.split(self_points)
-        v = list(set(self.value).difference(set(other.value)))
+        v = list(set(self.intervals).difference(set(other.value)))
         v.sort()
         new = TimeIntervals(v)
         self.compress()
@@ -133,7 +135,7 @@ class TimeInterval(object):
         return "({0}, {1})".format(self.start, self.end)
 
 
-def parse_time(start, end):
+def parse_time_tuple(start, end):
     now = datetime.now()
     if isinstance(start, int):
         offset = timedelta(seconds=start)
@@ -150,7 +152,7 @@ def parse_time(start, end):
     else:
         end_time = parse(end)
 
-    return TimeRange(start=start_time, end=end_time)
+    return TimeInterval(start=start_time, end=end_time)
 
 
 def compare_time_ranges(desired_ranges, computed_ranges):
@@ -164,7 +166,7 @@ def compare_time_ranges(desired_ranges, computed_ranges):
                     # Completely outside range
                     continue
                 else:
-                    result_ranges.append(TimeRange(start=desired.start, end=computed.start))
+                    result_ranges.append(TimeInterval(start=desired.start, end=computed.start))
                     logging.debug("Time range partially computed {0}, new end time={1}".format(desired, computed.start))
             else:
                 if desired.start > computed.end:
@@ -174,7 +176,7 @@ def compare_time_ranges(desired_ranges, computed_ranges):
                     needs_full_computation = False
                     logging.debug("Time range fully computed {0}".format(desired))
                 else:
-                    result_ranges.append(TimeRange(start=computed.end, end=desired.end))
+                    result_ranges.append(TimeInterval(start=computed.end, end=desired.end))
                     logging.debug("Time range partially computed {0}, new start time={1}".format(desired, computed.end))
         if needs_full_computation:
             logging.debug("Time range requires full computation {0}".format(desired))
