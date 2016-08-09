@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2016 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,5 +20,12 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from tool import Tool
-from stream import Stream
+from utils import Printable
+
+
+class Workflow(Printable):
+    def __init__(self, workflow_definition):
+        self.workflow_definition = workflow_definition
+
+    def execute(self, sphere_connector):
+        pass

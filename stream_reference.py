@@ -22,7 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 
-class StreamRef(object):
+class StreamReference(object):
     def __init__(self, base_id, stream_id, start, end, modifier, get_results_func):
         self.base_id = base_id
         self.stream_id = stream_id
@@ -31,20 +31,22 @@ class StreamRef(object):
         self.modifier = modifier
         self.get_results_func = get_results_func
 
-    def __repr__(self):  ### TODO possibly need repr as well? or even repr instead of str?
-        s = "StreamRef\n      BASE_ID  : " + repr(self.base_id)
-        s = s + "\n      STREAM_ID: " + repr(self.stream_id)
-        s = s + "\n      START    : " + repr(self.start)
-        s = s + "\n      END      : " + repr(self.end)
-        s = s + "\n      MODIFIER : " + repr(self.modifier)
-        s = s + "\n    "
-        return (s)
+    def __repr__(self):
+        # TODO possibly need repr as well? or even repr instead of str?
+        s = "StreamReference"
+        s += "\n      BASE_ID  : " + repr(self.base_id)
+        s += "\n      STREAM_ID: " + repr(self.stream_id)
+        s += "\n      START    : " + repr(self.start)
+        s += "\n      END      : " + repr(self.end)
+        s += "\n      MODIFIER : " + repr(self.modifier)
+        s += "\n    "
+        return s
 
     def __eq__(self, other):
-        return (str(self) == str(other))
+        return str(self) == str(other)
 
     def __hash__(self):
-        return (hash(str(self)))
+        return hash(str(self))
 
     def __call__(self, *args, **kwargs):
-        return (self.get_results_func(self, args, kwargs))
+        return self.get_results_func(self, args, kwargs)

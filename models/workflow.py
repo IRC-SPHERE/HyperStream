@@ -22,27 +22,29 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from mongoengine import Document, StringField, EmbeddedDocument, EmbeddedDocumentListField, ListField, \
     MapField, DateTimeField
+# from plate import PlateDefinitionModel
 from time_range import TimeRangeModel
 
 
 class NodeDefinitionModel(EmbeddedDocument):
     stream_id = StringField(required=True, min_length=1, max_length=512)
-    plates = ListField(field=StringField)
+    plate_ids = ListField(field=StringField(min_length=1, max_length=512))
 
 
 class FactorDefinitionModel(EmbeddedDocument):
     tool = StringField(required=True, min_length=1, max_length=512)
-    sources = ListField(field=StringField, required=False)
-    sink = StringField(required=False)
+    sources = ListField(field=StringField(min_length=1, max_length=512), required=False)
+    sink = StringField(min_length=1, max_length=512, required=False)
 
 
 class WorkflowDefinitionModel(Document):
-    flow_id = StringField(required=True, min_length=1, max_length=512)
+    workflow_id = StringField(required=True, min_length=1, max_length=512)
     name = StringField(required=True, min_length=1, max_length=512)
     description = StringField(required=True, min_length=1, max_length=4096)
     nodes = EmbeddedDocumentListField(document_type=NodeDefinitionModel, required=False)
-    plates = MapField(field=EmbeddedDocumentListField(document_type=PlateDefinitionModel))
+    # plates = MapField(field=EmbeddedDocumentListField(document_type=PlateDefinitionModel))
     factors = EmbeddedDocumentListField(document_type=FactorDefinitionModel, required=True)
+    owner = StringField(required=False, min_length=1, max_length=512)
 
     meta = {
         'collection': 'workflow_definitions',

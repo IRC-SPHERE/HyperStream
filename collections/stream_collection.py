@@ -25,34 +25,44 @@ import logging
 from collections import OrderedDict
 # from copy import deepcopy
 from ..utils import Printable
-from ..stream import Stream
+from ..models import StreamDefinitionModel
+from ..stream_reference import StreamReference
 
 
 class StreamCollection(Printable):
     streams = {}
 
     def __init__(self, kernel_collection):
-        with open("stream_ids.json", 'r') as f:
-            stream_ids = json.load(f, object_pairs_hook=OrderedDict)
-            for stream_id in stream_ids:
-                d = stream_ids[stream_id]
-                kernel = kernel_collection.kernels[d['kernel_id']]
+        pass
+        # Load all of the database streams
+        # for s in StreamDefinitionModel.objects:
+        #     self.streams[s.stream_id] = StreamReference(
+        #         base_id='database_base',
+        #         stream_id=s.stream_id,
+        #         modifier=
+        #     )
 
-                sources = []
-                if d['sources']:
-                    logging.info("Parsing sources [ " + ", ".join(d['sources']) + " ]")
-                    for source in d['sources']:
-                        if source not in self.streams:
-                            logging.error("Source stream not yet defined: " + source)
-                            continue
-                        else:
-                            sources.append(self.streams[source])
-
-                self.streams[stream_id] = Stream(
-                    stream_id=stream_id,
-                    kernel=kernel,
-                    sources=sources,
-                    parameters=d['parameters'],
-                    stream_type=d['stream_type'],
-                    filters=d['filters']
-                )
+        # with open("stream_ids.json", 'r') as f:
+        #     stream_ids = json.load(f, object_pairs_hook=OrderedDict)
+        #     for stream_id in stream_ids:
+        #         d = stream_ids[stream_id]
+        #         kernel = kernel_collection.kernels[d['kernel_id']]
+        #
+        #         sources = []
+        #         if d['sources']:
+        #             logging.info("Parsing sources [ " + ", ".join(d['sources']) + " ]")
+        #             for source in d['sources']:
+        #                 if source not in self.streams:
+        #                     logging.error("Source stream not yet defined: " + source)
+        #                     continue
+        #                 else:
+        #                     sources.append(self.streams[source])
+        #
+        #         self.streams[stream_id] = StreamReference(
+        #             stream_id=stream_id,
+        #             kernel=kernel,
+        #             sources=sources,
+        #             parameters=d['parameters'],
+        #             stream_type=d['stream_type'],
+        #             filters=d['filters']
+        #         )

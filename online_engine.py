@@ -30,9 +30,9 @@ class OnlineEngine(object):
         self.config = hyperstream_config
         self.client = Client(self.config.mongo)
 
-        self.kernels = KernelCollection(self.config.kernel_path)
-        self.streams = StreamCollection(self.kernels)
-        self.flows = FlowCollection(self.streams, self.config.flow_path)
+        self.tools = ToolCollection(self.config.tool_path)
+        self.streams = StreamCollection(self.tools)
+        self.workflows = WorkflowCollection()
 
     def execute(self):
-        self.flows.execute_all(self.sphere_connector)
+        self.workflows.execute_all(self.sphere_connector)
