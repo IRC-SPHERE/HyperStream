@@ -23,7 +23,14 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from mongoengine import Document, DateTimeField, StringField, DictField, EmbeddedDocumentListField, EmbeddedDocument
 
 
-class InputTypeModel(EmbeddedDocument):
+class InputOutputTypeModel(EmbeddedDocument):
+    """
+    Defines the expected output type given the specified input type
+    Examples:
+        Identity: doc_gen -> doc_gen (takes in a generator over documents and outputs a generator over documents)
+        Identity: doc     -> doc     (takes in a document and outputs a document)
+        First:    doc_gen -> doc     (takes in a generator over documents and outputs the first document)
+    """
     input_type = StringField(required=True, min_length=1, max_length=32)
     output_type = StringField(required=True, min_length=1, max_length=32)
 
@@ -36,7 +43,7 @@ class ToolDefinitionModel(Document):
     version = StringField(required=True, min_length=1, max_length=512)
     parameters = DictField()
     tool_type = StringField(required=True, min_length=1, max_length=512)
-    input_types = EmbeddedDocumentListField(document_type=InputTypeModel)
+    input_output_types = EmbeddedDocumentListField(document_type=InputOutputTypeModel)
 
     meta = {
         'collection': 'tool_definitions',

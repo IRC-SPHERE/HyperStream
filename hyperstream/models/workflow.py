@@ -20,7 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, StringField, IntField, EmbeddedDocument, EmbeddedDocumentListField, ListField, \
+from mongoengine import Document, StringField, EmbeddedDocument, EmbeddedDocumentListField, ListField, \
     MapField, DateTimeField
 from time_range import TimeRangeModel
 
@@ -36,11 +36,6 @@ class FactorDefinitionModel(EmbeddedDocument):
     sink = StringField(required=False)
 
 
-class PlateDefinitionModel(EmbeddedDocument):
-    meta_data_id = StringField(required=True, min_length=1, max_length=512)
-    values = ListField(field=IntField)
-
-
 class WorkflowDefinitionModel(Document):
     flow_id = StringField(required=True, min_length=1, max_length=512)
     name = StringField(required=True, min_length=1, max_length=512)
@@ -51,8 +46,8 @@ class WorkflowDefinitionModel(Document):
 
     meta = {
         'collection': 'workflow_definitions',
-        'indexes': [{'fields': ['flow_id']}],
-        'ordering': ['flow_id']
+        'indexes': [{'fields': ['workflow_id']}],
+        'ordering': ['workflow_id']
     }
 
 

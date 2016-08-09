@@ -29,7 +29,6 @@ class StreamInstanceModel(Document):
     stream_id = StringField(required=True, min_length=1, max_length=512)
     stream_type = StringField(required=True, min_length=1, max_length=512)
     datetime = DateTimeField(required=True)
-    filters = DictField(required=False)
     metadata = DictField(required=False)
     version = StringField(required=True, min_length=1, max_length=512)
     value = DynamicField(required=True)
