@@ -47,6 +47,8 @@ class StreamParameterModel(EmbeddedDocument):
 
 class StreamDefinitionModel(Document):
     stream_id = StringField(required=True, min_length=1, max_length=512)
+    stream_type = StringField(required=True, min_length=1, max_length=512)
+    channel = StringField(required=True, min_length=1, max_length=512)
     last_updated = DateTimeField(required=True)
     tool_name = StringField(required=True, min_length=1, max_length=512)
     tool_version = StringField(required=True, min_length=1, max_length=512)

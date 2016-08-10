@@ -20,7 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-# from collections import ToolCollection, StreamCollection
+from tool import ToolCollection
 from stream import StreamCollection
 from channel import ChannelCollection
 from workflow import WorkflowManager
@@ -32,8 +32,8 @@ class OnlineEngine(object):
         self.config = hyperstream_config
         self.client = Client(self.config.mongo)
 
-        # self.tools = ToolCollection(self.config.tool_path)
-        self.streams = StreamCollection()
+        self.tools = ToolCollection(self.config.tool_path)
+        self.streams = StreamCollection(self.tools)
 
         self.channels = ChannelCollection(self.config.tool_path)
 
