@@ -32,4 +32,4 @@ class ToolBase(ModuleBase):
         tool_class = getattr(module, class_name)
         tool = tool_class()
         (args, kwargs) = tool.process_params(*args, **kwargs)
-        return (StreamDef(tool, *args, **kwargs))
+        return StreamDef(tool, *args, **kwargs)
