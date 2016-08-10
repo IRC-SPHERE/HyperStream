@@ -26,7 +26,7 @@ from sphere_connector_package.sphere_connector import SphereConnector, DataWindo
 
 # TODO Switch to persistent connectivity rather than connecting each time
 
-class Sphere(Tool):
+class SphereBoundingBox(Tool):
     def normalise_tool(self, *args, **kwargs):
         pass
 
@@ -40,9 +40,9 @@ class Sphere(Tool):
     def __hash__(self):
         return hash(__name__)
 
-    def process_params(self, modality):
-        print('Defining a SPHERE stream')
-        return [], {'modality': modality}
+    def process_params(self):
+        print('Defining a SPHERE 2D bounding box stream')
+        return [], {}
 
     def normalise_kwargs(self, kwargs):
         kwargs2 = {}
@@ -54,5 +54,4 @@ class Sphere(Tool):
     def __call__(self, stream_def, start, end, writer, modality):
         print('Sphere running from ' + str(start) + ' to ' + str(end) + ' on modality' + modality)
         window = DataWindow(start=start, end=end, sphere_connector=self.sphere_connector)
-        source = window.modalities[modality]
-        writer(source.get_data())
+        writer(window.video.get_data(elements='2Dbb'))
