@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2016 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,22 +20,20 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from collections import WorkflowCollection, ToolCollection, StreamCollection
-from channel import ChannelCollection
-from client import Client
+
+from hyperstream import Tool
 
 
-class OnlineEngine(object):
-    def __init__(self, sphere_connector, hyperstream_config):
-        self.sphere_connector = sphere_connector
-        self.config = hyperstream_config
-        self.client = Client(self.config.mongo)
+class Product(Tool):
+    def normalise_kwargs(self, *args, **kwargs):
+        pass
 
-        self.tools = ToolCollection(self.config.tool_path)
-        self.streams = StreamCollection(self.tools)
-        self.workflows = WorkflowCollection()
+    def normalise_tool(self, *args, **kwargs):
+        pass
 
-        self.channels = ChannelCollection(self.config.tool_path)
-
-    def execute(self):
-        self.workflows.execute_all(self.sphere_connector)
+    def __call__(self, stream_def, start, end, writer, stream1, stream2):
+        print('Product running from ' + str(start) + ' to ' + str(end))
+        for (t, data1) in stream1:
+            (_, data2) = next(stream2)
+            res = data1 * data2
+            writer([(t, data1 * data2)])
