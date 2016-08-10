@@ -21,6 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 # from collections import ToolCollection, StreamCollection
+from stream import StreamCollection
 from channel import ChannelCollection
 from workflow import WorkflowManager
 from client import Client
@@ -32,7 +33,7 @@ class OnlineEngine(object):
         self.client = Client(self.config.mongo)
 
         # self.tools = ToolCollection(self.config.tool_path)
-        # self.streams = StreamCollection(self.tools)
+        self.streams = StreamCollection()
 
         self.channels = ChannelCollection(self.config.tool_path)
 
