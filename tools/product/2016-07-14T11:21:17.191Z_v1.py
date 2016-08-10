@@ -25,12 +25,6 @@ from hyperstream import Tool
 
 
 class Product(Tool):
-    def normalise_kwargs(self, *args, **kwargs):
-        pass
-
-    def normalise_tool(self, *args, **kwargs):
-        pass
-
     def __call__(self, stream_def, start, end, writer, stream1, stream2):
         print('Product running from ' + str(start) + ' to ' + str(end))
         for (t, data1) in stream1:
