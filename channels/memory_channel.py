@@ -20,7 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from stream_channel import StreamChannel
+from base_channel import BaseChannel
 from ..stream import StreamReference
 from ..channel_state import ChannelState
 from ..modifiers import Identity
@@ -28,7 +28,7 @@ from datetime import timedelta, datetime
 from ..time_interval import TimeIntervals
 
 
-class MemoryChannel(StreamChannel):
+class MemoryChannel(BaseChannel):
     def __init__(self, channel_id):
         state = ChannelState(channel_id)
         super(MemoryChannel, self).__init__(can_calc=True, can_create=True, state=state)
@@ -120,18 +120,18 @@ class MemoryChannel(StreamChannel):
         return {'start': timedelta(0), 'end': timedelta(0), 'modifier': Identity()}
 
 
-class ReadOnlyMemoryChannel(StreamChannel):
+class ReadOnlyMemoryChannel(BaseChannel):
     """
-    An abstract streambase with a read-only set of memory-based streams.
+    An abstract channel with a read-only set of memory-based streams.
     By default it is constructed empty with the last update at MIN_DATE.
     New streams and documents within streams are created with the update(up_to_timestamp) method,
-    which ensures that the streambase is up to date until up_to_timestamp.
+    which ensures that the channel is up to date until up_to_timestamp.
     No documents nor streams are ever deleted.
     Any deriving class must override update_streams(up_to_timestamp) which must update self.streams to be calculated
     until up_to_timestamp exactly.
     The data structure self.streams is a dict of streams indexed by stream_id, each stream is a list of tuples
     (timestamp,data), in no specific order.
-    Names and identifiers are the same in this streambase.
+    Names and identifiers are the same in this channel.
     """
 
     def __init__(self, base_id, up_to_timestamp=datetime.min):
@@ -153,7 +153,7 @@ class ReadOnlyMemoryChannel(StreamChannel):
 
     def update(self, up_to_timestamp):
         """
-        Call this function to ensure that the streambase is up to date at the time of timestamp.
+        Call this function to ensure that the channel is up to date at the time of timestamp.
         I.e., all the streams that have been created before or at that timestamp are calculated exactly until
         up_to_timestamp.
         """
