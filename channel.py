@@ -1,6 +1,6 @@
 """
 The MIT License (MIT)
-Copyright (c) 2014-2016 University of Bristol
+Copyright (c) 2014-2017 University of Bristol
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,22 +20,12 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from collections import WorkflowCollection, ToolCollection, StreamCollection
-from channel import ChannelCollection
-from client import Client
+from utils import Printable
+from channels import ToolChannel, SphereChannel, MemoryChannel
 
 
-class OnlineEngine(object):
-    def __init__(self, sphere_connector, hyperstream_config):
-        self.sphere_connector = sphere_connector
-        self.config = hyperstream_config
-        self.client = Client(self.config.mongo)
-
-        self.tools = ToolCollection(self.config.tool_path)
-        self.streams = StreamCollection(self.tools)
-        self.workflows = WorkflowCollection()
-
-        self.channels = ChannelCollection(self.config.tool_path)
-
-    def execute(self):
-        self.workflows.execute_all(self.sphere_connector)
+class ChannelCollection(Printable):
+    def __init__(self, tool_path):
+        self.tool_channel = ToolChannel(1, tool_path)
+        self.sphere_channel = SphereChannel(2)
+        self.memory_channel = MemoryChannel(3)
