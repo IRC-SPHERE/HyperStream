@@ -20,7 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from stream_channel import StreamChannel
+from base_channel import BaseChannel
 from ..channel_state import ChannelState
 from ..modifiers import Identity
 from ..time_interval import TimeIntervals
@@ -28,7 +28,7 @@ from datetime import datetime, timedelta
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
 
 
-class SphereChannel(StreamChannel):
+class SphereChannel(BaseChannel):
     """
     SPHERE MongoDB storing the raw sensor data
     """
