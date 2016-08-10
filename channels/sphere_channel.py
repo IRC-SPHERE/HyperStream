@@ -39,8 +39,8 @@ class SphereChannel(BaseChannel):
     def create_stream(self, stream_def):
         raise Exception('SphereChannel is read-only, cannot create new streams')
 
-    def __init__(self, base_id, up_to_timestamp=None):
-        state = ChannelState(base_id)
+    def __init__(self, channel_id, up_to_timestamp=None):
+        state = ChannelState(channel_id)
         super(SphereChannel, self).__init__(can_calc=False, can_create=False, state=state)
         self.modalities = ('video', 'environmental')
         for stream_id in self.modalities:
