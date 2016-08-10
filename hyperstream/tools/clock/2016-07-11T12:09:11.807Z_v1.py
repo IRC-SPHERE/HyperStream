@@ -27,12 +27,7 @@ from datetime import datetime, timedelta
 
 class Clock(Tool):
     def normalise_kwargs(self, kwargs):
-        kwargs2 = {}
-        for k in kwargs:
-            # TODO ... bug below?
-            if k not in 'optim':
-                kwargs2[k] = kwargs[k]
-        return kwargs2
+        return self._normalise_kwargs({'optim'}, **kwargs)
     
     def __call__(self, stream_def, start, end, writer, first, stride, optim):
         print('Clock running from ' + str(start) + ' to ' + str(end) + ' with stride ' + str(stride))
