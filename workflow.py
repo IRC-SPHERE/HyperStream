@@ -21,6 +21,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from utils import Printable
+from models import WorkflowDefinitionModel, PlateDefinitionModel
+
+
+class Plate(Printable):
+    def __init__(self, plate_definition):
+        self.plate_definition = plate_definition
 
 
 class Workflow(Printable):
@@ -28,4 +34,26 @@ class Workflow(Printable):
         self.workflow_definition = workflow_definition
 
     def execute(self, sphere_connector):
+        """
+        Here we need to work out in which channels each of the streams in the workflow live
+        :param sphere_connector:
+        :return:
+        """
         pass
+
+
+class WorkflowManager(Printable):
+    workflows = {}
+    plates = {}
+
+    def __init__(self):
+        for p in PlateDefinitionModel.objects:
+            self.plates[p.plate_id] = Plate(p)
+
+        # TODO: Make sure all of the plates in the workflow definitions exist in the plate definitions
+        for f in WorkflowDefinitionModel.objects:
+            self.workflows[f.workflow_id] = Workflow(f)
+
+    def execute_all(self, sphere_connector):
+        for workflow in self.workflows:
+            self.workflows[workflow].execute(sphere_connector)
