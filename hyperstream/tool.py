@@ -26,18 +26,31 @@ from utils import Printable
 
 class Tool(Printable):
     def process_params(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def normalise_tool(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def normalise_kwargs(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def process_params(self, **kwargs):
         print('Defining a {} stream'.format(self.__class__.__name__))
 
-        return [], dict(kwargs)
+        return args, kwargs
+
+    def normalise_args(self, args):
+        return args
+
+    def normalise_kwargs(self, kwargs):
+        return kwargs
+
+    def normalise_tool(self):
+        # alternatively, could return e.g.:
+        #  return 'tools.test.2016-07-10T10:15:54.932_v1'
+
+        return self.__class__.__module__
+
+    def normalise_stream_def(self, stream_def):
+        nt = self.normalise_tool()
+        na = self.normalise_args(stream_def.args)
+        nk = self.normalise_kwargs(stream_def.kwargs)
+
+        keys = tuple(sorted(nk.keys()))
+        values = tuple([nk[k] for k in keys])
+
+        return nt, tuple(na), keys, values
 
     def __str__(self):
         # TODO: @Meelis: Should this return __name__ or self.__class__.__name__ ?
@@ -46,3 +59,12 @@ class Tool(Printable):
     def __hash__(self):
         # TODO: @Meelis: should this return hash(__name__) or hash(self.__class__.__name__) ?
         return hash(self.__class__.__name__)
+
+    def __call__(self, *args, **kwargs):
+        # Expecting at least: stream_def, start, end, writer
+        # Then expecting whatever parameters the tool requires.
+        raise NotImplementedError()
+
+    @staticmethod
+    def _normalise_kwargs(without, **kwargs):
+        return dict(filter(lambda (kk, vv): kk not in without, dict(kwargs).iteritems()))

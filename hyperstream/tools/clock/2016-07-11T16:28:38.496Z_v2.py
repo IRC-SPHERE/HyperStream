@@ -30,13 +30,7 @@ class Clock(Tool):
         return 'tools.clock.2016-07-11T12:09:11:807Z_v1'
 
     def normalise_kwargs(self, kwargs):
-        return dict(filter(lambda (kk, vv): kk != 'optim', kwargs.iteritems()))
-
-        # kwargs2 = {}
-        # for k in kwargs:
-        #     if not k in ('optim'):
-        #         kwargs2[k] = kwargs[k]
-        # return kwargs2
+        return self._normalise_kwargs({'optim'}, **kwargs)
 
     def __call__(self, stream_def, start, end, writer, first, stride, optim):
         print('Clock running from ' + str(start) + ' to ' + str(end) + ' with stride ' + str(stride))

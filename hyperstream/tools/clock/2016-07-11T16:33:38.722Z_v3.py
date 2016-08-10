@@ -27,13 +27,7 @@ from datetime import datetime, timedelta
 
 class Clock(Tool):
     def normalise_kwargs(self, kwargs):
-        # TODO: make this a callable function somewhere. Possibly in the tool base? possibly in utils.
-        return dict(filter(lambda (kk, vv): kk not in ('optim', 'optim2'), kwargs.iteritems()))
-        # kwargs2 = {}
-        # for k in kwargs:
-        #     if not k in ('optim', 'optim2'):
-        #         kwargs2[k] = kwargs[k]
-        # return dict(filter(lambda (kk, vv): kk not in ('optim', 'optim2'), kwargs.iteritems()))
+        return self._normalise_kwargs({'optim'}, **kwargs)
 
     def __call__(self, stream_def, start, end, writer, first, stride, optim, optim2):
         print('Clock running from ' + str(start) + ' to ' + str(end) + ' with stride ' + str(stride))
