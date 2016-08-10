@@ -20,37 +20,12 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+from ..utils import Printable
+from ..channels import ToolChannel, SphereChannel, MemoryChannel
 
 
-class BaseState(object):
-    # TODO needs to be stored permanently as well
-    def __init__(self, base_id):
-        self.base_id = base_id
-        self.name2id = {}
-        self.def2id = {}
-        self.id2def = {}
-        self.id2calc = {}
-
-    def get_name2id(self, name):
-        return self.name2id[name]
-
-    def set_name2id(self, name, stream_id):
-        self.name2id[name] = stream_id
-
-    def get_def2id(self, stream_def):
-        return self.def2id[stream_def]
-
-    def set_def2id(self, stream_def, stream_id):
-        self.def2id[stream_def] = stream_id
-
-    def get_id2def(self, stream_id):
-        return self.id2def[stream_id]
-
-    def set_id2def(self, stream_id, stream_def):
-        self.id2def[stream_id] = stream_def
-
-    def get_id2calc(self, stream_id):
-        return self.id2calc[stream_id]
-
-    def set_id2calc(self, stream_id, calc_interval):
-        self.id2calc[stream_id] = calc_interval
+class ChannelCollection(Printable):
+    def __init__(self):
+        self.tool_channel = ToolChannel()
+        self.sphere_channel = SphereChannel()
+        self.memory_channel = MemoryChannel()

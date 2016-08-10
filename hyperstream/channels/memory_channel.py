@@ -20,18 +20,18 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from stream_base import StreamBase
-from ..stream_reference import StreamReference
-from ..base_state import BaseState
+from stream_channel import StreamChannel
+from ..stream import StreamReference
+from ..channel_state import ChannelState
 from ..modifiers import Identity
 from datetime import timedelta, datetime
 from ..time_interval import TimeIntervals
 
 
-class MemoryBase(StreamBase):
-    def __init__(self, base_id):
-        state = BaseState(base_id)
-        super(MemoryBase, self).__init__(can_calc=True, can_create=True, state=state)
+class MemoryChannel(StreamChannel):
+    def __init__(self, channel_id):
+        state = ChannelState(channel_id)
+        super(MemoryChannel, self).__init__(can_calc=True, can_create=True, state=state)
         self.streams = {}
         self.max_stream_id = 0
 
@@ -120,7 +120,7 @@ class MemoryBase(StreamBase):
         return {'start': timedelta(0), 'end': timedelta(0), 'modifier': Identity()}
 
 
-class ReadOnlyMemoryBase(StreamBase):
+class ReadOnlyMemoryChannel(StreamChannel):
     """
     An abstract streambase with a read-only set of memory-based streams.
     By default it is constructed empty with the last update at MIN_DATE.
@@ -135,8 +135,8 @@ class ReadOnlyMemoryBase(StreamBase):
     """
 
     def __init__(self, base_id, up_to_timestamp=datetime.min):
-        state = BaseState(base_id)
-        super(ReadOnlyMemoryBase, self).__init__(can_calc=False, can_create=False, state=state)
+        state = ChannelState(base_id)
+        super(ReadOnlyMemoryChannel, self).__init__(can_calc=False, can_create=False, state=state)
         self.streams = {}
         self.up_to_timestamp = datetime.min
         if up_to_timestamp > datetime.min:
