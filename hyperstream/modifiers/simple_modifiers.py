@@ -141,10 +141,8 @@ class Component(Modifier):
 
     def __call__(self, doc_gen):
         for (time, data) in doc_gen:
-            try:
+            if self.key in data:
                 yield (time, data[self.key])
-            except KeyError:
-                pass
 
 
 class CompFilter(Modifier):

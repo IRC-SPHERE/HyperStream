@@ -113,7 +113,7 @@ class BaseChannel(object):
     def parse_getkey(self, key):
         # ( stream_id_part [,stream_id_part]* [,start | ,start,end] [,modifier] )
         refdict = self.get_default_ref()
-        if type(key) == tuple:
+        if isinstance(key, (tuple, list)):
             if (len(key) >= 2) and issubclass(key[-1].__class__, Modifier):
                 refdict['modifier'] = key[-1]
                 key = key[:-1]
