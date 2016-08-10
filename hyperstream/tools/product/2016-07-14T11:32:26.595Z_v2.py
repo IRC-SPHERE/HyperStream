@@ -21,10 +21,10 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from hyperstream import Tool, date, delta
+from hyperstream import Tool
 
 
-class Prod(Tool):
+class Product(Tool):
     def __str__(self):
         return __name__
 
