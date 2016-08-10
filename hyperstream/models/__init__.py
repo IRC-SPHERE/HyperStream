@@ -22,5 +22,5 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from stream import StreamStatusModel, StreamDefinitionModel, StreamInstanceModel
 from tool import ToolDefinitionModel
-from workflow import WorkflowDefinitionModel, WorkflowStatusModel
+from workflow import WorkflowDefinitionModel, WorkflowStatusModel, PlateDefinitionModel
 from time_range import TimeRangeModel
