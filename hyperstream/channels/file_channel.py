@@ -45,9 +45,9 @@ class FileChannel(ReadOnlyMemoryChannel):
     def create_stream(self, stream_def):
         raise NotImplementedError()
 
-    def __init__(self, base_id, path, up_to_timestamp=datetime.min):
+    def __init__(self, channel_id, path, up_to_timestamp=datetime.min):
         self.path = path
-        super(FileChannel, self).__init__(base_id, up_to_timestamp)
+        super(FileChannel, self).__init__(channel_id, up_to_timestamp)
 
     def repr_stream(self, stream_id):
         s = 'externally defined by the file system, read-only stream'
