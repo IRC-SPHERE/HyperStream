@@ -27,11 +27,11 @@ from time_range import TimeRangeModel
 
 class PlateModel(EmbeddedDocument):
     meta_data_id = StringField(required=True, min_length=1, max_length=512)
-    values = ListField(field=IntField)
+    values = ListField(field=IntField(min_value=0))
     complement = BooleanField(default=False)
 
 
-class PlateDefinitionModel(EmbeddedDocument):
+class PlateDefinitionModel(Document):
     plate_id = StringField(required=True, min_length=1, max_length=512)
     components = EmbeddedDocumentListField(document_type=PlateModel, required=True)
 
