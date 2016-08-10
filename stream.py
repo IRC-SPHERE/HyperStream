@@ -21,13 +21,18 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from utils import Printable
+from models import StreamDefinitionModel
 
 
 class StreamCollection(Printable):
     streams = {}
 
-    def __init__(self):
-        pass
+    def __init__(self, tools):
+        for stream_definition in StreamDefinitionModel.objects:
+            # TODO: Pickup tool from tool_name and tool_version
+            tool = tools[stream_definition.tool_name, stream_definition.tool_version]
+
+            self.streams[stream_definition.stream_id] = StreamDefinition(tool, stream_definition.parameters)
 
 
 class StreamReference(object):

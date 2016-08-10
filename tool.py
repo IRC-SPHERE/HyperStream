@@ -20,8 +20,35 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-
+from models import ToolDefinitionModel
+import imp
+import os
+import logging
 from utils import Printable
+
+
+class ToolCollection(Printable):
+    tools = {}
+
+    def __init__(self, tool_path):
+        # TODO: Rather than trying to load in modules here - this needs to search the tool channel
+        for t in ToolDefinitionModel.objects:
+            try:
+                src = imp.load_source(t.tool_id, os.path.join(tool_path, t.tool_id, t.version, "runner.py"))
+                self.tools[t.tool_id, t.tool_version] = src
+            except (IOError, ImportError):
+                logging.error("No tool found with appropriate version: " + t.tool_id)
+
+    def __getitem__(self, item):
+        """
+        This is so we can do tool = tools[tool_name, tool_version]
+        :param item: tuple of name and version
+        :return: the tool
+        """
+        if not isinstance(item, (list, tuple)) or len(item) != 2 \
+                or not isinstance(item[0], (str, unicode)) or not isinstance(item[1], (str, unicode)):
+            raise KeyError("Expecting tuple of (tool_name, tool_version), got: " + str(item))
+        return self.tools[item]
 
 
 class Tool(Printable):
