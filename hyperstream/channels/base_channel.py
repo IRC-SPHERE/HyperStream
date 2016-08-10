@@ -75,7 +75,7 @@ class BaseChannel(object):
 
     @property
     def __repr__(self):
-        s = super(BaseChannel, self).__repr__() + ' with ID: ' + str(self.state.base_id)
+        s = super(BaseChannel, self).__repr__() + ' with ID: ' + str(self.state.channel_id)
         s = s + ' and containing ' + str(len(self.state.id2calc)) + " streams:"
         for stream_id in self.state.id2calc:
             s = s + '\nSTREAM ID: ' + str(stream_id)
@@ -131,7 +131,7 @@ class BaseChannel(object):
 
     def __getitem__(self, key):
         key = self.parse_getkey(key)
-        key['base_id'] = self.state.base_id
+        key['channel_id'] = self.state.channel_id
         key['stream_id'] = self.state.get_name2id(key['stream_id'])
         key['get_results_func'] = self.get_results
         return StreamReference(**key)

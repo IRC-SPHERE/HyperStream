@@ -23,8 +23,8 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 class StreamReference(object):
-    def __init__(self, base_id, stream_id, start, end, modifier, get_results_func):
-        self.base_id = base_id
+    def __init__(self, channel_id, stream_id, start, end, modifier, get_results_func):
+        self.channel_id = channel_id
         self.stream_id = stream_id
         self.start = start
         self.end = end
@@ -34,11 +34,11 @@ class StreamReference(object):
     def __repr__(self):
         # TODO possibly need repr as well? or even repr instead of str?
         s = "StreamReference"
-        s += "\n      BASE_ID  : " + repr(self.base_id)
-        s += "\n      STREAM_ID: " + repr(self.stream_id)
-        s += "\n      START    : " + repr(self.start)
-        s += "\n      END      : " + repr(self.end)
-        s += "\n      MODIFIER : " + repr(self.modifier)
+        s += "\n      CHANNEL_ID  : " + repr(self.channel_id)
+        s += "\n      STREAM_ID   : " + repr(self.stream_id)
+        s += "\n      START       : " + repr(self.start)
+        s += "\n      END         : " + repr(self.end)
+        s += "\n      MODIFIER    : " + repr(self.modifier)
         s += "\n    "
         return s
 
