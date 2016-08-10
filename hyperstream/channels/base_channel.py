@@ -20,10 +20,13 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from ..stream_reference import StreamReference
+from ..stream import StreamReference
+from ..modifiers import Identity, Modifier
+from ..time_interval import TimeIntervals
+from datetime import datetime, timedelta, date
 
 
-class StreamBase(object):
+class BaseChannel(object):
     def __init__(self, can_calc=False, can_create=False, state=None, calc_agent=None):
         self.can_calc = can_calc
         self.can_create = can_create
@@ -35,17 +38,23 @@ class StreamBase(object):
         Must be overridden by deriving classes.
         1. Calculates/receives the documents in the stream interval determined by the stream_ref
         2. Applies the modifiers within stream_ref
-        3. Applies streambase custom modifiers as determined by args and kwargs
-        4. Returns success or failure and the results (for some streambases the values of args and kwargs can override the return process, e.g. introduce callbacks)
+        3. Applies channel custom modifiers as determined by args and kwargs
+        4. Returns success or failure and the results (for some channels the values of args and kwargs can override the
+        return process, e.g. introduce callbacks)
         """
         raise NotImplementedError
 
     def create_stream(self, stream_def):
-        '''Must be overridden by deriving classes, must create the stream according to stream_def and return its unique identifier stream_id'''
+        """
+        Must be overridden by deriving classes, must create the stream according to stream_def and return its unique
+        identifier stream_id
+        """
         raise NotImplementedError
 
     def get_stream_writer(self, stream_id):
-        '''Must be overridden by deriving classes, must return a function(document_collection) which writes all the given documents of the form (timestamp,data) from document_collection to the stream stream_id
+        """
+        Must be overridden by deriving classes, must return a function(document_collection) which writes all the
+        given documents of the form (timestamp,data) from document_collection to the stream stream_id
            Example:
            if stream_id==1:
          def f(document_collection):
@@ -54,31 +63,37 @@ class StreamBase(object):
              return(f)
            else:
              raise Exception('No stream with id '+str(stream_id))
-        '''
+        """
         raise NotImplementedError
 
     def get_default_ref(self):
-        '''Could be overridden by deriving classes, should return the default values for start,end,modifier when referring to a stream in this streambase'''
-        return ({'start': MIN_DATE, 'end': delta(0), 'modifier': Identity()})
+        """
+        Could be overridden by deriving classes, should return the default values for start,end,modifier when
+        referring to a stream in this channel
+        """
+        return {'start': datetime.min, 'end': timedelta(0), 'modifier': Identity()}
 
+    @property
     def __repr__(self):
-        s = super(StreamBase, self).__repr__() + ' with ID: ' + str(self.state.base_id)
+        s = super(BaseChannel, self).__repr__() + ' with ID: ' + str(self.state.base_id)
         s = s + ' and containing ' + str(len(self.state.id2calc)) + " streams:"
         for stream_id in self.state.id2calc:
             s = s + '\nSTREAM ID: ' + str(stream_id)
-            s = s + "\n  NAMES: "
+            s += "\n  NAMES: "
             names = []
             for name in self.state.name2id:
                 if self.state.name2id[name] == stream_id:
                     names.append(name)
-            s = s + ', '.join(names)
-            s = s + "\n  CALCULATED RANGES: " + repr(self.state.id2calc[stream_id])
-            s = s + "\n  STREAM DEFINITION: "
-            s = s + self.repr_stream(stream_id)
-        return (s)
+            s += ', '.join(names)
+            s += "\n  CALCULATED RANGES: " + repr(self.state.id2calc[stream_id])
+            s += "\n  STREAM DEFINITION: "
+            s += self.repr_stream(stream_id)
+        return s
 
     def repr_stream(self, stream_id):
-        '''Must be over-ridden to provide details about the stream'''
+        """
+        Must be over-ridden to provide details about the stream
+        """
         raise NotImplementedError
 
     def parse_setkey(self, key):
@@ -89,9 +104,9 @@ class StreamBase(object):
             classes = [k.__class__ for k in key]
             if True in [issubclass(cls, Modifier) for cls in classes]:
                 raise Exception('StreamReference identifier cannot include a Modifier')
-            if (delta in classes) or (date in classes):
+            if (timedelta in classes) or (date in classes):
                 raise Exception('StreamReference identifier cannot include date or delta')
-            return ('.'.join([str(k) for k in key]))
+            return '.'.join([str(k) for k in key])
         else:
             return (str(key))
 
@@ -102,11 +117,11 @@ class StreamBase(object):
             if (len(key) >= 2) and issubclass(key[-1].__class__, Modifier):
                 refdict['modifier'] = key[-1]
                 key = key[:-1]
-            if (len(key) >= 3) and (key[-2].__class__ in (delta, date)) and (key[-1].__class__ in (delta, date)):
+            if (len(key) >= 3) and (key[-2].__class__ in (timedelta, date)) and (key[-1].__class__ in (timedelta, date)):
                 refdict['start'] = key[-2]
                 refdict['end'] = key[-1]
                 key = key[:-2]
-            elif (len(key) >= 2) and (key[-1].__class__ in (delta, date)):
+            elif (len(key) >= 2) and (key[-1].__class__ in (timedelta, date)):
                 refdict['start'] = key[-1]
                 key = key[:-1]
             refdict['stream_id'] = self.parse_setkey(key)

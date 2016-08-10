@@ -20,16 +20,16 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from memory_base import ReadOnlyMemoryBase
+from memory_channel import ReadOnlyMemoryChannel
 from ..modifiers import Identity
 from dateutil.parser import parse
 import os
 from datetime import datetime
 
 
-class FileBase(ReadOnlyMemoryBase):
+class FileChannel(ReadOnlyMemoryChannel):
     """
-    An abstract stream base where the streams are recursive sub-folders under a given path and documents correspond to
+    An abstract stream channel where the streams are recursive sub-folders under a given path and documents correspond to
     all those files which have a timestamp as their prefix in the format yyyy_mm_dd_hh_mm_ss_mmm_*.
     All the derived classes must override the function data_loader(short_path,file_long_name) which determines how the
     data are loaded into the document of the stream.
@@ -37,6 +37,7 @@ class FileBase(ReadOnlyMemoryBase):
     The call update(up_to_timestamp) must not be called unless it is guaranteed that later no files with earlier
     timestamps are added.
     """
+    path = ""
 
     def get_stream_writer(self, stream_id):
         raise NotImplementedError()
@@ -44,9 +45,9 @@ class FileBase(ReadOnlyMemoryBase):
     def create_stream(self, stream_def):
         raise NotImplementedError()
 
-    def __init__(self, base_id, path, up_to_timestamp=MIN_DATE):
+    def __init__(self, base_id, path, up_to_timestamp=datetime.min):
         self.path = path
-        super(FileBase, self).__init__(base_id, up_to_timestamp)
+        super(FileChannel, self).__init__(base_id, up_to_timestamp)
 
     def repr_stream(self, stream_id):
         s = 'externally defined by the file system, read-only stream'
