@@ -42,7 +42,7 @@ class Product(Tool):
         return [], {'stream1': stream1, 'stream2': stream2}
 
     def __call__(self, stream_def, start, end, writer, stream1, stream2):
-        print('Prod running from ' + str(start) + ' to ' + str(end))
+        print('Product running from ' + str(start) + ' to ' + str(end))
         for (t, data1) in stream1:
             (_, data2) = next(stream2)
             writer([(t, data1 * data2)])
