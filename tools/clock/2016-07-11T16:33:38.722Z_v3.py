@@ -37,11 +37,13 @@ class Clock(Tool):
         return [], {'first': first, 'stride': stride, 'optim': optim, 'optim2': optim2}
 
     def normalise_kwargs(self, kwargs):
-        kwargs2 = {}
-        for k in kwargs:
-            if not k in ('optim', 'optim2'):
-                kwargs2[k] = kwargs[k]
-        return kwargs2
+        # TODO: make this a callable function somewhere. Possibly in the tool base? possibly in utils.
+        return dict(filter(lambda (kk, vv): kk not in ('optim', 'optim2'), kwargs.iteritems()))
+        # kwargs2 = {}
+        # for k in kwargs:
+        #     if not k in ('optim', 'optim2'):
+        #         kwargs2[k] = kwargs[k]
+        # return dict(filter(lambda (kk, vv): kk not in ('optim', 'optim2'), kwargs.iteritems()))
 
     def __call__(self, stream_def, start, end, writer, first, stride, optim, optim2):
         print('Clock running from ' + str(start) + ' to ' + str(end) + ' with stride ' + str(stride))
