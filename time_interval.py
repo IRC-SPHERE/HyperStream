@@ -141,7 +141,9 @@ def parse_time_tuple(start, end):
         offset = timedelta(seconds=start)
         start_time = now - offset
     elif start is None:
-        start_time = datetime(1970, 1, 1)
+        start_time = datetime.min
+    elif isinstance(start, datetime):
+        start_time = start
     else:
         start_time = parse(start)
 
@@ -149,6 +151,10 @@ def parse_time_tuple(start, end):
         # TODO: add check for future (negative values) and ensure that start < end
         offset = timedelta(seconds=end)
         end_time = now - offset
+    elif end is None:
+        end_time = now
+    elif isinstance(end, datetime):
+        end_time = end
     else:
         end_time = parse(end)
 
