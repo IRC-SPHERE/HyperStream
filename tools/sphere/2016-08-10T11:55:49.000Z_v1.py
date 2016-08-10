@@ -27,6 +27,9 @@ from sphere_connector_package.sphere_connector import SphereConnector, DataWindo
 # TODO Switch to persistent connectivity rather than connecting each time
 
 class Sphere(Tool):
+    def normalise_tool(self, *args, **kwargs):
+        pass
+
     def __init__(self):
         self.sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
                                                 include_redcap=False)
