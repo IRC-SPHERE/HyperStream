@@ -134,8 +134,8 @@ class ReadOnlyMemoryChannel(BaseChannel):
     Names and identifiers are the same in this channel.
     """
 
-    def __init__(self, base_id, up_to_timestamp=datetime.min):
-        state = ChannelState(base_id)
+    def __init__(self, channel_id, up_to_timestamp=datetime.min):
+        state = ChannelState(channel_id)
         super(ReadOnlyMemoryChannel, self).__init__(can_calc=False, can_create=False, state=state)
         self.streams = {}
         self.up_to_timestamp = datetime.min
