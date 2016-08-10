@@ -27,8 +27,9 @@ from sphere_connector_package.sphere_connector import SphereConnector
 
 
 if __name__ == '__main__':
+    # TODO: would be nice to be able to refer to this sphere_connector object from the sphere_ tools
     sphere_connector = SphereConnector(log_filename='hyperstream_online', include_mongo=True, include_redcap=False)
     hyperstream_config = HyperStreamConfig()
 
-    online_engine = OnlineEngine(sphere_connector, hyperstream_config)
+    online_engine = OnlineEngine(hyperstream_config)
     online_engine.execute()
