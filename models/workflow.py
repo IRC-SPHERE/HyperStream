@@ -20,10 +20,26 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, StringField, EmbeddedDocument, EmbeddedDocumentListField, ListField, \
-    MapField, DateTimeField
-# from plate import PlateDefinitionModel
+from mongoengine import Document, StringField, EmbeddedDocument, EmbeddedDocumentListField, ListField, DateTimeField, \
+    BooleanField, IntField
 from time_range import TimeRangeModel
+
+
+class PlateModel(EmbeddedDocument):
+    meta_data_id = StringField(required=True, min_length=1, max_length=512)
+    values = ListField(field=IntField)
+    complement = BooleanField(default=False)
+
+
+class PlateDefinitionModel(EmbeddedDocument):
+    plate_id = StringField(required=True, min_length=1, max_length=512)
+    components = EmbeddedDocumentListField(document_type=PlateModel, required=True)
+
+    meta = {
+        'collection': 'plate_definitions',
+        'indexes': [{'fields': ['plate_id']}],
+        'ordering': ['plate_id']
+    }
 
 
 class NodeDefinitionModel(EmbeddedDocument):
