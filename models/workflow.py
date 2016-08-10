@@ -37,8 +37,8 @@ class PlateDefinitionModel(Document):
 
     meta = {
         'collection': 'plate_definitions',
-        'indexes': [{'fields': ['plate_id']}],
-        'ordering': ['plate_id']
+        'indexes': [{'fields': ['plate_id'], 'unique': True}],
+        'ordering': ['plate_id'],
     }
 
 

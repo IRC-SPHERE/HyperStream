@@ -20,6 +20,14 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+from utils import Printable
+
+
+class StreamCollection(Printable):
+    streams = {}
+
+    def __init__(self):
+        pass
 
 
 class StreamReference(object):
@@ -60,7 +68,7 @@ class StreamDefinition(object):  # tool with params
         self.kwargs = kwargs
 
     def __repr__(self):
-        s = "StreamDef:"
+        s = "StreamDefinition:"
         s += "\n    TOOL  : " + repr(self.tool)
         s += "\n    ARGS  : " + repr(self.args)
         s += "\n    KWARGS: " + repr(self.kwargs)
