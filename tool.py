@@ -33,3 +33,16 @@ class Tool(Printable):
 
     def normalise_kwargs(self, *args, **kwargs):
         raise NotImplementedError()
+
+    def process_params(self, **kwargs):
+        print('Defining a {} stream'.format(self.__class__.__name__))
+
+        return [], dict(kwargs)
+
+    def __str__(self):
+        # TODO: @Meelis: Should this return __name__ or self.__class__.__name__ ?
+        return self.__class__.__name__
+
+    def __hash__(self):
+        # TODO: @Meelis: should this return hash(__name__) or hash(self.__class__.__name__) ?
+        return hash(self.__class__.__name__)

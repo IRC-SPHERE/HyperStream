@@ -26,16 +26,6 @@ from datetime import datetime, timedelta
 
 
 class Clock(Tool):
-    def __str__(self):
-        return __name__
-    
-    def __hash__(self):
-        return hash(__name__)
-    
-    def process_params(self, first=datetime.min, stride=timedelta(seconds=1), optim=42):
-        print('Defining a Clock stream')
-        return [], {'first': first, 'stride': stride, 'optim': optim}
-    
     def normalise_kwargs(self, kwargs):
         kwargs2 = {}
         for k in kwargs:
