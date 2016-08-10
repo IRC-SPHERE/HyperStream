@@ -31,16 +31,6 @@ class Sphere(Tool):
         self.sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
                                                 include_redcap=False)
 
-    def __str__(self):
-        return __name__
-
-    def __hash__(self):
-        return hash(__name__)
-
-    def process_params(self, modality):
-        print('Defining a Sphere stream')
-        return [], {'modality': modality}
-
     def normalise_kwargs(self, kwargs):
         kwargs2 = {}
         for k in kwargs:

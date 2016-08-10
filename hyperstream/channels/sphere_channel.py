@@ -96,7 +96,7 @@ class SphereChannel(StreamChannel):
         elif stream_id == 'environmental':
             data = window.environmental.get_data()
         else:
-            assert False
+            raise KeyError('The stream ID must be in the set {' + ','.join(self.modalities) +'}')
 
         def reformat(doc):
             timestamp = doc['datetime']
