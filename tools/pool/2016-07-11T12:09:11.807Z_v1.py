@@ -25,8 +25,12 @@ from hyperstream import Tool, date, delta
 
 
 class Pool(Tool):
+    def process_params(self, *args, **kwargs):
+        return self._normalise_kwargs(set(), **kwargs)
+
     def __call__(self, stream_def, start, end, writer, timer, data, func):
         print('Pool running from ' + str(start) + ' to ' + str(end))
+        
         for (t, _) in timer():
             writer([(t, 'pool')])
             # TODO

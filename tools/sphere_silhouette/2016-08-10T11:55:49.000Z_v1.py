@@ -27,19 +27,12 @@ from sphere_connector_package.sphere_connector import SphereConnector, DataWindo
 # TODO Switch to persistent connectivity rather than connecting each time
 
 class SphereSilhouette(Tool):
-    def normalise_tool(self, *args, **kwargs):
-        pass
-
     def __init__(self):
         self.sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
                                                 include_redcap=False)
 
     def normalise_kwargs(self, kwargs):
-        kwargs2 = {}
-        for k in kwargs:
-            if not k in ('optim', 'optim2'):
-                kwargs2[k] = kwargs[k]
-        return kwargs2
+        self._normalise_kwargs({'optim', 'optim2'}, **kwargs)
 
     def __call__(self, stream_def, start, end, writer, filters):
         print('Sphere running from ' + str(start) + ' to ' + str(end) + ' using filters ' + str(filters))
