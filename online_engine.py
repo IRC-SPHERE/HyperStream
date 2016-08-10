@@ -20,22 +20,23 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from collections import WorkflowCollection, ToolCollection, StreamCollection
+# from collections import ToolCollection, StreamCollection
 from channel import ChannelCollection
+from workflow import WorkflowManager
 from client import Client
 
 
 class OnlineEngine(object):
-    def __init__(self, sphere_connector, hyperstream_config):
-        self.sphere_connector = sphere_connector
+    def __init__(self, hyperstream_config):
         self.config = hyperstream_config
         self.client = Client(self.config.mongo)
 
-        self.tools = ToolCollection(self.config.tool_path)
-        self.streams = StreamCollection(self.tools)
-        self.workflows = WorkflowCollection()
+        # self.tools = ToolCollection(self.config.tool_path)
+        # self.streams = StreamCollection(self.tools)
 
         self.channels = ChannelCollection(self.config.tool_path)
 
+        self.workflows = WorkflowManager(self.channels)
+
     def execute(self):
-        self.workflows.execute_all(self.sphere_connector)
+        self.workflows.execute_all()
