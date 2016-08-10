@@ -20,28 +20,28 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from stream_base import StreamBase
-from ..base_state import BaseState
+from stream_channel import StreamChannel
+from ..channel_state import ChannelState
 from ..modifiers import Identity
 from ..time_interval import TimeIntervals
 from datetime import datetime, timedelta
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
 
 
-class SphereBase(StreamBase):
+class SphereChannel(StreamChannel):
     """
     SPHERE MongoDB storing the raw sensor data
     """
 
     def get_stream_writer(self, stream_id):
-        raise Exception('SphereBase is read-only, cannot write new streams')
+        raise Exception('SphereChannel is read-only, cannot write new streams')
 
     def create_stream(self, stream_def):
-        raise Exception('SphereBase is read-only, cannot create new streams')
+        raise Exception('SphereChannel is read-only, cannot create new streams')
 
     def __init__(self, base_id, up_to_timestamp=datetime.min):
-        state = BaseState(base_id)
-        super(SphereBase, self).__init__(can_calc=False, can_create=False, state=state)
+        state = ChannelState(base_id)
+        super(SphereChannel, self).__init__(can_calc=False, can_create=False, state=state)
         self.modalities = ('video', 'environmental')
         for stream_id in self.modalities:
             self.state.set_name2id(stream_id, stream_id)
@@ -57,7 +57,7 @@ class SphereBase(StreamBase):
         return 'read-only SPHERE MongoDB stream'
 
     def __setitem__(self, key, value):
-        raise Exception('SphereBase is read-only, cannot create new streams')
+        raise Exception('SphereChannel is read-only, cannot create new streams')
 
     def update(self, up_to_timestamp):
         """
@@ -75,7 +75,7 @@ class SphereBase(StreamBase):
             try:
                 abs_start = kwargs['start'] + start
             except KeyError:
-                raise Exception('The stream reference to a SphereBase stream has a relative start time, '
+                raise Exception('The stream reference to a SphereChannel stream has a relative start time, '
                                 'need an absolute start time')
         end = stream_ref.end
         abs_end = end
@@ -84,7 +84,7 @@ class SphereBase(StreamBase):
                 abs_end = kwargs['end'] + end
             except KeyError:
                 raise Exception(
-                    'The stream reference to a SphereBase stream has a relative end time, need an absolute end time')
+                    'The stream reference to a SphereChannel stream has a relative end time, need an absolute end time')
         if abs_end > self.up_to_timestamp:
             raise Exception(
                 'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be obtained')

@@ -50,3 +50,27 @@ class StreamReference(object):
 
     def __call__(self, *args, **kwargs):
         return self.get_results_func(self, args, kwargs)
+
+
+# TODO: need to check if the same stream already exists in the same channel or not
+class StreamDefinition(object):  # tool with params
+    def __init__(self, tool, *args, **kwargs):
+        self.tool = tool
+        self.args = args
+        self.kwargs = kwargs
+
+    def __repr__(self):
+        s = "StreamDef:"
+        s += "\n    TOOL  : " + repr(self.tool)
+        s += "\n    ARGS  : " + repr(self.args)
+        s += "\n    KWARGS: " + repr(self.kwargs)
+        return s
+
+    def normalise(self):
+        return self.tool.normalise_stream_def(self)
+
+    def __eq__(self, other):
+        return self.normalise() == other.normalise()
+
+    def __hash__(self):
+        return hash(self.normalise())
