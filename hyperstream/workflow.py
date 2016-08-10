@@ -32,16 +32,10 @@ class Node(Printable):
 
 
 class Factor(Printable):
-    def __init__(self, plates, factor_definition):
-        # TODO: Check here that the tool exists
-        self.tool = factor_definition.tool
-
-        for plate in plates:
-            # TODO: Here we have to check the plate definitions
-            pass
-
-        self.sources = factor_definition.sources
-        self.sink = factor_definition.sink
+    def __init__(self, tool, sources, sink):
+        self.tool = tool
+        self.sources = sources
+        self.sink = sink
 
 
 class Plate(Printable):
@@ -64,9 +58,12 @@ class Workflow(Printable):
             p = [plates[plate_id] for plate_id in node.plate_ids]
             self.nodes[node_id] = Node(node_id, node.stream_id, p)
 
-        self.factors = [Factor(plates, f) for f in workflow_definition.factors]
-
-        # TODO: Here we have to check that all of the components of the workflow exist in each of the channels
+        self.factors = []
+        for f in workflow_definition.factors:
+            sources = [self.nodes[s] for s in f.sources]
+            sink = self.nodes[f.sink]
+            # TODO: Check that the tool exists
+            self.factors.append(Factor(f.tool, sources, sink))
 
     def execute(self):
         """
