@@ -24,11 +24,24 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from hyperstream.config import HyperStreamConfig
 from hyperstream.online_engine import OnlineEngine
 from sphere_connector_package.sphere_connector import SphereConnector
+from pymongo.errors import ConnectionFailure
+from subprocess import call
+import time
+import logging
 
 
 if __name__ == '__main__':
     # TODO: would be nice to be able to refer to this sphere_connector object from the sphere_ tools
-    sphere_connector = SphereConnector(log_filename='hyperstream_online', include_mongo=True, include_redcap=False)
+    connected = False
+    while not connected:
+        try:
+            sphere_connector = SphereConnector(log_filename='hyperstream_online', include_mongo=True, include_redcap=False)
+            connected = True
+        except ConnectionFailure as e:
+            logging.debug(e)
+            call(["tunnels"])
+            time.sleep(2)
+
     hyperstream_config = HyperStreamConfig()
 
     online_engine = OnlineEngine(hyperstream_config)

@@ -21,6 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from datetime import datetime, timedelta
+import pytz
 from dateutil.parser import parse
 import logging
 
@@ -39,7 +40,7 @@ class TimeIntervals:  # example object: (t1,t2]U(t3,t4]U...
                 self.intervals.append(v)
 
     def __str__(self):
-        return "U".join(["(" + str(a) + "," + str(b) + "]" for (a, b) in self.intervals])
+        return "U".join(["(" + str(interval.start) + "," + str(interval.end) + "]" for interval in self.intervals])
 
     def __repr__(self):
         return str(self)
@@ -136,12 +137,12 @@ class TimeInterval(object):
 
 
 def parse_time_tuple(start, end):
-    now = datetime.now()
+    now = datetime.utcnow().replace(tzinfo=pytz.utc)
     if isinstance(start, int):
         offset = timedelta(seconds=start)
         start_time = now - offset
     elif start is None:
-        start_time = datetime.min
+        start_time = datetime.min.replace(tzinfo=pytz.utc)
     elif isinstance(start, datetime):
         start_time = start
     else:

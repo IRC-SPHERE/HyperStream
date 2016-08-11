@@ -8,5 +8,5 @@
         "db": "hyperstream",
         "authentication_database": "admin"
     },
-    "tool_path": "tools"
+    "tool_path": "hyperstream/tools"
 }
