@@ -24,9 +24,11 @@ from ..stream import StreamReference
 from ..modifiers import Identity, Modifier
 from ..time_interval import TimeIntervals
 from datetime import datetime, timedelta, date
+from ..utils import Printable
+import pytz
 
 
-class BaseChannel(object):
+class BaseChannel(Printable):
     def __init__(self, can_calc=False, can_create=False, state=None, calc_agent=None):
         self.can_calc = can_calc
         self.can_create = can_create
@@ -71,20 +73,16 @@ class BaseChannel(object):
         Could be overridden by deriving classes, should return the default values for start,end,modifier when
         referring to a stream in this channel
         """
-        return {'start': datetime.min, 'end': timedelta(0), 'modifier': Identity()}
+        return {'start': datetime.min.replace(tzinfo=pytz.utc), 'end': timedelta(0), 'modifier': Identity()}
 
-    @property
+    # @property
     def __repr__(self):
-        s = super(BaseChannel, self).__repr__() + ' with ID: ' + str(self.state.channel_id)
+        s = self.__class__.__name__ + ' with ID: ' + str(self.state.channel_id)
         s = s + ' and containing ' + str(len(self.state.id2calc)) + " streams:"
         for stream_id in self.state.id2calc:
-            s = s + '\nSTREAM ID: ' + str(stream_id)
+            s += '\nSTREAM ID: ' + str(stream_id)
             s += "\n  NAMES: "
-            names = []
-            for name in self.state.name2id:
-                if self.state.name2id[name] == stream_id:
-                    names.append(name)
-            s += ', '.join(names)
+            s += ', '.join(name for name in self.state.name2id if self.state.name2id[name] == stream_id)
             s += "\n  CALCULATED RANGES: " + repr(self.state.id2calc[stream_id])
             s += "\n  STREAM DEFINITION: "
             s += self.repr_stream(stream_id)

@@ -22,6 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from module_channel import ModuleChannel
 from ..stream import StreamDefinition
+import logging
 
 
 class ToolChannel(ModuleChannel):
@@ -33,4 +34,7 @@ class ToolChannel(ModuleChannel):
         tool_class = getattr(module, class_name)
         tool = tool_class()
         (args, kwargs) = tool.process_params(*args, **kwargs)
-        return StreamDefinition(tool, *args, **kwargs)
+        stream_definition = StreamDefinition(tool, *args, **kwargs)
+        logging.debug(stream_definition)
+        return stream_definition
+

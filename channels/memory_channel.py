@@ -26,6 +26,7 @@ from ..channel_state import ChannelState
 from ..modifiers import Identity
 from datetime import timedelta, datetime
 from ..time_interval import TimeIntervals
+import pytz
 
 
 class MemoryChannel(BaseChannel):
@@ -134,12 +135,12 @@ class ReadOnlyMemoryChannel(BaseChannel):
     Names and identifiers are the same in this channel.
     """
 
-    def __init__(self, channel_id, up_to_timestamp=datetime.min):
+    def __init__(self, channel_id, up_to_timestamp=datetime.min.replace(tzinfo=pytz.utc)):
         state = ChannelState(channel_id)
         super(ReadOnlyMemoryChannel, self).__init__(can_calc=False, can_create=False, state=state)
         self.streams = {}
-        self.up_to_timestamp = datetime.min
-        if up_to_timestamp > datetime.min:
+        self.up_to_timestamp = datetime.min.replace(tzinfo=pytz.utc)
+        if up_to_timestamp > datetime.min.replace(tzinfo=pytz.utc):
             self.update(up_to_timestamp)
 
     def repr_stream(self, stream_id):
@@ -163,7 +164,7 @@ class ReadOnlyMemoryChannel(BaseChannel):
     def update_state(self, up_to_timestamp):
         for stream_id in self.streams.keys():
             self.state.set_name2id(stream_id, stream_id)
-            self.state.set_id2calc(stream_id, TimeIntervals([(datetime.min, up_to_timestamp)]))
+            self.state.set_id2calc(stream_id, TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)]))
         self.up_to_timestamp = up_to_timestamp
 
     def get_results(self, stream_ref, args, kwargs):

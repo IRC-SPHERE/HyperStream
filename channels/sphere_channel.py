@@ -26,6 +26,7 @@ from ..modifiers import Identity
 from ..time_interval import TimeIntervals
 from datetime import datetime, timedelta
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
+import pytz
 
 
 class SphereChannel(BaseChannel):
@@ -46,10 +47,10 @@ class SphereChannel(BaseChannel):
         for stream_id in self.modalities:
             self.state.set_name2id(stream_id, stream_id)
             if up_to_timestamp is None:
-                up_to_timestamp = datetime.now()
-            self.state.set_id2calc(stream_id, TimeIntervals([(datetime.min, up_to_timestamp)]))
-        self.up_to_timestamp = datetime.min
-        if up_to_timestamp > datetime.min:
+                up_to_timestamp = datetime.utcnow().replace(tzinfo=pytz.utc)
+            self.state.set_id2calc(stream_id, TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)]))
+        self.up_to_timestamp = datetime.min.replace(tzinfo=pytz.utc)
+        if up_to_timestamp > datetime.min.replace(tzinfo=pytz.utc):
             self.update(up_to_timestamp)
 
         self.sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
@@ -66,7 +67,7 @@ class SphereChannel(BaseChannel):
         Call this function to report to the system that the SPHERE MongoDB is fully populated until up_to_timestamp
         """
         for stream_id in self.modalities:
-            self.state.set_id2calc(stream_id, TimeIntervals([(datetime.min, up_to_timestamp)]))
+            self.state.set_id2calc(stream_id, TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)]))
         self.up_to_timestamp = up_to_timestamp
 
     def get_results(self, stream_ref, args, kwargs):
@@ -111,4 +112,4 @@ class SphereChannel(BaseChannel):
         return result
 
     def get_default_ref(self):
-        return {'start': datetime.min, 'end': self.up_to_timestamp, 'modifier': Identity()}
+        return {'start': datetime.min.replace(tzinfo=pytz.utc), 'end': self.up_to_timestamp, 'modifier': Identity()}
