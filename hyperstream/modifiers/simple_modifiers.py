@@ -145,9 +145,9 @@ class Component(Modifier):
                 yield (time, data[self.key])
 
 
-class CompFilter(Modifier):
+class ComponentFilter(Modifier):
     def __init__(self, key, values):
-        super(CompFilter, self).__init__()
+        super(ComponentFilter, self).__init__()
         self.types = {'doc_gen': 'doc_gen'}
         self.key = key
         self.values = values
@@ -161,9 +161,9 @@ class CompFilter(Modifier):
                 pass
 
 
-class DelNones(Modifier):
+class DeleteNones(Modifier):
     def __init__(self):
-        super(DelNones, self).__init__()
+        super(DeleteNones, self).__init__()
         self.types = {'doc_gen': 'doc_gen'}
 
     def __call__(self, doc_gen):
