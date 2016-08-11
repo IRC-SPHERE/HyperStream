@@ -23,6 +23,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from file_channel import FileChannel
 from ..modifiers import Last, IData
 from datetime import datetime
+import pytz
 
 
 class ModuleChannel(FileChannel):
@@ -47,7 +48,7 @@ class ModuleChannel(FileChannel):
             for (timestamp, (version, module_importer)) in self.streams[stream_id]:
                 name = stream_id.replace("/", "_").replace(".", "_")
                 name_version = name + "_" + version.replace("/", "_").replace(".", "_")
-                versions[name_version] = self[stream_id, datetime.min, timestamp]
+                versions[name_version] = self[stream_id, datetime.min.replace(tzinfo=pytz.utc), timestamp]
                 versions[name] = versions[name_version]
 
     def file_filter(self, sorted_file_names):
@@ -71,4 +72,4 @@ class ModuleChannel(FileChannel):
         return version, module_importer
 
     def get_default_ref(self):
-        return {'start': datetime.min, 'end': self.up_to_timestamp, 'modifier': Last() + IData()}
+        return {'start': datetime.min.replace(tzinfo=pytz.utc), 'end': self.up_to_timestamp, 'modifier': Last() + IData()}

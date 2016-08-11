@@ -22,10 +22,12 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from utils import Printable
 from channels import ToolChannel, SphereChannel, MemoryChannel
+from datetime import datetime
+import pytz
 
 
 class ChannelCollection(Printable):
     def __init__(self, tool_path):
-        self.tool_channel = ToolChannel(1, tool_path)
+        self.tool_channel = ToolChannel(1, tool_path, up_to_timestamp=datetime.utcnow().replace(tzinfo=pytz.utc))
         self.sphere_channel = SphereChannel(2)
         self.memory_channel = MemoryChannel(3)
