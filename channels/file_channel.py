@@ -25,6 +25,8 @@ from ..modifiers import Identity
 from dateutil.parser import parse
 import os
 from datetime import datetime
+import logging
+import pytz
 
 
 class FileChannel(ReadOnlyMemoryChannel):
@@ -45,7 +47,7 @@ class FileChannel(ReadOnlyMemoryChannel):
     def create_stream(self, stream_def):
         raise NotImplementedError()
 
-    def __init__(self, channel_id, path, up_to_timestamp=datetime.min):
+    def __init__(self, channel_id, path, up_to_timestamp=datetime.min.replace(tzinfo=pytz.utc)):
         self.path = path
         super(FileChannel, self).__init__(channel_id, up_to_timestamp)
 
@@ -56,23 +58,27 @@ class FileChannel(ReadOnlyMemoryChannel):
 
     def file_filter(self, sorted_file_names):
         for file_long_name in sorted_file_names:
-            date_string, version = file_long_name.split('_')
-            yield (parse(date_string), version, file_long_name)
+            if file_long_name != '__init__.py':
+                try:
+                    date_string, version = file_long_name.split('_')
+                    # Assume version is v*.py
+                    yield (parse(date_string), version[1:-3], file_long_name)
+                except ValueError as e:
+                    logging.warn('Filename in incorrect format {0}, {1}', file_long_name, e.message)
 
     def update_streams(self, up_to_timestamp):
         path = self.path
-        for (long_path, dir_names, file_names) in os.path.walk(path):
+        for (long_path, dir_names, file_names) in os.walk(path):
             short_path = long_path[len(path) + 1:]
             stream_id = short_path
             stream = []
             self.streams[stream_id] = stream
             for (file_timestamp, file_short_name, file_long_name) in self.file_filter(sorted(file_names)):
                 if file_timestamp <= up_to_timestamp:
-                    file_timestamp_str = file_long_name[:23]
                     stream.append((file_timestamp, self.data_loader(short_path, file_long_name)))
 
     def data_loader(self, short_path, file_long_name):
         raise NotImplementedError
 
     def get_default_ref(self):
-        return {'start': datetime.min, 'end': self.up_to_timestamp, 'modifier': Identity()}
+        return {'start': datetime.min.replace(tzinfo=pytz.utc), 'end': self.up_to_timestamp, 'modifier': Identity()}
