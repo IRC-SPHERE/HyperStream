@@ -20,8 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField, MapField, EmbeddedDocument, \
-    EmbeddedDocumentField, EmbeddedDocumentListField
+from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField, EmbeddedDocumentListField
 from time_range import TimeRangeModel
 
 
@@ -40,11 +39,6 @@ class StreamInstanceModel(Document):
     }
 
 
-# class StreamParameterModel(EmbeddedDocument):
-#     dtype = StringField(required=True, min_length=1, max_length=32)
-#     value = DictField(required=True)
-
-
 class StreamDefinitionModel(Document):
     stream_id = StringField(required=True, min_length=1, max_length=512)
     stream_type = StringField(required=True, min_length=1, max_length=512)
@@ -52,7 +46,6 @@ class StreamDefinitionModel(Document):
     last_updated = DateTimeField(required=True)
     tool_name = StringField(required=True, min_length=1, max_length=512)
     tool_version = StringField(required=True, min_length=1, max_length=512)
-    # parameters = MapField(EmbeddedDocumentField(StreamParameterModel))
     parameters = DictField()
     sandbox = StringField()
     meta_data = DictField()

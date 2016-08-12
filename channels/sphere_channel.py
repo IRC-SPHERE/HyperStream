@@ -49,7 +49,6 @@ class SphereChannel(BaseChannel):
             if up_to_timestamp is None:
                 up_to_timestamp = datetime.utcnow().replace(tzinfo=pytz.utc)
             self.state.set_id2calc(stream_id, TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)]))
-        self.up_to_timestamp = datetime.min.replace(tzinfo=pytz.utc)
         if up_to_timestamp > datetime.min.replace(tzinfo=pytz.utc):
             self.update(up_to_timestamp)
 
@@ -72,25 +71,7 @@ class SphereChannel(BaseChannel):
 
     def get_results(self, stream_ref, args, kwargs):
         stream_id = stream_ref.stream_id
-        start = stream_ref.start
-        abs_start = start
-        if isinstance(start, timedelta):
-            try:
-                abs_start = kwargs['start'] + start
-            except KeyError:
-                raise Exception('The stream reference to a SphereChannel stream has a relative start time, '
-                                'need an absolute start time')
-        end = stream_ref.end
-        abs_end = end
-        if isinstance(end, timedelta):
-            try:
-                abs_end = kwargs['end'] + end
-            except KeyError:
-                raise Exception(
-                    'The stream reference to a SphereChannel stream has a relative end time, need an absolute end time')
-        if abs_end > self.up_to_timestamp:
-            raise Exception(
-                'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be obtained')
+        abs_end, abs_start = self.get_absolute_start_end(kwargs, stream_ref)
         window = DataWindow(start=abs_start, end=abs_end, sphere_connector=self.sphere_connector)
         if stream_id not in self.modalities:
             raise Exception('Unknown stream_id: ' + str(stream_id))

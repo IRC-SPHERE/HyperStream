@@ -23,3 +23,4 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from memory_channel import MemoryChannel
 from sphere_channel import SphereChannel
 from tool_channel import ToolChannel
+from database_channel import DatabaseChannel
