@@ -20,13 +20,13 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+from hyperstream import Tool
+import logging
 
-from hyperstream import Tool, date, delta
 
-
-class Pool(Tool):
+class Merge(Tool):
     def __call__(self, stream_def, start, end, writer, timer, data, func):
-        print('Pool running from ' + str(start) + ' to ' + str(end))
+        logging.info('Merge running from ' + str(start) + ' to ' + str(end))
         rel_start = stream_def.kwargs['data'].start
         rel_end = stream_def.kwargs['data'].end
         window = []

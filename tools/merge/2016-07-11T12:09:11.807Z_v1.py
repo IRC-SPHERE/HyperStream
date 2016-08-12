@@ -20,22 +20,17 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-
 from hyperstream import Tool
-from datetime import datetime, timedelta
+import logging
 
 
-class Clock(Tool):
-    def normalise_kwargs(self, kwargs):
-        return self._normalise_kwargs({'optim'}, **kwargs)
+class Merge(Tool):
+    def process_params(self, *args, **kwargs):
+        return self._normalise_kwargs(set(), **kwargs)
 
-    def __call__(self, stream_def, start, end, writer, first, stride, optim, optim2):
-        print('Clock running from ' + str(start) + ' to ' + str(end) + ' with stride ' + str(stride))
-        if start < first:
-            start = first
-        n_strides = int((start - first).total_seconds() // stride.total_seconds())
-        t = first + n_strides * stride
-        while t <= end:
-            if t > start:
-                writer([(t, t)])
-            t += stride
+    def __call__(self, stream_def, start, end, writer, timer, data, func):
+        logging.info('Merge running from ' + str(start) + ' to ' + str(end))
+        
+        for (t, _) in timer():
+            writer([(t, 'pool')])
+            # TODO

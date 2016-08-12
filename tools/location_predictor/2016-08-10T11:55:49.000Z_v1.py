@@ -20,14 +20,16 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+from hyperstream.tool import Tool
+import logging
 
-from hyperstream import Tool
 
+class LocationPredictor(Tool):
+    def __init__(self):
 
-class Product(Tool):
-    def __call__(self, stream_def, start, end, writer, stream1, stream2):
-        print('Product running from ' + str(start) + ' to ' + str(end))
-        for (t, data1) in stream1:
-            (_, data2) = next(stream2)
-            res = data1 * data2
-            writer([(t, data1 * data2)])
+    def normalise_kwargs(self, kwargs):
+        return self._normalise_kwargs({}, **kwargs)
+
+    def __call__(self, stream_def, start, end, writer, modality):
+        logging.info('LocationPredictor running from ' + str(start) + ' to ' + str(end))
+        writer(None)

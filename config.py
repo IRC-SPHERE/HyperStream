@@ -36,6 +36,7 @@ class HyperStreamConfig(Printable):
                 config = json.load(f)
                 self.mongo = config['mongo']
                 self.tool_path = config['tool_path']
+                self.meta_data_lists = config['meta_data_lists']
 
         except (OSError, IOError, TypeError) as e:
             # raise

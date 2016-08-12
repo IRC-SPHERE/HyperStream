@@ -29,5 +29,7 @@ class Printable(object):
         pp = pprint.PrettyPrinter(indent=4)
         return pp.pformat(self.__dict__)
 
-
-# TimeRange = namedtuple('TimeRange', ['start', 'end'])
+    def __repr__(self):
+        name = self.__class__.__name__
+        values = ", ".join("{}={}".format(k, repr(v)) for k, v in self.__dict__.items())
+        return "{}({})".format(name, values)

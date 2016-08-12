@@ -23,6 +23,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream import Tool
 from datetime import datetime, timedelta
+import logging
 
 
 class Clock(Tool):
@@ -30,7 +31,7 @@ class Clock(Tool):
         return self._normalise_kwargs({'optim'}, **kwargs)
     
     def __call__(self, stream_def, start, end, writer, first, stride, optim):
-        print('Clock running from ' + str(start) + ' to ' + str(end) + ' with stride ' + str(stride))
+        logging.info('Clock running from ' + str(start) + ' to ' + str(end) + ' with stride ' + str(stride))
         if start < first:
             start = first
         n_strides = int((start - first).total_seconds() // stride.total_seconds())

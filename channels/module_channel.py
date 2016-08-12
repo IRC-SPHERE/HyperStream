@@ -24,6 +24,7 @@ from file_channel import FileChannel
 from ..modifiers import Last, IData
 from datetime import datetime
 import pytz
+import logging
 
 
 class ModuleChannel(FileChannel):
@@ -63,7 +64,7 @@ class ModuleChannel(FileChannel):
         module_file_components = module_file[:-3].split('/')
 
         def module_importer():
-            print('importing ' + module_file)
+            logging.debug('importing ' + module_file)
             module = __import__(module_file[:-3].replace('/', '.'))
             for component in module_file_components[1:]:
                 module = module.__dict__[component]
