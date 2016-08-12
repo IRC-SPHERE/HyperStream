@@ -22,7 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from hyperstream import Tool
-from datetime import datetime, timedelta
+from datetime import date, datetime
 import logging
 
 
@@ -32,6 +32,8 @@ class Clock(Tool):
     
     def __call__(self, stream_def, start, end, writer, first, stride, optim):
         logging.info('Clock running from ' + str(start) + ' to ' + str(end) + ' with stride ' + str(stride))
+        assert isinstance(start, (date, datetime))
+        assert isinstance(end, (date, datetime))
         if start < first:
             start = first
         n_strides = int((start - first).total_seconds() // stride.total_seconds())

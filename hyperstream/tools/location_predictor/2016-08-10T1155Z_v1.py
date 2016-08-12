@@ -25,8 +25,6 @@ import logging
 
 
 class LocationPredictor(Tool):
-    def __init__(self):
-
     def normalise_kwargs(self, kwargs):
         return self._normalise_kwargs({}, **kwargs)
 
