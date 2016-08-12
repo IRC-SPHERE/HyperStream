@@ -40,9 +40,9 @@ class StreamInstanceModel(Document):
     }
 
 
-class StreamParameterModel(EmbeddedDocument):
-    dtype = StringField(required=True, min_length=1, max_length=32)
-    value = DictField(required=True)
+# class StreamParameterModel(EmbeddedDocument):
+#     dtype = StringField(required=True, min_length=1, max_length=32)
+#     value = DictField(required=True)
 
 
 class StreamDefinitionModel(Document):
@@ -52,7 +52,8 @@ class StreamDefinitionModel(Document):
     last_updated = DateTimeField(required=True)
     tool_name = StringField(required=True, min_length=1, max_length=512)
     tool_version = StringField(required=True, min_length=1, max_length=512)
-    parameters = MapField(EmbeddedDocumentField(StreamParameterModel))
+    # parameters = MapField(EmbeddedDocumentField(StreamParameterModel))
+    parameters = DictField()
     sandbox = StringField()
     meta_data = DictField()
 
