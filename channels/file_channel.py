@@ -71,11 +71,10 @@ class FileChannel(ReadOnlyMemoryChannel):
         for (long_path, dir_names, file_names) in os.walk(path):
             short_path = long_path[len(path) + 1:]
             stream_id = short_path
-            stream = []
-            self.streams[stream_id] = stream
+            self.streams[stream_id] = []
             for (file_timestamp, file_short_name, file_long_name) in self.file_filter(sorted(file_names)):
                 if file_timestamp <= up_to_timestamp:
-                    stream.append((file_timestamp, self.data_loader(short_path, file_long_name)))
+                    self.streams[stream_id].append((file_timestamp, self.data_loader(short_path, file_long_name)))
 
     def data_loader(self, short_path, file_long_name):
         raise NotImplementedError

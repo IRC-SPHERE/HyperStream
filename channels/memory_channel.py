@@ -73,18 +73,19 @@ class MemoryChannel(BaseChannel):
     def get_results(self, stream_ref, args, kwargs):
         stream_id = stream_ref.stream_id
         abs_end, abs_start = self.get_absolute_start_end(kwargs, stream_ref)
-        done_calc_times = self.state.get_id2calc(stream_id)
+        done_calc_times = self.state.stream_id_to_intervals_mapping[stream_id]
         need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
         if str(need_to_calc_times) != '':
-            stream_def = self.state.get_id2def(stream_id)
+            stream_def = self.state.stream_id_to_definition_mapping[stream_id]
             writer = self.get_stream_writer(stream_id)
             tool = stream_def.tool
             for (start2, end2) in need_to_calc_times.value:
                 args2 = self.get_params(stream_def.args, start2, end2)
                 kwargs2 = self.get_params(stream_def.kwargs, start2, end2)
                 tool(stream_def, start2, end2, writer, *args2, **kwargs2)
-                self.state.set_id2calc(stream_id, self.state.get_id2calc(stream_id) + TimeIntervals([(start2, end2)]))
-            done_calc_times = self.state.get_id2calc(stream_id)
+                self.state.stream_id_to_intervals_mapping[stream_id] += TimeIntervals([(start2, end2)])
+
+            done_calc_times = self.state.gstream_id_to_intervals_mapping[stream_id]
             need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
             logging.debug(done_calc_times)
             logging.debug(need_to_calc_times)
@@ -155,8 +156,9 @@ class ReadOnlyMemoryChannel(BaseChannel):
 
     def update_state(self, up_to_timestamp):
         for stream_id in self.streams.keys():
-            self.state.set_name2id(stream_id, stream_id)
-            self.state.set_id2calc(stream_id, TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)]))
+            self.state.name_to_id_mapping[stream_id] = stream_id
+            intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
+            self.state.stream_id_to_intervals_mapping[stream_id] = intervals
         self.up_to_timestamp = up_to_timestamp
 
     def get_results(self, stream_ref, args, kwargs):
