@@ -20,15 +20,35 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from utils import Printable
-from channels import ToolChannel, SphereChannel, MemoryChannel, DatabaseChannel
-from datetime import datetime
-import pytz
+from base_channel import BaseChannel
+from ..channel_state import ChannelState
+from ..models import StreamInstanceModel
 
 
-class ChannelCollection(Printable):
-    def __init__(self, tool_path):
-        self.tool_channel = ToolChannel(1, tool_path, up_to_timestamp=datetime.utcnow().replace(tzinfo=pytz.utc))
-        self.sphere_channel = SphereChannel(2)
-        self.memory_channel = MemoryChannel(3)
-        self.database_channel = DatabaseChannel(4)
+class DatabaseChannel(BaseChannel):
+    def __init__(self, channel_id):
+        state = ChannelState(channel_id)
+        super(DatabaseChannel, self).__init__(can_calc=True, can_create=False, state=state)
+        self.streams = {}
+        # self.max_stream_id = 0
+
+    def repr_stream(self, stream_id):
+        pass
+
+    def get_results(self, stream_ref, args, kwargs):
+        pass
+
+    def create_stream(self, stream_def):
+        # TODO: Functionality here
+        raise RuntimeError("Database streams currently need to be defined in the database")
+
+    def get_stream_writer(self, stream_id):
+        def writer(document_collection):
+            for doc in document_collection:
+                instance = StreamInstanceModel(
+                    stream_id=stream_id,
+                    stream_type=None,
+                    datetime=datetime.utcnow().replace(),
+                    metadata= DictField(required=False)
+                    value=doc
+                )
