@@ -153,18 +153,18 @@ class BaseChannel(Printable):
     def __getitem__(self, key):
         key = self.parse_getkey(key)
         key['channel_id'] = self.state.channel_id
-        key['stream_id'] = self.state.get_name2id(key['stream_id'])
+        key['stream_id'] = self.state.name_to_id_mapping[key['stream_id']]
         key['get_results_func'] = self.get_results
         return StreamReference(**key)
 
     def __setitem__(self, key, value):
         key = self.parse_setkey(key)
         try:
-            stream_id = self.state.get_def2id(value)
+            stream_id = self.state.stream_definition_to_id_mapping[value]
         except KeyError:
             stream_id = self.create_stream(value)
-            self.state.set_id2calc(stream_id, TimeIntervals())
-            self.state.set_def2id(value, stream_id)
-            self.state.set_id2def(stream_id, value)
-        self.state.set_name2id(key, stream_id)
+            self.state.stream_id_to_intervals_mapping[stream_id] = TimeIntervals()
+            self.state.stream_definition_to_id_mapping[value] = stream_id
+            self.state.stream_id_to_definition_mapping[stream_id] = value
+        self.state.name_to_id_mapping[key] = stream_id
         return
