@@ -132,17 +132,19 @@ class BaseChannel(Printable):
             return (str(key))
 
     def parse_getkey(self, key):
+        allowed_types = (timedelta, date, datetime)
+
         # ( stream_id_part [,stream_id_part]* [,start | ,start,end] [,modifier] )
         refdict = self.get_default_ref()
         if isinstance(key, (tuple, list)):
-            if (len(key) >= 2) and issubclass(key[-1].__class__, Modifier):
+            if (len(key) >= 2) and isinstance(key[-1], Modifier):
                 refdict['modifier'] = key[-1]
                 key = key[:-1]
-            if (len(key) >= 3) and (key[-2].__class__ in (timedelta, date)) and (key[-1].__class__ in (timedelta, date)):
+            if (len(key) >= 3) and isinstance(key[-2], allowed_types) and isinstance(key[-1], allowed_types):
                 refdict['start'] = key[-2]
                 refdict['end'] = key[-1]
                 key = key[:-2]
-            elif (len(key) >= 2) and (key[-1].__class__ in (timedelta, date)):
+            elif (len(key) >= 2) and isinstance(key[-1], allowed_types):
                 refdict['start'] = key[-1]
                 key = key[:-1]
             refdict['stream_id'] = self.parse_setkey(key)
