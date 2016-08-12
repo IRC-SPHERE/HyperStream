@@ -27,11 +27,10 @@ from models import StreamDefinitionModel
 class StreamCollection(Printable):
     streams = {}
 
-    def __init__(self, tools):
+    def __init__(self, tool_channel):
         for stream_definition in StreamDefinitionModel.objects:
-            # TODO: Pickup tool from tool_name and tool_version
-            tool = tools[stream_definition.tool_name, stream_definition.tool_version]
-
+            # TODO: tool_version is currently ignored
+            tool = tool_channel[stream_definition.tool_name]
             self.streams[stream_definition.stream_id] = StreamDefinition(tool, stream_definition.parameters)
 
 
@@ -66,7 +65,10 @@ class StreamReference(object):
 
 
 # TODO: need to check if the same stream already exists in the same channel or not
-class StreamDefinition(object):  # tool with params
+class StreamDefinition(object):
+    """
+    This is basically a tool and it's parameters. Also known as a factor in the factor graph representation.
+    """
     def __init__(self, tool, *args, **kwargs):
         self.tool = tool
         self.args = args

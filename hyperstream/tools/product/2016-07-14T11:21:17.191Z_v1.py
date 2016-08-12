@@ -20,13 +20,13 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-
 from hyperstream import Tool
+import logging
 
 
 class Product(Tool):
     def __call__(self, stream_def, start, end, writer, stream1, stream2):
-        print('Product running from ' + str(start) + ' to ' + str(end))
+        logging.info('Product running from ' + str(start) + ' to ' + str(end))
         for (t, data1) in stream1:
             (_, data2) = next(stream2)
             writer([(t, data1 * data2)])
