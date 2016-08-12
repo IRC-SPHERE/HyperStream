@@ -25,9 +25,26 @@ from mongoengine import Document, StringField, EmbeddedDocument, EmbeddedDocumen
 from time_range import TimeRangeModel
 
 
+class PlateDefinitionModel2(Document):
+    plate_id = StringField(required=True, min_length=1, max_length=512)
+    meta_data_id = StringField(required=True, min_length=1, max_length=512)
+    description = StringField(required=False, min_length=0, max_length=512, default="")
+    # TODO: Really want to say either int or str but nothing else
+    values = ListField()  # field=IntField(min_value=0))
+    complement = BooleanField(required=False, default=False)
+    parent_plate = StringField(required=False, min_length=1, max_length=512, default="")
+
+    meta = {
+        'collection': 'plate_definitions2',
+        'indexes': [{'fields': ['plate_id'], 'unique': True}],
+        'ordering': ['plate_id']
+    }
+
+
 class PlateModel(EmbeddedDocument):
     meta_data_id = StringField(required=True, min_length=1, max_length=512)
-    values = ListField(field=IntField(min_value=0))
+    # TODO: Really want to say either int or str but nothing else
+    values = ListField()  # field=IntField(min_value=0))
     complement = BooleanField(default=False)
 
 
@@ -63,7 +80,7 @@ class WorkflowDefinitionModel(Document):
     owner = StringField(required=False, min_length=1, max_length=512)
 
     meta = {
-        'collection': 'workflow_definitions',
+        'collection': 'workflow_definitions2',
         'indexes': [{'fields': ['workflow_id']}],
         'ordering': ['workflow_id']
     }

@@ -27,6 +27,7 @@ from ..modifiers import Identity
 from datetime import timedelta, datetime
 from ..time_interval import TimeIntervals
 import pytz
+import logging
 
 
 class MemoryChannel(BaseChannel):
@@ -100,8 +101,8 @@ class MemoryChannel(BaseChannel):
                 self.state.set_id2calc(stream_id, self.state.get_id2calc(stream_id) + TimeIntervals([(start2, end2)]))
             done_calc_times = self.state.get_id2calc(stream_id)
             need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
-            print(done_calc_times)
-            print(need_to_calc_times)
+            logging.debug(done_calc_times)
+            logging.debug(need_to_calc_times)
             assert str(need_to_calc_times) == ''
         result = []
         for (timestamp, data) in self.streams[stream_ref.stream_id]:

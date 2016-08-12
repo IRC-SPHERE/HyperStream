@@ -53,7 +53,7 @@ class ToolCollection(Printable):
 
 class Tool(Printable):
     def process_params(self, *args, **kwargs):
-        print('Defining a {} stream'.format(self.__class__.__name__))
+        logging.info('Defining a {} stream'.format(self.__class__.__name__))
 
         return args, kwargs
 
