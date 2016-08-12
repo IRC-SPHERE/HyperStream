@@ -72,22 +72,7 @@ class MemoryChannel(BaseChannel):
 
     def get_results(self, stream_ref, args, kwargs):
         stream_id = stream_ref.stream_id
-        start = stream_ref.start
-        abs_start = start
-        if type(start) == timedelta:
-            try:
-                abs_start = kwargs['start'] + start
-            except KeyError:
-                raise Exception(
-                    'The stream reference to be calculated has a relative start time, need an absolute start time')
-        end = stream_ref.end
-        abs_end = end
-        if type(end) == timedelta:
-            try:
-                abs_end = kwargs['end'] + end
-            except KeyError:
-                raise Exception(
-                    'The stream reference to be calculated has a relative end time, need an absolute end time')
+        abs_end, abs_start = self.get_absolute_start_end(kwargs, stream_ref)
         done_calc_times = self.state.get_id2calc(stream_id)
         need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
         if str(need_to_calc_times) != '':
@@ -135,6 +120,12 @@ class ReadOnlyMemoryChannel(BaseChannel):
     (timestamp,data), in no specific order.
     Names and identifiers are the same in this channel.
     """
+
+    def create_stream(self, stream_def):
+        raise NotImplementedError("Read-only channel")
+
+    def get_stream_writer(self, stream_id):
+        raise NotImplementedError("Read-only channel")
 
     def __init__(self, channel_id, up_to_timestamp=datetime.min.replace(tzinfo=pytz.utc)):
         state = ChannelState(channel_id)

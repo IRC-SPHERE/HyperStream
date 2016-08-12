@@ -34,6 +34,29 @@ class BaseChannel(Printable):
         self.can_create = can_create
         self.state = state
         self.calc_agent = calc_agent
+        self.up_to_timestamp = datetime.min.replace(tzinfo=pytz.utc)
+
+    def get_absolute_start_end(self, kwargs, stream_ref):
+        start = stream_ref.start
+        abs_start = start
+        if isinstance(start, timedelta):
+            try:
+                abs_start = kwargs['start'] + start
+            except KeyError:
+                raise Exception('The stream reference to a SphereChannel stream has a relative start time, '
+                                'need an absolute start time')
+        end = stream_ref.end
+        abs_end = end
+        if isinstance(end, timedelta):
+            try:
+                abs_end = kwargs['end'] + end
+            except KeyError:
+                raise Exception(
+                    'The stream reference to a SphereChannel stream has a relative end time, need an absolute end time')
+        if abs_end > self.up_to_timestamp:
+            raise Exception(
+                'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be obtained')
+        return abs_end, abs_start
 
     def get_results(self, stream_ref, args, kwargs):  # TODO: force_calc=False):
         """
