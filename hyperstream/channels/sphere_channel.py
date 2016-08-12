@@ -45,10 +45,11 @@ class SphereChannel(BaseChannel):
         super(SphereChannel, self).__init__(can_calc=False, can_create=False, state=state)
         self.modalities = ('video', 'environmental')
         for stream_id in self.modalities:
-            self.state.set_name2id(stream_id, stream_id)
+            self.state.name_to_id_mapping[stream_id] = stream_id
             if up_to_timestamp is None:
                 up_to_timestamp = datetime.utcnow().replace(tzinfo=pytz.utc)
-            self.state.set_id2calc(stream_id, TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)]))
+            intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
+            self.state.stream_id_to_intervals_mapping[stream_id] = intervals
         if up_to_timestamp > datetime.min.replace(tzinfo=pytz.utc):
             self.update(up_to_timestamp)
 
@@ -66,7 +67,8 @@ class SphereChannel(BaseChannel):
         Call this function to report to the system that the SPHERE MongoDB is fully populated until up_to_timestamp
         """
         for stream_id in self.modalities:
-            self.state.set_id2calc(stream_id, TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)]))
+            intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
+            self.state.stream_id_to_intervals_mapping[stream_id] = intervals
         self.up_to_timestamp = up_to_timestamp
 
     def get_results(self, stream_ref, args, kwargs):
