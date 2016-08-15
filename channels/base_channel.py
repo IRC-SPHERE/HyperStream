@@ -43,7 +43,7 @@ class BaseChannel(Printable):
             try:
                 abs_start = kwargs['start'] + start
             except KeyError:
-                raise Exception('The stream reference to a SphereChannel stream has a relative start time, '
+                raise Exception('The stream reference to a stream has a relative start time, '
                                 'need an absolute start time')
         end = stream_ref.end
         abs_end = end
@@ -52,7 +52,7 @@ class BaseChannel(Printable):
                 abs_end = kwargs['end'] + end
             except KeyError:
                 raise Exception(
-                    'The stream reference to a SphereChannel stream has a relative end time, need an absolute end time')
+                    'The stream reference to a stream has a relative end time, need an absolute end time')
         if abs_end > self.up_to_timestamp:
             raise Exception(
                 'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be obtained')
@@ -101,12 +101,12 @@ class BaseChannel(Printable):
     # @property
     def __repr__(self):
         s = self.__class__.__name__ + ' with ID: ' + str(self.state.channel_id)
-        s = s + ' and containing ' + str(len(self.state.id2calc)) + " streams:"
-        for stream_id in self.state.id2calc:
+        s = s + ' and containing ' + str(len(self.state.stream_id_to_intervals_mapping)) + " streams:"
+        for stream_id in self.state.stream_id_to_intervals_mapping:
             s += '\nSTREAM ID: ' + str(stream_id)
             s += "\n  NAMES: "
-            s += ', '.join(name for name in self.state.name2id if self.state.name2id[name] == stream_id)
-            s += "\n  CALCULATED RANGES: " + repr(self.state.id2calc[stream_id])
+            s += ', '.join(name for name in self.state.name_to_id_mapping if self.state.name_to_id_mapping[name] == stream_id)
+            s += "\n  CALCULATED RANGES: " + repr(self.state.stream_id_to_intervals_mapping[stream_id])
             s += "\n  STREAM DEFINITION: "
             s += self.repr_stream(stream_id)
         return s
@@ -126,10 +126,10 @@ class BaseChannel(Printable):
             if True in [issubclass(cls, Modifier) for cls in classes]:
                 raise Exception('StreamReference identifier cannot include a Modifier')
             if (timedelta in classes) or (date in classes):
-                raise Exception('StreamReference identifier cannot include date or delta')
+                raise Exception('StreamReference identifier cannot include datetime or timedelta')
             return '.'.join([str(k) for k in key])
         else:
-            return (str(key))
+            return str(key)
 
     def parse_getkey(self, key):
         allowed_types = (timedelta, date, datetime)
@@ -161,9 +161,9 @@ class BaseChannel(Printable):
 
     def __setitem__(self, key, value):
         key = self.parse_setkey(key)
-        try:
+        if value in self.state.stream_definition_to_id_mapping:
             stream_id = self.state.stream_definition_to_id_mapping[value]
-        except KeyError:
+        else:
             stream_id = self.create_stream(value)
             self.state.stream_id_to_intervals_mapping[stream_id] = TimeIntervals()
             self.state.stream_definition_to_id_mapping[value] = stream_id
