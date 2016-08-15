@@ -35,7 +35,7 @@ class ModuleChannel(FileChannel):
     """
     
     def create_stream(self, stream_def):
-        pass
+        raise NotImplementedError("Module channel is read-only")
     
     def get_stream_writer(self, stream_id):
         pass
