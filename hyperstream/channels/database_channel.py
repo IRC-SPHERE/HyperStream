@@ -38,8 +38,8 @@ class DatabaseChannel(BaseChannel):
         self.update()
 
     def repr_stream(self, stream_id):
-        s = repr(self.state.name_to_id_mapping[stream_id])
-        return s
+        # s = repr(self.state.name_to_id_mapping[stream_id])
+        return repr(stream_id)
 
     def update(self):
         self.update_streams()
@@ -48,7 +48,7 @@ class DatabaseChannel(BaseChannel):
     def update_state(self):
         intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), datetime.utcnow().replace(tzinfo=pytz.utc))])
         for stream_id in self.streams.keys():
-            self.state.name_to_id_mapping[stream_id] = stream_id
+            # self.state.name_to_id_mapping[stream_id] = stream_id
             self.state.stream_id_to_intervals_mapping[stream_id] = intervals
 
     def update_streams(self):

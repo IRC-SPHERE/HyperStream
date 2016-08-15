@@ -28,7 +28,7 @@ class ChannelState(Printable):
     def __init__(self, channel_id):
         self.channel_id = channel_id
 
-        self.name_to_id_mapping = {}
+        # self.name_to_id_mapping = {}
         self.stream_definition_to_id_mapping = {}
         self.stream_id_to_definition_mapping = {}
         self.stream_id_to_intervals_mapping = {}
