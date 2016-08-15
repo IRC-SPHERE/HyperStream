@@ -34,12 +34,21 @@ import pytz
 
 class FileDateTimeVersion(Printable):
     def __init__(self, filename, split_char='_'):
-        self.long_filename, self.extension = os.path.splitext(filename)
+        self.long_filename = filename
+        self.filename_no_extension, self.extension = os.path.splitext(filename)
         
-        self.datetime, self.version = self.long_filename.split(split_char)
+        self.timestamp, self.version = self.filename_no_extension.split(split_char)
         
-        self.datetime = parse(self.datetime)
-        self.version = Version(self.version[1:])
+        self.timestamp = parse(self.timestamp)
+        
+        try:
+            self.version = Version(self.version[1:])
+        
+        except ValueError:
+            raise ValueError(
+                "\n\nFilename using incompatible version format. \n" +
+                "\tAcceptable format is, eg, '2016-08-10T1155Z_v1.0.1.py'. \n" +
+                "\tSpecified format is: {}\n".format(filename))
     
     @property
     def is_python(self):
@@ -48,10 +57,10 @@ class FileDateTimeVersion(Printable):
     def __repr__(self):
         return (
             "Parsing '{self.long_filname}': \n" +
-            " Extension: {self.extension} \n" +
-            " Date time: {self.datetime} \n" +
-            "   Version: {self.version} \n"
-        ).format(**self)
+            "    Extension: {self.extension} \n" +
+            "    Date time: {self.datetime} \n" +
+            "      Version: {self.version} \n"
+        ).format(self.__dict__)
 
 
 class FileChannel(ReadOnlyMemoryChannel):
@@ -85,24 +94,28 @@ class FileChannel(ReadOnlyMemoryChannel):
         for file_long_name in sorted_file_names:
             if file_long_name != '__init__.py':
                 try:
-                    file_datetime_version = FileDateTimeVersion(file_long_name)
+                    tool_info = FileDateTimeVersion(file_long_name)
                     
-                    yield file_datetime_version
-                    # date_string, version = file_long_name.split('_')
-                    # # Assume version is v*.py
-                    # yield (parse(date_string), version[1:-3], file_long_name)
+                    yield tool_info
+                
                 except ValueError as e:
-                    logging.warn('Filename in incorrect format {0}, {1}', file_long_name, e.message)
+                    logging.warn('Filename in incorrect format {0}, {1}'.format(file_long_name, e.message))
     
     def update_streams(self, up_to_timestamp):
         path = self.path
         for (long_path, dir_names, file_names) in os.walk(path):
+            # TODO: Add this condition to overcome 0-length IDs
+            # file_names = filter(lambda ff: ff != '__init__.py', file_names)
+            # if len(file_names) == 0:
+            #     continue
+            
             short_path = long_path[len(path) + 1:]
             stream_id = short_path
             self.streams[stream_id] = []
-            for (file_timestamp, file_short_name, file_long_name) in self.file_filter(sorted(file_names)):
-                if file_timestamp <= up_to_timestamp:
-                    self.streams[stream_id].append((file_timestamp, self.data_loader(short_path, file_long_name)))
+            for tool_info in self.file_filter(sorted(file_names)):
+                if tool_info.timestamp <= up_to_timestamp:
+                    self.streams[stream_id].append((tool_info,
+                                                    self.data_loader(short_path, tool_info)))
     
     def data_loader(self, short_path, file_long_name):
         raise NotImplementedError
