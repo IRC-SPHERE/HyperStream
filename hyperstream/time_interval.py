@@ -38,13 +38,13 @@ class TimeIntervals:  # example object: (t1,t2]U(t3,t4]U...
                 elif not isinstance(v, TimeInterval):
                     raise TypeError()
                 self.intervals.append(v)
-
+    
     def __str__(self):
-        return "U".join(["(" + str(interval.start) + "," + str(interval.end) + "]" for interval in self.intervals])
-
+        return " U ".join(["(" + str(interval.start) + "," + str(interval.end) + "]" for interval in self.intervals])
+    
     def __repr__(self):
         return str(self)
-
+    
     def split(self, points):
         if len(points) == 0:
             return
@@ -52,41 +52,41 @@ class TimeIntervals:  # example object: (t1,t2]U(t3,t4]U...
         for i in range(len(self.intervals)):
             if (self.intervals[i].start < p) and (self.intervals[i].end > p):
                 self.intervals = self.intervals[:i] \
-                                 + [(self.intervals[i].start, p), (p, self.intervals[i].end)] \
+                                 + [TimeInterval(self.intervals[i].start, p), TimeInterval(p, self.intervals[i].end)] \
                                  + self.intervals[(i + 1):]
         self.split(points[:-1])
-
+    
     def compress(self):
         if len(self.intervals) == 0:
             return
         v = self.intervals[:1]
         for i in range(1, len(self.intervals)):
-            if self.intervals[i][0] == v[-1][1]:
-                v[-1] = (v[-1][0], self.intervals[i].end)
+            if self.intervals[i].start == v[-1].end:
+                v[-1] = TimeInterval(v[-1].start, self.intervals[i].end)
             else:
                 v.append(self.intervals[i])
         self.intervals = v
-
+    
     def __add__(self, other):
-        self_points = [point for interval in self.intervals for point in interval]
-        other_points = [point for interval in other.value for point in interval]
+        self_points = [point for interval in self.intervals for point in (interval.start, interval.end)]
+        other_points = [point for interval in other.intervals for point in (interval.start, interval.end)]
         self.split(other_points)
         other.split(self_points)
-        v = list(set(self.intervals).union(set(other.value)))
-        v.sort()
+        v = list(set(self.intervals).union(set(other.intervals)))
+        v.sort(key=lambda ii: ii.start)
         new = TimeIntervals(v)
         self.compress()
         other.compress()
         new.compress()
         return new
-
+    
     def __sub__(self, other):
-        self_points = [point for interval in self.intervals for point in interval]
-        other_points = [point for interval in other.value for point in interval]
+        self_points = [point for interval in self.intervals for point in (interval.start, interval.end)]
+        other_points = [point for interval in other.intervals for point in (interval.start, interval.end)]
         self.split(other_points)
         other.split(self_points)
-        v = list(set(self.intervals).difference(set(other.value)))
-        v.sort()
+        v = list(set(self.intervals).difference(set(other.intervals)))
+        v.sort(key=lambda ii: ii.start)
         new = TimeIntervals(v)
         self.compress()
         other.compress()
@@ -97,18 +97,18 @@ class TimeIntervals:  # example object: (t1,t2]U(t3,t4]U...
 class TimeInterval(object):
     _start = None
     _end = None
-
+    
     def __init__(self, start, end):
         self.start = start
         self.end = end
-
+    
     def to_tuple(self):
         return self.start, self.end
-
+    
     @property
     def start(self):
         return self._start
-
+    
     @start.setter
     def start(self, val):
         if not isinstance(val, datetime):
@@ -116,11 +116,11 @@ class TimeInterval(object):
         if self._end is not None and val >= self._end:
             raise ValueError("start should be < end")
         self._start = val
-
+    
     @property
     def end(self):
         return self._end
-
+    
     @end.setter
     def end(self, val):
         if not isinstance(val, datetime):
@@ -128,12 +128,18 @@ class TimeInterval(object):
         if self._start is not None and val <= self._start:
             raise ValueError("start should be < end")
         self._end = val
-
+    
     def __repr__(self):
         return "{0}({1}, {2})".format(self.__class__.__name__, self._start.__repr__(), self._end.__repr__())
-
+    
     def __str__(self):
         return "({0}, {1})".format(self.start, self.end)
+    
+    def __eq__(self, other):
+        return (self.start == other.start) and (self.end == other.end)
+    
+    def __hash__(self):
+        return hash((self.start, self.end))
 
 
 def parse_time_tuple(start, end):
@@ -147,7 +153,7 @@ def parse_time_tuple(start, end):
         start_time = start
     else:
         start_time = parse(start)
-
+    
     if isinstance(end, int):
         # TODO: add check for future (negative values) and ensure that start < end
         offset = timedelta(seconds=end)
@@ -158,7 +164,7 @@ def parse_time_tuple(start, end):
         end_time = end
     else:
         end_time = parse(end)
-
+    
     return TimeInterval(start=start_time, end=end_time)
 
 
@@ -189,3 +195,31 @@ def compare_time_ranges(desired_ranges, computed_ranges):
             logging.debug("Time range requires full computation {0}".format(desired))
             result_ranges.append(desired)
     return result_ranges
+
+
+if __name__ == '__main__':
+    now = datetime(2016, 1, 1, 0, 0, 0)
+    minute = timedelta(minutes=1)
+    hour = timedelta(hours=1)
+    
+    i1 = TimeIntervals([
+        TimeInterval(now, now + hour),
+        TimeInterval(now + 2 * hour, now + 3 * hour),
+    ])
+
+    i2 = TimeIntervals([
+        TimeInterval(now + 30 * minute, now + 30 * minute + 2 * hour),
+    ])
+
+    print i1
+    print i2
+    print
+
+    s = i1 + i2
+    s.compress()
+
+    d = i1 - i2
+    d.compress()
+    print s
+    print d
+    print

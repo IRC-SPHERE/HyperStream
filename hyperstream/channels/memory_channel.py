@@ -36,11 +36,11 @@ class MemoryChannel(BaseChannel):
         super(MemoryChannel, self).__init__(can_calc=True, can_create=True, state=state)
         self.streams = {}
         self.max_stream_id = 0
-
+    
     def repr_stream(self, stream_id):
         s = repr(self.state.id2def[stream_id])
         return s
-
+    
     def create_stream(self, stream_def):
         """
         Must be overridden by deriving classes, must create the stream according to stream_def and return its unique
@@ -50,7 +50,7 @@ class MemoryChannel(BaseChannel):
         stream_id = self.max_stream_id
         self.streams[stream_id] = []
         return stream_id
-
+    
     def get_params(self, x, start, end):
         if isinstance(x, (list, tuple)):
             res = []
@@ -69,7 +69,7 @@ class MemoryChannel(BaseChannel):
             return x(start=start, end=end)
         else:
             return x
-
+    
     def get_results(self, stream_ref, args, kwargs):
         stream_id = stream_ref.stream_id
         abs_end, abs_start = self.get_absolute_start_end(kwargs, stream_ref)
@@ -79,13 +79,14 @@ class MemoryChannel(BaseChannel):
             stream_def = self.state.stream_id_to_definition_mapping[stream_id]
             writer = self.get_stream_writer(stream_id)
             tool = stream_def.tool
-            for (start2, end2) in need_to_calc_times.value:
-                args2 = self.get_params(stream_def.args, start2, end2)
-                kwargs2 = self.get_params(stream_def.kwargs, start2, end2)
-                tool(stream_def, start2, end2, writer, *args2, **kwargs2)
-                self.state.stream_id_to_intervals_mapping[stream_id] += TimeIntervals([(start2, end2)])
-
-            done_calc_times = self.state.gstream_id_to_intervals_mapping[stream_id]
+            for interval2 in need_to_calc_times.intervals:
+                args2 = self.get_params(stream_def.args, interval2.start, interval2.end)
+                kwargs2 = self.get_params(stream_def.kwargs, interval2.start, interval2.end)
+                tool(stream_def, interval2.start, interval2.end, writer, *args2, **kwargs2)
+                self.state.stream_id_to_intervals_mapping[stream_id] += TimeIntervals(
+                    [(interval2.start, interval2.end)])
+            
+            done_calc_times = self.state.stream_id_to_intervals_mapping[stream_id]
             need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
             logging.debug(done_calc_times)
             logging.debug(need_to_calc_times)
@@ -98,12 +99,13 @@ class MemoryChannel(BaseChannel):
         result = stream_ref.modifier(
             (x for x in result))  # make a generator out from result and then apply the modifier
         return result
-
+    
     def get_stream_writer(self, stream_id):
         def writer(document_collection):
             self.streams[stream_id].extend(document_collection)
+        
         return writer
-
+    
     def get_default_ref(self):
         return {'start': timedelta(0), 'end': timedelta(0), 'modifier': Identity()}
 
@@ -121,30 +123,32 @@ class ReadOnlyMemoryChannel(BaseChannel):
     (timestamp,data), in no specific order.
     Names and identifiers are the same in this channel.
     """
-
+    
     def create_stream(self, stream_def):
         raise NotImplementedError("Read-only channel")
-
+    
     def get_stream_writer(self, stream_id):
         raise NotImplementedError("Read-only channel")
-
+    
     def __init__(self, channel_id, up_to_timestamp=datetime.min.replace(tzinfo=pytz.utc)):
+        # TODO: should the up_to_timestamp parameter be up to datetime.max?
+        
         state = ChannelState(channel_id)
         super(ReadOnlyMemoryChannel, self).__init__(can_calc=False, can_create=False, state=state)
         self.streams = {}
         self.up_to_timestamp = datetime.min.replace(tzinfo=pytz.utc)
         if up_to_timestamp > datetime.min.replace(tzinfo=pytz.utc):
             self.update(up_to_timestamp)
-
+    
     def repr_stream(self, stream_id):
         return 'externally defined, memory-based, read-only stream'
-
+    
     def update_streams(self, up_to_timestamp):
         """
         Deriving classes must override this function
         """
         raise NotImplementedError
-
+    
     def update(self, up_to_timestamp):
         """
         Call this function to ensure that the channel is up to date at the time of timestamp.
@@ -153,14 +157,14 @@ class ReadOnlyMemoryChannel(BaseChannel):
         """
         self.update_streams(up_to_timestamp)
         self.update_state(up_to_timestamp)
-
+    
     def update_state(self, up_to_timestamp):
         for stream_id in self.streams.keys():
             self.state.name_to_id_mapping[stream_id] = stream_id
             intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
             self.state.stream_id_to_intervals_mapping[stream_id] = intervals
         self.up_to_timestamp = up_to_timestamp
-
+    
     def get_results(self, stream_ref, args, kwargs):
         start = stream_ref.start
         end = stream_ref.end
@@ -170,9 +174,9 @@ class ReadOnlyMemoryChannel(BaseChannel):
             raise Exception(
                 'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
         result = []
-        for (timestamp, data) in self.streams[stream_ref.stream_id]:
-            if start < timestamp <= end:
-                result.append((timestamp, data))
+        for (tool_info, data) in self.streams[stream_ref.stream_id]:
+            if start < tool_info.timestamp <= end:
+                result.append((tool_info.timestamp, data))
         result.sort(key=lambda x: x[0])
         result = stream_ref.modifier(
             (x for x in result))  # make a generator out from result and then apply the modifier
