@@ -38,7 +38,7 @@ class DatabaseChannel(BaseChannel):
         self.update()
 
     def repr_stream(self, stream_id):
-        s = repr(self.state.id2def[stream_id])
+        s = repr(self.state.name_to_id_mapping[stream_id])
         return s
 
     def update(self):
