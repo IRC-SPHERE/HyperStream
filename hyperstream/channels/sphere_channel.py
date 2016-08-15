@@ -35,10 +35,10 @@ class SphereChannel(BaseChannel):
     """
 
     def get_stream_writer(self, stream_id):
-        raise Exception('SphereChannel is read-only, cannot write new streams')
+        raise RuntimeError('SphereChannel is read-only, cannot write new streams')
 
     def create_stream(self, stream_def):
-        raise Exception('SphereChannel is read-only, cannot create new streams')
+        raise RuntimeError('SphereChannel is read-only, cannot create new streams')
 
     def __init__(self, channel_id, up_to_timestamp=None):
         state = ChannelState(channel_id)
@@ -60,7 +60,7 @@ class SphereChannel(BaseChannel):
         return 'read-only SPHERE MongoDB stream'
 
     def __setitem__(self, key, value):
-        raise Exception('SphereChannel is read-only, cannot create new streams')
+        raise RuntimeError('SphereChannel is read-only, cannot create new streams')
 
     def update(self, up_to_timestamp):
         """
@@ -76,7 +76,7 @@ class SphereChannel(BaseChannel):
         abs_end, abs_start = self.get_absolute_start_end(kwargs, stream_ref)
         window = DataWindow(start=abs_start, end=abs_end, sphere_connector=self.sphere_connector)
         if stream_id not in self.modalities:
-            raise Exception('Unknown stream_id: ' + str(stream_id))
+            raise KeyError('Unknown stream_id: ' + str(stream_id))
         if stream_id == 'video':
             data = window.video.get_data(elements={"2Dbb"})
         elif stream_id == 'environmental':
@@ -96,3 +96,8 @@ class SphereChannel(BaseChannel):
 
     def get_default_ref(self):
         return {'start': datetime.min.replace(tzinfo=pytz.utc), 'end': self.up_to_timestamp, 'modifier': Identity()}
+
+    # def __getitem__(self, item):
+    #     import ipdb
+    #     ipdb.set_trace()
+    #     return super(SphereChannel, self).__getitem__(item)

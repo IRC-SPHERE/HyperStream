@@ -20,18 +20,18 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from utils import Printable
-from models import StreamDefinitionModel
+# from utils import Printable
+# from models import StreamDefinitionModel
 
 
-class StreamCollection(Printable):
-    streams = {}
-
-    def __init__(self, tool_channel):
-        for stream_definition in StreamDefinitionModel.objects:
-            # TODO: tool_version is currently ignored
-            tool = tool_channel[stream_definition.tool_name]
-            self.streams[stream_definition.stream_id] = StreamDefinition(tool, stream_definition.parameters)
+# class StreamCollection(Printable):
+#     streams = {}
+#
+#     def __init__(self, tool_channel):
+#         for stream_definition in StreamDefinitionModel.objects:
+#             # TODO: tool_version is currently ignored
+#             tool = tool_channel[stream_definition.tool_name]
+#             self.streams[stream_definition.stream_id] = StreamDefinition(tool, stream_definition.parameters)
 
 
 class StreamReference(object):

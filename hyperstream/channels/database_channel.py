@@ -40,6 +40,7 @@ class DatabaseChannel(BaseChannel):
     def repr_stream(self, stream_id):
         s = repr(self.state.name_to_id_mapping[stream_id])
         return s
+        # return repr(stream_id)
 
     def update(self):
         self.update_streams()
@@ -49,7 +50,7 @@ class DatabaseChannel(BaseChannel):
         intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), datetime.utcnow().replace(tzinfo=pytz.utc))])
         for stream_id in self.streams.keys():
             self.state.name_to_id_mapping[stream_id] = stream_id
-            self.state.stream_id_to_intervals_mapping[stream_id] = intervals
+            # self.state.stream_id_to_intervals_mapping[stream_id] = intervals
 
     def update_streams(self):
         """
@@ -130,7 +131,7 @@ class DatabaseChannel(BaseChannel):
 
     def create_stream(self, stream_def):
         # TODO: Functionality here
-        raise RuntimeError("Database streams currently need to be defined in the database")
+        raise NotImplementedError("Database streams currently need to be defined in the database")
 
     def get_stream_writer(self, stream_id):
         def writer(document_collection):

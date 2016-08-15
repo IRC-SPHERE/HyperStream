@@ -169,9 +169,9 @@ class ReadOnlyMemoryChannel(BaseChannel):
         start = stream_ref.start
         end = stream_ref.end
         if isinstance(start, timedelta) or isinstance(end, timedelta):
-            raise Exception('Cannot calculate a relative stream_ref')
+            raise ValueError('Cannot calculate a relative stream_ref')
         if end > self.up_to_timestamp:
-            raise Exception(
+            raise ValueError(
                 'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
         result = []
         for (tool_info, data) in self.streams[stream_ref.stream_id]:
