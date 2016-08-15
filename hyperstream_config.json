@@ -11,13 +11,13 @@
     "tool_path": "hyperstream/tools",
     "meta_data_lists" : {
         "house": {
-            "1" : {
+            "0" : {
                 "location": ["kitchen", "lounge", "bedroom 1", "bedroom 2", "bathroom", "toilet", "study", "hallway", "stairs"],
                 "resident": ["1", "2", "3"]
             },
-            "2" : {
+            "1" : {
                 "location": ["kitchen", "lounge", "bedroom 1", "bathroom", "toilet", "hallway"],
-                "resident": ["1", "2"]
+                "resident": ["4", "5"]
             }
         }
     }
