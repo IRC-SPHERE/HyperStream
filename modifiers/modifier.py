@@ -56,7 +56,7 @@ class ComposedModifier(Modifier):
             if modifier_2.types.has_key(modifier_1.types[input_type]):
                 self.types[input_type] = modifier_2.types[modifier_1.types[input_type]]
         if len(self.types) == 0:
-            raise Exception('Type mismatch in composing modifiers ' + repr(modifier_1) + ' and ' + repr(modifier_2))
+            raise ValueError('Type mismatch in composing modifiers ' + repr(modifier_1) + ' and ' + repr(modifier_2))
 
     def __repr__(self):
         return repr(self.modifier_1) + '+' + repr(self.modifier_2)

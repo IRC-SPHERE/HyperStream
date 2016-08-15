@@ -26,6 +26,7 @@ from ..time_interval import TimeIntervals
 from datetime import datetime, timedelta, date
 from ..utils import Printable
 import pytz
+import logging
 
 
 class BaseChannel(Printable):
@@ -40,21 +41,19 @@ class BaseChannel(Printable):
         start = stream_ref.start
         abs_start = start
         if isinstance(start, timedelta):
-            try:
-                abs_start = kwargs['start'] + start
-            except KeyError:
-                raise Exception('The stream reference to a stream has a relative start time, '
-                                'need an absolute start time')
+            if 'start' not in kwargs:
+                logging.error('The stream reference requires an absolute start time')
+                raise KeyError('start')
+            abs_start = kwargs['start'] + start
         end = stream_ref.end
         abs_end = end
         if isinstance(end, timedelta):
-            try:
-                abs_end = kwargs['end'] + end
-            except KeyError:
-                raise Exception(
-                    'The stream reference to a stream has a relative end time, need an absolute end time')
+            if 'end' not in kwargs:
+                'The stream reference to a stream has a relative end time, need an absolute end time'
+                raise KeyError('end')
+            abs_end = kwargs['end'] + end
         if abs_end > self.up_to_timestamp:
-            raise Exception(
+            raise ValueError(
                 'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be obtained')
         return abs_end, abs_start
 
@@ -87,7 +86,7 @@ class BaseChannel(Printable):
              database[timestamp] = data
              return(f)
            else:
-             raise Exception('No stream with id '+str(stream_id))
+             raise KeyError('No stream with id '+str(stream_id))
         """
         raise NotImplementedError
 
