@@ -32,3 +32,14 @@ class ChannelCollection(Printable):
         self.sphere_channel = SphereChannel(2)
         self.memory_channel = MemoryChannel(3)
         self.database_channel = DatabaseChannel(4)
+
+    def __getitem__(self, item):
+        if item in self.memory_channel:
+            return self.memory_channel[item]
+        if item in self.database_channel:
+            return self.database_channel[item]
+        # if item in self.tool_channel:
+        #     return self.tool_channel[item]
+        if item in self.sphere_channel:
+            return self.sphere_channel[item]
+        raise KeyError("{} not found in channels".format(item))
