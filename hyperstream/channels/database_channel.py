@@ -130,7 +130,7 @@ class DatabaseChannel(BaseChannel):
 
     def create_stream(self, stream_def):
         # TODO: Functionality here
-        raise RuntimeError("Database streams currently need to be defined in the database")
+        raise NotImplementedError("Database streams currently need to be defined in the database")
 
     def get_stream_writer(self, stream_id):
         def writer(document_collection):
