@@ -156,7 +156,7 @@ class ReadOnlyMemoryChannel(BaseChannel):
 
     def update_state(self, up_to_timestamp):
         for stream_id in self.streams.keys():
-            self.state.name_to_id_mapping[stream_id] = stream_id
+            # self.state.name_to_id_mapping[stream_id] = stream_id
             intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
             self.state.stream_id_to_intervals_mapping[stream_id] = intervals
         self.up_to_timestamp = up_to_timestamp
