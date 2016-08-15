@@ -104,8 +104,8 @@ class BaseChannel(Printable):
         s = s + ' and containing ' + str(len(self.state.stream_id_to_intervals_mapping)) + " streams:"
         for stream_id in self.state.stream_id_to_intervals_mapping:
             s += '\nSTREAM ID: ' + str(stream_id)
-            s += "\n  NAMES: "
-            s += ', '.join(name for name in self.state.name_to_id_mapping if self.state.name_to_id_mapping[name] == stream_id)
+            # s += "\n  NAMES: "
+            # s += ', '.join(name for name in self.state.name_to_id_mapping if self.state.name_to_id_mapping[name] == stream_id)
             s += "\n  CALCULATED RANGES: " + repr(self.state.stream_id_to_intervals_mapping[stream_id])
             s += "\n  STREAM DEFINITION: "
             s += self.repr_stream(stream_id)
@@ -119,15 +119,18 @@ class BaseChannel(Printable):
 
     def parse_setkey(self, key):
         # ( stream_id_part [,stream_id_part]* )
-        if type(key) == tuple:
-            if len(key) == 0:
-                raise Exception('Empty stream identifier')
-            classes = [k.__class__ for k in key]
-            if True in [issubclass(cls, Modifier) for cls in classes]:
-                raise Exception('StreamReference identifier cannot include a Modifier')
-            if (timedelta in classes) or (date in classes):
-                raise Exception('StreamReference identifier cannot include datetime or timedelta')
-            return '.'.join([str(k) for k in key])
+        if not key:
+            raise ValueError('Empty stream identifier')
+
+        if isinstance(key, (list, tuple)):
+            s = ""
+            for k in key:
+                if isinstance(k, Modifier):
+                    raise ValueError('StreamReference identifier cannot include a Modifier')
+                if isinstance(k, (date, datetime, timedelta)):
+                    raise ValueError('StreamReference identifier cannot include datetime or timedelta')
+                s += '.' + str(k)
+            return s
         else:
             return str(key)
 
@@ -155,7 +158,7 @@ class BaseChannel(Printable):
     def __getitem__(self, key):
         key = self.parse_getkey(key)
         key['channel_id'] = self.state.channel_id
-        key['stream_id'] = self.state.name_to_id_mapping[key['stream_id']]
+        # key['stream_id'] = self.state.name_to_id_mapping[key['stream_id']]
         key['get_results_func'] = self.get_results
         return StreamReference(**key)
 
@@ -168,5 +171,5 @@ class BaseChannel(Printable):
             self.state.stream_id_to_intervals_mapping[stream_id] = TimeIntervals()
             self.state.stream_definition_to_id_mapping[value] = stream_id
             self.state.stream_id_to_definition_mapping[stream_id] = value
-        self.state.name_to_id_mapping[key] = stream_id
+        # self.state.name_to_id_mapping[key] = stream_id
         return
