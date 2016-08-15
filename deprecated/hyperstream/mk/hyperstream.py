@@ -30,11 +30,12 @@ import re
 from hyperstream_modifiers import *
 from hyperstream_intervals import *
 
-#from os import listdir
-#from os.path import isfile, join
+
+# from os import listdir
+# from os.path import isfile, join
 #  onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
-#def import_tools():
+# def import_tools():
 #  tool_path = 'codebase/tools'
 #  modules = {}
 #  for (dirpath, dirnames, filenames) in walk(tool_path):
@@ -51,7 +52,7 @@ from hyperstream_intervals import *
 #      modules[module_version] = modules[module_name]
 #  return(modules)
 
-#locals().update(import_tools())
+# locals().update(import_tools())
 
 ### class Job(object):
 ###   '''Helps to manage callbacks of calculation jobs:
@@ -184,222 +185,259 @@ from hyperstream_intervals import *
 ###   ### TODO: if cannot calculate for the whole duration, then should be possible to find out the subintervals where calculation is possible
 ### 
 class StreamRef(object):
-  def __init__(self,base_id,stream_id,start,end,modifier,get_results_func):
-    self.base_id = base_id
-    self.stream_id = stream_id
-    self.start = start
-    self.end = end
-    self.modifier = modifier
-    self.get_results_func = get_results_func
-  def __repr__(self): ### TODO possibly need repr as well? or even repr instead of str?
-    s = "StreamRef\n      BASE_ID  : " + repr(self.base_id)
-    s = s +      "\n      STREAM_ID: " + repr(self.stream_id)
-    s = s +      "\n      START    : " + repr(self.start)
-    s = s +      "\n      END      : " + repr(self.end)
-    s = s +      "\n      MODIFIER : " + repr(self.modifier)
-    s = s +      "\n    "
-    return(s)
-  def __eq__(self,other):
-    return(str(self)==str(other))
-  def __hash__(self):
-    return(hash(str(self)))
-  def __call__(self,*args,**kwargs):
-    return(self.get_results_func(self,args,kwargs))
-#    tool = self.data_extractor(self)
+    def __init__(self, base_id, stream_id, start, end, modifier, get_results_func):
+        self.base_id = base_id
+        self.stream_id = stream_id
+        self.start = start
+        self.end = end
+        self.modifier = modifier
+        self.get_results_func = get_results_func
+    
+    def __repr__(self):  ### TODO possibly need repr as well? or even repr instead of str?
+        s = "StreamRef\n      BASE_ID  : " + repr(self.base_id)
+        s = s + "\n      STREAM_ID: " + repr(self.stream_id)
+        s = s + "\n      START    : " + repr(self.start)
+        s = s + "\n      END      : " + repr(self.end)
+        s = s + "\n      MODIFIER : " + repr(self.modifier)
+        s = s + "\n    "
+        return (s)
+    
+    def __eq__(self, other):
+        return (str(self) == str(other))
+    
+    def __hash__(self):
+        return (hash(str(self)))
+    
+    def __call__(self, *args, **kwargs):
+        return (self.get_results_func(self, args, kwargs))
+
+
+# tool = self.data_extractor(self)
 #    (args,kwargs) = tool.process_params(*args,**kwargs)
 #    return(StreamDef(tool,*args,**kwargs))
 
-class BaseState(object): ### TODO needs to be stored permanently as well
-  def __init__(self,base_id):
-    self.base_id = base_id
-    self.name2id = {}
-    self.def2id = {}
-    self.id2def = {}
-    self.id2calc = {}
-  def get_name2id(self,name):
-    return(self.name2id[name])
-  def set_name2id(self,name,stream_id):
-    self.name2id[name] = stream_id 
-  def get_def2id(self,stream_def):
-    return(self.def2id[stream_def])
-  def set_def2id(self,stream_def,stream_id):
-    self.def2id[stream_def] = stream_id
-  def get_id2def(self,stream_id):
-    return(self.id2def[stream_id])
-  def set_id2def(self,stream_id,stream_def):
-    self.id2def[stream_id] = stream_def
-  def get_id2calc(self,stream_id):
-    return(self.id2calc[stream_id])
-  def set_id2calc(self,stream_id,calc_interval):
-    self.id2calc[stream_id] = calc_interval
+class BaseState(object):  ### TODO needs to be stored permanently as well
+    def __init__(self, base_id):
+        self.base_id = base_id
+        self.name2id = {}
+        self.def2id = {}
+        self.id2def = {}
+        self.id2calc = {}
+    
+    def get_name2id(self, name):
+        return (self.name2id[name])
+    
+    def set_name2id(self, name, stream_id):
+        self.name2id[name] = stream_id
+    
+    def get_def2id(self, stream_def):
+        return (self.def2id[stream_def])
+    
+    def set_def2id(self, stream_def, stream_id):
+        self.def2id[stream_def] = stream_id
+    
+    def get_id2def(self, stream_id):
+        return (self.id2def[stream_id])
+    
+    def set_id2def(self, stream_id, stream_def):
+        self.id2def[stream_id] = stream_def
+    
+    def get_id2calc(self, stream_id):
+        return (self.id2calc[stream_id])
+    
+    def set_id2calc(self, stream_id, calc_interval):
+        self.id2calc[stream_id] = calc_interval
+
 
 class StreamBase(object):
-  def __init__(self,can_calc=False,can_create=False,state=None,calc_agent=None):
-    self.can_calc = can_calc
-    self.can_create = can_create
-    self.state = state
-    self.calc_agent = calc_agent
-  def get_results(self,stream_ref,args,kwargs): #TODO: force_calc=False):
-    '''Must be overridden by deriving classes.
-    1. Calculates/receives the documents in the stream interval determined by the stream_ref
-    2. Applies the modifiers within stream_ref
-    3. Applies streambase custom modifiers as determined by args and kwargs
-    4. Returns success or failure and the results (for some streambases the values of args and kwargs can override the return process, e.g. introduce callbacks)
-    '''
-    raise NotImplementedError
-  def create_stream(self,stream_def):
-    '''Must be overridden by deriving classes, must create the stream according to stream_def and return its unique identifier stream_id'''
-    raise NotImplementedError
-  def get_stream_writer(self,stream_id):
-    '''Must be overridden by deriving classes, must return a function(document_collection) which writes all the given documents of the form (timestamp,data) from document_collection to the stream stream_id
-       Example:
-       if stream_id==1:
-	 def f(document_collection):
-	   for (timestamp,data) in document_collection:
-	     database[timestamp] = data
-         return(f)
-       else:
-         raise Exception('No stream with id '+str(stream_id))
-    '''
-    raise NotImplementedError
-  def get_default_ref(self):
-    '''Could be overridden by deriving classes, should return the default values for start,end,modifier when referring to a stream in this streambase'''
-    return({'start':MIN_DATE,'end':delta(0),'modifier':Identity()})
-  def __repr__(self):
-    s = super(StreamBase,self).__repr__() + ' with ID: ' + str(self.state.base_id) 
-    s = s + ' and containing '+str(len(self.state.id2calc))+" streams:"
-    for stream_id in self.state.id2calc:
-      s = s + '\nSTREAM ID: ' + str(stream_id)
-      s = s + "\n  NAMES: "
-      names = []
-      for name in self.state.name2id:
-	if self.state.name2id[name]==stream_id:
-	  names.append(name)
-      s = s + ', '.join(names)
-      s = s + "\n  CALCULATED RANGES: " + repr(self.state.id2calc[stream_id])
-      s = s + "\n  STREAM DEFINITION: "
-      s = s + self.repr_stream(stream_id)
-    return(s)
-  def repr_stream(self,stream_id):
-    '''Must be over-ridden to provide details about the stream'''
-    raise NotImplementedError
-  def parse_setkey(self,key):
-    # ( stream_id_part [,stream_id_part]* )
-    if type(key)==tuple:
-      if len(key)==0:
-	raise Exception('Empty stream identifier')
-      classes = [k.__class__ for k in key]
-      if True in [issubclass(cls,Modifier) for cls in classes]:
-	raise Exception('Stream identifier cannot include a Modifier')
-      if (delta in classes) or (date in classes):
-	raise Exception('Stream identifier cannot include date or delta')
-      return('.'.join([str(k) for k in key]))
-    else:
-      return(str(key))
-  def parse_getkey(self,key):
-    # ( stream_id_part [,stream_id_part]* [,start | ,start,end] [,modifier] )
-    refdict = self.get_default_ref()
-    if type(key)==tuple:
-      if (len(key)>=2) and issubclass(key[-1].__class__,Modifier):
-	refdict['modifier'] = key[-1]
-	key = key[:-1]
-      if (len(key)>=3) and (key[-2].__class__ in (delta,date)) and (key[-1].__class__ in (delta,date)):
-	refdict['start'] = key[-2]
-	refdict['end'] = key[-1]
-	key = key[:-2]
-      elif (len(key)>=2) and (key[-1].__class__ in (delta,date)):
-	refdict['start'] = key[-1]
-	key = key[:-1]
-      refdict['stream_id'] = self.parse_setkey(key)
-    else:
-      refdict['stream_id'] = self.parse_setkey(key)
-    return(refdict)
-  def __getitem__(self,key):
-    key = self.parse_getkey(key)
-    key['base_id'] = self.state.base_id
-    key['stream_id'] = self.state.get_name2id(key['stream_id'])
-    key['get_results_func'] = self.get_results
-    return(StreamRef(**key))
-  def __setitem__(self,key,value):
-    key = self.parse_setkey(key)
-    try:
-      stream_id = self.state.get_def2id(value)
-    except KeyError:
-      stream_id = self.create_stream(value)
-      self.state.set_id2calc(stream_id,TimeIntervals())
-      self.state.set_def2id(value,stream_id)
-      self.state.set_id2def(stream_id,value)
-    self.state.set_name2id(key,stream_id)
-    return
+    def __init__(self, can_calc=False, can_create=False, state=None, calc_agent=None):
+        self.can_calc = can_calc
+        self.can_create = can_create
+        self.state = state
+        self.calc_agent = calc_agent
+    
+    def get_results(self, stream_ref, args, kwargs):  # TODO: force_calc=False):
+        '''Must be overridden by deriving classes.
+        1. Calculates/receives the documents in the stream interval determined by the stream_ref
+        2. Applies the modifiers within stream_ref
+        3. Applies streambase custom modifiers as determined by args and kwargs
+        4. Returns success or failure and the results (for some streambases the values of args and kwargs can override the return process, e.g. introduce callbacks)
+        '''
+        raise NotImplementedError
+    
+    def create_stream(self, stream_def):
+        '''Must be overridden by deriving classes, must create the stream according to stream_def and return its unique identifier stream_id'''
+        raise NotImplementedError
+    
+    def get_stream_writer(self, stream_id):
+        '''Must be overridden by deriving classes, must return a function(document_collection) which writes all the given documents of the form (timestamp,data) from document_collection to the stream stream_id
+           Example:
+           if stream_id==1:
+         def f(document_collection):
+           for (timestamp,data) in document_collection:
+             database[timestamp] = data
+             return(f)
+           else:
+             raise Exception('No stream with id '+str(stream_id))
+        '''
+        raise NotImplementedError
+    
+    def get_default_ref(self):
+        '''Could be overridden by deriving classes, should return the default values for start,end,modifier when referring to a stream in this streambase'''
+        return ({'start': MIN_DATE, 'end': delta(0), 'modifier': Identity()})
+    
+    def __repr__(self):
+        s = super(StreamBase, self).__repr__() + ' with ID: ' + str(self.state.base_id)
+        s = s + ' and containing ' + str(len(self.state.id2calc)) + " streams:"
+        for stream_id in self.state.id2calc:
+            s = s + '\nSTREAM ID: ' + str(stream_id)
+            s = s + "\n  NAMES: "
+            names = []
+            for name in self.state.name2id:
+                if self.state.name2id[name] == stream_id:
+                    names.append(name)
+            s = s + ', '.join(names)
+            s = s + "\n  CALCULATED RANGES: " + repr(self.state.id2calc[stream_id])
+            s = s + "\n  STREAM DEFINITION: "
+            s = s + self.repr_stream(stream_id)
+        return (s)
+    
+    def repr_stream(self, stream_id):
+        '''Must be over-ridden to provide details about the stream'''
+        raise NotImplementedError
+    
+    def parse_setkey(self, key):
+        # ( stream_id_part [,stream_id_part]* )
+        if type(key) == tuple:
+            if len(key) == 0:
+                raise Exception('Empty stream identifier')
+            classes = [k.__class__ for k in key]
+            if True in [issubclass(cls, Modifier) for cls in classes]:
+                raise Exception('Stream identifier cannot include a Modifier')
+            if (delta in classes) or (date in classes):
+                raise Exception('Stream identifier cannot include date or delta')
+            return ('.'.join([str(k) for k in key]))
+        else:
+            return (str(key))
+    
+    def parse_getkey(self, key):
+        # ( stream_id_part [,stream_id_part]* [,start | ,start,end] [,modifier] )
+        refdict = self.get_default_ref()
+        if type(key) == tuple:
+            if (len(key) >= 2) and issubclass(key[-1].__class__, Modifier):
+                refdict['modifier'] = key[-1]
+                key = key[:-1]
+            if (len(key) >= 3) and (key[-2].__class__ in (delta, date)) and (key[-1].__class__ in (delta, date)):
+                refdict['start'] = key[-2]
+                refdict['end'] = key[-1]
+                key = key[:-2]
+            elif (len(key) >= 2) and (key[-1].__class__ in (delta, date)):
+                refdict['start'] = key[-1]
+                key = key[:-1]
+            refdict['stream_id'] = self.parse_setkey(key)
+        else:
+            refdict['stream_id'] = self.parse_setkey(key)
+        return (refdict)
+    
+    def __getitem__(self, key):
+        key = self.parse_getkey(key)
+        key['base_id'] = self.state.base_id
+        key['stream_id'] = self.state.get_name2id(key['stream_id'])
+        key['get_results_func'] = self.get_results
+        return (StreamRef(**key))
+    
+    def __setitem__(self, key, value):
+        key = self.parse_setkey(key)
+        try:
+            stream_id = self.state.get_def2id(value)
+        except KeyError:
+            stream_id = self.create_stream(value)
+            self.state.set_id2calc(stream_id, TimeIntervals())
+            self.state.set_def2id(value, stream_id)
+            self.state.set_id2def(stream_id, value)
+        self.state.set_name2id(key, stream_id)
+        return
 
 
 # need to check if the same stream already exists in the same streambase or not
-class StreamDef(object): # tool with params
-  def __init__(self,tool,*args,**kwargs):
-    self.tool = tool
-    self.args = args
-    self.kwargs = kwargs
-  def __repr__(self):
-    s = "StreamDef:"
-    s = s + "\n    TOOL  : " + repr(self.tool)
-    s = s + "\n    ARGS  : " + repr(self.args)
-    s = s + "\n    KWARGS: " + repr(self.kwargs)
-    return(s)
-  def normalise(self):
-    return(self.tool.normalise_stream_def(self))
-  def __eq__(self,other):
-    return(self.normalise()==other.normalise())
-  def __hash__(self):
-    return(hash(self.normalise()))
+class StreamDef(object):  # tool with params
+    def __init__(self, tool, *args, **kwargs):
+        self.tool = tool
+        self.args = args
+        self.kwargs = kwargs
+    
+    def __repr__(self):
+        s = "StreamDef:"
+        s = s + "\n    TOOL  : " + repr(self.tool)
+        s = s + "\n    ARGS  : " + repr(self.args)
+        s = s + "\n    KWARGS: " + repr(self.kwargs)
+        return (s)
+    
+    def normalise(self):
+        return (self.tool.normalise_stream_def(self))
+    
+    def __eq__(self, other):
+        return (self.normalise() == other.normalise())
+    
+    def __hash__(self):
+        return (hash(self.normalise()))
 
-class Tool(object): 
-  # inputs a mixed list of parameters and StreamRef and lists of StreamRef
-  # outputs a stream
-  def __init__(self):
-    pass
-  def process_params(self,*args,**kwargs):
-    return(args,kwargs)
-  def normalise_stream_def(self,stream_def):
-    nt = self.normalise_tool()
-    na = self.normalise_args(stream_def.args)
-    nk = self.normalise_kwargs(stream_def.kwargs)
-    keys = tuple(sorted(nk.keys()))
-    values = tuple([nk[k] for k in keys])
-    return((nt,tuple(na),keys,values))
-  def normalise_tool(self):
-    return(self.__class__.__module__) # alternatively, could return e.g. 'codebase.tools.test.2016_07_10_10_15_54_932_v1'
-  def normalise_args(self,args):
-    return(args)
-  def normalise_kwargs(self,kwargs):
-    return(kwargs)
-  def __call__(self,stream_def,start,end,writer,*args,**kwargs):
-    raise NotImplementedError
 
-### class Test(Tool):
-### ###  def normalise_tool(self):
-### ###    return(self.__class__.__module__) # alternatively, could return e.g. 'codebase.tools.test.2016_07_10_10_15_54_932_v1'
-### ###  def normalise_args(self,args):
-### ###    return(args)
-### ###  def normalise_kwargs(self,kwargs):
-### ###    return(kwargs)
-###   def process_params(self,first=date(1970,1,1),stride=delta(seconds=1),optim=42):
-###     return([],{'first':first,'stride':stride,'optim':optim})
-###   def calc_range(self,start,end,first,stride,optim):
-###     if start<first:
-###       start = first
-###     n_strides = int( (start-first).total_seconds() // stride.total_seconds() )
-###     t = first + n_strides*stride
-###     while t<=end:
-###       if t>start:
-### 	yield (t,t)
-###       t = t+stride
-###     return
-### #    time_stream(stride=delta(seconds=1),first=date(1970,1,1)):
-
-#	def tool_importer(module_file=module_file,mf_vec=mf_vec): 
-	  # this function is to be called without parameters
-	  # parameters are here just to enforce early binding 
-	  # http://stackoverflow.com/questions/3431676/creating-functions-in-a-loop
+class Tool(object):
+    # inputs a mixed list of parameters and StreamRef and lists of StreamRef
+    # outputs a stream
+    def __init__(self):
+        pass
+    
+    def process_params(self, *args, **kwargs):
+        return (args, kwargs)
+    
+    def normalise_stream_def(self, stream_def):
+        nt = self.normalise_tool()
+        na = self.normalise_args(stream_def.args)
+        nk = self.normalise_kwargs(stream_def.kwargs)
+        keys = tuple(sorted(nk.keys()))
+        values = tuple([nk[k] for k in keys])
+        return ((nt, tuple(na), keys, values))
+    
+    def normalise_tool(self):
+        return (
+        self.__class__.__module__)  # alternatively, could return e.g. 'codebase.tools.test.2016_07_10_10_15_54_932_v1'
+    
+    def normalise_args(self, args):
+        return (args)
+    
+    def normalise_kwargs(self, kwargs):
+        return (kwargs)
+    
+    def __call__(self, stream_def, start, end, writer, *args, **kwargs):
+        raise NotImplementedError
+    
+    ### class Test(Tool):
+    ### ###  def normalise_tool(self):
+    ### ###    return(self.__class__.__module__) # alternatively, could return e.g. 'codebase.tools.test.2016_07_10_10_15_54_932_v1'
+    ### ###  def normalise_args(self,args):
+    ### ###    return(args)
+    ### ###  def normalise_kwargs(self,kwargs):
+    ### ###    return(kwargs)
+    ###   def process_params(self,first=date(1970,1,1),stride=delta(seconds=1),optim=42):
+    ###     return([],{'first':first,'stride':stride,'optim':optim})
+    ###   def calc_range(self,start,end,first,stride,optim):
+    ###     if start<first:
+    ###       start = first
+    ###     n_strides = int( (start-first).total_seconds() // stride.total_seconds() )
+    ###     t = first + n_strides*stride
+    ###     while t<=end:
+    ###       if t>start:
+    ### 	yield (t,t)
+    ###       t = t+stride
+    ###     return
+    ### #    time_stream(stride=delta(seconds=1),first=date(1970,1,1)):
+    
+    #	def tool_importer(module_file=module_file,mf_vec=mf_vec):
+    # this function is to be called without parameters
+    # parameters are here just to enforce early binding
+    # http://stackoverflow.com/questions/3431676/creating-functions-in-a-loop
 
 ###  def get_stream_reader(self,stream_id):
 ###    '''Must be overridden by deriving classes, must return a function(start,end) which yields one by one all the documents from time interval (start,end] from the stream stream_id
@@ -417,8 +455,3 @@ class Tool(object):
 ###         raise Exception('No stream with id '+str(stream_id))
 ###    '''
 ###    raise NotImplementedError
-
-
-
-
-

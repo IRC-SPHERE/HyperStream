@@ -22,15 +22,19 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from hyperstream import Tool
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+import pytz
 import logging
 
 
 class Clock(Tool):
     def normalise_kwargs(self, kwargs):
-        return self._normalise_kwargs({'optim'}, **kwargs)
+        return self._normalise_kwargs({}, **kwargs)
     
-    def __call__(self, stream_def, start, end, writer, first, stride, optim):
+    def process_params(self, first=datetime.min.replace(tzinfo=pytz.UTC), stride=timedelta(seconds=1)):
+        return [], {'first': first, 'stride': stride}
+    
+    def __call__(self, stream_def, start, end, writer, first, stride):
         logging.info('Clock running from ' + str(start) + ' to ' + str(end) + ' with stride ' + str(stride))
         assert isinstance(start, (date, datetime))
         assert isinstance(end, (date, datetime))
