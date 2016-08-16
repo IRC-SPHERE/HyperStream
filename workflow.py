@@ -142,40 +142,6 @@ class WorkflowManager(Printable):
 
                 self.plates[p.plate_id] = Plate(p.plate_id, p.meta_data_id, p.description, values, parent_plate)
 
-
-        # Plate definitions (arrays of streams)
-        # for p in PlateDefinitionModel.objects:
-        #     parent_list = meta_data_lists
-        #     components = []
-        #     # TODO: Check for list complements
-        #     for pc in p.components:
-        #         key = pc.meta_data_id
-        #         try:
-        #             possible_values = list(parent_list[pc.meta_data_id])
-        #         except KeyError as e:
-        #             logging.warn("Plate ID {}, meta data ID {} not found in lists".format(p.plate_id, key))
-        #             raise e
-        #         values = []
-        #         for v in pc.values:
-        #             if isinstance(v, int):
-        #                 if 0 <= v < len(possible_values):
-        #                     values.append(possible_values[v])
-        #                 else:
-        #                     raise ValueError("Plate ID {}, Requested value {} not in possible values".format(
-        #                         p.plate_id, v, possible_values))
-        #             elif isinstance(v, (str, unicode)):
-        #                 if v in possible_values:
-        #                     values.append(v)
-        #                 else:
-        #                     raise ValueError("Plate ID {}, Requested value {} not in possible values".format(
-        #                         p.plate_id, v, possible_values))
-        #             else:
-        #                 raise TypeError("Expect str or int, got {}".format(str(type(v))))
-        #         components.append(PlateComponent(key, values))
-        #         if isinstance(parent_list[pc.meta_data_id], dict):
-        #             parent_list = parent_list[pc.meta_data_id]
-        #     self.plates[p.plate_id] = Plate(p.plate_id, components)
-
         # TODO: Make sure all of the plates in the workflow definitions exist in the plate definitions
         for f in WorkflowDefinitionModel.objects:
             self.workflows[f.workflow_id] = Workflow(channels, self.plates, f)

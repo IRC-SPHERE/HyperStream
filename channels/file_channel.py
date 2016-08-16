@@ -21,8 +21,11 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from memory_channel import ReadOnlyMemoryChannel
-from ..modifiers import Identity
+from ..stream import StreamReference
+
+from ..modifiers import Identity, Last
 from ..utils import Printable
+from ..time_interval import TimeInterval
 
 from dateutil.parser import parse
 import os
@@ -54,13 +57,13 @@ class FileDateTimeVersion(Printable):
     def is_python(self):
         return self.extension == '.py'
     
-    def __repr__(self):
-        return (
-            "Parsing '{self.long_filname}': \n" +
-            "    Extension: {self.extension} \n" +
-            "    Date time: {self.datetime} \n" +
-            "      Version: {self.version} \n"
-        ).format(self.__dict__)
+    # def __repr__(self):
+    #     return (
+    #         "Parsing '{long_filename}': \n" +
+    #         "    Extension: {extension} \n" +
+    #         "    Date time: {datetime} \n" +
+    #         "      Version: {version} \n"
+    #     ).format(self.__dict__)
 
 
 class FileChannel(ReadOnlyMemoryChannel):
@@ -74,7 +77,7 @@ class FileChannel(ReadOnlyMemoryChannel):
     timestamps are added.
     """
     path = ""
-    
+
     def get_stream_writer(self, stream_id):
         raise NotImplementedError()
     
@@ -86,6 +89,7 @@ class FileChannel(ReadOnlyMemoryChannel):
         super(FileChannel, self).__init__(channel_id, up_to_timestamp)
     
     def repr_stream(self, stream_id):
+        # TODO: self.streams no longer a list!
         s = 'externally defined by the file system, read-only stream'
         s = s + ', currently holding ' + str(len(self.streams[stream_id])) + ' files'
         return s
@@ -112,10 +116,21 @@ class FileChannel(ReadOnlyMemoryChannel):
             short_path = long_path[len(path) + 1:]
             stream_id = short_path
             self.streams[stream_id] = []
+
+            # def f(stream_ref, *args, **kwargs):
             for tool_info in self.file_filter(sorted(file_names)):
                 if tool_info.timestamp <= up_to_timestamp:
                     self.streams[stream_id].append((tool_info, self.data_loader(short_path, tool_info)))
-    
+                    # yield tool_info.timestamp, self.data_loader(short_path, tool_info)
+
+            # self.streams[stream_id] = StreamReference(
+            #     channel_id=self.state.channel_id,
+            #     stream_id=stream_id,
+            #     time_interval=TimeInterval(start=datetime.min.replace(tzinfo=pytz.UTC), end=up_to_timestamp),
+            #     modifier=Last(),
+            #     get_results_func=f
+            # )
+
     def data_loader(self, short_path, file_long_name):
         raise NotImplementedError
     
