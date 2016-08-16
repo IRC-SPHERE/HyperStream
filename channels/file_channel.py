@@ -37,12 +37,12 @@ class FileDateTimeVersion(Printable):
         self.long_filename = filename
         self.filename_no_extension, self.extension = os.path.splitext(filename)
         
-        self.timestamp, self.version = self.filename_no_extension.split(split_char)
+        self.timestamp, self.version = self.filename_no_extension.split(split_char, 1)
         
         self.timestamp = parse(self.timestamp)
         
         try:
-            self.version = Version(self.version[1:])
+            self.version = Version(self.version[1:].replace('_', '.'))
         
         except ValueError:
             raise ValueError(
@@ -114,8 +114,7 @@ class FileChannel(ReadOnlyMemoryChannel):
             self.streams[stream_id] = []
             for tool_info in self.file_filter(sorted(file_names)):
                 if tool_info.timestamp <= up_to_timestamp:
-                    self.streams[stream_id].append((tool_info,
-                                                    self.data_loader(short_path, tool_info)))
+                    self.streams[stream_id].append((tool_info, self.data_loader(short_path, tool_info)))
     
     def data_loader(self, short_path, file_long_name):
         raise NotImplementedError
