@@ -29,6 +29,8 @@ import pytz
 
 
 class BaseChannel(Printable):
+    streams = {}
+
     def __init__(self, can_calc=False, can_create=False, state=None, calc_agent=None):
         self.can_calc = can_calc
         self.can_create = can_create
@@ -168,6 +170,7 @@ class BaseChannel(Printable):
         return refdict
     
     def __getitem__(self, key):
+        # return self.streams[self.parse_getkey(key)]
         key = self.parse_getkey(key)
         
         key['channel_id'] = self.state.channel_id
