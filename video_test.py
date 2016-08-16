@@ -36,12 +36,7 @@ NEW = {
 
 
 if __name__ == '__main__':
-    sphere_connector = SphereConnector(
-        config_filename='config_strauss.json',
-        log_path='/tmp',
-        log_filename='video_test',
-        include_mongo=True,
-        include_redcap=False)
+    sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True, include_redcap=False)
 
     windows = [DataWindow(sphere_connector, **d) for d in [OLD, NEW]]
 

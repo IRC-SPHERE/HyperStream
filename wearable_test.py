@@ -31,12 +31,7 @@ RNG = {
 
 
 if __name__ == '__main__':
-    sphere_connector = SphereConnector(
-        config_filename='config_strauss.json',
-        log_path='/tmp',
-        log_filename='wearable_test',
-        include_mongo=True,
-        include_redcap=False)
+    sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True, include_redcap=False)
 
     window = DataWindow(sphere_connector, **RNG)
 
