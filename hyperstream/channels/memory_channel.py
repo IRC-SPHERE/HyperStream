@@ -37,7 +37,7 @@ class MemoryChannel(BaseChannel):
         self.max_stream_id = 0
     
     def repr_stream(self, stream_id):
-        s = repr(self.state.id2def[stream_id])
+        s = repr(self.state.stream_id_to_definition_mapping[stream_id])
         return s
     
     def create_stream(self, stream_def):
