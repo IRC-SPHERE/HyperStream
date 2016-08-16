@@ -96,7 +96,7 @@ class FileChannel(ReadOnlyMemoryChannel):
     
     def file_filter(self, sorted_file_names):
         for file_long_name in sorted_file_names:
-            if file_long_name != '__init__.py':
+            if file_long_name[:11] != '__init__.py':
                 try:
                     tool_info = FileDateTimeVersion(file_long_name)
                     

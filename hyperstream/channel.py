@@ -31,7 +31,7 @@ class ChannelCollection(Printable):
         self.tool_channel = ToolChannel("tools", tool_path, up_to_timestamp=datetime.utcnow().replace(tzinfo=pytz.utc))
         self.sphere_channel = SphereChannel("sphere")
         self.memory_channel = MemoryChannel("memory")
-        self.database_channel = DatabaseChannel("database")
+        self.database_channel = DatabaseChannel("mongo")
 
     def __getitem__(self, item):
         if item in self.memory_channel:
