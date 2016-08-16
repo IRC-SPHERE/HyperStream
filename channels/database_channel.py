@@ -34,7 +34,6 @@ class DatabaseChannel(BaseChannel):
     def __init__(self, channel_id):
         state = ChannelState(channel_id)
         super(DatabaseChannel, self).__init__(can_calc=True, can_create=False, state=state)
-        self.streams = {}
         self.update()
 
     def repr_stream(self, stream_id):
