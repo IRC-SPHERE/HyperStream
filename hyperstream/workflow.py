@@ -56,12 +56,14 @@ class Workflow(Printable):
         self.name = workflow_definition.name
         self.owner = workflow_definition.owner
 
+        print(repr(channels.database_channel))
+
         self.nodes = {}
         for node_id in workflow_definition.nodes:
             node = workflow_definition.nodes[node_id]
             # TODO: Check stream ID exists in stream_ids
 
-            print(repr(channels.database_channel))
+
 
             p = [plates[plate_id] for plate_id in node.plate_ids]
             self.nodes[node_id] = Node(node_id, node.stream_id, p)
