@@ -21,6 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from ..stream import StreamReference
+from ..channel_state import ChannelState
 from ..modifiers import Identity, Modifier
 from ..time_interval import TimeIntervals, TimeInterval
 from datetime import datetime, timedelta, date
@@ -31,10 +32,10 @@ import pytz
 class BaseChannel(Printable):
     streams = {}
 
-    def __init__(self, can_calc=False, can_create=False, state=None, calc_agent=None):
+    def __init__(self, channel_id, can_calc=False, can_create=False, calc_agent=None):
         self.can_calc = can_calc
         self.can_create = can_create
-        self.state = state
+        self.state = ChannelState(channel_id)
         self.calc_agent = calc_agent
         self.up_to_timestamp = datetime.max.replace(tzinfo=pytz.utc)
     
@@ -72,7 +73,7 @@ class BaseChannel(Printable):
         """
         raise NotImplementedError
     
-    def create_stream(self, stream_def):
+    def create_stream(self, stream_id, stream_def):
         """
         Must be overridden by deriving classes, must create the stream according to stream_def and return its unique
         identifier stream_id
@@ -106,22 +107,22 @@ class BaseChannel(Printable):
     # @property
     def __repr__(self):
         s = self.__class__.__name__ + ' with ID: ' + str(self.state.channel_id)
-        s = s + ' and containing ' + str(len(self.state.stream_id_to_intervals_mapping)) + " streams:"
-        for stream_id in self.state.stream_id_to_intervals_mapping:
+        s += ' and containing {} streams:'.format(len(self.streams))
+        for stream_id in self.streams:
+            calculated_ranges = repr(self.state.calculated_intervals[stream_id]) \
+                if stream_id in self.state.calculated_intervals else "Error - stream not found"
+
             s += '\nSTREAM ID: ' + str(stream_id)
-            s += "\n  NAMES: "
-            s += ', '.join(
-                name for name in self.state.name_to_id_mapping if self.state.name_to_id_mapping[name] == stream_id)
-            s += "\n  CALCULATED RANGES: " + repr(self.state.stream_id_to_intervals_mapping[stream_id])
+            s += "\n  CALCULATED RANGES: " + calculated_ranges
             s += "\n  STREAM DEFINITION: "
             s += self.repr_stream(stream_id)
         return s
     
     def repr_stream(self, stream_id):
         """
-        Must be over-ridden to provide details about the stream
+        Can be over-ridden to provide details about the stream
         """
-        raise NotImplementedError
+        return repr(self.streams[stream_id])
     
     def parse_setkey(self, key):
         # TODO: add docstrings to this function. It is not clear why the cases below are structures as they are.
@@ -175,7 +176,6 @@ class BaseChannel(Printable):
         key = self.parse_getkey(key)
         
         key['channel_id'] = self.state.channel_id
-        key['stream_id'] = self.state.name_to_id_mapping[key['stream_id']]
         key['get_results_func'] = self.get_results
 
         # TODO: Callee should use TimeInterval
@@ -189,16 +189,11 @@ class BaseChannel(Printable):
         return StreamReference(**key)
     
     def __setitem__(self, key, value):
-        key = self.parse_setkey(key)
+        stream_id = self.parse_setkey(key)
 
-        if value in self.state.stream_definition_to_id_mapping:
-            stream_id = self.state.stream_definition_to_id_mapping[value]
-        
-        else:
-            stream_id = self.create_stream(value)
+        if value not in self.state.stream_definition_to_id_mapping:
+            self.create_stream(stream_id, value)
             
-            self.state.stream_id_to_intervals_mapping[stream_id] = TimeIntervals()
+            self.state.calculated_intervals[stream_id] = TimeIntervals()
             self.state.stream_definition_to_id_mapping[value] = stream_id
             self.state.stream_id_to_definition_mapping[stream_id] = value
-        
-        self.state.name_to_id_mapping[key] = stream_id
