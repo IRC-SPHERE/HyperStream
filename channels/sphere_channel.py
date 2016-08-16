@@ -45,7 +45,7 @@ class SphereChannel(BaseChannel):
         super(SphereChannel, self).__init__(can_calc=False, can_create=False, state=state)
         self.modalities = ('video', 'environmental')
         for stream_id in self.modalities:
-            # self.state.name_to_id_mapping[stream_id] = stream_id
+            self.state.name_to_id_mapping[stream_id] = stream_id
             if up_to_timestamp is None:
                 up_to_timestamp = datetime.utcnow().replace(tzinfo=pytz.utc)
             intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
