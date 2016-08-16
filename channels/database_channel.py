@@ -49,7 +49,7 @@ class DatabaseChannel(BaseChannel):
         intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), datetime.utcnow().replace(tzinfo=pytz.utc))])
         for stream_id in self.streams.keys():
             self.state.name_to_id_mapping[stream_id] = stream_id
-            # self.state.stream_id_to_intervals_mapping[stream_id] = intervals
+            self.state.stream_id_to_intervals_mapping[stream_id] = intervals
 
     def update_streams(self):
         """

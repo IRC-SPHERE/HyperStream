@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 """
 The MIT License (MIT)
 Copyright (c) 2014-2017 University of Bristol
@@ -211,15 +213,14 @@ if __name__ == '__main__':
         TimeInterval(now + 30 * minute, now + 30 * minute + 2 * hour),
     ])
 
-    print i1
-    print i2
-    print
-
+    print(i1)
+    print(i2)
+    print()
     s = i1 + i2
     s.compress()
 
     d = i1 - i2
     d.compress()
-    print s
-    print d
-    print
+    print(s)
+    print(d)
+    print()
