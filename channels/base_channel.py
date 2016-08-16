@@ -30,9 +30,8 @@ import pytz
 
 
 class BaseChannel(Printable):
-    streams = {}
-
     def __init__(self, channel_id, can_calc=False, can_create=False, calc_agent=None):
+        self.streams = {}
         self.can_calc = can_calc
         self.can_create = can_create
         self.state = ChannelState(channel_id)
