@@ -22,7 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from ..stream import StreamReference
 from ..modifiers import Identity, Modifier
-from ..time_interval import TimeIntervals
+from ..time_interval import TimeIntervals, TimeInterval
 from datetime import datetime, timedelta, date
 from ..utils import Printable
 import pytz
@@ -39,19 +39,19 @@ class BaseChannel(Printable):
         self.up_to_timestamp = datetime.max.replace(tzinfo=pytz.utc)
     
     def get_absolute_start_end(self, kwargs, stream_ref):
-        start = stream_ref.start
+        start = stream_ref.time_interval.start if stream_ref.time_interval else timedelta(0)
         abs_start = start
         if isinstance(start, timedelta):
             try:
-                abs_start = kwargs['start'] + start
+                abs_start = kwargs['time_interval'].start + start
             except KeyError:
                 raise Exception('The stream reference to a stream has a relative start time, '
                                 'need an absolute start time')
-        end = stream_ref.end
+        end = stream_ref.time_interval.end if stream_ref.time_interval else timedelta(0)
         abs_end = end
         if isinstance(end, timedelta):
             try:
-                abs_end = kwargs['end'] + end
+                abs_end = kwargs['time_interval'].end + end
             except KeyError:
                 raise Exception(
                     'The stream reference to a stream has a relative end time, need an absolute end time')
@@ -99,8 +99,9 @@ class BaseChannel(Printable):
         Could be overridden by deriving classes, should return the default values for start,end,modifier when
         referring to a stream in this channel
         """
-        # TODO: Should end by datetime.max.replace(tzinfo=pytz.utc) ?
-        return {'start': datetime.min.replace(tzinfo=pytz.utc), 'end': timedelta(0), 'modifier': Identity()}
+        # TODO: Should end be timedelta(0) ?
+        return {'start': datetime.min.replace(tzinfo=pytz.utc), 'end': datetime.max.replace(tzinfo=pytz.utc),
+                'modifier': Identity()}
     
     # @property
     def __repr__(self):
@@ -176,12 +177,20 @@ class BaseChannel(Printable):
         key['channel_id'] = self.state.channel_id
         key['stream_id'] = self.state.name_to_id_mapping[key['stream_id']]
         key['get_results_func'] = self.get_results
-        
+
+        # TODO: Callee should use TimeInterval
+        if key['start'] and key['end']:
+            key['time_interval'] = TimeInterval(start=key['start'], end=key['end'])
+        else:
+            key['time_interval'] = None
+        del(key['start'])
+        del(key['end'])
+
         return StreamReference(**key)
     
     def __setitem__(self, key, value):
         key = self.parse_setkey(key)
-        
+
         if value in self.state.stream_definition_to_id_mapping:
             stream_id = self.state.stream_definition_to_id_mapping[value]
         

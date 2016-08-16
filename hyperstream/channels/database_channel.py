@@ -60,8 +60,7 @@ class DatabaseChannel(BaseChannel):
             self.streams[s.stream_id] = StreamReference(
                 channel_id=self.state.channel_id,
                 stream_id=s.stream_id,
-                start=None,
-                end=None,
+                time_interval=None,
                 modifier=None,
                 get_results_func=self.get_results
             )

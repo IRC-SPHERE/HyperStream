@@ -28,7 +28,7 @@ from sphere_connector_package.sphere_connector import SphereConnector
 if __name__ == '__main__':
     # TODO: would be nice to be able to refer to this sphere_connector object from the sphere_ tools
     connected = False
-    sphere_connector = SphereConnector(log_filename='hyperstream_online', include_mongo=True, include_redcap=False)
+    sphere_connector = SphereConnector(include_mongo=True, include_redcap=False)
     
     hyperstream_config = HyperStreamConfig()
     
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     print
     print '\n'.join(map(str, edl))
     print
-    
+
     # Window'd querying
     M['every30s'] = T['clock'](stride=30 * second)
     M['motion_kitchen_windowed'] = T['merge'](
