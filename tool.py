@@ -28,9 +28,9 @@ from utils import Printable
 
 
 class ToolCollection(Printable):
-    tools = {}
-
     def __init__(self, tool_path):
+        self.tools = {}
+
         # TODO: Rather than trying to load in modules here - this needs to search the tool channel
         for t in ToolDefinitionModel.objects:
             try:
