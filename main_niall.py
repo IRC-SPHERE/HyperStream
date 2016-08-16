@@ -52,30 +52,27 @@ if __name__ == '__main__':
     S = online_engine.channels.sphere_channel
     T = online_engine.channels.tool_channel
     
-    # # Simple querying
-    # el = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.List()]()
-    # edl = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.Data() + modifiers.List()]()
-    #
-    # print el
-    # print edl
-    # print
+    # Simple querying
+    el = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.List()]()
+    edl = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.Data() + modifiers.List()]()
+
+    print '\n'.join(map(str, el))
+    print
+    print '\n'.join(map(str, edl))
+    print
     
     # Window'd querying
     M['every30s'] = T['clock'](stride=30 * second)
-    M['aver'] = T['merge'](
+    M['motion_kitchen_windowed'] = T['merge'](
         timer=M['every30s'],
         data=S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')],
-        func=modifiers.Data() + modifiers.Average()
+        func=modifiers.Data()
     )
-    aa = M['aver', t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
     
-    M['count'] = T['merge'](
-        timer=M['every30s'],
-        data=S[e, -30 * second, timedelta(0),
-               modifiers.Component('motion-S1_K')],
-        func=modifiers.Data() + modifiers.Count()
-    )
-    cc = M['count', t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
-        
-    print aa
-    print cc
+    aa = M['motion_kitchen_windowed', t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
+    cc = M['motion_kitchen_windowed', t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
+
+    print '\n'.join(map(str, aa))
+    print
+    print '\n'.join(map(str, cc))
+    print
