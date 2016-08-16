@@ -78,15 +78,9 @@ class FileChannel(ReadOnlyMemoryChannel):
     """
     path = ""
 
-    def get_stream_writer(self, stream_id):
-        raise NotImplementedError()
-    
-    def create_stream(self, stream_def):
-        raise NotImplementedError()
-    
     def __init__(self, channel_id, path, up_to_timestamp=datetime.min.replace(tzinfo=pytz.utc)):
         self.path = path
-        super(FileChannel, self).__init__(channel_id, up_to_timestamp)
+        super(FileChannel, self).__init__(channel_id=channel_id, up_to_timestamp=up_to_timestamp)
     
     def repr_stream(self, stream_id):
         # TODO: self.streams no longer a list!
@@ -113,14 +107,18 @@ class FileChannel(ReadOnlyMemoryChannel):
             # if len(file_names) == 0:
             #     continue
             
-            short_path = long_path[len(path) + 1:]
-            stream_id = short_path
+            stream_id = long_path[len(path) + 1:]
+
+            if not stream_id:
+                # Empty folder
+                continue
+
             self.streams[stream_id] = []
 
             # def f(stream_ref, *args, **kwargs):
             for tool_info in self.file_filter(sorted(file_names)):
                 if tool_info.timestamp <= up_to_timestamp:
-                    self.streams[stream_id].append((tool_info, self.data_loader(short_path, tool_info)))
+                    self.streams[stream_id].append((tool_info, self.data_loader(stream_id, tool_info)))
                     # yield tool_info.timestamp, self.data_loader(short_path, tool_info)
 
             # self.streams[stream_id] = StreamReference(

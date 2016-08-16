@@ -26,9 +26,6 @@ import logging
 
 
 class ToolChannel(ModuleChannel):
-    def create_stream(self, stream_def):
-        raise NotImplementedError("Read-only stream")
-
     def get_results(self, stream_ref, args, kwargs):
         (version, module_importer) = super(ToolChannel, self).get_results(stream_ref, args, kwargs)
         module = module_importer()

@@ -21,7 +21,6 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from base_channel import BaseChannel
-from ..channel_state import ChannelState
 from ..models import StreamInstanceModel, StreamDefinitionModel, StreamStatusModel
 from ..stream import StreamReference
 from datetime import datetime
@@ -32,24 +31,14 @@ import logging
 
 class DatabaseChannel(BaseChannel):
     def __init__(self, channel_id):
-        state = ChannelState(channel_id)
-        super(DatabaseChannel, self).__init__(can_calc=True, can_create=False, state=state)
-        self.update()
-
-    def repr_stream(self, stream_id):
-        s = repr(self.state.name_to_id_mapping[stream_id])
-        return s
-        # return repr(stream_id)
-
-    def update(self):
+        super(DatabaseChannel, self).__init__(channel_id=channel_id, can_calc=True, can_create=False)
         self.update_streams()
         self.update_state()
 
     def update_state(self):
         intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), datetime.utcnow().replace(tzinfo=pytz.utc))])
         for stream_id in self.streams.keys():
-            self.state.name_to_id_mapping[stream_id] = stream_id
-            self.state.stream_id_to_intervals_mapping[stream_id] = intervals
+            self.state.calculated_intervals[stream_id] = intervals
 
     def update_streams(self):
         """
@@ -90,7 +79,7 @@ class DatabaseChannel(BaseChannel):
         abs_end, abs_start = self.get_absolute_start_end(kwargs, stream_ref)
 
         # TODO: this should be read from the stream_status collection
-        done_calc_times = self.state.stream_id_to_intervals_mapping[stream_id]
+        done_calc_times = self.state.calculated_intervals[stream_id]
         need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
 
         # TODO: why string comparison?
@@ -106,9 +95,9 @@ class DatabaseChannel(BaseChannel):
                 tool(stream_def, start2, end2, writer, *args2, **kwargs2)
 
                 # TODO: write to stream_status collection
-                self.state.stream_id_to_intervals_mapping[stream_id] += TimeIntervals([(start2, end2)])
+                self.state.calculated_intervals[stream_id] += TimeIntervals([(start2, end2)])
 
-            done_calc_times = self.state.stream_id_to_intervals_mapping[stream_id]
+            done_calc_times = self.state.calculated_intervals[stream_id]
             need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
             logging.debug(done_calc_times)
             logging.debug(need_to_calc_times)
@@ -127,7 +116,7 @@ class DatabaseChannel(BaseChannel):
         result = stream_ref.modifier(iter(result))  # (x for x in result))
         return result
 
-    def create_stream(self, stream_def):
+    def create_stream(self, stream_id, stream_def):
         # TODO: Functionality here
         raise NotImplementedError("Database streams currently need to be defined in the database")
 
