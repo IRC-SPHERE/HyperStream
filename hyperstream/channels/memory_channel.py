@@ -34,7 +34,6 @@ class MemoryChannel(BaseChannel):
     def __init__(self, channel_id):
         state = ChannelState(channel_id)
         super(MemoryChannel, self).__init__(can_calc=True, can_create=True, state=state)
-        self.streams = {}
         self.max_stream_id = 0
 
     def repr_stream(self, stream_id):
@@ -131,7 +130,6 @@ class ReadOnlyMemoryChannel(BaseChannel):
     def __init__(self, channel_id, up_to_timestamp=datetime.min.replace(tzinfo=pytz.utc)):
         state = ChannelState(channel_id)
         super(ReadOnlyMemoryChannel, self).__init__(can_calc=False, can_create=False, state=state)
-        self.streams = {}
         self.up_to_timestamp = datetime.min.replace(tzinfo=pytz.utc)
         if up_to_timestamp > datetime.min.replace(tzinfo=pytz.utc):
             self.update(up_to_timestamp)
