@@ -43,19 +43,13 @@ class ModuleChannel(FileChannel):
     """
     versions = None
 
-    def create_stream(self, stream_def):
-        raise NotImplementedError("Module channel is read-only")
-
-    def get_stream_writer(self, stream_id):
-        pass
-
     def update_state(self, up_to_timestamp):
         super(ModuleChannel, self).update_state(up_to_timestamp)
         versions = {}
         self.versions = versions
         for stream_id in self.streams:
-            for (tool_info, (version, module_importer)) in self.streams[stream_id]:
             # for timestamp, instance in self.streams[stream_id]:
+            for (tool_info, (version, module_importer)) in self.streams[stream_id]:
                 name = stream_id.replace("/", "_").replace(".", "_")
                 name_version = name + "_" + str(version)
                 versions[name_version] = self[stream_id, datetime.min.replace(tzinfo=pytz.utc), tool_info.timestamp]
