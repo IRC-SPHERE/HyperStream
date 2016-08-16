@@ -25,7 +25,7 @@ from ..stream import StreamReference
 from ..channel_state import ChannelState
 from ..modifiers import Identity
 from datetime import timedelta, datetime
-from ..time_interval import TimeIntervals
+from ..time_interval import TimeIntervals, TimeInterval
 import pytz
 import logging
 
@@ -65,7 +65,7 @@ class MemoryChannel(BaseChannel):
                 res[x_i] = self.get_params(x[x_i], start, end)
             return res
         elif isinstance(x, StreamReference):
-            return x(start=start, end=end)
+            return x(time_interval=TimeInterval(start=start, end=end))
         else:
             return x
     
@@ -106,7 +106,7 @@ class MemoryChannel(BaseChannel):
         return writer
     
     def get_default_ref(self):
-        return {'start': timedelta(0), 'end': timedelta(0), 'modifier': Identity()}
+        return {'start': None, 'end': None, 'modifier': Identity()}
 
 
 class ReadOnlyMemoryChannel(BaseChannel):
@@ -164,8 +164,8 @@ class ReadOnlyMemoryChannel(BaseChannel):
         self.up_to_timestamp = up_to_timestamp
     
     def get_results(self, stream_ref, args, kwargs):
-        start = stream_ref.start
-        end = stream_ref.end
+        start = stream_ref.time_interval.start
+        end = stream_ref.time_interval.end
         if isinstance(start, timedelta) or isinstance(end, timedelta):
             raise ValueError('Cannot calculate a relative stream_ref')
         if end > self.up_to_timestamp:
