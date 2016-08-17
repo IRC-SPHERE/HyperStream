@@ -22,14 +22,14 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from utils import utcnow, UTC
+from utils import utcnow, UTC, Printable
 
 from datetime import datetime, timedelta
 from dateutil.parser import parse
 import logging
 
 
-class TimeIntervals:  # example object: (t1,t2]U(t3,t4]U...
+class TimeIntervals(Printable):  # example object: (t1,t2]U(t3,t4]U...
     def __init__(self, intervals=None):
         self.intervals = []
         if intervals:
@@ -44,10 +44,7 @@ class TimeIntervals:  # example object: (t1,t2]U(t3,t4]U...
     
     def __str__(self):
         return " U ".join(["(" + str(interval.start) + "," + str(interval.end) + "]" for interval in self.intervals])
-    
-    def __repr__(self):
-        return str(self)
-    
+
     def split(self, points):
         if len(points) == 0:
             return
@@ -96,6 +93,9 @@ class TimeIntervals:  # example object: (t1,t2]U(t3,t4]U...
         new.compress()
         return new
 
+    def __eq__(self, other):
+        return isinstance(other, TimeIntervals) and all(z[0] == z[1] for z in zip(self.intervals, other.intervals))
+
 
 class TimeInterval(object):
     _start = None
@@ -111,7 +111,7 @@ class TimeInterval(object):
     @property
     def start(self):
         return self._start
-    
+
     @start.setter
     def start(self, val):
         if not isinstance(val, datetime):
@@ -132,12 +132,12 @@ class TimeInterval(object):
             raise ValueError("start should be < end")
         self._end = val
     
-    def __repr__(self):
-        return "{0}({1}, {2})".format(self.__class__.__name__, self._start.__repr__(), self._end.__repr__())
-    
     def __str__(self):
         return "({0}, {1})".format(self.start, self.end)
-    
+
+    def __repr__(self):
+        return "{}(start={}, end={})".format(self.__class__.__name__, repr(self.start), repr(self.end))
+
     def __eq__(self, other):
         return (self.start == other.start) and (self.end == other.end)
     
@@ -201,29 +201,3 @@ def compare_time_ranges(desired_ranges, computed_ranges):
             result_ranges.append(desired)
     return result_ranges
 
-
-if __name__ == '__main__':
-    now = datetime(2016, 1, 1, 0, 0, 0)
-    minute = timedelta(minutes=1)
-    hour = timedelta(hours=1)
-    
-    i1 = TimeIntervals([
-        TimeInterval(now, now + hour),
-        TimeInterval(now + 2 * hour, now + 3 * hour),
-    ])
-
-    i2 = TimeIntervals([
-        TimeInterval(now + 30 * minute, now + 30 * minute + 2 * hour),
-    ])
-
-    print(i1)
-    print(i2)
-    print()
-    s = i1 + i2
-    s.compress()
-
-    d = i1 - i2
-    d.compress()
-    print(s)
-    print(d)
-    print()
