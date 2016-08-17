@@ -23,7 +23,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from ..stream import StreamReference, StreamDict, StreamId, StreamDefinition
 from ..channel_state import ChannelState
 from ..modifiers import Identity, Modifier
-from ..time_interval import TimeIntervals, TimeInterval
+from ..time_interval import TimeIntervals, TimeInterval, RelativeTimeInterval
 from datetime import datetime, timedelta, date
 from ..utils import Printable, MIN_DATE, MAX_DATE
 
@@ -194,10 +194,18 @@ class BaseChannel(Printable):
         key['get_results_func'] = self.get_results
 
         # TODO: Callee should use TimeInterval
-        if key['start'] and key['end']:
-            key['time_interval'] = TimeInterval(start=key['start'], end=key['end'])
-        else:
-            key['time_interval'] = None
+        key['time_interval'] = None
+        
+        if 'start' in key and 'end' in key:
+            start = key['start']
+            end = key['end']
+            
+            if all((isinstance(start, timedelta), isinstance(end, timedelta))):
+                key['time_interval'] = RelativeTimeInterval(start, end)
+                
+            elif all((isinstance(start, (date, datetime)), isinstance(end, (date, datetime)))):
+                key['time_interval'] = TimeInterval(start=key['start'], end=key['end'])
+                
         del(key['start'])
         del(key['end'])
 

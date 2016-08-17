@@ -24,7 +24,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from utils import utcnow, UTC, Printable
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from dateutil.parser import parse
 import logging
 
@@ -108,16 +108,24 @@ class TimeInterval(object):
     def to_tuple(self):
         return self.start, self.end
     
+    def validate_types(self, val):
+        if not isinstance(val, (date, datetime)):
+            raise TypeError("start should datetime.datetime object")
+        
+        if self._end is not None and val >= self._end:
+            raise ValueError("start should be < end")
+    
     @property
     def start(self):
         return self._start
 
     @start.setter
     def start(self, val):
-        if not isinstance(val, datetime):
-            raise TypeError("start should datetime.datetime object")
-        if self._end is not None and val >= self._end:
-            raise ValueError("start should be < end")
+        # if not isinstance(val, (datetime, timedelta)):
+        #     raise TypeError("start should datetime.datetime object")
+        # if self._end is not None and val >= self._end:
+        #     raise ValueError("start should be < end")
+        self.validate_types(val)
         self._start = val
     
     @property
@@ -126,10 +134,11 @@ class TimeInterval(object):
     
     @end.setter
     def end(self, val):
-        if not isinstance(val, datetime):
-            raise TypeError("end should datetime.datetime object")
-        if self._start is not None and val <= self._start:
-            raise ValueError("start should be < end")
+        # if not isinstance(val, (datetime, timedelta)):
+        #     raise TypeError("end should datetime.datetime object")
+        # if self._start is not None and val <= self._start:
+        #     raise ValueError("start should be < end")
+        self.validate_types(val)
         self._end = val
     
     def __str__(self):
@@ -143,6 +152,18 @@ class TimeInterval(object):
     
     def __hash__(self):
         return hash((self.start, self.end))
+
+
+class RelativeTimeInterval(TimeInterval):
+    def __init__(self, start, end):
+        super(RelativeTimeInterval, self).__init__(start, end)
+        
+    def validate_types(self, val):
+        if not isinstance(val, timedelta):
+            raise TypeError("start should datetime.datetime object")
+        
+        if self._end is not None and val >= self._end:
+            raise ValueError("start should be < end")
 
 
 def parse_time_tuple(start, end):
