@@ -122,28 +122,18 @@ class HyperStringTests(unittest.TestCase):
     def test_windowed_querying(self):
         # Window'd querying
         M[every30s] = T[clock](stride=30 * second)
-        mk_30s = S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
+        mk_30s = S[e, -30 * second, datetime.timedelta(0), modifiers.Component('motion-S1_K')]
         
         M[count] = T[merge](
             timer=M[every30s],
-<<<<<<< HEAD
             data=mk_30s,
             func=modifiers.Data() + modifiers.Count()
-=======
-            data=S[e, -30 * second, datetime.timedelta(0), modifiers.Component('motion-S1_K')],
-            func=modifiers.Data() + modifiers.Average()
->>>>>>> ccdbf9d16b5fe45d4d6a5ef6ea4813d46decbe49
         )
         
         M[average] = T[merge](
             timer=M[every30s],
-<<<<<<< HEAD
             data=mk_30s,
             func=modifiers.Data() + modifiers.Average()
-=======
-            data=S[e, -30 * second, datetime.timedelta(0), modifiers.Component('motion-S1_K')],
-            func=modifiers.Data() + modifiers.Sum()
->>>>>>> ccdbf9d16b5fe45d4d6a5ef6ea4813d46decbe49
         )
         
         aa = M[average, t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
