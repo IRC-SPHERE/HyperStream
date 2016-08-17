@@ -23,6 +23,8 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.config import HyperStreamConfig
 from hyperstream.online_engine import OnlineEngine
+from hyperstream.stream import StreamId
+
 from sphere_connector_package.sphere_connector import SphereConnector
 
 if __name__ == '__main__':
@@ -41,12 +43,13 @@ if __name__ == '__main__':
     
     # Various constants
     utc = pytz.UTC
-    e = 'environmental'
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, utc)
     t2 = datetime(2016, 4, 29, 13, 0, 0, 0, utc)
     second = timedelta(seconds=1)
     minute = timedelta(minutes=1)
-    
+
+    e = StreamId(name='environmental')
+
     # Various channels
     M = online_engine.channels.memory_channel
     S = online_engine.channels.sphere_channel
@@ -61,16 +64,22 @@ if __name__ == '__main__':
     print '\n'.join(map(str, edl))
     print
 
+    # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
+    clock = StreamId('clock')
+    merge = StreamId('merge')
+    every30s = StreamId('every30s')
+    motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
+
     # Window'd querying
-    M['every30s'] = T['clock'](stride=30 * second)
-    M['motion_kitchen_windowed'] = T['merge'](
-        timer=M['every30s'],
+    M[every30s] = T[clock](stride=30 * second)
+    M[motion_kitchen_windowed] = T[merge](
+        timer=M[every30s],
         data=S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')],
         func=modifiers.Data()
     )
     
-    aa = M['motion_kitchen_windowed', t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
-    cc = M['motion_kitchen_windowed', t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
+    aa = M[motion_kitchen_windowed, t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
+    cc = M[motion_kitchen_windowed, t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
 
     print '\n'.join(map(str, aa))
     print

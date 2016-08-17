@@ -22,9 +22,10 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from base_channel import BaseChannel
 from ..models import StreamInstanceModel, StreamDefinitionModel, StreamStatusModel
-from ..stream import StreamReference
+from ..stream import StreamId, StreamReference
 from datetime import datetime
 from ..time_interval import TimeIntervals
+from ..modifiers import Identity
 import pytz
 import logging
 
@@ -46,11 +47,12 @@ class DatabaseChannel(BaseChannel):
         """
         # TODO What about start/end/modifier??? are they needed
         for s in StreamDefinitionModel.objects():
-            self.streams[s.stream_id] = StreamReference(
+            stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
+            self.streams[stream_id] = StreamReference(
                 channel_id=self.state.channel_id,
-                stream_id=s.stream_id,
+                stream_id=stream_id,
                 time_interval=None,
-                modifier=None,
+                modifier=Identity(),
                 get_results_func=self.get_results
             )
 

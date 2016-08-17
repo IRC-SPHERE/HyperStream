@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from memory_channel import ReadOnlyMemoryChannel
-from ..stream import StreamReference
+from ..stream import StreamId, StreamReference
 
 from ..modifiers import Identity, Last
 from ..utils import Printable
@@ -106,19 +106,20 @@ class FileChannel(ReadOnlyMemoryChannel):
             # file_names = filter(lambda ff: ff != '__init__.py', file_names)
             # if len(file_names) == 0:
             #     continue
-            
-            stream_id = long_path[len(path) + 1:]
 
-            if not stream_id:
+            name = long_path[len(path) + 1:]
+            if not name:
                 # Empty folder
                 continue
+
+            stream_id = StreamId(name=name, meta_data={})
 
             self.streams[stream_id] = []
 
             # def f(stream_ref, *args, **kwargs):
             for tool_info in self.file_filter(sorted(file_names)):
                 if tool_info.timestamp <= up_to_timestamp:
-                    self.streams[stream_id].append((tool_info, self.data_loader(stream_id, tool_info)))
+                    self.streams[stream_id].append((tool_info, self.data_loader(stream_id.name, tool_info)))
                     # yield tool_info.timestamp, self.data_loader(short_path, tool_info)
 
             # self.streams[stream_id] = StreamReference(
