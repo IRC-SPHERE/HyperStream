@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import pytz
 from dateutil.parser import parse
 import logging
@@ -107,16 +107,24 @@ class TimeInterval(object):
     def to_tuple(self):
         return self.start, self.end
     
+    def validate_types(self, val):
+        if not isinstance(val, (date, datetime)):
+            raise TypeError("start should datetime.datetime object")
+        
+        if self._end is not None and val >= self._end:
+            raise ValueError("start should be < end")
+    
     @property
     def start(self):
         return self._start
     
     @start.setter
     def start(self, val):
-        if not isinstance(val, datetime):
-            raise TypeError("start should datetime.datetime object")
-        if self._end is not None and val >= self._end:
-            raise ValueError("start should be < end")
+        # if not isinstance(val, (datetime, timedelta)):
+        #     raise TypeError("start should datetime.datetime object")
+        # if self._end is not None and val >= self._end:
+        #     raise ValueError("start should be < end")
+        self.validate_types(val)
         self._start = val
     
     @property
@@ -125,10 +133,11 @@ class TimeInterval(object):
     
     @end.setter
     def end(self, val):
-        if not isinstance(val, datetime):
-            raise TypeError("end should datetime.datetime object")
-        if self._start is not None and val <= self._start:
-            raise ValueError("start should be < end")
+        # if not isinstance(val, (datetime, timedelta)):
+        #     raise TypeError("end should datetime.datetime object")
+        # if self._start is not None and val <= self._start:
+        #     raise ValueError("start should be < end")
+        self.validate_types(val)
         self._end = val
     
     def __repr__(self):
@@ -142,6 +151,18 @@ class TimeInterval(object):
     
     def __hash__(self):
         return hash((self.start, self.end))
+
+
+class RelativeTimeInterval(TimeInterval):
+    def __init__(self, start, end):
+        super(RelativeTimeInterval, self).__init__(start, end)
+        
+    def validate_types(self, val):
+        if not isinstance(val, timedelta):
+            raise TypeError("start should datetime.datetime object")
+        
+        if self._end is not None and val >= self._end:
+            raise ValueError("start should be < end")
 
 
 def parse_time_tuple(start, end):
@@ -208,17 +229,17 @@ if __name__ == '__main__':
         TimeInterval(now, now + hour),
         TimeInterval(now + 2 * hour, now + 3 * hour),
     ])
-
+    
     i2 = TimeIntervals([
         TimeInterval(now + 30 * minute, now + 30 * minute + 2 * hour),
     ])
-
+    
     print(i1)
     print(i2)
     print()
     s = i1 + i2
     s.compress()
-
+    
     d = i1 - i2
     d.compress()
     print(s)
