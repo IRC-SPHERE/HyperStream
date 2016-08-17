@@ -24,7 +24,7 @@ from memory_channel import ReadOnlyMemoryChannel
 from ..stream import StreamId, StreamReference
 
 from ..modifiers import Identity, Last
-from ..utils import Printable
+from ..utils import Printable, UTC, MIN_DATE
 from ..time_interval import TimeInterval
 
 from dateutil.parser import parse
@@ -32,7 +32,6 @@ import os
 from semantic_version import Version
 from datetime import datetime
 import logging
-import pytz
 
 
 class FileDateTimeVersion(Printable):
@@ -78,7 +77,7 @@ class FileChannel(ReadOnlyMemoryChannel):
     """
     path = ""
 
-    def __init__(self, channel_id, path, up_to_timestamp=datetime.min.replace(tzinfo=pytz.utc)):
+    def __init__(self, channel_id, path, up_to_timestamp=MIN_DATE):
         self.path = path
         super(FileChannel, self).__init__(channel_id=channel_id, up_to_timestamp=up_to_timestamp)
     
@@ -112,7 +111,7 @@ class FileChannel(ReadOnlyMemoryChannel):
                 # Empty folder
                 continue
 
-            stream_id = StreamId(name=name, meta_data={})
+            stream_id = StreamId(name=name)
 
             self.streams[stream_id] = []
 
@@ -125,7 +124,7 @@ class FileChannel(ReadOnlyMemoryChannel):
             # self.streams[stream_id] = StreamReference(
             #     channel_id=self.state.channel_id,
             #     stream_id=stream_id,
-            #     time_interval=TimeInterval(start=datetime.min.replace(tzinfo=pytz.UTC), end=up_to_timestamp),
+            #     time_interval=TimeInterval(start=MIN_DATE, end=up_to_timestamp),
             #     modifier=Last(),
             #     get_results_func=f
             # )
@@ -134,4 +133,4 @@ class FileChannel(ReadOnlyMemoryChannel):
         raise NotImplementedError
     
     def get_default_ref(self):
-        return {'start': datetime.min.replace(tzinfo=pytz.utc), 'end': self.up_to_timestamp, 'modifier': Identity()}
+        return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifier': Identity()}
