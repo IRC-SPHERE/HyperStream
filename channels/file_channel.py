@@ -43,26 +43,11 @@ class FileDateTimeVersion(Printable):
         
         self.timestamp = parse(self.timestamp)
         
-        try:
-            self.version = Version(self.version[1:].replace('_', '.'))
-        
-        except ValueError:
-            raise ValueError(
-                "\n\nFilename using incompatible version format. \n" +
-                "\tAcceptable format is, eg, '2016-08-10T1155Z_v1.0.1.py'. \n" +
-                "\tSpecified format is: {}\n".format(filename))
+        self.version = Version(self.version[1:])
     
     @property
     def is_python(self):
         return self.extension == '.py'
-    
-    # def __repr__(self):
-    #     return (
-    #         "Parsing '{long_filename}': \n" +
-    #         "    Extension: {extension} \n" +
-    #         "    Date time: {datetime} \n" +
-    #         "      Version: {version} \n"
-    #     ).format(self.__dict__)
 
 
 class FileChannel(ReadOnlyMemoryChannel):
@@ -114,21 +99,21 @@ class FileChannel(ReadOnlyMemoryChannel):
             stream_id = StreamId(name=name)
 
             self.streams[stream_id] = []
-
+            
             # def f(stream_ref, *args, **kwargs):
             for tool_info in self.file_filter(sorted(file_names)):
                 if tool_info.timestamp <= up_to_timestamp:
                     self.streams[stream_id].append((tool_info, self.data_loader(stream_id.name, tool_info)))
                     # yield tool_info.timestamp, self.data_loader(short_path, tool_info)
-
-            # self.streams[stream_id] = StreamReference(
-            #     channel_id=self.state.channel_id,
-            #     stream_id=stream_id,
-            #     time_interval=TimeInterval(start=MIN_DATE, end=up_to_timestamp),
-            #     modifier=Last(),
-            #     get_results_func=f
-            # )
-
+                    
+                    # self.streams[stream_id] = StreamReference(
+                    #     channel_id=self.state.channel_id,
+                    #     stream_id=stream_id,
+                    #     time_interval=TimeInterval(start=datetime.min.replace(tzinfo=pytz.UTC), end=up_to_timestamp),
+                    #     modifier=Last(),
+                    #     get_results_func=f
+                    # )
+    
     def data_loader(self, short_path, file_long_name):
         raise NotImplementedError
     
