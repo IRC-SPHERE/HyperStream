@@ -22,13 +22,15 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from hyperstream import Tool
 import logging
+from datetime import timedelta
 
 
 class Merge(Tool):
     def execute(self, stream_def, start, end, writer, timer, data, func):
         logging.info('Merge running from ' + str(start) + ' to ' + str(end))
-        rel_start = stream_def.kwargs['data'].start
-        rel_end = stream_def.kwargs['data'].end
+        time_interval = stream_def.kwargs['data'].time_interval
+        rel_start = time_interval.start if time_interval else timedelta(0)
+        rel_end = time_interval.end if time_interval else timedelta(0)
         window = []
         future = []
         for (t, _) in timer:

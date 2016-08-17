@@ -28,10 +28,10 @@ import pytz
 
 class ChannelCollection(Printable):
     def __init__(self, tool_path):
-        self.tool_channel = ToolChannel(1, tool_path, up_to_timestamp=datetime.utcnow().replace(tzinfo=pytz.utc))
-        self.sphere_channel = SphereChannel(2)
-        self.memory_channel = MemoryChannel(3)
-        self.database_channel = DatabaseChannel(4)
+        self.tool_channel = ToolChannel("tools", tool_path, up_to_timestamp=datetime.utcnow().replace(tzinfo=pytz.utc))
+        self.sphere_channel = SphereChannel("sphere")
+        self.memory_channel = MemoryChannel("memory")
+        self.database_channel = DatabaseChannel("mongo")
 
     def __getitem__(self, item):
         if item in self.memory_channel:
