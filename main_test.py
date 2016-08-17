@@ -29,7 +29,6 @@ from hyperstream.config import HyperStreamConfig
 from hyperstream.online_engine import OnlineEngine
 from hyperstream.stream import StreamId
 from hyperstream import modifiers
-from hyperstream.utils import UTC
 from sphere_connector_package.sphere_connector import SphereConnector, SphereLogger
 
 
@@ -44,8 +43,9 @@ if __name__ == '__main__':
     online_engine = OnlineEngine(hyperstream_config)
 
     # Various constants
-    t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
-    t2 = datetime(2016, 4, 29, 13, 0, 0, 0, UTC)
+    utc = pytz.UTC
+    t1 = datetime(2016, 4, 28, 20, 0, 0, 0, utc)
+    t2 = datetime(2016, 4, 29, 13, 0, 0, 0, utc)
     second = timedelta(seconds=1)
     minute = timedelta(minutes=1)
 
@@ -106,6 +106,3 @@ if __name__ == '__main__':
     # print
     print '\n'.join(map(str, cc))
     print
-
-
-
