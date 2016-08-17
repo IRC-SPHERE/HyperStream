@@ -20,27 +20,32 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField, EmbeddedDocumentListField
+from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField, EmbeddedDocumentListField, \
+    EmbeddedDocument, EmbeddedDocumentField
 from time_range import TimeRangeModel
 
 
+class StreamIdField(EmbeddedDocument):
+    name = StringField(required=True, min_length=1, max_length=512)
+    meta_data = DictField(required=True)
+
+
 class StreamInstanceModel(Document):
-    stream_id = StringField(required=True, min_length=1, max_length=512)
+    stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
     stream_type = StringField(required=True, min_length=1, max_length=512)
     datetime = DateTimeField(required=True)
-    metadata = DictField(required=False)
     version = StringField(required=True, min_length=1, max_length=512)
     value = DynamicField(required=True)
 
     meta = {
         'collection': 'streams',
-        'indexes': [{'fields': ['stream_id']}],
+        'indexes': [{'fields': ['stream_id'], 'unique': True}],
         'ordering': ['start']
     }
 
 
 class StreamDefinitionModel(Document):
-    stream_id = StringField(required=True, min_length=1, max_length=512)
+    stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
     stream_type = StringField(required=True, min_length=1, max_length=512)
     channel = StringField(required=True, min_length=1, max_length=512)
     last_updated = DateTimeField(required=True)
@@ -48,7 +53,6 @@ class StreamDefinitionModel(Document):
     tool_version = StringField(required=True, min_length=1, max_length=512)
     parameters = DictField()
     sandbox = StringField()
-    meta_data = DictField()
 
     meta = {
         'collection': 'stream_definitions',
