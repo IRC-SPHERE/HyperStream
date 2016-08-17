@@ -26,7 +26,7 @@ from datetime import timedelta
 
 
 class Merge(Tool):
-    def __call__(self, stream_def, start, end, writer, timer, data, func):
+    def execute(self, stream_def, start, end, writer, timer, data, func):
         logging.info('Merge running from ' + str(start) + ' to ' + str(end))
         time_interval = stream_def.kwargs['data'].time_interval
         rel_start = time_interval.start if time_interval else timedelta(0)
@@ -52,7 +52,7 @@ class Merge(Tool):
                 except StopIteration:
                     break
             # single-document case:
-            writer([(t, func((doc for doc in window)))])
+            writer([(t, func.execute((doc for doc in window)))])
             # multi-document case:
 
 # for x in func( (doc for doc in window) ):

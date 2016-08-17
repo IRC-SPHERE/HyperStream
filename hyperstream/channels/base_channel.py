@@ -20,7 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from ..stream import StreamReference, StreamDict, StreamId
+from ..stream import StreamReference, StreamDict, StreamId, StreamDefinition
 from ..channel_state import ChannelState
 from ..modifiers import Identity, Modifier
 from ..time_interval import TimeIntervals, TimeInterval
@@ -209,6 +209,8 @@ class BaseChannel(Printable):
         stream_id = self.parse_setkey(key)
 
         if value not in self.state.stream_definition_to_id_mapping:
+            if not isinstance(value, StreamDefinition):
+                raise TypeError(str(type(value)))
             self.create_stream(stream_id, value)
             
             self.state.calculated_intervals[stream_id] = TimeIntervals()
