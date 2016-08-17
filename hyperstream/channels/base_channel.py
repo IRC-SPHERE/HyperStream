@@ -25,8 +25,7 @@ from ..channel_state import ChannelState
 from ..modifiers import Identity, Modifier
 from ..time_interval import TimeIntervals, TimeInterval
 from datetime import datetime, timedelta, date
-from ..utils import Printable
-import pytz
+from ..utils import Printable, MIN_DATE, MAX_DATE
 
 
 class BaseChannel(Printable):
@@ -36,7 +35,7 @@ class BaseChannel(Printable):
         self.can_create = can_create
         self.state = ChannelState(channel_id)
         self.calc_agent = calc_agent
-        self.up_to_timestamp = datetime.max.replace(tzinfo=pytz.utc)
+        self.up_to_timestamp = MAX_DATE
     
     def get_absolute_start_end(self, kwargs, stream_ref):
         start = stream_ref.time_interval.start if stream_ref.time_interval else timedelta(0)
@@ -100,8 +99,7 @@ class BaseChannel(Printable):
         referring to a stream in this channel
         """
         # TODO: Should end be timedelta(0) ?
-        return {'start': datetime.min.replace(tzinfo=pytz.utc), 'end': datetime.max.replace(tzinfo=pytz.utc),
-                'modifier': Identity()}
+        return {'start': MIN_DATE, 'end': MAX_DATE, 'modifier': Identity()}
     
     # @property
     def __repr__(self):

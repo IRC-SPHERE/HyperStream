@@ -58,7 +58,7 @@ class Workflow(Printable):
         self.name = workflow_definition.name
         self.owner = workflow_definition.owner
 
-        print(repr(channels.database_channel))
+        # print(repr(channels.database_channel))
 
         self.nodes = {}
         for node_id in workflow_definition.nodes:

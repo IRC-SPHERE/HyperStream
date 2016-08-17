@@ -22,8 +22,9 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+from utils import utcnow, UTC
+
 from datetime import datetime, timedelta
-import pytz
 from dateutil.parser import parse
 import logging
 
@@ -145,12 +146,12 @@ class TimeInterval(object):
 
 
 def parse_time_tuple(start, end):
-    now = datetime.utcnow().replace(tzinfo=pytz.utc)
+    now = utcnow()
     if isinstance(start, int):
         offset = timedelta(seconds=start)
         start_time = now - offset
     elif start is None:
-        start_time = datetime.min.replace(tzinfo=pytz.utc)
+        start_time = datetime.min.replace(tzinfo=UTC)
     elif isinstance(start, datetime):
         start_time = start
     else:
@@ -166,7 +167,9 @@ def parse_time_tuple(start, end):
         end_time = end
     else:
         end_time = parse(end)
-    
+
+    start.replace(tzinfo=UTC)
+    end.replace(tzinfo=UTC)
     return TimeInterval(start=start_time, end=end_time)
 
 
