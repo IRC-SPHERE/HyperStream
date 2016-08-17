@@ -26,6 +26,7 @@ from ..utils import Printable
 
 from datetime import datetime
 from os.path import join
+from re import sub
 import pytz
 import logging
 import imp
@@ -68,13 +69,14 @@ class ModuleChannel(FileChannel):
         def module_importer():
             with open(module_file, 'rb') as fp:
                 logging.debug('importing: ' + module_file)
-                module_name = '_'.join(map(lambda pp: pp.replace('.', '_'), module_file_components))
+                module_name = '_'.join(map(lambda pp: sub(r'[^a-zA-Z0-9]', '_', pp), module_file_components))
+                
                 module = imp.load_module(
                     module_name, fp, module_file,
                     ('.py', 'rb', imp.PY_SOURCE)
                 )
-            
-            return module
+                
+                return module
         
         # return ModuleStreamInstance(module_importer, tool_info.version)
         return tool_info.version, module_importer
