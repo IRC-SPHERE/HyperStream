@@ -60,7 +60,7 @@ class PlateDefinitionModel(Document):
 
 
 class NodeDefinitionModel(EmbeddedDocument):
-    stream_id = StringField(required=True, min_length=1, max_length=512)
+    stream_name = StringField(required=True, min_length=1, max_length=512)
     plate_ids = ListField(field=StringField(min_length=1, max_length=512))
 
 

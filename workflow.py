@@ -22,13 +22,15 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from utils import Printable
 from models import WorkflowDefinitionModel, PlateDefinitionModel2
+from stream import StreamId
 import logging
+from errors import StreamNotFoundError
 
 
 class Node(Printable):
-    def __init__(self, node_id, stream, plates):
+    def __init__(self, node_id, streams, plates):
         self.node_id = node_id
-        self.stream = stream
+        self.streams = streams
         self.plates = plates
 
 
@@ -56,17 +58,31 @@ class Workflow(Printable):
         self.name = workflow_definition.name
         self.owner = workflow_definition.owner
 
-        # print(repr(channels.database_channel))
+        print(repr(channels.database_channel))
 
         self.nodes = {}
         for node_id in workflow_definition.nodes:
-            node = workflow_definition.nodes[node_id]
-            # TODO: Check stream ID exists in stream_ids
+            node_definition = workflow_definition.nodes[node_id]
+
+            streams = []
+            active_plates = []
+
+            # TODO: We should actually be collecting an array of streams here with the correct meta-data according to
+            # the plates
+
+            active_plates = [plates[plate_id] for plate_id in node_definition.plate_ids]
 
 
+            # for plate in active_plates:
+            #     for value in plate.values:
+            #         stream_id = StreamId(
+            #             name=node_definition.stream_name,
+            #             meta_data={plate.meta_data_id: value}
+            #         )
+            #
+            #         streams.append(channels[stream_id])
 
-            p = [plates[plate_id] for plate_id in node.plate_ids]
-            self.nodes[node_id] = Node(node_id, node.stream_id, p)
+            self.nodes[node_id] = Node(node_id, streams, active_plates)
 
         self.factors = []
         for f in workflow_definition.factors:
@@ -77,13 +93,16 @@ class Workflow(Printable):
 
     def execute(self):
         """
-        Here we need to work out in which channels each of the streams in the workflow live
+        Here we execute the streams in the workflow
         :return:
         """
         for node in self.nodes:
             for plate in self.nodes[node].plates:
                 # Foreach over this plate
-                pass
+                for value in plate.values:
+                    # TODO: Get correct stream with this meta_data
+                    # node.stream()
+                    pass
 
 
 def get_plate_values(plate_definition, possible_values):
@@ -146,7 +165,10 @@ class WorkflowManager(Printable):
 
         # TODO: Make sure all of the plates in the workflow definitions exist in the plate definitions
         for f in WorkflowDefinitionModel.objects:
-            self.workflows[f.workflow_id] = Workflow(channels, self.plates, f)
+            try:
+                self.workflows[f.workflow_id] = Workflow(channels, self.plates, f)
+            except StreamNotFoundError as e:
+                logging.error(str(e))
 
     def execute_all(self):
         for workflow in self.workflows:
