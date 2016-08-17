@@ -55,7 +55,7 @@ class TimeIntervals(Printable):  # example object: (t1,t2]U(t3,t4]U...
                                  + [TimeInterval(self.intervals[i].start, p), TimeInterval(p, self.intervals[i].end)] \
                                  + self.intervals[(i + 1):]
         self.split(points[:-1])
-    
+
     def compress(self):
         if len(self.intervals) == 0:
             return
@@ -66,7 +66,7 @@ class TimeIntervals(Printable):  # example object: (t1,t2]U(t3,t4]U...
             else:
                 v.append(self.intervals[i])
         self.intervals = v
-    
+
     def __add__(self, other):
         self_points = [point for interval in self.intervals for point in (interval.start, interval.end)]
         other_points = [point for interval in other.intervals for point in (interval.start, interval.end)]
