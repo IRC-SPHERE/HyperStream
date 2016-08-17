@@ -23,10 +23,10 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from memory_channel import ReadOnlyMemoryChannel
 from ..stream import StreamId, StreamReference
 from ..modifiers import Identity
-from ..time_interval import TimeIntervals
+from ..time_interval import TimeIntervals, TimeInterval
+from ..utils import utcnow, MIN_DATE, MAX_DATE
 from datetime import datetime, timedelta
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
-import pytz
 
 
 class SphereChannel(ReadOnlyMemoryChannel):
@@ -38,8 +38,8 @@ class SphereChannel(ReadOnlyMemoryChannel):
         self.modalities = ('video', 'environmental')
         for modality in self.modalities:
             if up_to_timestamp is None:
-                up_to_timestamp = datetime.utcnow().replace(tzinfo=pytz.utc)
-            intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
+                up_to_timestamp = utcnow()
+            intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
 
             # TODO populate meta data here??? When do the streams get split?
             stream_id = StreamId(name=modality, meta_data={})
@@ -50,12 +50,12 @@ class SphereChannel(ReadOnlyMemoryChannel):
             self.streams[stream_id] = StreamReference(
                 channel_id=channel_id,
                 stream_id=stream_id,
-                time_interval=None,
+                time_interval=TimeInterval(start=MIN_DATE, end=MAX_DATE),
                 modifier=Identity(),
                 get_results_func=self.get_results
             )
 
-        if up_to_timestamp > datetime.min.replace(tzinfo=pytz.utc):
+        if up_to_timestamp > MIN_DATE:
             self.update(up_to_timestamp)
 
         self.sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
@@ -66,7 +66,7 @@ class SphereChannel(ReadOnlyMemoryChannel):
         Call this function to report to the system that the SPHERE MongoDB is fully populated until up_to_timestamp
         """
         for stream_id in self.modalities:
-            intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
+            intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
             self.state.calculated_intervals[stream_id] = intervals
         self.up_to_timestamp = up_to_timestamp
 
@@ -98,7 +98,7 @@ class SphereChannel(ReadOnlyMemoryChannel):
         return result
 
     def get_default_ref(self):
-        return {'start': datetime.min.replace(tzinfo=pytz.utc), 'end': self.up_to_timestamp, 'modifier': Identity()}
+        return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifier': Identity()}
 
     # def __getitem__(self, item):
     #     import ipdb

@@ -22,6 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from hyperstream import Tool
+from hyperstream.utils import MIN_DATE
 from datetime import date, datetime, timedelta
 import pytz
 import logging
@@ -31,7 +32,7 @@ class Clock(Tool):
     def normalise_kwargs(self, kwargs):
         return self._normalise_kwargs({}, **kwargs)
     
-    def process_params(self, first=datetime.min.replace(tzinfo=pytz.UTC), stride=timedelta(seconds=1)):
+    def process_params(self, first=MIN_DATE, stride=timedelta(seconds=1)):
         return [], {'first': first, 'stride': stride}
     
     def execute(self, stream_def, start, end, writer, first, stride):
