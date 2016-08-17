@@ -28,7 +28,7 @@ class Identity(Modifier):
         super(Identity, self).__init__()
         self.types = {'data_gen': 'data_gen', 'doc_gen': 'doc_gen', 'data': 'data', 'doc': 'doc'}
 
-    def __call__(self, data):
+    def execute(self, data):
         return data
 
 
@@ -37,7 +37,7 @@ class First(Modifier):
         super(First, self).__init__()
         self.types = {'data_gen': 'data', 'doc_gen': 'doc'}
 
-    def __call__(self, data):
+    def execute(self, data):
         for d in data:
             return d
         return None
@@ -48,7 +48,7 @@ class Last(Modifier):
         super(Last, self).__init__()
         self.types = {'data_gen': 'data', 'doc_gen': 'doc'}
 
-    def __call__(self, data):
+    def execute(self, data):
         res = None
         for d in data:
             res = d
@@ -61,7 +61,7 @@ class Head(Modifier):
         self.types = {'data_gen': 'data_gen', 'doc_gen': 'doc_gen'}
         self.n = n
 
-    def __call__(self, data):
+    def execute(self, data):
         i = 0
         for d in data:
             i += 1
@@ -76,7 +76,7 @@ class Tail(Modifier):
         self.types = {'data_gen': 'data_gen', 'doc_gen': 'doc_gen'}
         self.n = n
 
-    def __call__(self, data):
+    def execute(self, data):
         tail = ()
         for d in data:
             tail = (tail + (d,))[-self.n:]
@@ -89,7 +89,7 @@ class Data(Modifier):
         super(Data, self).__init__()
         self.types = {'doc_gen': 'data_gen'}
 
-    def __call__(self, doc_gen):
+    def execute(self, doc_gen):
         for (time, data) in doc_gen:
             yield data
 
@@ -99,7 +99,7 @@ class Time(Modifier):
         super(Time, self).__init__()
         self.types = {'doc_gen': 'data_gen'}
 
-    def __call__(self, doc_gen):
+    def execute(self, doc_gen):
         for (time, data) in doc_gen:
             yield time
 
@@ -109,7 +109,7 @@ class IData(Modifier):
         super(IData, self).__init__()
         self.types = {'doc': 'data'}
 
-    def __call__(self, doc):
+    def execute(self, doc):
         (time, data) = doc
         return data
 
@@ -119,7 +119,7 @@ class ITime(Modifier):
         super(ITime, self).__init__()
         self.types = {'doc': 'data'}
 
-    def __call__(self, doc):
+    def execute(self, doc):
         (time, data) = doc
         return time
 
@@ -129,7 +129,7 @@ class List(Modifier):
         super(List, self).__init__()
         self.types = {'data_gen': 'data', 'doc_gen': 'data'}
 
-    def __call__(self, data):
+    def execute(self, data):
         return list(data)
 
 
@@ -139,7 +139,7 @@ class Component(Modifier):
         self.types = {'doc_gen': 'doc_gen'}
         self.key = key
 
-    def __call__(self, doc_gen):
+    def execute(self, doc_gen):
         for (time, data) in doc_gen:
             if self.key in data:
                 yield (time, data[self.key])
@@ -152,7 +152,7 @@ class ComponentFilter(Modifier):
         self.key = key
         self.values = values
 
-    def __call__(self, doc_gen):
+    def execute(self, doc_gen):
         for (time, data) in doc_gen:
             try:
                 if data[self.key] in self.values:
@@ -166,7 +166,7 @@ class DeleteNones(Modifier):
         super(DeleteNones, self).__init__()
         self.types = {'doc_gen': 'doc_gen'}
 
-    def __call__(self, doc_gen):
+    def execute(self, doc_gen):
         for (time, data) in doc_gen:
             data2 = {}
             for (key, value) in data.items():
@@ -181,7 +181,7 @@ class Sum(Modifier):
         self.types = {'data_gen': 'data'}
         self.first = first
 
-    def __call__(self, data_gen):
+    def execute(self, data_gen):
         res = self.first
         for data in data_gen:
             res = res + data
@@ -194,7 +194,7 @@ class Product(Modifier):
         self.types = {'data_gen': 'data'}
         self.first = first
 
-    def __call__(self, data_gen):
+    def execute(self, data_gen):
         res = self.first
         for data in data_gen:
             res = res * data
@@ -206,7 +206,7 @@ class Average(Modifier):
         super(Average, self).__init__()
         self.types = {'data_gen': 'data'}
 
-    def __call__(self, data_gen):
+    def execute(self, data_gen):
         res = 0
         count = 0
         for data in data_gen:
@@ -220,7 +220,7 @@ class Count(Modifier):
         super(Count, self).__init__()
         self.types = {'data_gen': 'data'}
 
-    def __call__(self, data_gen):
+    def execute(self, data_gen):
         count = 0
         for _ in data_gen:
             count += 1

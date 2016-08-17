@@ -25,7 +25,7 @@ import logging
 
 
 class Product(Tool):
-    def __call__(self, stream_def, start, end, writer, stream1, stream2):
+    def execute(self, stream_def, start, end, writer, stream1, stream2):
         logging.info('Product running from ' + str(start) + ' to ' + str(end))
         for (t, data1) in stream1:
             (_, data2) = next(stream2)
