@@ -106,6 +106,3 @@ if __name__ == '__main__':
     # print
     print '\n'.join(map(str, cc))
     print
-
-
-
