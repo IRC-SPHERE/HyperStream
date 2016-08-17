@@ -20,8 +20,8 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from base_channel import BaseChannel
-from ..channel_state import ChannelState
+from memory_channel import ReadOnlyMemoryChannel
+from ..stream import StreamReference
 from ..modifiers import Identity
 from ..time_interval import TimeIntervals
 from datetime import datetime, timedelta
@@ -29,47 +29,46 @@ from sphere_connector_package.sphere_connector import SphereConnector, DataWindo
 import pytz
 
 
-class SphereChannel(BaseChannel):
+class SphereChannel(ReadOnlyMemoryChannel):
     """
     SPHERE MongoDB storing the raw sensor data
     """
-
-    def get_stream_writer(self, stream_id):
-        raise RuntimeError('SphereChannel is read-only, cannot write new streams')
-
-    def create_stream(self, stream_def):
-        raise RuntimeError('SphereChannel is read-only, cannot create new streams')
-
     def __init__(self, channel_id, up_to_timestamp=None):
-        state = ChannelState(channel_id)
-        super(SphereChannel, self).__init__(can_calc=False, can_create=False, state=state)
+        super(SphereChannel, self).__init__(channel_id=channel_id)
         self.modalities = ('video', 'environmental')
         for stream_id in self.modalities:
-            self.state.name_to_id_mapping[stream_id] = stream_id
             if up_to_timestamp is None:
                 up_to_timestamp = datetime.utcnow().replace(tzinfo=pytz.utc)
             intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
-            self.state.stream_id_to_intervals_mapping[stream_id] = intervals
+            self.state.calculated_intervals[stream_id] = intervals
+
+            # TODO: Not sure if the following is correct or necessary!
+            self.streams[stream_id] = StreamReference(
+                channel_id=channel_id,
+                stream_id=stream_id,
+                time_interval=None,
+                modifier=Identity(),
+                get_results_func=self.get_results
+            )
+
         if up_to_timestamp > datetime.min.replace(tzinfo=pytz.utc):
             self.update(up_to_timestamp)
 
         self.sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
                                                 include_redcap=False)
 
-    def repr_stream(self, stream_id):
-        return 'read-only SPHERE MongoDB stream'
-
-    def __setitem__(self, key, value):
-        raise RuntimeError('SphereChannel is read-only, cannot create new streams')
-
-    def update(self, up_to_timestamp):
+    def update_streams(self, up_to_timestamp):
         """
         Call this function to report to the system that the SPHERE MongoDB is fully populated until up_to_timestamp
         """
         for stream_id in self.modalities:
             intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
-            self.state.stream_id_to_intervals_mapping[stream_id] = intervals
+            self.state.calculated_intervals[stream_id] = intervals
         self.up_to_timestamp = up_to_timestamp
+
+    def update_status(self):
+        # TODO: seems like this is done in update_streams?
+        pass
 
     def get_results(self, stream_ref, args, kwargs):
         stream_id = stream_ref.stream_id

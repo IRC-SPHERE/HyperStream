@@ -22,33 +22,30 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from base_channel import BaseChannel
 from ..stream import StreamReference
-from ..channel_state import ChannelState
 from ..modifiers import Identity
 from datetime import timedelta, datetime
-from ..time_interval import TimeIntervals
+from ..time_interval import TimeIntervals, TimeInterval
 import pytz
 import logging
 
 
 class MemoryChannel(BaseChannel):
     def __init__(self, channel_id):
-        state = ChannelState(channel_id)
-        super(MemoryChannel, self).__init__(can_calc=True, can_create=True, state=state)
+        super(MemoryChannel, self).__init__(channel_id=channel_id, can_calc=True, can_create=True)
         self.max_stream_id = 0
     
-    def repr_stream(self, stream_id):
-        s = repr(self.state.id2def[stream_id])
-        return s
-    
-    def create_stream(self, stream_def):
+    def create_stream(self, stream_id, stream_def):
         """
         Must be overridden by deriving classes, must create the stream according to stream_def and return its unique
         identifier stream_id
         """
-        self.max_stream_id += 1
-        stream_id = self.max_stream_id
+        # TODO: No particular reason for integer IDs?
+        # self.max_stream_id += 1
+        # stream_id = self.max_stream_id
+
+        # TODO: Why is this just a list?
         self.streams[stream_id] = []
-        return stream_id
+        # return stream_id
     
     def get_params(self, x, start, end):
         if isinstance(x, (list, tuple)):
@@ -65,14 +62,17 @@ class MemoryChannel(BaseChannel):
                 res[x_i] = self.get_params(x[x_i], start, end)
             return res
         elif isinstance(x, StreamReference):
-            return x(start=start, end=end)
+            return x(time_interval=TimeInterval(start=start, end=end))
         else:
             return x
     
     def get_results(self, stream_ref, args, kwargs):
         stream_id = stream_ref.stream_id
         abs_end, abs_start = self.get_absolute_start_end(kwargs, stream_ref)
-        done_calc_times = self.state.stream_id_to_intervals_mapping[stream_id]
+        try:
+            done_calc_times = self.state.calculated_intervals[stream_id]
+        except KeyError as e:
+            raise e
         need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
         if str(need_to_calc_times) != '':
             stream_def = self.state.stream_id_to_definition_mapping[stream_id]
@@ -81,11 +81,11 @@ class MemoryChannel(BaseChannel):
             for interval2 in need_to_calc_times.intervals:
                 args2 = self.get_params(stream_def.args, interval2.start, interval2.end)
                 kwargs2 = self.get_params(stream_def.kwargs, interval2.start, interval2.end)
-                tool.execute(stream_def, interval2.start, interval2.end, writer, *args2, **kwargs2)
-                self.state.stream_id_to_intervals_mapping[stream_id] += TimeIntervals(
+                tool(stream_def, interval2.start, interval2.end, writer, *args2, **kwargs2)
+                self.state.calculated_intervals[stream_id] += TimeIntervals(
                     [(interval2.start, interval2.end)])
             
-            done_calc_times = self.state.stream_id_to_intervals_mapping[stream_id]
+            done_calc_times = self.state.calculated_intervals[stream_id]
             need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
             logging.debug(done_calc_times)
             logging.debug(need_to_calc_times)
@@ -101,12 +101,13 @@ class MemoryChannel(BaseChannel):
     
     def get_stream_writer(self, stream_id):
         def writer(document_collection):
+            # TODO: What is actually happening here?
             self.streams[stream_id].extend(document_collection)
         
         return writer
     
     def get_default_ref(self):
-        return {'start': timedelta(0), 'end': timedelta(0), 'modifier': Identity()}
+        return {'start': None, 'end': None, 'modifier': Identity()}
 
 
 class ReadOnlyMemoryChannel(BaseChannel):
@@ -123,21 +124,19 @@ class ReadOnlyMemoryChannel(BaseChannel):
     Names and identifiers are the same in this channel.
     """
     
-    def create_stream(self, stream_def):
-        raise NotImplementedError("Read-only channel")
-    
-    def get_stream_writer(self, stream_id):
-        raise NotImplementedError("Read-only channel")
-    
     def __init__(self, channel_id, up_to_timestamp=datetime.min.replace(tzinfo=pytz.utc)):
         # TODO: should the up_to_timestamp parameter be up to datetime.max?
-        
-        state = ChannelState(channel_id)
-        super(ReadOnlyMemoryChannel, self).__init__(can_calc=False, can_create=False, state=state)
+        super(ReadOnlyMemoryChannel, self).__init__(channel_id=channel_id, can_calc=False, can_create=False)
         self.up_to_timestamp = datetime.min.replace(tzinfo=pytz.utc)
         if up_to_timestamp > datetime.min.replace(tzinfo=pytz.utc):
             self.update(up_to_timestamp)
-    
+
+    def create_stream(self, stream_id, stream_def):
+        raise ValueError("Read-only channel")
+
+    def get_stream_writer(self, stream_id):
+        raise ValueError("Read-only channel")
+
     def repr_stream(self, stream_id):
         return 'externally defined, memory-based, read-only stream'
     
@@ -157,15 +156,14 @@ class ReadOnlyMemoryChannel(BaseChannel):
         self.update_state(up_to_timestamp)
     
     def update_state(self, up_to_timestamp):
-        for stream_id in self.streams.keys():
-            self.state.name_to_id_mapping[stream_id] = stream_id
+        for stream_id in self.streams:
             intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
-            self.state.stream_id_to_intervals_mapping[stream_id] = intervals
+            self.state.calculated_intervals[stream_id] = intervals
         self.up_to_timestamp = up_to_timestamp
     
     def get_results(self, stream_ref, args, kwargs):
-        start = stream_ref.start
-        end = stream_ref.end
+        start = stream_ref.time_interval.start
+        end = stream_ref.time_interval.end
         if isinstance(start, timedelta) or isinstance(end, timedelta):
             raise ValueError('Cannot calculate a relative stream_ref')
         if end > self.up_to_timestamp:

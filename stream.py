@@ -35,11 +35,10 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 class StreamReference(object):
-    def __init__(self, channel_id, stream_id, start, end, modifier, get_results_func):
+    def __init__(self, channel_id, stream_id, time_interval, modifier, get_results_func):
         self.channel_id = channel_id
         self.stream_id = stream_id
-        self.start = start
-        self.end = end
+        self.time_interval = time_interval
         self.modifier = modifier
         self.get_results_func = get_results_func
 
@@ -48,8 +47,8 @@ class StreamReference(object):
         s = "StreamReference"
         s += "\n      CHANNEL_ID  : " + repr(self.channel_id)
         s += "\n      STREAM_ID   : " + repr(self.stream_id)
-        s += "\n      START       : " + repr(self.start)
-        s += "\n      END         : " + repr(self.end)
+        s += "\n      START       : " + repr(self.time_interval.start if self.time_interval else None)
+        s += "\n      END         : " + repr(self.time_interval.end if self.time_interval else None)
         s += "\n      MODIFIER    : " + repr(self.modifier)
         s += "\n    "
         return s

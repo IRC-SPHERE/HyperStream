@@ -22,10 +22,18 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from file_channel import FileChannel
 from ..modifiers import Last, IData
+from ..utils import Printable
+
 from datetime import datetime
 from os.path import join
 import pytz
 import logging
+
+
+class ModuleStreamInstance(Printable):
+    def __init__(self, module_importer, version):
+        self.module_importer = module_importer
+        self.version = version
 
 
 class ModuleChannel(FileChannel):
@@ -33,33 +41,26 @@ class ModuleChannel(FileChannel):
     A channel of module streams, the documents in the streams contain functions that can be called to import the
     respective module
     """
-    
-    def create_stream(self, stream_def):
-        raise NotImplementedError("Module channel is read-only")
-    
-    def get_stream_writer(self, stream_id):
-        pass
-    
     versions = None
-    
+
     def update_state(self, up_to_timestamp):
         super(ModuleChannel, self).update_state(up_to_timestamp)
         versions = {}
         self.versions = versions
-        for stream_id in self.streams.keys():
+        for stream_id in self.streams:
+            # for timestamp, instance in self.streams[stream_id]:
             for (tool_info, (version, module_importer)) in self.streams[stream_id]:
                 name = stream_id.replace("/", "_").replace(".", "_")
                 name_version = name + "_" + str(version)
                 versions[name_version] = self[stream_id, datetime.min.replace(tzinfo=pytz.utc), tool_info.timestamp]
                 versions[name] = versions[name_version]
-    
+
     def file_filter(self, sorted_file_names):
         for tool_info in super(ModuleChannel, self).file_filter(sorted_file_names):
             if tool_info.is_python:
                 yield tool_info
-    
+
     def data_loader(self, short_path, tool_info):
-        version = tool_info.version
         module_file = join(self.path, short_path, tool_info.long_filename)
         module_file_components = module_file[:-3].split('/')
         
@@ -70,8 +71,9 @@ class ModuleChannel(FileChannel):
                 module = module.__dict__[component]
             return module
         
-        return version, module_importer
-    
+        # return ModuleStreamInstance(module_importer, tool_info.version)
+        return tool_info.version, module_importer
+
     def get_default_ref(self):
         return {'start': datetime.min.replace(tzinfo=pytz.utc), 'end': self.up_to_timestamp,
                 'modifier': Last() + IData()}
