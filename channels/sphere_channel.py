@@ -93,7 +93,7 @@ class SphereChannel(ReadOnlyMemoryChannel):
             return timestamp, doc
 
         # assume that the data are already sorted by time
-        result = stream_ref.modifier(
+        result = stream_ref.modifier.execute(
             (reformat(doc) for doc in data))  # make a generator out from result and then apply the modifier
         return result
 

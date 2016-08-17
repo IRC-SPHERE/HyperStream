@@ -28,6 +28,6 @@ class LocationPredictor(Tool):
     def normalise_kwargs(self, kwargs):
         return self._normalise_kwargs({}, **kwargs)
 
-    def __call__(self, stream_def, start, end, writer, modality):
+    def execute(self, stream_def, start, end, writer, modality):
         logging.info('LocationPredictor running from ' + str(start) + ' to ' + str(end))
         writer(None)

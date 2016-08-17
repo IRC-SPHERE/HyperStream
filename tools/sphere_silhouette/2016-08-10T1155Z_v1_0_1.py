@@ -34,7 +34,7 @@ class SphereSilhouette(Tool):
     def normalise_kwargs(self, kwargs):
         self._normalise_kwargs({'optim', 'optim2'}, **kwargs)
 
-    def __call__(self, stream_def, start, end, writer, filters):
+    def execute(self, stream_def, start, end, writer, filters):
         logging.info('SphereSilhouette running from ' + str(start) + ' to ' + str(end) + ' using filters ' + str(filters))
         window = DataWindow(start=start, end=end, sphere_connector=self.sphere_connector)
         writer(window.video.get_data(elements='silhouette', filters=filters))
