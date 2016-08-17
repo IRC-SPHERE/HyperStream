@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from memory_channel import ReadOnlyMemoryChannel
-from ..stream import StreamReference
+from ..stream import StreamId, StreamReference
 from ..modifiers import Identity
 from ..time_interval import TimeIntervals
 from datetime import datetime, timedelta
@@ -36,10 +36,14 @@ class SphereChannel(ReadOnlyMemoryChannel):
     def __init__(self, channel_id, up_to_timestamp=None):
         super(SphereChannel, self).__init__(channel_id=channel_id)
         self.modalities = ('video', 'environmental')
-        for stream_id in self.modalities:
+        for modality in self.modalities:
             if up_to_timestamp is None:
                 up_to_timestamp = datetime.utcnow().replace(tzinfo=pytz.utc)
             intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
+
+            # TODO populate meta data here??? When do the streams get split?
+            stream_id = StreamId(name=modality, meta_data={})
+
             self.state.calculated_intervals[stream_id] = intervals
 
             # TODO: Not sure if the following is correct or necessary!
@@ -74,11 +78,11 @@ class SphereChannel(ReadOnlyMemoryChannel):
         stream_id = stream_ref.stream_id
         abs_end, abs_start = self.get_absolute_start_end(kwargs, stream_ref)
         window = DataWindow(start=abs_start, end=abs_end, sphere_connector=self.sphere_connector)
-        if stream_id not in self.modalities:
+        if stream_id.name not in self.modalities:
             raise KeyError('Unknown stream_id: ' + str(stream_id))
-        if stream_id == 'video':
+        if stream_id.name == 'video':
             data = window.video.get_data(elements={"2Dbb"})
-        elif stream_id == 'environmental':
+        elif stream_id.name == 'environmental':
             data = window.environmental.get_data()
         else:
             raise KeyError('The stream ID must be in the set {' + ','.join(self.modalities) +'}')

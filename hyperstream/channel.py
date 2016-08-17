@@ -24,6 +24,7 @@ from utils import Printable
 from channels import ToolChannel, SphereChannel, MemoryChannel, DatabaseChannel
 from datetime import datetime
 import pytz
+from errors import StreamNotFoundError
 
 
 class ChannelCollection(Printable):
@@ -34,12 +35,12 @@ class ChannelCollection(Printable):
         self.database_channel = DatabaseChannel("mongo")
 
     def __getitem__(self, item):
-        if item in self.memory_channel:
-            return self.memory_channel[item]
-        if item in self.database_channel:
-            return self.database_channel[item]
-        # if item in self.tool_channel:
-        #     return self.tool_channel[item]
-        if item in self.sphere_channel:
-            return self.sphere_channel[item]
-        raise KeyError("{} not found in channels".format(item))
+        if item in self.memory_channel.streams:
+            return self.memory_channel.streams[item]
+        if item in self.database_channel.streams:
+            return self.database_channel.streams[item]
+        # if item in self.tool_channel.streams:
+        #     return self.tool_channel.streams[item]
+        if item in self.sphere_channel.streams:
+            return self.sphere_channel.streams[item]
+        raise StreamNotFoundError("{} not found in channels".format(item))
