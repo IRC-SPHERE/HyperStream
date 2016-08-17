@@ -20,7 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from utils import Printable
+from utils import Printable, utcnow
 from channels import ToolChannel, SphereChannel, MemoryChannel, DatabaseChannel
 from datetime import datetime
 import pytz
@@ -29,7 +29,7 @@ from errors import StreamNotFoundError
 
 class ChannelCollection(Printable):
     def __init__(self, tool_path):
-        self.tool_channel = ToolChannel("tools", tool_path, up_to_timestamp=datetime.utcnow().replace(tzinfo=pytz.utc))
+        self.tool_channel = ToolChannel("tools", tool_path, up_to_timestamp=utcnow())
         self.sphere_channel = SphereChannel("sphere")
         self.memory_channel = MemoryChannel("memory")
         self.database_channel = DatabaseChannel("mongo")

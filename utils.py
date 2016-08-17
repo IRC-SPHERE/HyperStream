@@ -22,6 +22,8 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from __future__ import absolute_import
 import pprint
+import pytz
+from datetime import datetime
 
 
 class Printable(object):
@@ -33,3 +35,15 @@ class Printable(object):
         name = self.__class__.__name__
         values = ", ".join("{}={}".format(k, repr(v)) for k, v in self.__dict__.items())
         return "{}({})".format(name, values)
+
+
+class UTC(pytz.UTC):
+    def __repr__(self):
+        return "UTC"
+
+MIN_DATE = datetime.min.replace(tzinfo=UTC)
+MAX_DATE = datetime.max.replace(tzinfo=UTC)
+
+
+def utcnow():
+    return datetime.utcnow().replace(tzinfo=UTC)
