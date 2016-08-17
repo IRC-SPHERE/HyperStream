@@ -22,20 +22,16 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import unittest
 import logging
-from datetime import datetime, timedelta
+import datetime
 
-from hyperstream.utils import UTC
-from hyperstream.config import HyperStreamConfig
-from hyperstream.online_engine import OnlineEngine
-from hyperstream.stream import StreamId
-from hyperstream import modifiers
+from hyperstream import StreamId, HyperStreamConfig, OnlineEngine, TimeInterval, TimeIntervals, modifiers, UTC
 from sphere_connector_package.sphere_connector import SphereConnector, SphereLogger
 
 # Various constants
-t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
-t2 = datetime(2016, 4, 29, 13, 0, 0, 0, UTC)
-second = timedelta(seconds=1)
-minute = timedelta(minutes=1)
+t1 = datetime.datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
+t2 = datetime.datetime(2016, 4, 29, 13, 0, 0, 0, UTC)
+second = datetime.timedelta(seconds=1)
+minute = datetime.timedelta(minutes=1)
 
 
 # Hyperstream setup
@@ -63,6 +59,51 @@ T = online_engine.channels.tool_channel
 
 
 class HyperStringTests(unittest.TestCase):
+    def test_time_interval(self):
+        now = datetime.datetime(2016, 1, 1, 0, 0, 0)
+        minute = datetime.timedelta(minutes=1)
+        hour = datetime.timedelta(hours=1)
+
+        i1 = TimeIntervals([
+            TimeInterval(now, now + hour),
+            TimeInterval(now + 2 * hour, now + 3 * hour),
+        ])
+
+        i2 = TimeIntervals([
+            TimeInterval(now + 30 * minute, now + 30 * minute + 2 * hour),
+        ])
+
+        # print(i1)
+        assert(i1 == TimeIntervals(intervals=[TimeInterval(start=datetime.datetime(2016, 1, 1, 0, 0),
+                                                           end=datetime.datetime(2016, 1, 1, 1, 0)),
+                                              TimeInterval(start=datetime.datetime(2016, 1, 1, 2, 0),
+                                                           end=datetime.datetime(2016, 1, 1, 3, 0))]))
+
+        # print(i2)
+        # print()
+        s = i1 + i2
+        assert (s == TimeIntervals(intervals=[TimeInterval(start=datetime.datetime(2016, 1, 1, 0, 0),
+                                                           end=datetime.datetime(2016, 1, 1, 3, 0))]))
+
+        # Next line has no effect
+        s.compress()
+
+        assert(s == TimeIntervals(intervals=[TimeInterval(start=datetime.datetime(2016, 1, 1, 0, 0),
+                                                          end=datetime.datetime(2016, 1, 1, 3, 0))]))
+
+        d = i1 - i2
+
+        assert(d == TimeIntervals(intervals=[TimeInterval(start=datetime.datetime(2016, 1, 1, 0, 0),
+                                                          end=datetime.datetime(2016, 1, 1, 0, 30)),
+                                             TimeInterval(start=datetime.datetime(2016, 1, 1, 2, 30),
+                                                          end=datetime.datetime(2016, 1, 1, 3, 0))])
+)
+        # Next line has no effect
+        d.compress()
+        # print(s)
+        # print(d)
+        # print()
+
     def test_simple_query(self):
         # Simple querying
         el = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.List()]()
@@ -87,13 +128,13 @@ class HyperStringTests(unittest.TestCase):
 
         M[average] = T[merge](
             timer=M[every30s],
-            data=S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')],
+            data=S[e, -30 * second, datetime.timedelta(0), modifiers.Component('motion-S1_K')],
             func=modifiers.Data() + modifiers.Average()
         )
 
         M[sum_] = T[merge](
             timer=M[every30s],
-            data=S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')],
+            data=S[e, -30 * second, datetime.timedelta(0), modifiers.Component('motion-S1_K')],
             func=modifiers.Data() + modifiers.Sum()
         )
 
