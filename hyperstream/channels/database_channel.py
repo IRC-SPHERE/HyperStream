@@ -26,7 +26,7 @@ from ..stream import StreamId, StreamReference
 from datetime import datetime
 from ..time_interval import TimeIntervals
 from ..modifiers import Identity
-import pytz
+from ..utils import MIN_DATE, utcnow
 import logging
 
 
@@ -37,7 +37,7 @@ class DatabaseChannel(BaseChannel):
         self.update_state()
 
     def update_state(self):
-        intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), datetime.utcnow().replace(tzinfo=pytz.utc))])
+        intervals = TimeIntervals([(MIN_DATE, utcnow())])
         for stream_id in self.streams.keys():
             self.state.calculated_intervals[stream_id] = intervals
 
@@ -128,7 +128,7 @@ class DatabaseChannel(BaseChannel):
                 instance = StreamInstanceModel(
                     stream_id=stream_id,
                     stream_type="",
-                    datetime=datetime.utcnow().replace(tzinfo=pytz.utc),
+                    datetime=utcnow(),
                     metadata={},
                     version="",
                     value=doc

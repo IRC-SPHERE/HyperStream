@@ -25,7 +25,7 @@ from ..stream import StreamReference
 from ..modifiers import Identity
 from datetime import timedelta, datetime
 from ..time_interval import TimeIntervals, TimeInterval
-import pytz
+from ..utils import MIN_DATE
 import logging
 
 
@@ -130,11 +130,11 @@ class ReadOnlyMemoryChannel(BaseChannel):
     Names and identifiers are the same in this channel.
     """
     
-    def __init__(self, channel_id, up_to_timestamp=datetime.min.replace(tzinfo=pytz.utc)):
+    def __init__(self, channel_id, up_to_timestamp=MIN_DATE):
         # TODO: should the up_to_timestamp parameter be up to datetime.max?
         super(ReadOnlyMemoryChannel, self).__init__(channel_id=channel_id, can_calc=False, can_create=False)
-        self.up_to_timestamp = datetime.min.replace(tzinfo=pytz.utc)
-        if up_to_timestamp > datetime.min.replace(tzinfo=pytz.utc):
+        self.up_to_timestamp = MIN_DATE
+        if up_to_timestamp > MIN_DATE:
             self.update(up_to_timestamp)
 
     def create_stream(self, stream_id, stream_def):
@@ -163,7 +163,7 @@ class ReadOnlyMemoryChannel(BaseChannel):
     
     def update_state(self, up_to_timestamp):
         for stream_id in self.streams:
-            intervals = TimeIntervals([(datetime.min.replace(tzinfo=pytz.utc), up_to_timestamp)])
+            intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
             self.state.calculated_intervals[stream_id] = intervals
         self.up_to_timestamp = up_to_timestamp
     
