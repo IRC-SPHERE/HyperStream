@@ -40,7 +40,7 @@ class Modifier(object):
         s += ')'
         return s
 
-    def __call__(self, data):
+    def execute(self, data):
         raise NotImplementedError
 
     def __add__(self, other):
@@ -61,5 +61,5 @@ class ComposedModifier(Modifier):
     def __repr__(self):
         return repr(self.modifier_1) + '+' + repr(self.modifier_2)
 
-    def __call__(self, data):
-        return self.modifier_2(self.modifier_1(data))
+    def execute(self, data):
+        return self.modifier_2.execute(self.modifier_1.execute(data))
