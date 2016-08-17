@@ -81,7 +81,7 @@ class MemoryChannel(BaseChannel):
             for interval2 in need_to_calc_times.intervals:
                 args2 = self.get_params(stream_def.args, interval2.start, interval2.end)
                 kwargs2 = self.get_params(stream_def.kwargs, interval2.start, interval2.end)
-                tool(stream_def, interval2.start, interval2.end, writer, *args2, **kwargs2)
+                tool.execute(stream_def, interval2.start, interval2.end, writer, *args2, **kwargs2)
                 self.state.stream_id_to_intervals_mapping[stream_id] += TimeIntervals(
                     [(interval2.start, interval2.end)])
             
@@ -95,7 +95,7 @@ class MemoryChannel(BaseChannel):
             if abs_start < timestamp <= abs_end:
                 result.append((timestamp, data))
         result.sort(key=lambda x: x[0])
-        result = stream_ref.modifier(
+        result = stream_ref.modifier.execute(
             (x for x in result))  # make a generator out from result and then apply the modifier
         return result
     
@@ -176,6 +176,6 @@ class ReadOnlyMemoryChannel(BaseChannel):
             if start < tool_info.timestamp <= end:
                 result.append((tool_info.timestamp, data))
         result.sort(key=lambda x: x[0])
-        result = stream_ref.modifier(
+        result = stream_ref.modifier.execute(
             (x for x in result))  # make a generator out from result and then apply the modifier
         return result

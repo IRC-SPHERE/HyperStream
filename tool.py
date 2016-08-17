@@ -87,7 +87,7 @@ class Tool(Printable):
         # TODO: @Meelis: should this return hash(__name__) or hash(self.__class__.__name__) ?
         return hash(self.__class__.__name__)
 
-    def __call__(self, *args, **kwargs):
+    def execute(self, *args, **kwargs):
         # Expecting at least: stream_def, start, end, writer
         # Then expecting whatever parameters the tool requires.
         raise NotImplementedError()
