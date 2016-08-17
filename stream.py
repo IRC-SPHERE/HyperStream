@@ -62,6 +62,9 @@ class StreamReference(object):
 
     def __call__(self, *args, **kwargs):
         return self.get_results_func(self, args, kwargs)
+    
+    # def execute(self, *args, **kwargs):
+    #     return self.get_results_func(self, args, kwargs)
 
 
 # TODO: need to check if the same stream already exists in the same channel or not
