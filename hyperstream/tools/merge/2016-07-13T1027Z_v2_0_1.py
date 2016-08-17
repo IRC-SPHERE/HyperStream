@@ -25,7 +25,7 @@ import logging
 
 
 class Merge(Tool):
-    def __call__(self, stream_def, start, end, writer, timer, data, func):
+    def execute(self, stream_def, start, end, writer, timer, data, func):
         logging.info('Merge running from ' + str(start) + ' to ' + str(end))
         rel_start = stream_def.kwargs['data'].start
         rel_end = stream_def.kwargs['data'].end

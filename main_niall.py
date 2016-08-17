@@ -21,14 +21,17 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+import logging
+
 from hyperstream.config import HyperStreamConfig
 from hyperstream.online_engine import OnlineEngine
-from sphere_connector_package.sphere_connector import SphereConnector
+from sphere_connector_package.sphere_connector import SphereConnector, SphereLogger
 
 if __name__ == '__main__':
     # TODO: would be nice to be able to refer to this sphere_connector object from the sphere_ tools
     connected = False
-    sphere_connector = SphereConnector(log_filename='hyperstream_online', include_mongo=True, include_redcap=False)
+    sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.ERROR)
+    sphere_connector = SphereConnector(include_mongo=True, include_redcap=False, sphere_logger=sphere_logger)
     
     hyperstream_config = HyperStreamConfig()
     
@@ -52,25 +55,33 @@ if __name__ == '__main__':
     S = online_engine.channels.sphere_channel
     T = online_engine.channels.tool_channel
     
-    # Simple querying
-    el = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.List()]()
-    edl = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.Data() + modifiers.List()]()
-
-    print '\n'.join(map(str, el))
-    print
-    print '\n'.join(map(str, edl))
-    print
+    # # Simple querying
+    # el = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.List()]()
+    # edl = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.Data() + modifiers.List()]()
+    #
+    # print '\n'.join(map(str, el))
+    # print
+    # print '\n'.join(map(str, edl))
+    # print
     
     # Window'd querying
     M['every30s'] = T['clock'](stride=30 * second)
-    M['motion_kitchen_windowed'] = T['merge'](
+    M['m_kitchen_30_s_window'] = S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
+    
+    M['average'] = T['merge'](
         timer=M['every30s'],
-        data=S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')],
-        func=modifiers.Data()
+        data=M['m_kitchen_30_s_window'],
+        func=modifiers.Data()+modifiers.Average()
     )
     
-    aa = M['motion_kitchen_windowed', t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
-    cc = M['motion_kitchen_windowed', t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
+    M['sum'] = T['merge'](
+        timer=M['every30s'],
+        data=M['m_kitchen_30_s_window'],
+        func=modifiers.Data() + modifiers.Sum()
+    )
+    
+    aa = M['average', t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
+    cc = M['sum', t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
 
     print '\n'.join(map(str, aa))
     print
