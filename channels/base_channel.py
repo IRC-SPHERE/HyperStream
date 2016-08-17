@@ -20,7 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from ..stream import StreamReference
+from ..stream import StreamReference, StreamDict, StreamId, StreamDefinition
 from ..channel_state import ChannelState
 from ..modifiers import Identity, Modifier
 from ..time_interval import TimeIntervals, TimeInterval
@@ -31,7 +31,7 @@ import pytz
 
 class BaseChannel(Printable):
     def __init__(self, channel_id, can_calc=False, can_create=False, calc_agent=None):
-        self.streams = {}
+        self.streams = StreamDict()
         self.can_calc = can_calc
         self.can_create = can_create
         self.state = ChannelState(channel_id)
@@ -130,17 +130,35 @@ class BaseChannel(Printable):
         if isinstance(key, (list, tuple)):
             if len(key) == 0:
                 raise ValueError('Empty stream identifier')
-            
-            classes = set([k.__class__ for k in key])
+
+            if len(key) == 1:
+                return self.parse_setkey(key[0])
+
+            # Create dict holding the indices of each type
+            type_dict = dict((type(k), i) for i, k in enumerate(key))
+
+            stream_id = key[type_dict[StreamId]]
+
+            classes = set(map(type, key))
             if any([issubclass(cls, Modifier) for cls in classes]):
                 raise TypeError('StreamReference identifier cannot include a Modifier')
             
             if (timedelta in classes) or (date in classes):
                 raise TypeError('StreamReference identifier cannot include datetime or timedelta')
-            
-            return '.'.join(map(str, key))
-        
-        return str(key)
+
+            if StreamId not in type_dict:
+                raise TypeError('StreamId not found')
+
+            stream_id.meta_data['extra'] = [key[type_dict[t]] for t in type_dict if t is not StreamId]
+
+            # return '.'.join(map(str, key))
+
+        elif isinstance(key, StreamId):
+            return key
+
+        raise TypeError(str(key))
+        # TODO: could do following?
+        # return StreamID(name=str(key), meta_data={})
     
     def parse_getkey(self, key):
         # TODO: add docstrings to this function. It is not clear why the cases below are structures as they are.
@@ -191,6 +209,8 @@ class BaseChannel(Printable):
         stream_id = self.parse_setkey(key)
 
         if value not in self.state.stream_definition_to_id_mapping:
+            if not isinstance(value, StreamDefinition):
+                raise TypeError(str(type(value)))
             self.create_stream(stream_id, value)
             
             self.state.calculated_intervals[stream_id] = TimeIntervals()
