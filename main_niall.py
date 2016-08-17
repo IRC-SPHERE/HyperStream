@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # Various constants
     utc = pytz.UTC
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, utc)
-    t2 = datetime(2016, 4, 29, 13, 0, 0, 0, utc)
+    t2 = t1 + timedelta(minutes=1)
     second = timedelta(seconds=1)
     minute = timedelta(minutes=1)
 
@@ -55,15 +55,6 @@ if __name__ == '__main__':
     M = online_engine.channels.memory_channel
     S = online_engine.channels.sphere_channel
     T = online_engine.channels.tool_channel
-    
-    # Simple querying
-    # el = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.List()]()
-    # edl = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.Data() + modifiers.List()]()
-    #
-    # print '\n'.join(map(str, el))
-    # print
-    # print '\n'.join(map(str, edl))
-    # print
 
     # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
     clock = StreamId('clock')
@@ -71,41 +62,31 @@ if __name__ == '__main__':
     every30s = StreamId('every30s')
     motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
     m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
-    average = StreamId('average')
+    aver = StreamId('aver')
+    count = StreamId('count')
     sum_ = StreamId('sum')
-
+    
+    # Simple query
+    from pprint import pprint
+    
+    pprint(S[e, t1, t1 + minute, modifiers.Component('motion-S1_K') + modifiers.List()]())
+    
     # Window'd querying
     M[every30s] = T[clock](stride=30 * second)
-    # M[motion_kitchen_windowed] = T[merge](
-    #     timer=M[every30s],
-    #     data=S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')],
-    #     func=modifiers.Data()
-    # )
-    #
-    # aa = M[motion_kitchen_windowed, t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
-    # cc = M[motion_kitchen_windowed, t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
+    m_kitchen_30_s_window = S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
 
-    # M[m_kitchen_30_s_window] = S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
-    
-    M[average] = T[merge](
+    M[count] = T[merge](
         timer=M[every30s],
-        data=S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')],
-        func=modifiers.Data()+modifiers.Average()
+        data=m_kitchen_30_s_window,
+        func=modifiers.Data() + modifiers.Count()
     )
     
-    M[sum_] = T[merge](
+    M[aver] = T[merge](
         timer=M[every30s],
-        data=S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')],
-        func=modifiers.Data() + modifiers.Sum()
+        data=m_kitchen_30_s_window,
+        func=modifiers.Data() + modifiers.Average()
     )
+
+    pprint(M[count, t1, t1 + 5 * minute,  modifiers.Data() + modifiers.List()]())
+    pprint(M[aver, t1, t1 + 5 * minute,  modifiers.Data() + modifiers.List()]())
     
-    # aa = M[average, t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
-    cc = M[sum_, t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
-
-    # print '\n'.join(map(str, aa))
-    # print
-    print '\n'.join(map(str, cc))
-    print
-
-
-
