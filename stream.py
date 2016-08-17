@@ -20,7 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-# from utils import Printable
+from utils import Printable
 # from models import StreamDefinitionModel
 
 
@@ -34,9 +34,51 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 #             self.streams[stream_definition.stream_id] = StreamDefinition(tool, stream_definition.parameters)
 
 
+class StreamDict(dict):
+    """
+    Custom dictionary where keys are StreamID objects and values are StreamReference objects
+    """
+    def __getitem__(self, key):
+        if not isinstance(key, StreamId):
+            raise TypeError("key")
+        try:
+            return super(StreamDict, self).__getitem__(key)
+        except KeyError as e:
+            # for debugging
+            raise e
+
+    def __setitem__(self, key, value):
+        if not isinstance(key, StreamId):
+            raise TypeError("key")
+        # TODO: Enforce values to be StreamReference
+        # if not isinstance(value, StreamReference):
+        #     raise ValueError("value")
+        super(StreamDict, self).__setitem__(key, value)
+
+
+class StreamId(Printable):
+    def __init__(self, name, meta_data=None):
+        self.name = name
+        self.meta_data = meta_data if meta_data else {}
+
+    def __str__(self):
+        if self.meta_data:
+            return self.name + "_" + "_".join("{}={}".format(k, v) for k, v in self.meta_data.items())
+        else:
+            return self.name
+
+    def __hash__(self):
+        return hash((self.name, repr(self.meta_data)))
+
+    def __eq__(self, other):
+        return isinstance(other, StreamId) and self.name == other.name and self.meta_data == other.meta_data
+
+
 class StreamReference(object):
     def __init__(self, channel_id, stream_id, time_interval, modifier, get_results_func):
         self.channel_id = channel_id
+        if not isinstance(stream_id, StreamId):
+            raise TypeError(str(stream_id))
         self.stream_id = stream_id
         self.time_interval = time_interval
         self.modifier = modifier
