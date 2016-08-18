@@ -20,29 +20,18 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+from hyperstream import StreamReference
+from hyperstream.modifiers import *
+import unittest
+from helpers import *
 
-from hyperstream import Tool
-from hyperstream.utils import MIN_DATE
-from datetime import date, datetime, timedelta
-import logging
 
+class TestToolChannel(unittest.TestCase):
+    def test_tool_channel(self):
+        # Load in the objects and print them
+        clock_stream = T.streams[clock]
+        assert(isinstance(clock_stream, StreamReference))
+        assert(clock_stream.modifier == Identity())
 
-class Clock(Tool):
-    def normalise_kwargs(self, kwargs):
-        return self._normalise_kwargs({}, **kwargs)
-    
-    def process_params(self, first=MIN_DATE, stride=timedelta(seconds=1)):
-        return [], {'first': first, 'stride': stride}
-    
-    def execute(self, stream_def, start, end, writer, first, stride):
-        logging.info('Clock running from ' + str(start) + ' to ' + str(end) + ' with stride ' + str(stride))
-        assert isinstance(start, (date, datetime))
-        assert isinstance(end, (date, datetime))
-        if start < first:
-            start = first
-        n_strides = int((start - first).total_seconds() // stride.total_seconds())
-        t = first + n_strides * stride
-        while t <= end:
-            if t > start:
-                writer([(t, t)])
-            t += stride
+        environmental_stream = T.streams[environmental]
+        assert(environmental_stream.modifier == Last() + IData())
