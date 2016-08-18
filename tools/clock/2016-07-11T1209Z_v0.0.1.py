@@ -24,7 +24,6 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from hyperstream import Tool
 from hyperstream.utils import MIN_DATE
 from datetime import date, datetime, timedelta
-import pytz
 import logging
 
 
