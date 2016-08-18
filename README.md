@@ -13,6 +13,12 @@ hyperstream.instance.Instance objects). Tools are version controlled. Minor vers
  that will not require recomputing streams, since the output should be identical (in expectation for stochastic 
  streams). Major version number changes will cause the stream to be recomputed.
 
+### Tool Versions ###
+The tool versions form a major/minor/patch 3-tuple, e.g. v1.3.2. See https://pypi.python.org/pypi/semantic_version/ for details.
+In our setting the major version number is treated as a binary flag: 0 for development, 1 for production. Minor version 
+numbers indicate changes that affect the output, or in the API. The patch number indicates changes that do not affect the 
+output or API in any way (e.g. speedups).
+
 # Streams #
 Streams are objects that use a particular kernel for computation, with fixed parameters and filters defined that can 
 reduce the amount of data that needs to be read from the database. The stream is physically manifested in the database 
