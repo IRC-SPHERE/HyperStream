@@ -32,7 +32,6 @@ from hyperstream import modifiers
 from hyperstream.utils import UTC
 from sphere_connector_package.sphere_connector import SphereConnector, SphereLogger
 
-
 if __name__ == '__main__':
     # TODO: would be nice to be able to refer to this sphere_connector object from the sphere_ tools
     connected = False
@@ -42,20 +41,21 @@ if __name__ == '__main__':
     hyperstream_config = HyperStreamConfig()
     
     online_engine = OnlineEngine(hyperstream_config)
-
+    
     # Various constants
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
     t2 = t1 + timedelta(minutes=1)
     second = timedelta(seconds=1)
     minute = timedelta(minutes=1)
-
+    hour = timedelta(hours=1)
+    
     e = StreamId(name='environmental')
-
+    
     # Various channels
     M = online_engine.channels.memory_channel
     S = online_engine.channels.sphere_channel
     T = online_engine.channels.tool_channel
-
+    
     # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
     clock = StreamId('clock')
     merge = StreamId('merge')
@@ -68,25 +68,35 @@ if __name__ == '__main__':
     
     # Simple query
     from pprint import pprint
+    import matplotlib.pyplot as pl
+    import seaborn as sns
+
+    sns.set_context('poster')
+    sns.set_style('darkgrid')
     
-    pprint(S[e, t1, t1 + minute, modifiers.Component('motion-S1_K') + modifiers.List()]())
+    # pprint(S[e, t1, t1 + minute, modifiers.Component('motion-S1_K') + modifiers.List()]())
     
     # Window'd querying
     M[every30s] = T[clock](stride=30 * second)
     m_kitchen_30_s_window = S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
-
-    M[count] = T[merge](
-        timer=M[every30s],
-        data=m_kitchen_30_s_window,
-        func=modifiers.Data() + modifiers.Count()
-    )
     
     M[aver] = T[merge](
         timer=M[every30s],
         data=m_kitchen_30_s_window,
         func=modifiers.Data() + modifiers.Average()
     )
-
-    pprint(M[count, t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]())
-    pprint(M[aver, t1, t1 + 5 * minute,  modifiers.Data() + modifiers.List()]())
     
+    data = M[aver, t1, t1 + 5 * minute, modifiers.List()]()
+    pprint(data)
+    
+    tt = []
+    dd = []
+    for t, d in data:
+        tt.append(t)
+        dd.append(d)
+    print tt
+    print dd
+    
+    fig, ax = pl.subplots(1, 1)
+    pl.plot(dd)
+    pl.show()
