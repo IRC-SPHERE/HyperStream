@@ -209,7 +209,9 @@ class BaseChannel(Printable):
         del(key['start'])
         del(key['end'])
 
-        return StreamReference(**key)
+        stream_ref = StreamReference(**key)
+        
+        return stream_ref
     
     def __setitem__(self, key, value):
         stream_id = self.parse_setkey(key)
