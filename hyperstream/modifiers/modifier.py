@@ -46,6 +46,10 @@ class Modifier(object):
     def __add__(self, other):
         return ComposedModifier(self, other)
 
+    def __eq__(self, other):
+        # TODO: Could do with some unit tests for this
+        return isinstance(other, Modifier) and self.__dict__ == other.__dict__
+
 
 class ComposedModifier(Modifier):
     def __init__(self, modifier_1, modifier_2):
@@ -63,3 +67,8 @@ class ComposedModifier(Modifier):
 
     def execute(self, data):
         return self.modifier_2.execute(self.modifier_1.execute(data))
+
+    def __eq__(self, other):
+        return isinstance(other, ComposedModifier) and \
+               self.modifier_1 == other.modifier_1 and \
+               self.modifier_2 == other.modifier_2
