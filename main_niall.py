@@ -79,24 +79,17 @@ if __name__ == '__main__':
     # Window'd querying
     M[every30s] = T[clock](stride=30 * second)
     m_kitchen_30_s_window = S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
-    
+
     M[aver] = T[merge](
         timer=M[every30s],
         data=m_kitchen_30_s_window,
         func=modifiers.Data() + modifiers.Average()
     )
+    M[count] = T[merge](
+        timer=M[every30s],
+        data=m_kitchen_30_s_window,
+        func=modifiers.Data() + modifiers.Count()
+    )
     
-    data = M[aver, t1, t1 + 5 * minute, modifiers.List()]()
-    pprint(data)
-    
-    tt = []
-    dd = []
-    for t, d in data:
-        tt.append(t)
-        dd.append(d)
-    print tt
-    print dd
-    
-    fig, ax = pl.subplots(1, 1)
-    pl.plot(dd)
-    pl.show()
+    pprint(M[aver, t1, t1 + 5 * minute, modifiers.List()]())
+    pprint(M[count, t1, t1 + 5 * minute, modifiers.List()]())
