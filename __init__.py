@@ -22,7 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from tool import Tool
 from stream import StreamId, StreamReference, StreamDefinition
-from time_interval import TimeInterval, TimeIntervals
+from time_interval import TimeInterval, TimeIntervals, RelativeTimeInterval
 from online_engine import OnlineEngine
 from config import HyperStreamConfig
 from utils import UTC
