@@ -21,18 +21,13 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import unittest
-import logging
-from datetime import datetime, timedelta
-
 from hyperstream import TimeInterval, TimeIntervals, RelativeTimeInterval
-
-now = datetime(2016, 1, 1, 0, 0, 0)
-minute = timedelta(minutes=1)
-hour = timedelta(hours=1)
+from helpers import *
 
 
-class HyperStringTests(unittest.TestCase):
+class HyperStreamTimeIntervalTests(unittest.TestCase):
     def test_constructors(self):
+        # TODO: is something supposed to go here?
         pass
     
     def test_time_interval(self):
@@ -67,6 +62,10 @@ class HyperStringTests(unittest.TestCase):
         # print(d)
         # print()
 
+    def test_relative_time_interval(self):
+        # TODO ... write some tests here
+        r1 = RelativeTimeInterval(-30 * second, zero)
+        pass
 
 if __name__ == '__main__':
     unittest.main()
