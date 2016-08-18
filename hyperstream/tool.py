@@ -66,7 +66,6 @@ class Tool(Printable):
     def normalise_tool(self):
         # alternatively, could return e.g.:
         #  return 'tools.test.2016-07-10T10:15:54.932_v1'
-
         return self.__class__.__module__
 
     def normalise_stream_def(self, stream_def):
@@ -94,4 +93,4 @@ class Tool(Printable):
 
     @staticmethod
     def _normalise_kwargs(without, **kwargs):
-        return dict(filter(lambda (kk, vv): kk not in without, dict(kwargs).iteritems()))
+        return dict(filter(lambda (kk, vv): kk not in without, dict(kwargs).items()))
