@@ -87,6 +87,6 @@ if __name__ == '__main__':
         func=modifiers.Data() + modifiers.Average()
     )
 
-    pprint(M[count, t1, t1 + 5 * minute,  modifiers.Data() + modifiers.List()]())
+    pprint(M[count, t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]())
     pprint(M[aver, t1, t1 + 5 * minute,  modifiers.Data() + modifiers.List()]())
     
