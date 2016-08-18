@@ -42,7 +42,7 @@ class MemoryChannel(BaseChannel):
         # TODO: No particular reason for integer IDs?
         # self.max_stream_id += 1
         # stream_id = self.max_stream_id
-
+        
         # TODO: Why is this just a list?
         self.streams[stream_id] = []
         # return stream_id
@@ -74,36 +74,56 @@ class MemoryChannel(BaseChannel):
         except KeyError as e:
             # For debugging
             raise e
+        
         need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
-        if str(need_to_calc_times) != '':
-            stream_def = self.state.stream_id_to_definition_mapping[stream_id]
-            writer = self.get_stream_writer(stream_id)
-            try:
-                tool = stream_def.tool
-            except AttributeError as e:
-                # For debugging
-                raise e
-
-            for interval2 in need_to_calc_times.intervals:
-                args2 = self.get_params(stream_def.args, interval2.start, interval2.end)
-                kwargs2 = self.get_params(stream_def.kwargs, interval2.start, interval2.end)
-                tool.execute(stream_def, interval2.start, interval2.end, writer, *args2, **kwargs2)
-                self.state.calculated_intervals[stream_id] += TimeIntervals(
-                    [(interval2.start, interval2.end)])
-            
-            done_calc_times = self.state.calculated_intervals[stream_id]
-            need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
-            logging.debug(done_calc_times)
-            logging.debug(need_to_calc_times)
-            assert str(need_to_calc_times) == ''
+        
+        self.do_calculations(stream_id, abs_start, abs_end, need_to_calc_times)
+        
         result = []
         for (timestamp, data) in self.streams[stream_ref.stream_id]:
             if abs_start < timestamp <= abs_end:
                 result.append((timestamp, data))
+                
         result.sort(key=lambda x: x[0])
         result = stream_ref.modifier.execute(
-            (x for x in result))  # make a generator out from result and then apply the modifier
+            (x for x in result))
+        
         return result
+    
+    def do_calculations(self, stream_id, abs_start, abs_end, need_to_calc_times):
+        if need_to_calc_times.is_empty:
+            return
+            
+        stream_def = self.state.stream_id_to_definition_mapping[stream_id]
+        writer = self.get_stream_writer(stream_id)
+        try:
+            tool = stream_def.tool
+        except AttributeError as e:
+            # For debugging
+            raise e
+        
+        for interval in need_to_calc_times.intervals:
+            args = self.get_params(stream_def.args, interval.start, interval.end)
+            kwargs = self.get_params(stream_def.kwargs, interval.start, interval.end)
+            
+            tool.execute(
+                stream_def,
+                interval.start,
+                interval.end,
+                writer,
+                *args,
+                **kwargs
+            )
+            
+            self.state.calculated_intervals[stream_id] += TimeIntervals([interval])
+        
+        done_calc_times = self.state.calculated_intervals[stream_id]
+        need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
+        logging.debug(done_calc_times)
+        logging.debug(need_to_calc_times)
+        
+        if need_to_calc_times.is_not_empty:
+            raise ValueError('Tool execution did not cover the specified interval.')
     
     def get_stream_writer(self, stream_id):
         def writer(document_collection):
@@ -136,13 +156,13 @@ class ReadOnlyMemoryChannel(BaseChannel):
         self.up_to_timestamp = MIN_DATE
         if up_to_timestamp > MIN_DATE:
             self.update(up_to_timestamp)
-
+    
     def create_stream(self, stream_id, stream_def):
         raise ValueError("Read-only channel")
-
+    
     def get_stream_writer(self, stream_id):
         raise ValueError("Read-only channel")
-
+    
     def repr_stream(self, stream_id):
         return 'externally defined, memory-based, read-only stream'
     
