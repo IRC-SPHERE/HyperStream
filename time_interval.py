@@ -45,6 +45,14 @@ class TimeIntervals(Printable):  # example object: (t1,t2]U(t3,t4]U...
     def __str__(self):
         return " U ".join(["(" + str(interval.start) + "," + str(interval.end) + "]" for interval in self.intervals])
 
+    @property
+    def is_empty(self):
+        return len(self.intervals) == 0
+    
+    @property
+    def is_not_empty(self):
+        return len(self.intervals) > 0
+    
     def split(self, points):
         if len(points) == 0:
             return
