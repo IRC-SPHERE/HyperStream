@@ -21,38 +21,9 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import unittest
-import logging
-from datetime import datetime, timedelta
 
-from hyperstream import StreamId, HyperStreamConfig, OnlineEngine, TimeInterval, TimeIntervals, modifiers, UTC
-from sphere_connector_package.sphere_connector import SphereConnector, SphereLogger
-
-# Various constants
-t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
-t2 = datetime(2016, 4, 29, 13, 0, 0, 0, UTC)
-second = timedelta(seconds=1)
-minute = timedelta(minutes=1)
-
-# Hyperstream setup
-sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.CRITICAL)
-sphere_connector = SphereConnector(include_mongo=True, include_redcap=False, sphere_logger=sphere_logger)
-hyperstream_config = HyperStreamConfig()
-online_engine = OnlineEngine(hyperstream_config)
-
-# Stream IDs
-e = StreamId(name='environmental')
-clock = StreamId('clock')
-merge = StreamId('merge')
-every30s = StreamId('every30s')
-motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
-m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
-average = StreamId('average')
-count = StreamId('count')
-
-# Various channels
-M = online_engine.channels.memory_channel
-S = online_engine.channels.sphere_channel
-T = online_engine.channels.tool_channel
+from hyperstream import TimeInterval, TimeIntervals, modifiers
+from helpers import *
 
 
 class HyperStringTests(unittest.TestCase):
@@ -94,8 +65,8 @@ class HyperStringTests(unittest.TestCase):
     
     def test_simple_query(self):
         # Simple querying
-        el = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.List()]()
-        edl = S[e, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.Data() + modifiers.List()]()
+        el = S[environmental, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.List()]()
+        edl = S[environmental, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.Data() + modifiers.List()]()
         
         q1 = "\n".join("=".join(map(str, ee)) for ee in el)
         
@@ -112,7 +83,7 @@ class HyperStringTests(unittest.TestCase):
     
     def test_windowed_querying_average(self):
         M[every30s] = T[clock](stride=30 * second)
-        mk_30s = S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
+        mk_30s = S[environmental, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
         
         M[average] = T[merge](
             timer=M[every30s],
@@ -126,7 +97,7 @@ class HyperStringTests(unittest.TestCase):
     
     def test_windowed_querying_count(self):
         M[every30s] = T[clock](stride=30 * second)
-        mk_30s = S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
+        mk_30s = S[environmental, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
         
         M[count] = T[merge](
             timer=M[every30s],
