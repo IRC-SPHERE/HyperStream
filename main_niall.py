@@ -68,11 +68,6 @@ if __name__ == '__main__':
     
     # Simple query
     from pprint import pprint
-    import matplotlib.pyplot as pl
-    import seaborn as sns
-
-    sns.set_context('poster')
-    sns.set_style('darkgrid')
     
     # pprint(S[e, t1, t1 + minute, modifiers.Component('motion-S1_K') + modifiers.List()]())
     
