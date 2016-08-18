@@ -31,7 +31,7 @@ class TestToolChannel(unittest.TestCase):
         # Load in the objects and print them
         clock_stream = T.streams[clock]
         assert(isinstance(clock_stream, StreamReference))
-        assert(clock_stream.modifier == Identity())
+        assert(clock_stream.modifier == Last() + IData())
 
-        environmental_stream = T.streams[environmental]
-        assert(environmental_stream.modifier == Last() + IData())
+        sphere_silhouette_stream = T.streams[sphere_silhouette]
+        assert(sphere_silhouette_stream.time_interval.start == MIN_DATE)

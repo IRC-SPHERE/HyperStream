@@ -21,6 +21,8 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from hyperstream import HyperStreamConfig, OnlineEngine, UTC, StreamId
+from hyperstream.utils import MIN_DATE, MAX_DATE
+
 from sphere_connector_package.sphere_connector import SphereConnector, SphereLogger
 from datetime import datetime, timedelta
 import logging
@@ -58,3 +60,5 @@ motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
 m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
 average = StreamId('average')
 count = StreamId('count')
+sphere_silhouette = StreamId('sphere_silhouette')
+
