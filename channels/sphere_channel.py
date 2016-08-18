@@ -78,14 +78,14 @@ class SphereChannel(ReadOnlyMemoryChannel):
         stream_id = stream_ref.stream_id
         abs_end, abs_start = self.get_absolute_start_end(kwargs, stream_ref)
         window = DataWindow(start=abs_start, end=abs_end, sphere_connector=self.sphere_connector)
+        
         if stream_id.name not in self.modalities:
-            raise KeyError('Unknown stream_id: ' + str(stream_id))
+            raise KeyError('The stream ID must be in the set {' + ','.join(self.modalities) +'}')
+        
         if stream_id.name == 'video':
             data = window.video.get_data(elements={"2Dbb"})
         elif stream_id.name == 'environmental':
             data = window.environmental.get_data()
-        else:
-            raise KeyError('The stream ID must be in the set {' + ','.join(self.modalities) +'}')
 
         def reformat(doc):
             timestamp = doc['datetime']

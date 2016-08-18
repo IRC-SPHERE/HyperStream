@@ -23,10 +23,11 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from memory_channel import ReadOnlyMemoryChannel
 from ..stream import StreamId, StreamReference
 
-from ..modifiers import Identity, Last
+from ..modifiers import Identity, Last, IData
 from ..utils import Printable, UTC, MIN_DATE
 from ..time_interval import TimeInterval
 
+from datetime import time, datetime, timedelta
 from dateutil.parser import parse
 import os
 from semantic_version import Version
@@ -61,7 +62,7 @@ class FileChannel(ReadOnlyMemoryChannel):
     timestamps are added.
     """
     path = ""
-
+    
     def __init__(self, channel_id, path, up_to_timestamp=MIN_DATE):
         self.path = path
         super(FileChannel, self).__init__(channel_id=channel_id, up_to_timestamp=up_to_timestamp)
@@ -86,36 +87,64 @@ class FileChannel(ReadOnlyMemoryChannel):
     def update_streams(self, up_to_timestamp):
         path = self.path
         for (long_path, dir_names, file_names) in os.walk(path):
-            # TODO: Add this condition to overcome 0-length IDs
-            # file_names = filter(lambda ff: ff != '__init__.py', file_names)
-            # if len(file_names) == 0:
-            #     continue
-
+            file_names = filter(lambda ff: ff != '__init__.py', file_names)
+            if len(file_names) == 0:
+                continue
+            
             name = long_path[len(path) + 1:]
             if not name:
                 # Empty folder
                 continue
-
-            stream_id = StreamId(name=name)
-
-            self.streams[stream_id] = []
             
-            # def f(stream_ref, *args, **kwargs):
-            for tool_info in self.file_filter(sorted(file_names)):
-                if tool_info.timestamp <= up_to_timestamp:
-                    self.streams[stream_id].append((tool_info, self.data_loader(stream_id.name, tool_info)))
-                    # yield tool_info.timestamp, self.data_loader(short_path, tool_info)
-                    
-                    # self.streams[stream_id] = StreamReference(
-                    #     channel_id=self.state.channel_id,
-                    #     stream_id=stream_id,
-                    #     time_interval=TimeInterval(start=datetime.min.replace(tzinfo=pytz.UTC), end=up_to_timestamp),
-                    #     modifier=Last(),
-                    #     get_results_func=f
-                    # )
+            stream_id = StreamId(
+                name=name
+            )
+            
+            # # OLD CODE - leave for reference/debugging
+            # self.streams[stream_id] = []
+            # for tool_info in self.file_filter(sorted(file_names)):
+            #     if tool_info.timestamp <= up_to_timestamp:
+            #         # This is the original version
+            #         self.streams[stream_id].append((tool_info, self.data_loader(stream_id.name, tool_info)))
+            
+            self.streams[stream_id] = StreamReference(
+                channel_id=self.state.channel_id,
+                stream_id=stream_id,
+                time_interval=TimeInterval(start=MIN_DATE, end=up_to_timestamp),
+                modifier=Last() + IData(),
+                get_results_func=lambda: None
+            )
     
     def data_loader(self, short_path, file_long_name):
         raise NotImplementedError
     
     def get_default_ref(self):
         return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifier': Identity()}
+    
+    def get_results(self, stream_ref, args, kwargs):
+        start = stream_ref.time_interval.start
+        end = stream_ref.time_interval.end
+        
+        if isinstance(start, timedelta) or isinstance(end, timedelta):
+            raise ValueError('Cannot calculate a relative stream_ref')
+        
+        if end > self.up_to_timestamp:
+            raise ValueError(
+                'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
+        
+        result = []
+        
+        stream_name = stream_ref.stream_id.name
+        module_path = os.path.join(self.path, stream_name)
+        
+        for tool_info in self.file_filter(sorted(os.listdir(module_path))):
+            if tool_info.timestamp <= self.up_to_timestamp:
+                result.append((tool_info, self.data_loader(stream_name, tool_info)))
+        
+        result.sort(key=lambda x: x[0].timestamp)
+        result = stream_ref.modifier.execute(
+            (x for x in result)
+        )
+        
+        return result
+
