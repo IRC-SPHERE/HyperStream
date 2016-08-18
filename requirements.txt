@@ -12,3 +12,4 @@ semantic_version
 simplejson
 SQLAlchemy
 tqdm
+treelib
