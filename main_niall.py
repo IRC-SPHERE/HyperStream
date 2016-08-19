@@ -72,7 +72,7 @@ if __name__ == '__main__':
     # pprint(S[e, t1, t1 + minute, modifiers.Component('motion-S1_K') + modifiers.List()]())
     
     # Window'd querying
-    M[every30s] = T[clock](stride=30 * second)
+    M[every30s] = T[clock, modifiers.First() + modifiers.IData()](stride=30 * second)
     m_kitchen_30_s_window = S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
 
     M[aver] = T[merge](

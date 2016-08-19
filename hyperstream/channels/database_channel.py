@@ -84,28 +84,7 @@ class DatabaseChannel(BaseChannel):
         done_calc_times = self.state.calculated_intervals[stream_id]
         need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
 
-        # TODO: why string comparison?
-        if str(need_to_calc_times) != '':
-            stream_def = self.state.stream_id_to_definition_mapping[stream_id]
-            writer = self.get_stream_writer(stream_id)
-            tool = stream_def.tool
-            for (start2, end2) in need_to_calc_times.value:
-                args2 = self.get_params(stream_def.args, start2, end2)
-                kwargs2 = self.get_params(stream_def.kwargs, start2, end2)
-
-                # Here we're actually executing the tool
-                tool(stream_def, start2, end2, writer, *args2, **kwargs2)
-
-                # TODO: write to stream_status collection
-                self.state.calculated_intervals[stream_id] += TimeIntervals([(start2, end2)])
-
-            done_calc_times = self.state.calculated_intervals[stream_id]
-            need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
-            logging.debug(done_calc_times)
-            logging.debug(need_to_calc_times)
-
-            # TODO: why string comparison?
-            assert str(need_to_calc_times) == ''
+        self.do_calculations(stream_id, abs_start, abs_end, need_to_calc_times)
 
         result = []
         for (timestamp, data) in self.streams[stream_ref.stream_id]:
@@ -117,6 +96,32 @@ class DatabaseChannel(BaseChannel):
         # make a generator out from result and then apply the modifier
         result = stream_ref.modifier(iter(result))  # (x for x in result))
         return result
+    
+    def do_calculations(self, stream_id, abs_start, abs_end, need_to_calc_times):
+        if need_to_calc_times.is_empty:
+            return
+            
+        stream_def = self.state.stream_id_to_definition_mapping[stream_id]
+        writer = self.get_stream_writer(stream_id)
+        tool = stream_def.tool
+        
+        for (start2, end2) in need_to_calc_times.value:
+            args2 = self.get_params(stream_def.args, start2, end2)
+            kwargs2 = self.get_params(stream_def.kwargs, start2, end2)
+
+            # Here we're actually executing the tool
+            tool(stream_def, start2, end2, writer, *args2, **kwargs2)
+
+            # TODO: write to stream_status collection
+            self.state.calculated_intervals[stream_id] += TimeIntervals([(start2, end2)])
+
+        done_calc_times = self.state.calculated_intervals[stream_id]
+        need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
+        logging.debug(done_calc_times)
+        logging.debug(need_to_calc_times)
+
+        if need_to_calc_times.is_not_empty:
+            raise ValueError('Tool execution did not cover the specified interval.')
 
     def create_stream(self, stream_id, stream_def):
         # TODO: Functionality here
@@ -124,6 +129,8 @@ class DatabaseChannel(BaseChannel):
 
     def get_stream_writer(self, stream_id):
         def writer(document_collection):
+            # TODO: Should this be for (doc_datetime, doc) in ... and then in StreamInstanceModel datetime=doc_datetime
+            # TODO: Does this check whether a stream_id/datetime pair already exists in the DB? (unique pairs?)
             for doc in document_collection:
                 instance = StreamInstanceModel(
                     stream_id=stream_id,
