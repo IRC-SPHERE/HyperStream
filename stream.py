@@ -68,7 +68,7 @@ class StreamId(Printable):
             return self.name
 
     def __hash__(self):
-        return hash((self.name, repr(sorted(self.meta_data))))
+        return hash((self.name, repr(sorted(self.meta_data.items()))))
 
     def __eq__(self, other):
         return isinstance(other, StreamId) and \
