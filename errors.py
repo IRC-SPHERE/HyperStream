@@ -26,6 +26,10 @@ class StreamNotFoundError(Exception):
     pass
 
 
+class StreamAlreadyExistsError(Exception):
+    pass
+
+
 class ToolNotFoundError(Exception):
     pass
 
