@@ -165,6 +165,7 @@ class BaseChannel(Printable):
         
         # ( stream_id_part [,stream_id_part]* [,start | ,start,end] [,modifier] )
         refdict = self.get_default_ref()
+        
         if isinstance(key, (tuple, list)):
             if (len(key) >= 2) and isinstance(key[-1], Modifier):
                 refdict['modifier'] = key[-1]
@@ -186,9 +187,12 @@ class BaseChannel(Printable):
         
         return refdict
     
-    def __getitem__(self, key):
+    def __getitem__(self, key, modifiers=None):
         # return self.streams[self.parse_getkey(key)]
         key = self.parse_getkey(key)
+        
+        if modifiers:
+            key['modifiers'] = modifiers
         
         key['channel_id'] = self.state.channel_id
         key['get_results_func'] = self.get_results
