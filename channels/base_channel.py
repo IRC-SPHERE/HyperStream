@@ -154,7 +154,7 @@ class BaseChannel(Printable):
         elif isinstance(key, StreamId):
             return key
 
-        raise TypeError(str(key))
+        raise KeyError(repr(key))
         # TODO: could do following?
         # return StreamID(name=str(key), meta_data={})
     
@@ -228,3 +228,11 @@ class BaseChannel(Printable):
             self.state.calculated_intervals[stream_id] = TimeIntervals()
             self.state.stream_definition_to_id_mapping[value] = stream_id
             self.state.stream_id_to_definition_mapping[stream_id] = value
+
+    def __contains__(self, item):
+        # TODO: More elegant way of doing this
+        try:
+            var = self[item]
+            return True
+        except KeyError:
+            return False

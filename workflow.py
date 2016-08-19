@@ -21,17 +21,17 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from utils import Printable
-from models import WorkflowDefinitionModel, PlateDefinitionModel2
+from models import WorkflowDefinitionModel, PlateDefinitionModel
 from stream import StreamId
 import logging
 from errors import StreamNotFoundError
+from utils import MetaDataTree as Tree
 
 
 class Node(Printable):
-    def __init__(self, node_id, streams, plates):
+    def __init__(self, node_id, streams):
         self.node_id = node_id
         self.streams = streams
-        self.plates = plates
 
 
 class Factor(Printable):
@@ -39,15 +39,6 @@ class Factor(Printable):
         self.tool = tool
         self.sources = sources
         self.sink = sink
-
-
-class Plate(Printable):
-    def __init__(self, plate_id, meta_data_id, description, values, parent_plate):
-        self.plate_id = plate_id
-        self.meta_data_id = meta_data_id
-        self.values = values
-        self.parent_plate = parent_plate
-        self.description = description
 
 
 class Workflow(Printable):
@@ -65,24 +56,19 @@ class Workflow(Printable):
             node_definition = workflow_definition.nodes[node_id]
 
             streams = []
-            active_plates = []
 
-            # TODO: We should actually be collecting an array of streams here with the correct meta-data according to
-            # the plates
+            for plate_id in node_definition.plate_ids:
+                # Currently allowing multiple plates here
+                plate_values = plates[plate_id]
 
-            active_plates = [plates[plate_id] for plate_id in node_definition.plate_ids]
+                for pv in plate_values:
+                    # Construct stream id
+                    stream_id = StreamId(name=node_definition.stream_name, meta_data=pv)
 
+                    # Now try to locate the stream and add it
+                    streams.append(channels.get_stream(stream_id))
 
-            # for plate in active_plates:
-            #     for value in plate.values:
-            #         stream_id = StreamId(
-            #             name=node_definition.stream_name,
-            #             meta_data={plate.meta_data_id: value}
-            #         )
-            #
-            #         streams.append(channels[stream_id])
-
-            self.nodes[node_id] = Node(node_id, streams, active_plates)
+            self.nodes[node_id] = Node(node_id, streams)
 
         self.factors = []
         for f in workflow_definition.factors:
@@ -97,76 +83,103 @@ class Workflow(Printable):
         :return:
         """
         for node in self.nodes:
-            for plate in self.nodes[node].plates:
-                # Foreach over this plate
-                for value in plate.values:
-                    # TODO: Get correct stream with this meta_data
-                    # node.stream()
-                    pass
-
-
-def get_plate_values(plate_definition, possible_values):
-    if plate_definition.values:
-        values = []
-        for v in plate_definition.values:
-            if isinstance(v, int):
-                if 0 <= v < len(possible_values):
-                    values.append(possible_values[v])
-                else:
-                    raise ValueError("Plate ID {}, Requested value {} not in possible values".format(
-                        plate_definition.plate_id, v, possible_values))
-            elif isinstance(v, (str, unicode)):
-                if v in possible_values:
-                    values.append(v)
-                else:
-                    raise ValueError("Plate ID {}, Requested value {} not in possible values".format(
-                        plate_definition.plate_id, v, possible_values))
-            else:
-                raise TypeError("Expect str or int, got {}".format(str(type(v))))
-        return values
-    else:
-        if plate_definition.complement:
-            return possible_values
-        else:
-            raise ValueError("Plate ID {} Empty values and complement set to false".format(plate_definition.plate_id))
+            for stream in self.nodes[node].streams:
+                # TODO: This is where the execution logic for the streams goes (e.g. add to Queuing system)
+                # stream()
+                pass
 
 
 class WorkflowManager(Printable):
-    workflows = {}
-    plates = {}
-
-    def __init__(self, channels, meta_data_lists):
+    def __init__(self, channels, meta_data):
         self.channels = channels
 
-        # Plate definitions (arrays of streams) version 2
+        self.workflows = {}
+        self.plates = {}
 
+        self.global_plate_definitions = Tree()
+
+        # Populate the global plate definitions from dict given in the config file
+        for item in meta_data:
+            self.global_plate_definitions.create_node(**item)
+
+        logging.info("Global plate definitions: ")
+        logging.info(self.global_plate_definitions)
+
+        # Plate definitions (arrays of streams) version 2
         # First we want to pull out all parent plates
         # TODO: want to write for p in PlateDefinitionModel2.objects(parent_plate=''):
-        for p in PlateDefinitionModel2.objects():
-            if not p.parent_plate:
-                possible_values = meta_data_lists[p.meta_data_id]
-                values = get_plate_values(p, list(possible_values))
-                self.plates[p.plate_id] = Plate(p.plate_id, p.meta_data_id, p.description, values, None)
+        for p in PlateDefinitionModel.objects():
+            if not p.values and not p.complement:
+                raise ValueError("Empty values in plate definition and complement=False")
 
-        # Now we want to pull out all child plates
-        # TODO: want to write for p in PlateDefinitionModel2.objects(parent_plate__ne=''):
-        for p in PlateDefinitionModel2.objects():
+            """
+            Want to get meta-data dictionaries for all plate combinations
+            e.g.
+
+            H plate, want
+
+            {'H': [
+              {'house': '1'},
+              {'house': '2'}
+            ]}
+
+            H1 plate, want
+
+            {'H1': [{'house': '1'}]}
+
+            H.R plate, want
+
+            {'H.R': [
+              {'house': '1', 'resident': '1'},
+              {'house': '1': 'resident': '2'},
+              {'house': '2': 'resident': '1'}
+            }
+            """
+
+            def get_parent_data(tree, node, d):
+                """
+                Recurse up the tree getting parent data
+                :param tree: The tree
+                :param node: The current node
+                :param d: The initial dictionary
+                :return: The hierarchical dictionary
+                """
+                parent = tree.parent(node.identifier)
+                if parent.is_root():
+                    return d
+                d[parent.tag] = parent.data
+                return get_parent_data(tree, parent, d)
+
             if p.parent_plate:
-                # First pull out the parent plate.
-                # TODO: Note that for double nesting this might not exist yet!
-                parent_plate = self.plates[p.parent_plate]
-                values = {}
-                for v in meta_data_lists[parent_plate.meta_data_id]:
-                    # TODO: This only works for one level of recursion
-                    possible_values = meta_data_lists[parent_plate.meta_data_id][v][p.meta_data_id]
-                    values[v] = get_plate_values(p, possible_values)
+                values = []
 
-                self.plates[p.plate_id] = Plate(p.plate_id, p.meta_data_id, p.description, values, parent_plate)
+                if not p.values:
+                    # Empty list: choose all values
+                    for n in self.global_plate_definitions.all_nodes():
+                        if n.tag == p.meta_data_id:
+                            values.insert(0, get_parent_data(self.global_plate_definitions, n, {n.tag: n.data}))
+                else:
+                    # Non-empty list - select only valid values
+                    # TODO: Gracefully skips invalid values but doesn't raise an error
+                    for n in self.global_plate_definitions.all_nodes():
+                        if n.tag == p.meta_data_id and n.data in p.values:
+                            values.insert(0, get_parent_data(self.global_plate_definitions, n, {n.tag: n.data}))
+            else:
+                if not p.values:
+                    # Empty list: choose all values
+                    values = [{n.tag: n.data} for n in self.global_plate_definitions.all_nodes()
+                              if n.tag == p.meta_data_id]
+                else:
+                    # Non-empty list - select only valid values
+                    # TODO: Gracefully skips invalid values but doesn't raise an error
+                    values = [{n.tag: n.data} for n in self.global_plate_definitions.all_nodes()
+                              if n.tag == p.meta_data_id and n.data in p.values]
 
-        # TODO: Make sure all of the plates in the workflow definitions exist in the plate definitions
-        for f in WorkflowDefinitionModel.objects:
+            self.plates[p.plate_id] = values
+
+        for workflow_definition in WorkflowDefinitionModel.objects():
             try:
-                self.workflows[f.workflow_id] = Workflow(channels, self.plates, f)
+                self.workflows[workflow_definition.workflow_id] = Workflow(channels, self.plates, workflow_definition)
             except StreamNotFoundError as e:
                 logging.error(str(e))
 

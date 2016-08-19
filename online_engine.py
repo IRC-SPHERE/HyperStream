@@ -33,7 +33,7 @@ class OnlineEngine(object):
 
         self.channels = ChannelCollection(self.config.tool_path)
         # self.streams = StreamCollection(self.channels.tool_channel)
-        self.workflows = WorkflowManager(self.channels, self.config.meta_data_lists)
+        self.workflows = WorkflowManager(self.channels, self.config.meta_data)
 
     def execute(self):
         self.workflows.execute_all()

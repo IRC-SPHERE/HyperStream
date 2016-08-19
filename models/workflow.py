@@ -21,11 +21,11 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from mongoengine import Document, StringField, EmbeddedDocument, EmbeddedDocumentListField, ListField, DateTimeField, \
-    BooleanField, IntField
+    BooleanField, DynamicField
 from time_range import TimeRangeModel
 
 
-class PlateDefinitionModel2(Document):
+class PlateDefinitionModel(Document):
     plate_id = StringField(required=True, min_length=1, max_length=512)
     meta_data_id = StringField(required=True, min_length=1, max_length=512)
     description = StringField(required=False, min_length=0, max_length=512, default="")
@@ -35,7 +35,7 @@ class PlateDefinitionModel2(Document):
     parent_plate = StringField(required=False, min_length=1, max_length=512, default="")
 
     meta = {
-        'collection': 'plate_definitions2',
+        'collection': 'plate_definitions',
         'indexes': [{'fields': ['plate_id'], 'unique': True}],
         'ordering': ['plate_id']
     }
@@ -46,17 +46,6 @@ class PlateModel(EmbeddedDocument):
     # TODO: Really want to say either int or str but nothing else
     values = ListField()  # field=IntField(min_value=0))
     complement = BooleanField(default=False)
-
-
-class PlateDefinitionModel(Document):
-    plate_id = StringField(required=True, min_length=1, max_length=512)
-    components = EmbeddedDocumentListField(document_type=PlateModel, required=True)
-
-    meta = {
-        'collection': 'plate_definitions',
-        'indexes': [{'fields': ['plate_id'], 'unique': True}],
-        'ordering': ['plate_id'],
-    }
 
 
 class NodeDefinitionModel(EmbeddedDocument):
@@ -75,12 +64,13 @@ class WorkflowDefinitionModel(Document):
     name = StringField(required=True, min_length=1, max_length=512)
     description = StringField(required=True, min_length=1, max_length=4096)
     nodes = EmbeddedDocumentListField(document_type=NodeDefinitionModel, required=False)
+    nodes_old = DynamicField(required=False)
     # plates = MapField(field=EmbeddedDocumentListField(document_type=PlateDefinitionModel))
     factors = EmbeddedDocumentListField(document_type=FactorDefinitionModel, required=True)
     owner = StringField(required=False, min_length=1, max_length=512)
 
     meta = {
-        'collection': 'workflow_definitions2',
+        'collection': 'workflow_definitions',
         'indexes': [{'fields': ['workflow_id']}],
         'ordering': ['workflow_id']
     }
