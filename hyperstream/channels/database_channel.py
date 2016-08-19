@@ -33,7 +33,7 @@ import logging
 class DatabaseChannel(BaseChannel):
     def __init__(self, channel_id):
         super(DatabaseChannel, self).__init__(channel_id=channel_id, can_calc=True, can_create=False)
-        self.update_streams()
+        # self.update_streams()
         self.update_state()
 
     def update_state(self):
@@ -41,20 +41,20 @@ class DatabaseChannel(BaseChannel):
         for stream_id in self.streams.keys():
             self.state.calculated_intervals[stream_id] = intervals
 
-    def update_streams(self):
-        """
-        Call this function to load streams in from the database
-        """
-        # TODO What about start/end/modifier??? are they needed
-        for s in StreamDefinitionModel.objects():
-            stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
-            self.streams[stream_id] = StreamReference(
-                channel_id=self.state.channel_id,
-                stream_id=stream_id,
-                time_interval=None,
-                modifier=Identity(),
-                get_results_func=self.get_results
-            )
+    # def update_streams(self):
+    #     """
+    #     Call this function to load streams in from the database
+    #     """
+    #     # TODO What about start/end/modifier??? are they needed
+    #     for s in StreamDefinitionModel.objects():
+    #         stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
+    #         self.streams[stream_id] = StreamReference(
+    #             channel_id=self.state.channel_id,
+    #             stream_id=stream_id,
+    #             time_interval=None,
+    #             modifier=Identity(),
+    #             get_results_func=self.get_results
+    #         )
 
     def get_params(self, x, start, end):
         # TODO: This was copied from MemoryChannel
