@@ -63,15 +63,17 @@ class StreamId(Printable):
 
     def __str__(self):
         if self.meta_data:
-            return self.name + "_" + "_".join("{}={}".format(k, v) for k, v in self.meta_data.items())
+            return self.name + ": [" + ", ".join("{}={}".format(k, v) for k, v in self.meta_data.items()) + "]"
         else:
             return self.name
 
     def __hash__(self):
-        return hash((self.name, repr(self.meta_data)))
+        return hash((self.name, repr(sorted(self.meta_data))))
 
     def __eq__(self, other):
-        return isinstance(other, StreamId) and self.name == other.name and self.meta_data == other.meta_data
+        return isinstance(other, StreamId) and \
+               self.name == other.name and \
+               sorted(self.meta_data) == sorted(other.meta_data)
 
 
 class StreamReference(object):
