@@ -70,7 +70,7 @@ class FileChannel(ReadOnlyMemoryChannel):
     def repr_stream(self, stream_id):
         # TODO: self.streams no longer a list!
         s = 'externally defined by the file system, read-only stream'
-        s = s + ', currently holding ' + str(len(self.streams[stream_id])) + ' files'
+        # s = s + ', currently holding ' + str(len(self.streams[stream_id])) + ' files'
         return s
     
     def file_filter(self, sorted_file_names):

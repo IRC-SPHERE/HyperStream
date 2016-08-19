@@ -22,8 +22,6 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from utils import Printable, utcnow
 from channels import ToolChannel, SphereChannel, MemoryChannel, DatabaseChannel
-from datetime import datetime
-import pytz
 from errors import StreamNotFoundError
 
 

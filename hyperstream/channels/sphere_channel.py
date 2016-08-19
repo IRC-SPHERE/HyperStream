@@ -25,7 +25,6 @@ from ..stream import StreamId, StreamReference
 from ..modifiers import Identity
 from ..time_interval import TimeIntervals, TimeInterval
 from ..utils import utcnow, MIN_DATE, MAX_DATE
-from datetime import datetime, timedelta
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
 
 
@@ -35,6 +34,7 @@ class SphereChannel(ReadOnlyMemoryChannel):
     """
     def __init__(self, channel_id, up_to_timestamp=None):
         super(SphereChannel, self).__init__(channel_id=channel_id)
+        # TODO: Populate this from the Mongo database instead
         self.modalities = ('video', 'environmental')
         for modality in self.modalities:
             if up_to_timestamp is None:
