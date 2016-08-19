@@ -25,47 +25,53 @@ from ..stream import StreamId, StreamReference
 from ..modifiers import Identity
 from ..time_interval import TimeIntervals, TimeInterval
 from ..utils import utcnow, MIN_DATE, MAX_DATE
-from datetime import datetime, timedelta
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
+from ..errors import StreamNotFoundError
 
 
 class SphereChannel(ReadOnlyMemoryChannel):
     """
     SPHERE MongoDB storing the raw sensor data
     """
+
     def __init__(self, channel_id, up_to_timestamp=None):
         super(SphereChannel, self).__init__(channel_id=channel_id)
-        self.modalities = ('video', 'environmental')
-        for modality in self.modalities:
-            if up_to_timestamp is None:
-                up_to_timestamp = utcnow()
-            intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
+        #
+        # # TODO: Populate this from the Mongo database instead
+        # self.modalities = ('video', 'environmental')
+        # for modality in self.modalities:
+        #     if up_to_timestamp is None:
+        #         up_to_timestamp = utcnow()
+        #     intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
+        #
+        #     # TODO populate meta data here??? When do the streams get split?
+        #     stream_id = StreamId(name=modality, meta_data={})
+        #
+        #     self.state.calculated_intervals[stream_id] = intervals
+        #
+        #     # TODO: Not sure if the following is correct or necessary!
+        #     self.streams[stream_id] = StreamReference(
+        #         channel_id=channel_id,
+        #         stream_id=stream_id,
+        #         time_interval=TimeInterval(start=MIN_DATE, end=MAX_DATE),
+        #         modifier=Identity(),
+        #         get_results_func=self.get_results
+        #     )
 
-            # TODO populate meta data here??? When do the streams get split?
-            stream_id = StreamId(name=modality, meta_data={})
-
-            self.state.calculated_intervals[stream_id] = intervals
-
-            # TODO: Not sure if the following is correct or necessary!
-            self.streams[stream_id] = StreamReference(
-                channel_id=channel_id,
-                stream_id=stream_id,
-                time_interval=TimeInterval(start=MIN_DATE, end=MAX_DATE),
-                modifier=Identity(),
-                get_results_func=self.get_results
-            )
+        if up_to_timestamp is None:
+            up_to_timestamp = utcnow()
 
         if up_to_timestamp > MIN_DATE:
             self.update(up_to_timestamp)
 
         self.sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
-                                                include_redcap=False)
+                                                include_redcap=False, sphere_logger=None)
 
     def update_streams(self, up_to_timestamp):
         """
         Call this function to report to the system that the SPHERE MongoDB is fully populated until up_to_timestamp
         """
-        for stream_id in self.modalities:
+        for stream_id in self.streams:
             intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
             self.state.calculated_intervals[stream_id] = intervals
         self.up_to_timestamp = up_to_timestamp
@@ -78,14 +84,16 @@ class SphereChannel(ReadOnlyMemoryChannel):
         stream_id = stream_ref.stream_id
         abs_end, abs_start = self.get_absolute_start_end(kwargs, stream_ref)
         window = DataWindow(start=abs_start, end=abs_end, sphere_connector=self.sphere_connector)
-        
+
         if stream_id.name not in self.modalities:
-            raise KeyError('The stream ID must be in the set {' + ','.join(self.modalities) +'}')
-        
+            raise KeyError('The stream ID must be in the set {' + ','.join(self.modalities) + '}')
+
         if stream_id.name == 'video':
             data = window.video.get_data(elements={"2Dbb"})
         elif stream_id.name == 'environmental':
             data = window.environmental.get_data()
+        else:
+            raise StreamNotFoundError(stream_id)
 
         def reformat(doc):
             timestamp = doc['datetime']
@@ -100,7 +108,7 @@ class SphereChannel(ReadOnlyMemoryChannel):
     def get_default_ref(self):
         return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifier': Identity()}
 
-    # def __getitem__(self, item):
-    #     import ipdb
-    #     ipdb.set_trace()
-    #     return super(SphereChannel, self).__getitem__(item)
+        # def __getitem__(self, item):
+        #     import ipdb
+        #     ipdb.set_trace()
+        #     return super(SphereChannel, self).__getitem__(item)
