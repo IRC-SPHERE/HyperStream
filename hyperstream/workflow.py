@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from utils import Printable
-from models import WorkflowDefinitionModel, PlateDefinitionModel2
+from models import WorkflowDefinitionModel, PlateDefinitionModel
 from stream import StreamId
 import logging
 from errors import StreamNotFoundError
@@ -29,10 +29,9 @@ from utils import MetaDataTree as Tree
 
 
 class Node(Printable):
-    def __init__(self, node_id, streams, plates):
+    def __init__(self, node_id, streams):
         self.node_id = node_id
         self.streams = streams
-        self.plates = plates
 
 
 class Factor(Printable):
@@ -67,7 +66,7 @@ class Workflow(Printable):
                     stream_id = StreamId(name=node_definition.stream_name, meta_data=pv)
 
                     # Now try to locate the stream and add it
-                    streams.append(channels[stream_id])
+                    streams.append(channels.get_stream(stream_id))
 
             self.nodes[node_id] = Node(node_id, streams)
 
@@ -84,12 +83,10 @@ class Workflow(Printable):
         :return:
         """
         for node in self.nodes:
-            for plate in self.nodes[node].plates:
-                # Foreach over this plate
-                for value in plate.values:
-                    # TODO: Get correct stream with this meta_data
-                    # node.stream()
-                    pass
+            for stream in self.nodes[node].streams:
+                # TODO: This is where the execution logic for the streams goes (e.g. add to Queuing system)
+                # stream()
+                pass
 
 
 class WorkflowManager(Printable):
@@ -111,7 +108,7 @@ class WorkflowManager(Printable):
         # Plate definitions (arrays of streams) version 2
         # First we want to pull out all parent plates
         # TODO: want to write for p in PlateDefinitionModel2.objects(parent_plate=''):
-        for p in PlateDefinitionModel2.objects():
+        for p in PlateDefinitionModel.objects():
             if not p.values and not p.complement:
                 raise ValueError("Empty values in plate definition and complement=False")
 
