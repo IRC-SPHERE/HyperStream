@@ -20,7 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from hyperstream import StreamReference
+from hyperstream import Stream
 from hyperstream.modifiers import *
 import unittest
 from helpers import *
@@ -30,7 +30,7 @@ class TestToolChannel(unittest.TestCase):
     def test_tool_channel(self):
         # Load in the objects and print them
         clock_stream = T.streams[clock]
-        assert(isinstance(clock_stream, StreamReference))
+        assert(isinstance(clock_stream, Stream))
         assert(clock_stream.modifiers == Last() + IData())
 
         sphere_silhouette_stream = T.streams[sphere_silhouette]

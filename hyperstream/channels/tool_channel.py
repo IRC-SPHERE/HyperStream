@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from module_channel import ModuleChannel
-from ..stream import StreamId, StreamReference
+from ..stream import StreamId, Stream
 from ..modifiers import Identity
 from ..time_interval import TimeIntervals
 
@@ -31,26 +31,32 @@ class ToolChannel(ModuleChannel):
     Special case of the file/module channel to load the tools to execute other streams
     """
 
-    def get_tool(self, tool_name, tool_version=None, **kwargs):
-        if tool_version is not None:
-            raise NotImplementedError("Can't yet deal with versions")
-        return self.get_results(self.streams[StreamId(name=tool_name, meta_data={})], **kwargs)
+    # def get_tool(self, tool_name, tool_version, tool_parameters):
+    #     if tool_version is not None:
+    #         raise NotImplementedError("Can't yet deal with versions")
+    #     # return self.get_results(self.streams[StreamId(name=tool_name, meta_data={})])
+    #     stream_ref = self.streams[StreamId(name=tool_name)]
+    #     (version, module_importer) = super(ToolChannel, self).get_results(stream_ref)
+    #     module = module_importer()
+    #     class_name = stream_ref.stream_id.name.title().replace("_", "")
+    #     tool_class = getattr(module, class_name)
+    #     tool = tool_class(**tool_parameters)
+    #
+    #     # TODO: because of the way this is returned, in order to use a tool the callee needs to do tool.tool.execute
+    #     return Stream(
+    #         channel=self,
+    #         stream_id=StreamId(name=class_name, meta_data={}),
+    #         time_interval=stream_ref.time_interval,
+    #         calculated_intervals=TimeIntervals(),
+    #         modifiers=Identity(),
+    #         # get_results_func=None,
+    #         tool=tool,
+    #         input_streams=stream_ref.input_streams
+    #     )
 
-    def get_results(self, stream_ref, **kwargs):
-        (version, module_importer) = super(ToolChannel, self).get_results(stream_ref, **kwargs)
+    def get_results(self, stream_ref):
+        (version, module_importer) = super(ToolChannel, self).get_results(stream_ref)
         module = module_importer()
         class_name = stream_ref.stream_id.name.title().replace("_", "")
         tool_class = getattr(module, class_name)
-        tool = tool_class(**kwargs)
-
-        # TODO: because of the way this is returned, in order to use a tool the callee needs to do tool.tool.execute
-        return StreamReference(
-            channel=self,
-            stream_id=StreamId(name=class_name, meta_data={}),
-            time_interval=stream_ref.time_interval,
-            calculated_intervals=TimeIntervals(),
-            modifiers=Identity(),
-            get_results_func=None,
-            tool=tool,
-            input_streams=stream_ref.input_streams
-        )
+        return tool_class

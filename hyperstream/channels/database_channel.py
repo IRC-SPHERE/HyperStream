@@ -22,10 +22,9 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from base_channel import BaseChannel
 from ..models import StreamInstanceModel
-# from ..stream import StreamReference
+from ..stream import StreamInstance
 from ..time_interval import TimeIntervals
 from ..utils import MIN_DATE, utcnow
-import logging
 
 
 class DatabaseChannel(BaseChannel):
@@ -38,50 +37,64 @@ class DatabaseChannel(BaseChannel):
         for stream_id in self.streams.keys():
             self.streams[stream_id].calculated_intervals = intervals
 
-    def get_results(self, stream_ref, **kwargs):
-        abs_end, abs_start = self.get_absolute_start_end(stream_ref)
+    def _get_data(self, stream_ref):
+        # TODO: Get the data from the database. Should the responsibility be here or in Stream.Items()?
+        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream_ref.items()
+                       if timestamp in stream_ref.absolute_interval), key=lambda x: x.timestamp)
 
-        # TODO: this should be read from the stream_status collection
-        done_calc_times = stream_ref.calculated_intervals
-        need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
+    def get_results(self, stream_ref):
+        # TODO: This is identical to MemoryChannel - can they share a base instantiation (BaseChannel)??
+        if not stream_ref.required_times.is_empty:
+            for interval in stream_ref.required_times.intervals:
+                self.execute_tool(stream_ref, interval)
+                stream_ref.calculated_intervals += TimeIntervals([interval])
 
-        self.do_calculations(stream_ref, abs_start, abs_end, need_to_calc_times)
+            if stream_ref.required_times.is_not_empty:
+                raise RuntimeError('Tool execution did not cover the specified interval.')
 
-        result = []
-        for (timestamp, data) in stream_ref.items():
-            if abs_start < timestamp <= abs_end:
-                result.append((timestamp, data))
+        return stream_ref.modifiers.execute(iter(self._get_data(stream_ref)))
 
-        result.sort(key=lambda x: x[0])
-
-        # make a generator out from result and then apply the modifiers
-        result = stream_ref.modifiers(iter(result))  # (x for x in result))
-        return result
+        # abs_end, abs_start = self.get_absolute_start_end(stream_ref)
+        #
+        # done_calc_times = stream_ref.calculated_intervals
+        # need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
+        #
+        # self.do_calculations(stream_ref, abs_start, abs_end, need_to_calc_times)
+        #
+        # result = []
+        # for (timestamp, data) in stream_ref.items():
+        #     if abs_start < timestamp <= abs_end:
+        #         result.append((timestamp, data))
+        #
+        # result.sort(key=lambda x: x[0])
+        #
+        # # make a generator out from result and then apply the modifiers
+        # result = stream_ref.modifiers(iter(result))  # (x for x in result))
+        # return result
     
-    def do_calculations(self, stream_ref, abs_start, abs_end, need_to_calc_times):
-        if need_to_calc_times.is_empty:
-            return
-            
-        tool = stream_ref.tool
-        
-        for (start2, end2) in need_to_calc_times.value:
-            kwargs2 = self.get_params(stream_ref.kwargs, start2, end2)
+    # def do_calculations(self, stream_ref, abs_start, abs_end, need_to_calc_times):
+    #     if need_to_calc_times.is_empty:
+    #         return
+    #
+    #     tool = stream_ref.tool
+    #
+    #     for (start2, end2) in need_to_calc_times.value:
+    #         kwargs2 = self.get_params(stream_ref.kwargs, start2, end2)
+    #
+    #         # Here we're actually executing the tool
+    #         tool(stream_ref, start2, end2, stream_ref.writer, **kwargs2)
+    #
+    #         stream_ref.calculated_intervals += TimeIntervals([(start2, end2)])
+    #
+    #     done_calc_times = stream_ref.calculated_intervals
+    #     need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
+    #     logging.debug(done_calc_times)
+    #     logging.debug(need_to_calc_times)
+    #
+    #     if need_to_calc_times.is_not_empty:
+    #         raise ValueError('Tool execution did not cover the specified interval.')
 
-            # Here we're actually executing the tool
-            tool(stream_ref, start2, end2, stream_ref.writer, **kwargs2)
-
-            # TODO: write to stream_status collection
-            stream_ref.calculated_intervals += TimeIntervals([(start2, end2)])
-
-        done_calc_times = stream_ref.calculated_intervals
-        need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
-        logging.debug(done_calc_times)
-        logging.debug(need_to_calc_times)
-
-        if need_to_calc_times.is_not_empty:
-            raise ValueError('Tool execution did not cover the specified interval.')
-
-    def create_stream(self, stream_id, tool):
+    def create_stream(self, stream_id, tool=None):
         # TODO: Functionality here
         raise NotImplementedError("Database streams currently need to be defined in the database")
 

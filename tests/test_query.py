@@ -81,7 +81,6 @@ class HyperStringTests(unittest.TestCase):
                       '2016-04-28 20:00:31.405000+00:00=0.0\n'
                       '2016-04-28 20:00:50.132000+00:00=0.0')
 
-        # TODO: This test is failing because the calculated intervals aren't being updated, so it's being calculated twice
         assert (edl == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_average(self):
@@ -95,7 +94,6 @@ class HyperStringTests(unittest.TestCase):
         )
         
         aa = M[average].window((t1, t1 + 5 * minute)).modify(Data() + List()).items()
-        
         assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_count(self):

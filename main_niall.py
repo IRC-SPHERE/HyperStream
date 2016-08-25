@@ -23,7 +23,6 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
 from datetime import datetime, timedelta
-from pprint import pprint
 
 from hyperstream import OnlineEngine, HyperStreamConfig, StreamId
 from hyperstream.modifiers import List, Average, Count, Component, First, IData, Data, Time, Head
@@ -58,7 +57,7 @@ if __name__ == '__main__':
     every30s = StreamId('every30s')
     motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
     m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
-    aver = StreamId('aver')
+    average = StreamId('aver')
     count = StreamId('count')
     sum_ = StreamId('sum')
     
@@ -68,40 +67,53 @@ if __name__ == '__main__':
 
     q1 = "\n".join("=".join(map(str, ee)) for ee in el)
 
-    # print(q1)
-    # print(edl)
-
-    assert (q1 == '2016-04-28 20:00:00.159000+00:00=0.0\n'
-                  '2016-04-28 20:00:06.570000+00:00=0.0\n'
-                  '2016-04-28 20:00:12.732000+00:00=0.0\n'
-                  '2016-04-28 20:00:25.125000+00:00=0.0\n'
-                  '2016-04-28 20:00:31.405000+00:00=0.0\n'
-                  '2016-04-28 20:00:50.132000+00:00=0.0')
-
-    # TODO: This test is failing because the calculated intervals aren't being updated, so it's being calculated twice
-    assert (edl == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    print(q1)
+    print(edl)
 
     # Windowed querying
     # M[every30s] = T[clock].define(stride=30 * second).modify(First() + IData())
     # M[every30s] = T[clock].define(stride=30 * second).modify(Head(1) + Data())
     # M[every30s] = T[clock].define(stride=30 * second).modify(Time())
-    M[every30s] = T[clock].define(stride=30 * second)
+    # M[every30s] = T[clock].define(stride=30 * second)
+    M.create_stream(stream_id=every30s, tool=T[clock].define(stride=30 * second))
 
     # m_kitchen_30_s_window = \
     #     S[environmental].define(modality='environmental').window(-30, 0).modify(Component('motion-S1_K'))
-    m_kitchen_30_s_window = S[environmental].define(modality='environmental').modify(Component('motion-S1_K'))
+    # m_kitchen_30_s_window = S[environmental].define(modality='environmental').modify(Component('motion-S1_K'))
+    S.create_stream(stream_id=m_kitchen_30_s_window).define(modality='environmental').modify(Component('motion-S1_K'))
 
-    M[aver] = T[aggregate].define(
-        input_streams=[m_kitchen_30_s_window],
+    # M[average] = T[aggregate].define(
+    #     input_streams=[m_kitchen_30_s_window],
+    #     timer=M[every30s],
+    #     func=Data() + Average()
+    # )
+    #
+    # M[count] = T[aggregate].define(
+    #     input_streams=[m_kitchen_30_s_window],
+    #     timer=M[every30s],
+    #     func=Data() + Count()
+    # )
+
+    averager = T[aggregate].define(
+        input_streams=[S[m_kitchen_30_s_window]],
         timer=M[every30s],
         func=Data() + Average()
     )
 
-    M[count] = T[aggregate].define(
-        input_streams=[m_kitchen_30_s_window],
+    counter = T[aggregate].define(
+        input_streams=[S[m_kitchen_30_s_window]],
         timer=M[every30s],
         func=Data() + Count()
     )
-    
-    pprint(M[aver].window((t1, t2)).modify(List()).items())
-    pprint(M[count].window((t1, t2)).modify(List()).items())
+
+    M.create_stream(stream_id=average, tool=averager)
+    M.create_stream(stream_id=count, tool=counter)
+
+    stream_ref = M[average].window((t1, t2)).modify(Data() + List())
+    aa = stream_ref.items()
+    print(aa)
+    assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+    cc = M[count].window((t1, t1 + 5 * minute)).modify(Data() + List()).items()
+    print(cc)
+    assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])
