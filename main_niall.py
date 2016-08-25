@@ -23,6 +23,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
 from datetime import datetime, timedelta
+from pprint import pprint
 
 from hyperstream import OnlineEngine, HyperStreamConfig, StreamId
 from hyperstream.modifiers import List, Average, Count, Component, First, IData, Data, Time, Head
@@ -61,8 +62,9 @@ if __name__ == '__main__':
     sum_ = StreamId('sum')
     
     # Simple query
-    from pprint import pprint
-    
+    from tests.test_query import test_simple_query
+    test_simple_query()
+
     # Windowed querying
     # M[every30s] = T[clock].define(stride=30 * second).modify(First() + IData())
     # M[every30s] = T[clock].define(stride=30 * second).modify(Head(1) + Data())
