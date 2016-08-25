@@ -30,6 +30,7 @@ from hyperstream.modifiers import List, Average, Count, Component, First, IData,
 from hyperstream.utils import UTC
 from sphere_connector_package.sphere_connector import SphereLogger
 
+
 if __name__ == '__main__':
     # TODO: hyperstream needs it's own logger (can be a clone of this one)
     sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
@@ -61,9 +62,24 @@ if __name__ == '__main__':
     count = StreamId('count')
     sum_ = StreamId('sum')
     
-    # Simple query
-    from tests.test_query import test_simple_query
-    test_simple_query()
+    # Simple querying
+    el = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063') + List()).items()
+    edl = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063') + Data() + List()).items()
+
+    q1 = "\n".join("=".join(map(str, ee)) for ee in el)
+
+    # print(q1)
+    # print(edl)
+
+    assert (q1 == '2016-04-28 20:00:00.159000+00:00=0.0\n'
+                  '2016-04-28 20:00:06.570000+00:00=0.0\n'
+                  '2016-04-28 20:00:12.732000+00:00=0.0\n'
+                  '2016-04-28 20:00:25.125000+00:00=0.0\n'
+                  '2016-04-28 20:00:31.405000+00:00=0.0\n'
+                  '2016-04-28 20:00:50.132000+00:00=0.0')
+
+    # TODO: This test is failing because the calculated intervals aren't being updated, so it's being calculated twice
+    assert (edl == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     # Windowed querying
     # M[every30s] = T[clock].define(stride=30 * second).modify(First() + IData())

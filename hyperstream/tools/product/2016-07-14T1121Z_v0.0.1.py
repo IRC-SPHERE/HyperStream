@@ -20,14 +20,12 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from hyperstream import Tool
+from hyperstream.tool import Tool, check_input_stream_count
 
 
 class Product(Tool):
+    @check_input_stream_count(2)
     def _execute(self, input_streams, interval, writer):
-        if len(input_streams) != 2:
-            raise ValueError("Product tool operates on two input streams")
-
         for (t, data1) in input_streams[0]:
             (_, data2) = next(input_streams[1])
             writer([(t, data1 * data2)])
