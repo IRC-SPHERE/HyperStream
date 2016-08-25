@@ -25,7 +25,7 @@ from models import WorkflowDefinitionModel, PlateDefinitionModel
 from stream import StreamId
 import logging
 from errors import StreamNotFoundError
-from utils import MetaDataTree as Tree
+from utils import MetaDataTree
 
 
 class Node(Printable):
@@ -85,7 +85,7 @@ class Workflow(Printable):
         for node in self.nodes:
             for stream in self.nodes[node].streams:
                 # TODO: This is where the execution logic for the streams goes (e.g. add to Queuing system)
-                # stream()
+                # stream.items()
                 pass
 
 
@@ -96,7 +96,7 @@ class WorkflowManager(Printable):
         self.workflows = {}
         self.plates = {}
 
-        self.global_plate_definitions = Tree()
+        self.global_plate_definitions = MetaDataTree()
 
         # Populate the global plate definitions from dict given in the config file
         for item in meta_data:

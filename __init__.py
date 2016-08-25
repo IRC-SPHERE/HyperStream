@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from tool import Tool
-from stream import StreamId, StreamReference, StreamDefinition
+from stream import StreamId, StreamReference
 from time_interval import TimeInterval, TimeIntervals, RelativeTimeInterval
 from online_engine import OnlineEngine
 from config import HyperStreamConfig

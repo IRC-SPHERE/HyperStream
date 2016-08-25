@@ -24,13 +24,10 @@ from file_channel import FileChannel
 from ..modifiers import Last, IData
 from ..utils import Printable, MIN_DATE
 
-from datetime import datetime, time, timedelta
 from os.path import join
 from re import sub
-import pytz
 import logging
 import imp
-import os
 
 
 class ModuleStreamInstance(Printable):
@@ -48,21 +45,6 @@ class ModuleChannel(FileChannel):
     
     def update_state(self, up_to_timestamp):
         super(ModuleChannel, self).update_state(up_to_timestamp)
-        
-        # TODO: Do we need to store this versions dict? Shouldn't it be simply the ouptut of the stream?
-        # versions = {}
-        # self.versions = versions
-        # TODO: Re-introduce these versions
-        # for stream_id in self.streams:
-        #     # for timestamp, instance in self.streams[stream_id]:
-        #     for (tool_info, (version, module_importer)) in self.streams[stream_id]:
-        #         name = stream_id.name.replace("/", "_").replace(".", "_")
-        #         name_version = name + "_" + str(version)
-        #         versions[name_version] = self[stream_id, MIN_DATE, tool_info.timestamp]
-        #         versions[name] = versions[name_version]
-        #
-        #     name = stream_id
-        #     name_version = name + str(self.streams)
     
     def file_filter(self, sorted_file_names):
         for tool_info in super(ModuleChannel, self).file_filter(sorted_file_names):
@@ -89,4 +71,4 @@ class ModuleChannel(FileChannel):
         return tool_info.version, module_importer
     
     def get_default_ref(self):
-        return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifier': Last() + IData()}
+        return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifiers': Last() + IData()}

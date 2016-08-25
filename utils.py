@@ -23,22 +23,23 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
-import pprint
+from future.utils import python_2_unicode_compatible
+# import pprint
 import pytz
 from datetime import datetime
 from treelib.tree import Tree, NodePropertyAbsentError, NodeIDAbsentError
+import simplejson as json
+from bidict import bidict, ValueDuplicationError
+import time
+import logging
 
-try:
-    from StringIO import StringIO as BytesIO
-except ImportError:
-    from io import BytesIO
 
-
+@python_2_unicode_compatible
 class MetaDataTree(Tree):
     (ROOT, DEPTH, WIDTH, ZIGZAG) = list(range(4))
 
     def __str__(self):
-        self.reader = ""
+        self.reader = "\n"
 
         def write(line):
             self.reader += line.decode('utf-8') + "\n"
@@ -46,9 +47,16 @@ class MetaDataTree(Tree):
         self._Tree__print_backend(func=write, idhidden=False)
         return self.reader
 
+    def __repr__(self):
+        return "{} with {} nodes and depth {}".format(self.__class__.__name__, len(self.nodes), self.tree_depth)
+
+    @property
+    def tree_depth(self):
+        return max(self.depth(n) for n in self.nodes)
+
     def _Tree__print_backend(self, nid=None, level=ROOT, idhidden=True, queue_filter=None,
                              key=None, reverse=False, line_type='ascii-ex',
-                             data_property=None, func=print, iflast=[], ):
+                             data_property=None, func=print, iflast=None):
         """
         Another implementation of printing tree using Stack
         Print tree structure in hierarchy style.
@@ -93,6 +101,9 @@ class MetaDataTree(Tree):
 
         queue_filter = self._Tree__real_true if (queue_filter is None) else queue_filter
 
+        if not iflast:
+            iflast = []
+
         if level == self.ROOT:
             func(label.encode('utf8'))
         else:
@@ -112,15 +123,42 @@ class MetaDataTree(Tree):
                 iflast.pop()
 
 
+@python_2_unicode_compatible
 class Printable(object):
+    """
+    A base class for default printing
+    """
     def __str__(self):
-        pp = pprint.PrettyPrinter(indent=4)
-        return pp.pformat(self.__dict__)
+        # pp = pprint.PrettyPrinter(indent=4)
+        # return pp.pformat({self.__class__.__name__: self.__dict__})
+        return repr(self)
 
     def __repr__(self):
         name = self.__class__.__name__
-        values = ", ".join("{}={}".format(k, repr(v)) for k, v in self.__dict__.items())
+        values = ", ".join("{}={}".format(k, repr(v)) for k, v in sorted(self.__dict__.items()))
         return "{}({})".format(name, values)
+
+
+class Hashable(object):
+    _name = None
+    """
+    A base class that creates hashes based on the __dict__
+    Requires keys to be strings to work properly. It will first try to use json.dumps, but if that fails because one of
+    the values is not json serializable (e.g. datetime.datetime) then it will fall back on repr
+    """
+    @property
+    def name(self):
+        return self._name if self._name is not None else self.__class__.__name__
+
+    @name.setter
+    def name(self, name):
+        self._name = str(name)
+
+    def __hash__(self):
+        try:
+            return hash((self.name, json.dumps(self.__dict__, sort_keys=True)))
+        except TypeError:
+            return hash((self.name, repr(sorted(self.__dict__.items()))))
 
 
 class UTC(pytz.UTC):
@@ -134,3 +172,85 @@ MAX_DATE = datetime.max.replace(tzinfo=UTC)
 
 def utcnow():
     return datetime.utcnow().replace(tzinfo=UTC)
+
+
+class TypedBiDict(Printable):
+    """
+    Custom strongly typed bi-directional dictionary where keys and values must be a specific type.
+    Raises ValueDuplicationError if the same value is added again
+    """
+
+    def __init__(self, key_type, value_type, *args, **kwargs):
+        if not isinstance(key_type, type):
+            raise ValueError("expected type, got {}", type(key_type))
+        if not isinstance(value_type, type):
+            raise ValueError("expected type, got {}", type(value_type))
+
+        self._store = bidict(*args, **kwargs)
+        self.key_type = key_type
+        self.value_type = value_type
+
+    def __repr__(self):
+        return "{}(key_type={}, value_type={})".format(
+            self.__class__.__name__,
+            repr(self.key_type),
+            repr(self.value_type))
+
+    def __iter__(self):
+        return iter(self._store)
+
+    def __len__(self):
+        return len(self._store)
+
+    def __getitem__(self, key):
+        if not isinstance(key, self.key_type):
+            raise TypeError("expected {}, got {}".format(self.key_type, type(key)))
+        try:
+            return self._store[key]
+        except KeyError as e:
+            # for debugging
+            raise e
+
+    def __setitem__(self, key, value):
+        if not isinstance(key, self.key_type):
+            raise TypeError("expected {}, got {}".format(self.key_type, type(key)))
+        if not isinstance(value, self.value_type):
+            raise ValueError("expected {}, got {}".format(self.value_type, type(value)))
+        try:
+            self._store[key] = value
+        except ValueDuplicationError as e:
+            # TODO: debugging
+            raise e
+
+    def __contains__(self, item):
+        return item in self._store
+
+    def keys(self):
+        return self._store.keys()
+
+    def values(self):
+        return self._store.values()
+
+    def items(self):
+        return self._store.items()
+
+    def iterkeys(self):
+        return self._store.iterkeys()
+
+    def itervalues(self):
+        return self._store.itervalues()
+
+    def iteritems(self):
+        return self._store.iteritems()
+
+
+def timeit(f):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = f(*args, **kw)
+        te = time.time()
+
+        logging.info('func:{} args:[{}, {}] took: {:2.4f} sec'.format(f.__name__, args, kw, te - ts))
+        return result
+
+    return timed

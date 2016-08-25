@@ -20,77 +20,31 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from models import ToolDefinitionModel
-import imp
-import os
 import logging
-from utils import Printable
+from time_interval import TimeInterval
+from utils import Printable, Hashable
 
 
-class ToolCollection(Printable):
-    def __init__(self, tool_path):
-        self.tools = {}
+class Tool(Printable, Hashable):
+    def __init__(self, **kwargs):
+        if kwargs:
+            logging.info('Defining a {} stream with kwargs {}'.format(self.__class__.__name__, kwargs))
+        else:
+            logging.info('Defining a {} stream'.format(self.__class__.__name__))
 
-        # TODO: Rather than trying to load in modules here - this needs to search the tool channel
-        for t in ToolDefinitionModel.objects:
-            try:
-                src = imp.load_source(t.tool_id, os.path.join(tool_path, t.tool_id, t.version, "runner.py"))
-                self.tools[t.tool_id, t.tool_version] = src
-            except (IOError, ImportError):
-                logging.error("No tool found with appropriate version: " + t.tool_id)
+    def __eq__(self, other):
+        # TODO: requires a unit test
+        return isinstance(other, Tool) and hash(self) == hash(other)
 
-    def __getitem__(self, item):
-        """
-        This is so we can do tool = tools[tool_name, tool_version]
-        :param item: tuple of name and version
-        :return: the tool
-        """
-        if not isinstance(item, (list, tuple)) or len(item) != 2 \
-                or not isinstance(item[0], (str, unicode)) or not isinstance(item[1], (str, unicode)):
-            raise KeyError("Expecting tuple of (tool_name, tool_version), got: " + str(item))
-        return self.tools[item]
-
-
-class Tool(Printable):
-    def process_params(self, *args, **kwargs):
-        logging.info('Defining a {} stream'.format(self.__class__.__name__))
-
-        return args, kwargs
-
-    def normalise_args(self, args):
-        return args
-
-    def normalise_kwargs(self, kwargs):
-        return kwargs
-
-    def normalise_tool(self):
-        # alternatively, could return e.g.:
-        #  return 'tools.test.2016-07-10T10:15:54.932_v1'
+    @property
+    def name(self):
         return self.__class__.__module__
 
-    def normalise_stream_def(self, stream_def):
-        nt = self.normalise_tool()
-        na = self.normalise_args(stream_def.args)
-        nk = self.normalise_kwargs(stream_def.kwargs)
+    def _execute(self, input_streams, interval, writer):
+        raise NotImplementedError
 
-        keys = tuple(sorted(nk.keys()))
-        values = tuple([nk[k] for k in keys])
-
-        return nt, tuple(na), keys, values
-
-    def __str__(self):
-        # TODO: @Meelis: Should this return __name__ or self.__class__.__name__ ?
-        return self.__class__.__name__
-
-    def __hash__(self):
-        # TODO: @Meelis: should this return hash(__name__) or hash(self.__class__.__name__) ?
-        return hash(self.__class__.__name__)
-
-    def execute(self, *args, **kwargs):
-        # Expecting at least: stream_def, start, end, writer
-        # Then expecting whatever parameters the tool requires.
-        raise NotImplementedError()
-
-    @staticmethod
-    def _normalise_kwargs(without, **kwargs):
-        return dict(filter(lambda (kk, vv): kk not in without, dict(kwargs).items()))
+    def execute(self, input_streams, interval, writer):
+        if not isinstance(interval, TimeInterval):
+            raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
+        logging.info('{} running from {} to {}'.format(self.__class__.__name__, str(interval.start), str(interval.end)))
+        self._execute(input_streams, interval, writer)

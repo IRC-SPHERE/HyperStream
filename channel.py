@@ -21,62 +21,93 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from utils import Printable, utcnow
-from channels import ToolChannel, SphereChannel, MemoryChannel, DatabaseChannel
-from errors import StreamNotFoundError, StreamAlreadyExistsError
+from errors import StreamNotFoundError, StreamAlreadyExistsError, ChannelNotFoundError
 from models import StreamDefinitionModel
 from stream import StreamId, StreamReference
 from modifiers import Identity
+from time_interval import TimeIntervals
 
-import logging
+# import logging
+from collections import namedtuple
 
 
-class ChannelCollection(Printable):
-    def __init__(self, tool_path):
-        self.tool_channel = ToolChannel("tools", tool_path, up_to_timestamp=utcnow())
-        self.sphere_channel = SphereChannel("sphere")
-        self.memory_channel = MemoryChannel("memory")
-        self.database_channel = DatabaseChannel("mongo")
+ChannelCollectionBase = namedtuple("ChannelCollectionBase", "tools sphere memory mongo", verbose=False, rename=False)
 
-        # TODO: find a more elegant solution for this
-        self.channels = {
-            'tools': self.tool_channel,
-            'sphere': self.sphere_channel,
-            'memory': self.memory_channel,
-            'database': self.database_channel
-        }
+
+class ChannelCollection(ChannelCollectionBase, Printable):
+    """
+    Container for the predefined channels.
+    """
+    def __new__(cls, tool_path):
+        """
+        This is immutable, so we use new instead of init
+        Note that we use deferred imports to avoid circular dependencies
+        :param tool_path: The tool path
+        :return: the ChannelCollection object
+        """
+        from channels import ToolChannel, SphereChannel, MemoryChannel, DatabaseChannel
+        self = super(ChannelCollection, cls).__new__(cls,
+                                                     tools=ToolChannel("tools", tool_path, up_to_timestamp=utcnow()),
+                                                     sphere=SphereChannel("sphere"),
+                                                     memory=MemoryChannel("memory"),
+                                                     mongo=DatabaseChannel("mongo")
+                                                     )
 
         self.update_channels()
-        for channel in self.channels:
-            logging.debug(channel)
-            logging.debug(self.channels[channel])
-            logging.debug("")
+        return self
 
     def get_stream(self, stream_id):
-        if stream_id in self.memory_channel:
-            return self.memory_channel[stream_id]
-        if stream_id in self.database_channel:
-            return self.database_channel[stream_id]
-        if stream_id in self.tool_channel:
-            return self.tool_channel[stream_id]
-        if stream_id in self.sphere_channel:
-            return self.sphere_channel[stream_id]
+        """
+        Searches all of the channels for a particular stream by id
+        :param stream_id: The stream id
+        :return: The stream reference
+        """
+        for channel in self:
+            if stream_id in channel.streams:
+                return channel.streams[stream_id]
         raise StreamNotFoundError("{} not found in channels".format(stream_id))
 
+    def get_channel(self, channel_id):
+        """
+        Get the channel by id
+        :param channel_id: The channel id
+        :return: The channel object
+        """
+        for channel in self:
+            if channel.channel_id == channel_id:
+                return channel
+        raise ChannelNotFoundError("Channel {} not found".format(channel_id))
+
     def update_channels(self):
+        """
+        Pulls out all of the stream definitions from the database, and populates the channels with stream references
+        :return: None
+        """
         for s in StreamDefinitionModel.objects():
             stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
-            channel = self.channels[s.channel]
+            # channel = self.channels[s.channel_id]
+            channel = self.get_channel(s.channel_id)
 
             # TODO: Do we need a TimeInterval defined here?
-            # TODO: Do we need anything other than Identity() for the modifier here?
+            # TODO: Do we need anything other than Identity() for the modifiers here?
 
             if stream_id in channel.streams:
                 raise StreamAlreadyExistsError(stream_id)
 
-            channel.streams[stream_id] = StreamReference(
-                channel_id=s.channel,
-                stream_id=stream_id,
-                time_interval=None,
-                modifier=Identity(),
-                get_results_func=channel.get_results
-            )
+            tool = self.tools.get_tool(s.tool_name, s.tool_version, **s.tool_parameters)
+
+            input_streams = []
+            for input_stream in s.input_streams:
+                input_streams.append(StreamId(name=input_stream.name, meta_data=input_stream.meta_data))
+
+            if tool:
+                channel.streams[stream_id] = StreamReference(
+                    channel=channel,
+                    stream_id=stream_id,
+                    tool=tool,
+                    time_interval=None,
+                    calculated_intervals=TimeIntervals(),
+                    modifiers=Identity(),
+                    get_results_func=channel.get_results,
+                    input_streams=input_streams
+                )

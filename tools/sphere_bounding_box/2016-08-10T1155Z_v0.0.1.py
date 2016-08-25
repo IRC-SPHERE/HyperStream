@@ -22,20 +22,15 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from hyperstream.tool import Tool
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
-import logging
 
 
 # TODO Switch to persistent connectivity rather than connecting each time
-
 class SphereBoundingBox(Tool):
+    sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True, include_redcap=False)
+
     def __init__(self):
-        self.sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
-                                                include_redcap=False)
+        super(SphereBoundingBox, self).__init__()
 
-    def normalise_kwargs(self, kwargs):
-        return self._normalise_kwargs({'optim', 'optim2'}, **kwargs)
-
-    def execute(self, stream_def, start, end, writer, modality):
-        logging.info('SphereBoundingBox running from ' + str(start) + ' to ' + str(end) + ' on modality' + modality)
-        window = DataWindow(start=start, end=end, sphere_connector=self.sphere_connector)
+    def _execute(self, input_streams, interval, writer):
+        window = DataWindow(start=interval.start, end=interval.end, sphere_connector=self.sphere_connector)
         writer(window.video.get_data(elements='2Dbb'))

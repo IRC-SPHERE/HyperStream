@@ -20,95 +20,97 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from memory_channel import ReadOnlyMemoryChannel
-from ..stream import StreamId, StreamReference
+from memory_channel import MemoryChannel
 from ..modifiers import Identity
-from ..time_interval import TimeIntervals, TimeInterval
-from ..utils import utcnow, MIN_DATE, MAX_DATE
+from ..time_interval import TimeIntervals
+from ..utils import MIN_DATE, MAX_DATE, timeit
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
-from ..errors import StreamNotFoundError
 
 
-class SphereChannel(ReadOnlyMemoryChannel):
+class SphereChannel(MemoryChannel):
+    sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
+                                       include_redcap=False, sphere_logger=None)
     """
     SPHERE MongoDB storing the raw sensor data
     """
 
     def __init__(self, channel_id, up_to_timestamp=None):
         super(SphereChannel, self).__init__(channel_id=channel_id)
-        #
-        # # TODO: Populate this from the Mongo database instead
-        # self.modalities = ('video', 'environmental')
-        # for modality in self.modalities:
-        #     if up_to_timestamp is None:
-        #         up_to_timestamp = utcnow()
-        #     intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
-        #
-        #     # TODO populate meta data here??? When do the streams get split?
-        #     stream_id = StreamId(name=modality, meta_data={})
-        #
-        #     self.state.calculated_intervals[stream_id] = intervals
-        #
-        #     # TODO: Not sure if the following is correct or necessary!
-        #     self.streams[stream_id] = StreamReference(
-        #         channel_id=channel_id,
-        #         stream_id=stream_id,
-        #         time_interval=TimeInterval(start=MIN_DATE, end=MAX_DATE),
-        #         modifier=Identity(),
-        #         get_results_func=self.get_results
-        #     )
 
         if up_to_timestamp is None:
-            up_to_timestamp = utcnow()
+            # TODO: maybe should be utcnow, but then we'd have to keep updating it?
+            up_to_timestamp = MAX_DATE  # utcnow()
 
         if up_to_timestamp > MIN_DATE:
-            self.update(up_to_timestamp)
+            self.update_streams(up_to_timestamp)
 
-        self.sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
-                                                include_redcap=False, sphere_logger=None)
+        # from collections import defaultdict
+        # self.visited = defaultdict(lambda: False)
 
     def update_streams(self, up_to_timestamp):
         """
         Call this function to report to the system that the SPHERE MongoDB is fully populated until up_to_timestamp
         """
         for stream_id in self.streams:
-            intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
-            self.state.calculated_intervals[stream_id] = intervals
+            self.streams[stream_id].calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
         self.up_to_timestamp = up_to_timestamp
 
-    def update_status(self):
-        # TODO: seems like this is done in update_streams?
-        pass
+    def get_results(self, stream_ref, **kwargs):
+        abs_interval = self.get_absolute_start_end(stream_ref)
 
-    def get_results(self, stream_ref, args, kwargs):
-        stream_id = stream_ref.stream_id
-        abs_end, abs_start = self.get_absolute_start_end(kwargs, stream_ref)
-        window = DataWindow(start=abs_start, end=abs_end, sphere_connector=self.sphere_connector)
+        # Testing for infinite recursion
+        # if self.visited[stream_ref]:
+        #     raise Exception("OUCH!")
+        # self.visited[stream_ref] = True
 
-        if stream_id.name not in self.modalities:
-            raise KeyError('The stream ID must be in the set {' + ','.join(self.modalities) + '}')
+        # TODO: use the need_to_calc_times like the tool channel does
 
-        if stream_id.name == 'video':
-            data = window.video.get_data(elements={"2Dbb"})
-        elif stream_id.name == 'environmental':
-            data = window.environmental.get_data()
-        else:
-            raise StreamNotFoundError(stream_id)
+        window = DataWindow(start=abs_interval.start, end=abs_interval.end, sphere_connector=self.sphere_connector)
 
-        def reformat(doc):
-            timestamp = doc['datetime']
-            del doc['datetime']
-            return timestamp, doc
+        # METHOD 1: Directly connect to SPHERE - no need for SPHERE tool
+        @timeit
+        def method1():
+            if "modality" not in kwargs:
+                raise KeyError("modality not in tool_parameters")
+            if kwargs["modality"] not in window.modalities:
+                raise ValueError("unknown modality {}".format(kwargs["modality"]))
+            elements = kwargs["elements"] if "elements" in kwargs else None
+            return map(reformat, window.modalities[kwargs["modality"]].get_data(elements=elements))
+
+        # METHOD 2: Use the tools
+        @timeit
+        def method2():
+            # TODO: tool.tool is ugly
+            stream_ref.tool.tool.execute(None, abs_interval, stream_ref.writer)
+            # stream_ref.tool.execute(abs_interval, stream_ref.writer)
+            stream_ref.calculated_intervals += TimeIntervals([abs_interval])
+
+            return ((timestamp, data) for (timestamp, data) in self.data[stream_ref.stream_id]
+                    if timestamp in abs_interval)
+            # result = []
+            # for (timestamp, data) in self.data[stream_ref.stream_id]:
+            #     if abs_interval.start < timestamp <= abs_interval.end:
+            #         result.append((timestamp, data))
+            # return result
+
+        # result1 = method1()
+        result2 = method2()
+
+        # assert(all(x == y for x, y in zip(result1, result2)))
 
         # assume that the data are already sorted by time
-        result = stream_ref.modifier.execute(
-            (reformat(doc) for doc in data))  # make a generator out from result and then apply the modifier
-        return result
+        return stream_ref.modifiers.execute(result2)
 
     def get_default_ref(self):
-        return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifier': Identity()}
+        return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifiers': Identity()}
 
-        # def __getitem__(self, item):
-        #     import ipdb
-        #     ipdb.set_trace()
-        #     return super(SphereChannel, self).__getitem__(item)
+    def get_stream_writer(self, stream_id):
+        def writer(document_collection):
+            self.data[stream_id].extend(map(reformat, document_collection))
+        return writer
+
+
+def reformat(doc):
+    dt = doc['datetime']
+    del doc['datetime']
+    return dt, doc
