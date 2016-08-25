@@ -23,9 +23,9 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from utils import Printable, utcnow
 from errors import StreamNotFoundError, StreamAlreadyExistsError, ChannelNotFoundError
 from models import StreamDefinitionModel
-from stream import StreamId, StreamReference
+from stream import StreamId, Stream
 from modifiers import Identity
-from time_interval import TimeIntervals
+from time_interval import TimeInterval, TimeIntervals
 
 # import logging
 from collections import namedtuple
@@ -94,20 +94,24 @@ class ChannelCollection(ChannelCollectionBase, Printable):
             if stream_id in channel.streams:
                 raise StreamAlreadyExistsError(stream_id)
 
-            tool = self.tools.get_tool(s.tool_name, s.tool_version, **s.tool_parameters)
+            # TODO: Use tool versions
+            tool_class = self.tools[StreamId(s.tool_name)].items()
+            tool = tool_class(**s.tool_parameters)
+
+            # tool = self.tools.get_tool(s.tool_name, s.tool_version, s.tool_parameters)
 
             input_streams = []
             for input_stream in s.input_streams:
                 input_streams.append(StreamId(name=input_stream.name, meta_data=input_stream.meta_data))
 
             if tool:
-                channel.streams[stream_id] = StreamReference(
+                channel.streams[stream_id] = Stream(
                     channel=channel,
                     stream_id=stream_id,
                     tool=tool,
-                    time_interval=None,
+                    time_interval=None,   # TODO
                     calculated_intervals=TimeIntervals(),
                     modifiers=Identity(),
-                    get_results_func=channel.get_results,
+                    # get_results_func=channel.get_results,
                     input_streams=input_streams
                 )

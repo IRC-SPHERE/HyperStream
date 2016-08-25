@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from base_channel import BaseChannel
-from ..stream import StreamReference
+from ..stream import Stream, StreamInstance
 from ..modifiers import Identity
 from datetime import timedelta
 from ..time_interval import TimeIntervals, TimeInterval
@@ -36,57 +36,62 @@ class MemoryChannel(BaseChannel):
         self.max_stream_id = 0
         self.data = defaultdict(list)
 
-    def create_stream(self, stream_id, tool):
+    def create_stream(self, stream_id, tool=None):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
         identifier stream_id
         """
         # TODO: check time_interval and get_results_func in the below
-        self.streams[stream_id] = StreamReference(
-            channel=self,
-            stream_id=stream_id,
-            time_interval=TimeInterval(MIN_DATE, MAX_DATE),
-            calculated_intervals=TimeIntervals(),
-            modifiers=Identity(),
-            get_results_func=tool.execute,
-            tool=tool,
-            input_streams=None
-        )
+        # TODO: Tool definition is a bit ugly
+        try:
+            self.streams[stream_id] = Stream(
+                channel=self,
+                stream_id=stream_id,
+                time_interval=TimeInterval(MIN_DATE, MAX_DATE),
+                calculated_intervals=TimeIntervals(),
+                modifiers=Identity(),
+                tool=tool.items()(**tool.kwargs) if tool else None,
+                input_streams=tool.input_streams if tool else None
+            )
+        except TypeError as e:
+            # TODO: for debugging
+            raise e
+
+        return self.streams[stream_id]
 
     def update_streams(self, up_to_timestamp):
         raise NotImplementedError
 
-    def get_results(self, stream_ref, **kwargs):
-        abs_interval = self.get_absolute_start_end(stream_ref)
+    def check_calculation_times(self):
+        pass
 
-        need_to_calc_times = TimeIntervals([abs_interval]) - stream_ref.calculated_intervals
+    def _get_data(self, stream_ref):
+        """
+        Get the data generator. Sorts on timestamp
+        :param stream_ref: The stream reference
+        :param kwargs: The keyword arguments
+        :return: The data generator
+        """
+        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream_ref.stream_id]
+                       if timestamp in stream_ref.absolute_interval), key=lambda x: x.timestamp)
 
-        if not need_to_calc_times.is_empty:
-            for interval in need_to_calc_times.intervals:
-                try:
-                    stream_ref.tool.execute(stream_ref.input_streams, interval=interval, writer=stream_ref.writer)
-                except AttributeError as e:
-                    # TODO: for debugging
-                    raise e
+    def get_results(self, stream_ref):
+        """
+        Calculates/receives the documents in the stream interval determined by the stream_ref
+        :param stream_ref: The stream reference
+        :param kwargs: Keyword arguments
+        :return:
+        """
+        if not stream_ref.required_intervals.is_empty:
+            for interval in stream_ref.required_intervals:
+                self.execute_tool(stream_ref, interval)
                 stream_ref.calculated_intervals += TimeIntervals([interval])
 
-            need_to_calc_times = TimeIntervals([abs_interval]) - stream_ref.calculated_intervals
-            # logging.debug(stream_ref.calculated_intervals)
-            # logging.debug(need_to_calc_times)
+            if stream_ref.required_intervals.is_not_empty:
+                raise RuntimeError('Tool execution did not cover the specified interval.')
 
-            if need_to_calc_times.is_not_empty:
-                raise ValueError('Tool execution did not cover the specified interval.')
+        return stream_ref.modifiers.execute(iter(self._get_data(stream_ref)))
 
-        result = []
-        for (timestamp, data) in self.data[stream_ref.stream_id]:
-            if timestamp in abs_interval:
-                result.append((timestamp, data))
-
-        result.sort(key=lambda x: x[0])
-        result = stream_ref.modifiers.execute(iter(result))
-        
-        return result
-    
     def get_stream_writer(self, stream_id):
         def writer(document_collection):
             self.data[stream_id].extend(document_collection)
@@ -118,11 +123,11 @@ class ReadOnlyMemoryChannel(BaseChannel):
             self.update_streams(up_to_timestamp)
             self.update_state(up_to_timestamp)
 
-    def create_stream(self, stream_id, tool):
-        raise ValueError("Read-only channel")
-    
+    def create_stream(self, stream_id, tool=None):
+        raise RuntimeError("Read-only channel")
+
     def get_stream_writer(self, stream_id):
-        raise ValueError("Read-only channel")
+        raise RuntimeError("Read-only channel")
     
     # def str_stream(self, stream_id):
     #     return 'externally defined, memory-based, read-only stream'
@@ -143,7 +148,8 @@ class ReadOnlyMemoryChannel(BaseChannel):
             self.streams[stream_id].calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
         self.up_to_timestamp = up_to_timestamp
     
-    def get_results(self, stream_ref, **kwargs):
+    def get_results(self, stream_ref):
+        # TODO: make this behave like the other channels
         start = stream_ref.time_interval.start
         end = stream_ref.time_interval.end
         if isinstance(start, timedelta) or isinstance(end, timedelta):
@@ -154,8 +160,6 @@ class ReadOnlyMemoryChannel(BaseChannel):
         result = []
         for (tool_info, data) in self.streams[stream_ref.stream_id]:
             if start < tool_info.timestamp <= end:
-                result.append((tool_info.timestamp, data))
-        result.sort(key=lambda x: x[0])
-        result = stream_ref.modifiers.execute(
-            (x for x in result))  # make a generator out from result and then apply the modifiers
+                result.append(StreamInstance(tool_info.timestamp, data))
+        result = stream_ref.modifiers.execute(iter(sorted(result, key=lambda x: x.timestamp)))
         return result
