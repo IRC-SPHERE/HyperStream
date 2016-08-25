@@ -20,12 +20,19 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from hyperstream.tool import Tool
+from hyperstream import Tool
 
 
-class LocationPredictor(Tool):
-    def __init__(self):
-        super(LocationPredictor, self).__init__()
+class SurelyEmpty(Tool):
+    def __init__(self, threshold):
+        super(SurelyEmpty, self).__init__(threshold=threshold)
+        self.threshold = threshold
 
     def _execute(self, input_streams, interval, writer):
-        writer(None)
+        if len(input_streams) != 1:
+            raise ValueError("SurelyEmpty stream operates on a single stream")
+
+        # Convert the location probability vector to an empty room vector using the threshold given
+        for (timestamp, value) in self.input_streams[0].items():
+            yield(timestamp, [x for x in value if x > self.threshold])
+

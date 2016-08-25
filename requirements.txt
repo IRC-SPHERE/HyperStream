@@ -1,3 +1,5 @@
+bidict
+future
 datadiff
 matplotlib
 mongoengine

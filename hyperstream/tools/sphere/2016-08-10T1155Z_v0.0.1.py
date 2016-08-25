@@ -22,20 +22,17 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from hyperstream.tool import Tool
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
-import logging
 
 
 # TODO Switch to persistent connectivity rather than connecting each time
 class Sphere(Tool):
-    def __init__(self):
-        self.sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
-                                                include_redcap=False)
+    sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True, include_redcap=False)
 
-    def normalise_kwargs(self, kwargs):
-        return self._normalise_kwargs({'optim', 'optim2'}, **kwargs)
+    def __init__(self, modality):
+        super(Sphere, self).__init__(modality=modality)
+        self.modality = modality
 
-    def execute(self, stream_def, start, end, writer, modality):
-        logging.info('Sphere running from ' + str(start) + ' to ' + str(end) + ' on modality' + modality)
-        window = DataWindow(start=start, end=end, sphere_connector=self.sphere_connector)
-        source = window.modalities[modality]
+    def _execute(self, input_streams, interval, writer):
+        window = DataWindow(start=interval.start, end=interval.end, sphere_connector=self.sphere_connector)
+        source = window.modalities[self.modality]
         writer(source.get_data())

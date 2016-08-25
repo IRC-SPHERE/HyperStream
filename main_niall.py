@@ -23,19 +23,16 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
 from datetime import datetime, timedelta
-import pytz
 
-from hyperstream.config import HyperStreamConfig
-from hyperstream.online_engine import OnlineEngine
-from hyperstream.stream import StreamId
-from hyperstream import modifiers
+from hyperstream import OnlineEngine, HyperStreamConfig, StreamId
+from hyperstream.modifiers import List, Average, Count, Component, First, IData, Data, Time, Head
 from hyperstream.utils import UTC
 from sphere_connector_package.sphere_connector import SphereConnector, SphereLogger
 
 if __name__ == '__main__':
     # TODO: would be nice to be able to refer to this sphere_connector object from the sphere_ tools
     connected = False
-    sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.ERROR)
+    sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
     sphere_connector = SphereConnector(include_mongo=True, include_redcap=False, sphere_logger=sphere_logger)
     
     hyperstream_config = HyperStreamConfig()
@@ -44,21 +41,20 @@ if __name__ == '__main__':
     
     # Various constants
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
-    t2 = t1 + timedelta(minutes=1)
+    t2 = t1 + timedelta(minutes=5)
     second = timedelta(seconds=1)
     minute = timedelta(minutes=1)
     hour = timedelta(hours=1)
-    
-    e = StreamId(name='environmental')
-    
+
     # Various channels
-    M = online_engine.channels.memory_channel
-    S = online_engine.channels.sphere_channel
-    T = online_engine.channels.tool_channel
+    M = online_engine.channels.memory
+    S = online_engine.channels.sphere
+    T = online_engine.channels.tools
     
     # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
+    environmental = StreamId(name='environmental', meta_data={'house': "1"})
     clock = StreamId('clock')
-    merge = StreamId('merge')
+    aggregate = StreamId('aggregate')
     every30s = StreamId('every30s')
     motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
     m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
@@ -69,22 +65,27 @@ if __name__ == '__main__':
     # Simple query
     from pprint import pprint
     
-    # pprint(S[e, t1, t1 + minute, modifiers.Component('motion-S1_K') + modifiers.List()]())
-    
-    # Window'd querying
-    M[every30s] = T[clock, modifiers.First() + modifiers.IData()](stride=30 * second)
-    m_kitchen_30_s_window = S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
+    # Windowed querying
+    # M[every30s] = T[clock].define(stride=30 * second).modify(First() + IData())
+    # M[every30s] = T[clock].define(stride=30 * second).modify(Head(1) + Data())
+    # M[every30s] = T[clock].define(stride=30 * second).modify(Time())
+    M[every30s] = T[clock].define(stride=30 * second)
 
-    M[aver] = T[merge](
+    # m_kitchen_30_s_window = \
+    #     S[environmental].define(modality='environmental').window(-30, 0).modify(Component('motion-S1_K'))
+    m_kitchen_30_s_window = S[environmental].define(modality='environmental').modify(Component('motion-S1_K'))
+
+    M[aver] = T[aggregate].define(
+        input_streams=[m_kitchen_30_s_window],
         timer=M[every30s],
-        data=m_kitchen_30_s_window,
-        func=modifiers.Data() + modifiers.Average()
+        func=Data() + Average()
     )
-    M[count] = T[merge](
+
+    M[count] = T[aggregate].define(
+        input_streams=[m_kitchen_30_s_window],
         timer=M[every30s],
-        data=m_kitchen_30_s_window,
-        func=modifiers.Data() + modifiers.Count()
+        func=Data() + Count()
     )
     
-    pprint(M[aver, t1, t1 + 5 * minute, modifiers.List()]())
-    pprint(M[count, t1, t1 + 5 * minute, modifiers.List()]())
+    pprint(M[aver].window((t1, t2)).modify(List()).items())
+    pprint(M[count].window((t1, t2)).modify(List()).items())

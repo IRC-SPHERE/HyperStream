@@ -30,6 +30,13 @@ class StreamAlreadyExistsError(Exception):
     pass
 
 
+class StreamDataNotAvailableError(Exception):
+    pass
+
+
 class ToolNotFoundError(Exception):
     pass
 
+
+class ChannelNotFoundError(Exception):
+    pass

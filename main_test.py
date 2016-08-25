@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
     # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
     clock = StreamId('clock')
-    merge = StreamId('merge')
+    aggregate = StreamId('aggregate')
     every30s = StreamId('every30s')
     motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
     m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     # Window'd querying
     M[every30s] = T[clock](stride=30 * second)
-    # M[motion_kitchen_windowed] = T[merge](
+    # M[motion_kitchen_windowed] = T[aggregate](
     #     timer=M[every30s],
     #     data=S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')],
     #     func=modifiers.Data()
@@ -87,13 +87,13 @@ if __name__ == '__main__':
 
     # M[m_kitchen_30_s_window] = S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
     
-    M[average] = T[merge](
+    M[average] = T[aggregate](
         timer=M[every30s],
         data=S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')],
         func=modifiers.Data()+modifiers.Average()
     )
     
-    M[sum_] = T[merge](
+    M[sum_] = T[aggregate](
         timer=M[every30s],
         data=S[e, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')],
         func=modifiers.Data() + modifiers.Sum()

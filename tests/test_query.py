@@ -22,7 +22,8 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import unittest
 
-from hyperstream import TimeInterval, TimeIntervals, modifiers
+from hyperstream import TimeInterval, TimeIntervals
+from hyperstream.modifiers import *
 from helpers import *
 
 
@@ -65,8 +66,8 @@ class HyperStringTests(unittest.TestCase):
     
     def test_simple_query(self):
         # Simple querying
-        el = S[environmental, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.List()]()
-        edl = S[environmental, t1, t1 + minute, modifiers.Component('electricity-04063') + modifiers.Data() + modifiers.List()]()
+        el = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063') + List()).items()
+        edl = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063') + Data() + List()).items()
         
         q1 = "\n".join("=".join(map(str, ee)) for ee in el)
         
@@ -79,33 +80,35 @@ class HyperStringTests(unittest.TestCase):
                       '2016-04-28 20:00:25.125000+00:00=0.0\n'
                       '2016-04-28 20:00:31.405000+00:00=0.0\n'
                       '2016-04-28 20:00:50.132000+00:00=0.0')
+
+        # TODO: This test is failing because the calculated intervals aren't being updated, so it's being calculated twice
         assert (edl == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_average(self):
-        M[every30s] = T[clock](stride=30 * second)
-        mk_30s = S[environmental, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
+        M[every30s] = T[clock].define(stride=30 * second)
+        mk_30s = S[environmental].window((-30 * second, 0)).modify(Component('motion-S1_K'))
         
-        M[average] = T[merge](
+        M[average] = T[aggregate].define(
             timer=M[every30s],
-            data=mk_30s,
-            func=modifiers.Data() + modifiers.Average()
+            input_streams=[mk_30s],
+            func=Data() + Average()
         )
         
-        aa = M[average, t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
+        aa = M[average].window((t1, t1 + 5 * minute)).modify(Data() + List()).items()
         
         assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_count(self):
-        M[every30s] = T[clock](stride=30 * second)
-        mk_30s = S[environmental, -30 * second, timedelta(0), modifiers.Component('motion-S1_K')]
+        M[every30s] = T[clock].define(stride=30 * second)
+        mk_30s = S[environmental].window((-30 * second, 0)).modify(Component('motion-S1_K'))
         
-        M[count] = T[merge](
+        M[count] = T[aggregate].define(
             timer=M[every30s],
-            data=mk_30s,
-            func=modifiers.Data() + modifiers.Count()
+            input_streams=[mk_30s],
+            func=Data() + Count()
         )
         
-        cc = M[count, t1, t1 + 5 * minute, modifiers.Data() + modifiers.List()]()
+        cc = M[count].window((t1, t1 + 5 * minute)).modify(Data() + List()).items()
         
         assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])
 

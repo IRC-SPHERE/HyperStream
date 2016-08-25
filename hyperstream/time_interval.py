@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from utils import utcnow, UTC, Printable
+from utils import MIN_DATE, MAX_DATE, utcnow, UTC, Printable
 
 from datetime import date, datetime, timedelta
 from dateutil.parser import parse
@@ -156,10 +156,16 @@ class TimeInterval(object):
         return "{}(start={}, end={})".format(self.__class__.__name__, repr(self.start), repr(self.end))
 
     def __eq__(self, other):
-        return (self.start == other.start) and (self.end == other.end)
-    
+        return isinstance(other, TimeInterval) and self.start == other.start and self.end == other.end
+
+    def __ne__(self, other):
+        return not self == other
+
     def __hash__(self):
         return hash((self.start, self.end))
+
+    def __contains__(self, item):
+        return self.start < item <= self.end
 
 
 class RelativeTimeInterval(TimeInterval):
@@ -168,38 +174,55 @@ class RelativeTimeInterval(TimeInterval):
         
     def validate_types(self, val):
         if not isinstance(val, timedelta):
-            raise TypeError("start should datetime.datetime object")
+            raise TypeError("start should datetime.timedelta object")
         
         if self._end is not None and val >= self._end:
             raise ValueError("start should be < end")
 
 
 def parse_time_tuple(start, end):
-    now = utcnow()
+    """
+    Parse a time tuple. These can be:
+      relative in seconds,       e.g. (-4, 0)
+      relative in timedelta,     e.g. (timdelta(seconds=-4), timedelta(0))
+      absolute in date/datetime, e.g. (datetime(2016, 4, 28, 20, 0, 0, 0, UTC), datetime(2016, 4, 28, 21, 0, 0, 0, UTC))
+      absolute in iso strings,   e.g. ("2016-04-28T20:00:00.000Z", "2016-04-28T20:01:00.000Z")
+    Mixtures of relative and absolute are not allowed
+    :param start: Start time
+    :param end: End time
+    :return: TimeInterval or RelativeTimeInterval object
+    """
     if isinstance(start, int):
-        offset = timedelta(seconds=start)
-        start_time = now - offset
-    elif start is None:
-        start_time = datetime.min.replace(tzinfo=UTC)
-    elif isinstance(start, datetime):
+        start_time = timedelta(seconds=start)
+    elif isinstance(start, timedelta):
         start_time = start
+    elif start is None:
+        start_time = MIN_DATE
+    elif isinstance(start, (date, datetime)):
+        start_time = start.replace(tzinfo=UTC)
     else:
-        start_time = parse(start)
+        start_time = parse(start).replace(tzinfo=UTC)
     
     if isinstance(end, int):
         # TODO: add check for future (negative values) and ensure that start < end
-        offset = timedelta(seconds=end)
-        end_time = now - offset
-    elif end is None:
-        end_time = now
-    elif isinstance(end, datetime):
+        if not isinstance(start_time, timedelta):
+            raise ValueError("Can't mix relative and absolute times")
+        end_time = timedelta(seconds=end)
+    elif isinstance(end, timedelta):
+        if not isinstance(start_time, timedelta):
+            raise ValueError("Can't mix relative and absolute times")
         end_time = end
+    elif end is None:
+        end_time = utcnow()  # TODO: or MAX_DATE?
+    elif isinstance(end, datetime):
+        end_time = end.replace(tzinfo=UTC)
     else:
-        end_time = parse(end)
+        end_time = parse(end).replace(tzinfo=UTC)
 
-    start.replace(tzinfo=UTC)
-    end.replace(tzinfo=UTC)
-    return TimeInterval(start=start_time, end=end_time)
+    if isinstance(start_time, timedelta):
+        return RelativeTimeInterval(start=start_time, end=end_time)
+    else:
+        return TimeInterval(start=start_time, end=end_time)
 
 
 def compare_time_ranges(desired_ranges, computed_ranges):

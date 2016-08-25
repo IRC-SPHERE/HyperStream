@@ -46,15 +46,15 @@ online_engine = OnlineEngine(hyperstream_config)
 
 
 # Various channels
-M = online_engine.channels.memory_channel
-S = online_engine.channels.sphere_channel
-T = online_engine.channels.tool_channel
+M = online_engine.channels.memory
+S = online_engine.channels.sphere
+T = online_engine.channels.tools
 
 
 # Some useful Stream IDs
-environmental = StreamId('environmental')
+environmental = StreamId('environmental', meta_data={'house': '1'})
 clock = StreamId('clock')
-merge = StreamId('merge')
+aggregate = StreamId('aggregate')
 every30s = StreamId('every30s')
 motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
 m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
