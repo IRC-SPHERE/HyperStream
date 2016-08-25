@@ -86,7 +86,7 @@ class SphereChannel(MemoryChannel):
 
         # TODO: use the need_to_calc_times like the tool channel does
 
-        window = DataWindow(start=abs_interval.start, end=abs_interval.end, sphere_connector=sphere_connector)
+        window = SphereDataWindow(abs_interval)
 
         # METHOD 1: Directly connect to SPHERE - no need for SPHERE tool
         @timeit

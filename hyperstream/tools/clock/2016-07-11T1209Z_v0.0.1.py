@@ -21,7 +21,8 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from hyperstream import Tool, TimeInterval
+from hyperstream import TimeInterval
+from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.utils import MIN_DATE
 from datetime import timedelta
 import logging
@@ -46,6 +47,7 @@ class Clock(Tool):
             self.__class__.__name__, str(interval.start), str(interval.end), str(self.stride)))
         self._execute(input_streams, interval, writer)
 
+    @check_input_stream_count(0)
     def _execute(self, input_streams, interval, writer):
         if interval.start < self.first:
             interval.start = self.first

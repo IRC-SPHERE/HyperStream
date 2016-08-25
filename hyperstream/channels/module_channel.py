@@ -57,7 +57,7 @@ class ModuleChannel(FileChannel):
         
         def module_importer():
             with open(module_file, 'rb') as fp:
-                logging.debug('importing: ' + module_file)
+                # logging.debug('importing: ' + module_file)
                 module_name = '_'.join(map(lambda pp: sub(r'[^a-zA-Z0-9]', '_', pp), module_file_components))
                 
                 module = imp.load_module(

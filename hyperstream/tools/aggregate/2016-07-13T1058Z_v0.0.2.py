@@ -20,7 +20,8 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from hyperstream import Tool, TimeInterval, RelativeTimeInterval
+from hyperstream import TimeInterval, RelativeTimeInterval
+from hyperstream.tool import Tool, check_input_stream_count
 from datetime import timedelta
 
 
@@ -30,10 +31,8 @@ class Aggregate(Tool):
         self.timer = timer
         self.func = func
 
+    @check_input_stream_count(1)
     def _execute(self, input_streams, interval, writer):
-        if not input_streams or len(input_streams) != 1:
-            raise ValueError("Aggregate tool takes a single stream as input")
-
         rel_start = timedelta(0)
         rel_end = timedelta(0)
         if isinstance(input_streams[0].time_interval, RelativeTimeInterval):
@@ -72,14 +71,8 @@ class Aggregate(Tool):
                         pass
                 except StopIteration:
                     break
-                except TypeError:
-                    raise
             # single-document case:
-            try:
-                writer([(t, self.func.execute(iter(window)))])
-            except Exception as e:
-                # TODO: for debugging
-                raise e
+            writer([(t, self.func.execute(iter(window)))])
             # multi-document case:
             # for x in func( (doc for doc in window) ):
             #        writer([(t,x)])

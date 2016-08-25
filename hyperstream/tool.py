@@ -28,9 +28,9 @@ from utils import Printable, Hashable
 class Tool(Printable, Hashable):
     def __init__(self, **kwargs):
         if kwargs:
-            logging.info('Defining a {} stream with kwargs {}'.format(self.__class__.__name__, kwargs))
+            logging.debug('Defining a {} stream with kwargs {}'.format(self.__class__.__name__, kwargs))
         else:
-            logging.info('Defining a {} stream'.format(self.__class__.__name__))
+            logging.debug('Defining a {} stream'.format(self.__class__.__name__))
 
     def __eq__(self, other):
         # TODO: requires a unit test
@@ -48,3 +48,25 @@ class Tool(Printable, Hashable):
             raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
         logging.info('{} running from {} to {}'.format(self.__class__.__name__, str(interval.start), str(interval.end)))
         self._execute(input_streams, interval, writer)
+
+
+def check_input_stream_count(expected_number_of_streams):
+    """
+    Decorator for Tool._execute that checks the number of input streams
+    :param expected_number_of_streams: The expected number of streams
+    :return: the decorator
+    """
+    def stream_count_decorator(func):
+        def func_wrapper(*args, **kwargs):
+            self = args[0]
+            input_streams = kwargs['time_interval'] if 'time_interval' in kwargs else args[1]
+            if expected_number_of_streams == 0:
+                if input_streams:
+                    raise ValueError("No input streams expected")
+            else:
+                if not input_streams or len(input_streams) != expected_number_of_streams:
+                    raise ValueError("{} tool takes {} stream(s) as input".format(
+                        self.__class__.__name__, expected_number_of_streams))
+            return func(*args, **kwargs)
+        return func_wrapper
+    return stream_count_decorator
