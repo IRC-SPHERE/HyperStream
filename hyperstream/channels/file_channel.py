@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from memory_channel import ReadOnlyMemoryChannel
-from ..stream import StreamId, StreamReference
+from ..stream import StreamId, Stream
 
 from ..modifiers import Identity, Last, IData
 from ..utils import Printable, MIN_DATE, UTC
@@ -99,13 +99,13 @@ class FileChannel(ReadOnlyMemoryChannel):
             #         self.streams[stream_id].append((tool_info, self.data_loader(stream_id.name, tool_info)))
 
             # TODO: why lambda: None for the get_results_func?
-            self.streams[stream_id] = StreamReference(
+            self.streams[stream_id] = Stream(
                 channel=self,
                 stream_id=stream_id,
                 time_interval=TimeInterval(start=MIN_DATE, end=up_to_timestamp),
                 calculated_intervals=TimeIntervals(),
                 modifiers=Last() + IData(),
-                get_results_func=lambda stream_ref, **kwargs: self.get_results(stream_ref, **kwargs),
+                # get_results_func=lambda stream_ref, **kwargs: self.get_results(stream_ref, **kwargs),
                 tool=None,
                 input_streams=None
             )
@@ -116,19 +116,13 @@ class FileChannel(ReadOnlyMemoryChannel):
     def get_default_ref(self):
         return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifiers': Identity()}
     
-    def get_results(self, stream_ref, **kwargs):
-        # start = stream_ref.time_interval.start
-        # end = stream_ref.time_interval.end
-        
-        # if isinstance(start, timedelta) or isinstance(end, timedelta):
-        #     raise ValueError('Cannot calculate a relative stream_ref')
-        
+    def get_results(self, stream_ref):
+        # TODO: Make this behave like the other channels
         if stream_ref.time_interval.end > self.up_to_timestamp:
             raise ValueError(
                 'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
         
         result = []
-        
         module_path = os.path.join(self.path, stream_ref.stream_id.name)
         
         for tool_info in self.file_filter(sorted(os.listdir(module_path))):

@@ -23,20 +23,36 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from time_interval import TimeIntervals, parse_time_tuple, RelativeTimeInterval, TimeInterval
 from utils import Printable, Hashable, TypedBiDict
 from modifiers import Modifier, Identity
+from errors import StreamDataNotAvailableError
+
 import logging
-from collections import Iterable
+from collections import Iterable, namedtuple
+from datetime import timedelta, datetime
+
+
+class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
+    """
+    Simple helper class for storing data instances that's a bit neater than simple tuples
+    """
+    def __new__(cls, timestamp, value):
+        if not isinstance(timestamp, datetime):
+            raise ValueError("Timestamp must be datetime.datetime")
+        return super(StreamInstance, cls).__new__(cls, timestamp, value)
 
 
 class StreamDict(TypedBiDict):
     """
-    Custom bi-directional dictionary where keys are StreamID objects and values are StreamReference objects.
-    Raises ValueDuplicationError if the same StreamReference is added again
+    Custom bi-directional dictionary where keys are StreamID objects and values are Stream objects.
+    Raises ValueDuplicationError if the same Stream is added again
     """
     def __init__(self, *args, **kwargs):
-        super(StreamDict, self).__init__(StreamId, StreamReference, *args, **kwargs)
+        super(StreamDict, self).__init__(StreamId, Stream, *args, **kwargs)
 
 
 class StreamId(Hashable):
+    """
+    Helper class for stream identifiers. A stream identifier contains the stream name and any meta-data
+    """
     def __init__(self, name, meta_data=None):
         self.name = name
         self.meta_data = meta_data if meta_data else {}
@@ -54,18 +70,28 @@ class StreamId(Hashable):
             repr(self.meta_data)
         )
 
-    # def __hash__(self):
-    #     return hash((self.name, repr(sorted(self.meta_data.items()))))
-
     def __eq__(self, other):
         return isinstance(other, StreamId) and \
                self.name == other.name and \
                sorted(self.meta_data) == sorted(other.meta_data)
 
 
-class StreamReference(Printable, Hashable):
-    def __init__(self, channel, stream_id, time_interval, calculated_intervals, modifiers, get_results_func, tool,
-                 input_streams):
+class Stream(Printable, Hashable):
+    """
+    Stream reference class
+    """
+    _calculated_intervals = None
+
+    def __init__(self, channel, stream_id, time_interval, calculated_intervals, modifiers, tool, input_streams):
+        """
+        :type channel: BaseChannel
+        :type stream_id: StreamId
+        :type time_interval: TimeInterval
+        :type calculated_intervals: TimeIntervals
+        :type modifiers: Modifier
+        :type get_results_func: func
+        :type tool: Stream
+        """
         self.channel = channel
         if not isinstance(stream_id, StreamId):
             raise TypeError(str(type(stream_id)))
@@ -74,39 +100,38 @@ class StreamReference(Printable, Hashable):
         if modifiers is None:
             raise ValueError(modifiers)
         self.modifiers = modifiers
-        self.get_results_func = get_results_func
+        # self.get_results_func = get_results_func
         if not isinstance(calculated_intervals, TimeIntervals):
             raise TypeError(str(type(calculated_intervals)))
         self.calculated_intervals = calculated_intervals
         self.kwargs = {}
-        # if tool and not isinstance(tool, Tool):
-        #     raise ValueError("Expected Tool, got {}".format(type(tool)))
-        # TODO tool is now itself a stream_ref
         self.tool = tool
         self.input_streams = input_streams
 
     def __str__(self):
-        # Deferred imports to avoid circular dependency
-        # from channels import ReadOnlyMemoryChannel, FileChannel
-        # if isinstance(self.channel, ReadOnlyMemoryChannel):
-        #     return 'externally defined, memory-based, read-only stream'
-        # if isinstance(self.channel, FileChannel):
-        #     return 'externally defined by the file system, read-only stream'
-
-        s = "StreamReference"
-        s += "\n      CHANNEL_ID  : " + repr(self.channel.channel_id)
-        s += "\n      STREAM_ID   : " + repr(self.stream_id)
-        s += "\n      START       : " + repr(self.time_interval.start if self.time_interval else None)
-        s += "\n      END         : " + repr(self.time_interval.end if self.time_interval else None)
-        s += "\n      MODIFIERS   : " + repr(self.modifiers)
-        s += "\n    "
-        return s
+        return "{}(stream_id={}, channel_id={}, interval={}, modifiers={})".format(
+            self.__class__.__name__, self.stream_id, self.channel.channel_id, self.time_interval, self.modifiers)
+        # s = "Stream"
+        # s += "\n      CHANNEL_ID  : " + repr(self.channel.channel_id)
+        # s += "\n      STREAM_ID   : " + repr(self.stream_id)
+        # s += "\n      START       : " + repr(self.time_interval.start if self.time_interval else None)
+        # s += "\n      END         : " + repr(self.time_interval.end if self.time_interval else None)
+        # s += "\n      MODIFIERS   : " + repr(self.modifiers)
+        # s += "\n    "
+        # return s
 
     def __eq__(self, other):
         return str(self) == str(other)
 
-    # def __hash__(self):
-    #     return hash(str(self))
+    @property
+    def calculated_intervals(self):
+        # TODO: this should be read from the stream_status collection if it's in the database channel
+        return self._calculated_intervals
+
+    @calculated_intervals.setter
+    def calculated_intervals(self, value):
+        # TODO: this should be written to the stream_status collection if it's in the database channel
+        self._calculated_intervals = value
 
     @property
     def writer(self):
@@ -114,30 +139,18 @@ class StreamReference(Printable, Hashable):
 
     def define(self, input_streams=None, **kwargs):
         """
-        Define the stream with the given keyword arguments
+        Define the stream with the given input streams and keyword arguments
         :param input_streams: The input streams
         :param kwargs: keyword arguments
-        :return: the stream reference
+        :return: self (for chaining)
         """
-        # TODO: better documentation
         # Don't obliterate existing input_streams definition if there was one
         if input_streams:
             self.input_streams = input_streams
 
         # TODO: Possibly combine with existing kwargs ... defaults?
         self.kwargs = kwargs
-
-        # Deferred imports to avoid circular dependency
-        from channels import ToolChannel
-
-        if isinstance(self.channel, ToolChannel):
-            try:
-                return self.get_results_func(self, **kwargs)
-            except TypeError as e:
-                # TODO: for debugging
-                raise e
-        else:
-            return self
+        return self
 
     def window(self, time_interval):
         """
@@ -158,9 +171,6 @@ class StreamReference(Printable, Hashable):
             raise ValueError
         return self
 
-    # def items(self, **kwargs):
-    #     return self.get_results_func(self, kwargs)
-
     def modify(self, modifiers):
         """
         Defines the modifiers for this stream reference
@@ -172,12 +182,40 @@ class StreamReference(Printable, Hashable):
         self.modifiers = modifiers
         return self
 
+    @property
+    def absolute_interval(self):
+        start = self.time_interval.start if self.time_interval else timedelta(0)
+        abs_start = start
+        if isinstance(start, timedelta):
+            if isinstance(self.time_interval, RelativeTimeInterval):
+                raise StreamDataNotAvailableError('The stream reference to a stream has a relative start time, '
+                                                  'need an absolute start time')
+            abs_start = self.time_interval.start + start
+
+        end = self.time_interval.end if self.time_interval else timedelta(0)
+        abs_end = end
+        if isinstance(end, timedelta):
+            if isinstance(self.time_interval, RelativeTimeInterval):
+                raise StreamDataNotAvailableError('The stream reference to a stream has a relative end time, '
+                                                  'need an absolute end time')
+            abs_end = self.time_interval.end + end
+
+        if abs_end > self.channel.up_to_timestamp:
+            raise StreamDataNotAvailableError(
+                'The stream is not available after ' + str(self.channel.up_to_timestamp) + ' and cannot be obtained' +
+                ' (' + str(abs_end) + ' is provided)')
+        return TimeInterval(start=abs_start, end=abs_end)
+
+    @property
+    def required_intervals(self):
+        return TimeIntervals([self.absolute_interval]) - self.calculated_intervals
+
     def items(self):
         # Get interval and writer
         # return self.tool.items(interval, writer)
         logging.debug("---Getting items for {} channel, stream {}, with kwargs {}".format(
             self.channel.channel_id, self.stream_id.name, self.kwargs))
-        return self.channel.get_results(self, **self.kwargs)
+        return self.channel.get_results(self)
 
     def timestamps(self):
         if self.modifiers and not isinstance(self.modifiers, Identity):

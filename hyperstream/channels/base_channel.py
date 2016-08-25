@@ -20,14 +20,9 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from ..stream import StreamReference, StreamDict, StreamId
-from ..tool import Tool
-# from ..channel import ChannelState
-from ..modifiers import Identity, Modifier
-from ..time_interval import TimeIntervals, TimeInterval, RelativeTimeInterval
-from datetime import datetime, timedelta, date
+from ..stream import StreamInstance, StreamDict
+from ..modifiers import Identity
 from ..utils import Printable, MIN_DATE, MAX_DATE
-from ..errors import StreamDataNotAvailableError
 
 
 class BaseChannel(Printable):
@@ -36,33 +31,8 @@ class BaseChannel(Printable):
         self.streams = StreamDict()
         self.can_calc = can_calc
         self.can_create = can_create
-        # self.state = ChannelState()
         self.calc_agent = calc_agent
         self.up_to_timestamp = MAX_DATE
-        self.calculated_intervals = {}
-
-    def get_absolute_start_end(self, stream_ref):
-        start = stream_ref.time_interval.start if stream_ref.time_interval else timedelta(0)
-        abs_start = start
-        if isinstance(start, timedelta):
-            if isinstance(stream_ref.time_interval, RelativeTimeInterval):
-                raise StreamDataNotAvailableError('The stream reference to a stream has a relative start time, '
-                                                  'need an absolute start time')
-            abs_start = stream_ref.time_interval.start + start
-
-        end = stream_ref.time_interval.end if stream_ref.time_interval else timedelta(0)
-        abs_end = end
-        if isinstance(end, timedelta):
-            if isinstance(stream_ref.time_interval, RelativeTimeInterval):
-                raise StreamDataNotAvailableError('The stream reference to a stream has a relative end time, '
-                                                  'need an absolute end time')
-            abs_end = stream_ref.time_interval.end + end
-
-        if abs_end > self.up_to_timestamp:
-            raise StreamDataNotAvailableError(
-                'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be obtained' +
-                ' (' + str(abs_end) + ' is provided)')
-        return TimeInterval(start=abs_start, end=abs_end)
 
     def update_streams(self, up_to_timestamp):
         """
@@ -70,7 +40,25 @@ class BaseChannel(Printable):
         """
         raise NotImplementedError
 
-    def get_results(self, stream_ref, **kwargs):  # TODO: force_calc=False):
+    def _get_data(self, stream_ref):
+        """
+        Default way of getting data from streams. Can be overridden for special stream types
+        :param stream_ref: The stream reference
+        :return: The data generator
+        """
+        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream_ref.items()
+                       if timestamp in stream_ref.absolute_interval), key=lambda x: x.timestamp)
+
+    def execute_tool(self, stream_ref, interval):
+        """
+        Executes the stream's tool over the given time interval
+        :param stream_ref: the stream reference
+        :param interval: the time interval
+        :return: None
+        """
+        stream_ref.tool.execute(stream_ref.input_streams, interval, stream_ref.writer)
+
+    def get_results(self, stream_ref):  # TODO: force_calc=False):
         """
         Must be overridden by deriving classes.
         1. Calculates/receives the documents in the stream interval determined by the stream_ref
@@ -81,7 +69,7 @@ class BaseChannel(Printable):
         """
         raise NotImplementedError
     
-    def create_stream(self, stream_id, tool):
+    def create_stream(self, stream_id, tool=None):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
         identifier stream_id
@@ -124,129 +112,15 @@ class BaseChannel(Printable):
             s += str(self.streams[stream_id])
         return s
     
-    # def str_stream(self, stream_id):
-    #     """
-    #     Can be over-ridden to provide details about the stream
-    #     """
-    #     return str(self.streams[stream_id])
-    
-    # def parse_setkey(self, key):
-    #     # TODO: add docstrings to this function. It is not clear why the cases below are structures as they are.
-    #
-    #     # ( stream_id_part [,stream_id_part]* )
-    #     if isinstance(key, (list, tuple)):
-    #         if len(key) == 0:
-    #             raise ValueError('Empty stream identifier')
-    #
-    #         if len(key) == 1:
-    #             return self.parse_setkey(key[0])
-    #
-    #         # Create dict holding the indices of each type
-    #         type_dict = dict((type(k), i) for i, k in enumerate(key))
-    #
-    #         stream_id = key[type_dict[StreamId]]
-    #
-    #         classes = set(map(type, key))
-    #         if any([issubclass(cls, Modifier) for cls in classes]):
-    #             raise TypeError('StreamReference identifier cannot include a Modifier')
-    #
-    #         if (timedelta in classes) or (date in classes):
-    #             raise TypeError('StreamReference identifier cannot include datetime or timedelta')
-    #
-    #         if StreamId not in type_dict:
-    #             raise TypeError('StreamId not found')
-    #
-    #         stream_id.meta_data['extra'] = [key[type_dict[t]] for t in type_dict if t is not StreamId]
-    #
-    #         # return '.'.join(map(str, key))
-    #
-    #     elif isinstance(key, StreamId):
-    #         return key
-    #
-    #     raise KeyError(repr(key))
-    #     # TODO: could do following?
-    #     # return StreamID(name=str(key), meta_data={})
-    
-    # def parse_getkey(self, key):
-    #     # TODO: add docstrings to this function. It is not clear why the cases below are structures as they are.
-    #
-    #     allowed_types = (timedelta, date, datetime)
-    #
-    #     # ( stream_id_part [,stream_id_part]* [,start | ,start,end] [,modifiers] )
-    #     refdict = self.get_default_ref()
-    #
-    #     if isinstance(key, (tuple, list)):
-    #         if (len(key) >= 2) and isinstance(key[-1], Modifier):
-    #             refdict['modifiers'] = key[-1]
-    #             key = key[:-1]
-    #
-    #         if (len(key) >= 3) and isinstance(key[-2], allowed_types) and isinstance(key[-1], allowed_types):
-    #             refdict['start'] = key[-2]
-    #             refdict['end'] = key[-1]
-    #             key = key[:-2]
-    #
-    #         elif (len(key) >= 2) and isinstance(key[-1], allowed_types):
-    #             refdict['start'] = key[-1]
-    #             key = key[:-1]
-    #
-    #         refdict['stream_id'] = self.parse_setkey(key)
-    #
-    #     else:
-    #         refdict['stream_id'] = self.parse_setkey(key)
-    #
-    #     return refdict
-    
-    # def __getitem__(self, key, modifiers=None):
-    #     # return self.streams[self.parse_getkey(key)]
-    #     key = self.parse_getkey(key)
-    #
-    #     # TODO: Callee should use TimeInterval
-    #     time_interval = None
-    #
-    #     if 'start' in key and 'end' in key:
-    #         start = key['start']
-    #         end = key['end']
-    #
-    #         if isinstance(start, timedelta) and isinstance(end, timedelta):
-    #             time_interval = RelativeTimeInterval(start, end)
-    #         elif isinstance(start, (date, datetime)) and isinstance(end, (date, datetime)):
-    #             time_interval = TimeInterval(start=start, end=end)
-    #         else:
-    #             raise ValueError("Invalid combination of start and end types")
-    #
-    #     return StreamReference(
-    #         channel=self,
-    #         stream_id=key['stream_id'],
-    #         get_results_func=self.get_results,
-    #         modifiers=modifiers,
-    #         time_interval=time_interval,
-    #         calculated_intervals=TimeIntervals()
-    #     )
-
     def __getitem__(self, item):
         return self.streams[item]
 
-    # def __setitem__(self, key, tool):
-    #     stream_id = self.parse_setkey(key)
-    #
-    #     if not isinstance(tool, Tool):
-    #         raise TypeError(str(type(tool)))
-    #
-    #     # TODO: Possibly make the callee responsible for creating the stream
-    #     self.create_stream(stream_id, tool)
-    #
-    #     self.streams[stream_id].calculated_intervals = TimeIntervals()
-
     def __setitem__(self, key, value):
-        # if isinstance(value, Tool):
         # TODO: is there a better way of setting the channel?
-        from . import ToolChannel
-        if isinstance(value.channel, ToolChannel) and not isinstance(self, ToolChannel):
-            value.channel = self
+        # from . import ToolChannel
+        # if isinstance(value.channel, ToolChannel) and not isinstance(self, ToolChannel):
+        #     value.channel = self
 
-        # if value.tool:
-        #     self.create_stream(key, value)
-        # else:
         self.streams[key] = value
 
     def __contains__(self, item):

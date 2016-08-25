@@ -104,6 +104,9 @@ class TimeIntervals(Printable):  # example object: (t1,t2] U (t3,t4] U ...
     def __eq__(self, other):
         return isinstance(other, TimeIntervals) and all(z[0] == z[1] for z in zip(self.intervals, other.intervals))
 
+    def __iter__(self):
+        return iter(self.intervals)
+
 
 class TimeInterval(object):
     _start = None
