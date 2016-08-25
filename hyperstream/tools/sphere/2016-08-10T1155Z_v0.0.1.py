@@ -21,18 +21,15 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from hyperstream.tool import Tool
-from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
+from hyperstream.channels.sphere_channel import SphereDataWindow
 
 
-# TODO Switch to persistent connectivity rather than connecting each time
 class Sphere(Tool):
-    sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True, include_redcap=False)
-
     def __init__(self, modality):
         super(Sphere, self).__init__(modality=modality)
         self.modality = modality
 
     def _execute(self, input_streams, interval, writer):
-        window = DataWindow(start=interval.start, end=interval.end, sphere_connector=self.sphere_connector)
+        window = SphereDataWindow(interval)
         source = window.modalities[self.modality]
         writer(source.get_data())

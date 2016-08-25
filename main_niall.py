@@ -27,14 +27,12 @@ from datetime import datetime, timedelta
 from hyperstream import OnlineEngine, HyperStreamConfig, StreamId
 from hyperstream.modifiers import List, Average, Count, Component, First, IData, Data, Time, Head
 from hyperstream.utils import UTC
-from sphere_connector_package.sphere_connector import SphereConnector, SphereLogger
+from sphere_connector_package.sphere_connector import SphereLogger
 
 if __name__ == '__main__':
-    # TODO: would be nice to be able to refer to this sphere_connector object from the sphere_ tools
-    connected = False
+    # TODO: hyperstream needs it's own logger (can be a clone of this one)
     sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
-    sphere_connector = SphereConnector(include_mongo=True, include_redcap=False, sphere_logger=sphere_logger)
-    
+
     hyperstream_config = HyperStreamConfig()
     
     online_engine = OnlineEngine(hyperstream_config)

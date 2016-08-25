@@ -22,14 +22,35 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from memory_channel import MemoryChannel
 from ..modifiers import Identity
-from ..time_interval import TimeIntervals
+from ..time_interval import TimeIntervals, TimeInterval
 from ..utils import MIN_DATE, MAX_DATE, timeit
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
+from collections import Iterable
+
+
+# Globally used sphere_connector object
+sphere_connector = SphereConnector(
+    config_filename='config_strauss.json',
+    include_mongo=True,
+    include_redcap=False,
+    sphere_logger=None)
+
+
+class SphereDataWindow(DataWindow):
+    """
+    Helper class to use the global sphere_connector object
+    """
+    def __init__(self, time_interval):
+        if isinstance(time_interval, TimeInterval):
+            start, end = time_interval.to_tuple()
+        elif isinstance(time_interval, Iterable):
+            start, end = time_interval
+        else:
+            raise TypeError
+        super(SphereDataWindow, self).__init__(sphere_connector, start, end)
 
 
 class SphereChannel(MemoryChannel):
-    sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
-                                       include_redcap=False, sphere_logger=None)
     """
     SPHERE MongoDB storing the raw sensor data
     """
@@ -65,7 +86,7 @@ class SphereChannel(MemoryChannel):
 
         # TODO: use the need_to_calc_times like the tool channel does
 
-        window = DataWindow(start=abs_interval.start, end=abs_interval.end, sphere_connector=self.sphere_connector)
+        window = DataWindow(start=abs_interval.start, end=abs_interval.end, sphere_connector=sphere_connector)
 
         # METHOD 1: Directly connect to SPHERE - no need for SPHERE tool
         @timeit

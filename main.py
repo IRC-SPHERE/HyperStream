@@ -23,17 +23,13 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.config import HyperStreamConfig
 from hyperstream.online_engine import OnlineEngine
-from sphere_connector_package.sphere_connector import SphereConnector, SphereLogger
+from sphere_connector_package.sphere_connector import SphereLogger
 import logging
 
 
 if __name__ == '__main__':
-    # TODO: would be nice to be able to refer to this sphere_connector object from the sphere_ tools
-    connected = False
+    # TODO: hyperstream needs it's own logger (can be a clone of this one)
     sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
-    sphere_connector = SphereConnector(include_mongo=True, include_redcap=False, sphere_logger=sphere_logger)
-    
-    hyperstream_config = HyperStreamConfig()
-    
-    online_engine = OnlineEngine(hyperstream_config)
+
+    online_engine = OnlineEngine(HyperStreamConfig())
     online_engine.execute()

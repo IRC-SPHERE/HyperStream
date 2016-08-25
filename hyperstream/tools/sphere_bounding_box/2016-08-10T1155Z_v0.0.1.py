@@ -21,16 +21,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from hyperstream.tool import Tool
-from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
+from hyperstream.channels.sphere_channel import SphereDataWindow
 
 
-# TODO Switch to persistent connectivity rather than connecting each time
 class SphereBoundingBox(Tool):
-    sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True, include_redcap=False)
-
     def __init__(self):
         super(SphereBoundingBox, self).__init__()
 
     def _execute(self, input_streams, interval, writer):
-        window = DataWindow(start=interval.start, end=interval.end, sphere_connector=self.sphere_connector)
-        writer(window.video.get_data(elements='2Dbb'))
+        writer(SphereDataWindow(interval).video.get_data(elements='2Dbb'))
