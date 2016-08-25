@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField, EmbeddedDocumentListField, \
-    EmbeddedDocument, EmbeddedDocumentField
+    EmbeddedDocument, EmbeddedDocumentField, ListField
 from time_range import TimeRangeModel
 
 
@@ -47,10 +47,17 @@ class StreamInstanceModel(Document):
 class StreamDefinitionModel(Document):
     stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
     stream_type = StringField(required=True, min_length=1, max_length=512)
-    channel = StringField(required=True, min_length=1, max_length=512)
+    channel_id = StringField(required=True, min_length=1, max_length=512)
     last_updated = DateTimeField(required=True)
     tool_name = StringField(required=True, min_length=1, max_length=512)
     tool_version = StringField(required=True, min_length=1, max_length=512)
+    # TODO: strong typing
+    tool_parameters = DictField()
+
+    input_streams = EmbeddedDocumentListField(required=False, document_type=StreamIdField)
+    # TODO: strong typing
+    modifiers = ListField()
+    # TODO: remove?
     parameters = DictField()
     sandbox = StringField()
 

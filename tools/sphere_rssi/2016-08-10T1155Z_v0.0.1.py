@@ -20,14 +20,17 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from utils import Printable
+from hyperstream.tool import Tool
+from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
 
 
-class ChannelState(Printable):
-    # TODO needs to be stored permanently as well
-    def __init__(self, channel_id):
-        self.channel_id = channel_id
+# TODO Switch to persistent connectivity rather than connecting each time
+class SphereRssi(Tool):
+    sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True, include_redcap=False)
 
-        self.stream_definition_to_id_mapping = {}
-        self.stream_id_to_definition_mapping = {}
-        self.calculated_intervals = {}
+    def __init__(self):
+        super(SphereRssi, self).__init__()
+
+    def _execute(self, input_streams, interval, writer):
+        window = DataWindow(start=interval.start, end=interval.end, sphere_connector=self.sphere_connector)
+        writer(window.wearable.get_data(elements='rss'))

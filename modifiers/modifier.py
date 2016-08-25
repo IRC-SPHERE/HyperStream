@@ -31,14 +31,8 @@ class Modifier(object):
         self.types = {}
 
     def __repr__(self):
-        s = self.__class__.__name__ + '('
-        p = []
-        for param in self.__dict__:
-            if param != 'types':
-                p.append(param + '=' + repr(self.__dict__[param]))
-        s += ','.join(p)
-        s += ')'
-        return s
+        p = ("{}={}".format(param, repr(self.__dict__[param])) for param in self.__dict__ if param != "types")
+        return "{}({})".format(self.__class__.__name__, ", ".join(p))
 
     def execute(self, data):
         raise NotImplementedError
@@ -57,7 +51,7 @@ class ComposedModifier(Modifier):
         self.modifier_1 = modifier_1
         self.modifier_2 = modifier_2
         for input_type in modifier_1.types:
-            if modifier_2.types.has_key(modifier_1.types[input_type]):
+            if modifier_1.types[input_type] in modifier_2.types:
                 self.types[input_type] = modifier_2.types[modifier_1.types[input_type]]
         if len(self.types) == 0:
             raise ValueError('Type mismatch in composing modifiers ' + repr(modifier_1) + ' and ' + repr(modifier_2))
