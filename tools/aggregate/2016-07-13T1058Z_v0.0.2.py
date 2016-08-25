@@ -23,6 +23,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from hyperstream import TimeInterval, RelativeTimeInterval
 from hyperstream.tool import Tool, check_input_stream_count
 from datetime import timedelta
+import logging
 
 
 class Aggregate(Tool):
@@ -41,6 +42,8 @@ class Aggregate(Tool):
         elif isinstance(input_streams[0].time_interval, TimeInterval):
             if interval != input_streams[0].time_interval:
                 # TODO: What if stream and input stream have different absolute intervals?
+                logging.error("interval {} != input_streams[0].time_interval {}".format(
+                    interval, input_streams[0].time_interval))
                 raise NotImplementedError
 
         data = input_streams[0].window(interval).items()

@@ -24,6 +24,7 @@ from memory_channel import MemoryChannel
 from ..modifiers import Identity
 from ..time_interval import TimeIntervals, TimeInterval
 from ..utils import MIN_DATE, MAX_DATE, timeit
+from ..stream import StreamInstance
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
 from collections import Iterable
 
@@ -76,51 +77,34 @@ class SphereChannel(MemoryChannel):
             self.streams[stream_id].calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
         self.up_to_timestamp = up_to_timestamp
 
-    def get_results(self, stream_ref, **kwargs):
-        abs_interval = self.get_absolute_start_end(stream_ref)
+    def execute_tool(self, stream_ref, interval):
+        # TODO: tool.tool is ugly
+        stream_ref.tool.execute(None, interval, stream_ref.writer)
 
-        # Testing for infinite recursion
-        # if self.visited[stream_ref]:
-        #     raise Exception("OUCH!")
-        # self.visited[stream_ref] = True
+    def _get_data_not_used(self, stream_ref, **kwargs):
+        """
+        Another version of _get_data, which directly uses SphereDataWindow, rather than executing the tool
+        :param stream_ref: Stream reference
+        :param kwargs: Keyword arguments
+        :return: The data generator
+        """
+        # TODO: Perhaps this is sufficient, rather than requiring all of the SPHERE specific tools
+        window = SphereDataWindow(stream_ref.absolute_interval)
+        if "modality" not in kwargs:
+            raise KeyError("modality not in tool_parameters")
+        if kwargs["modality"] not in window.modalities:
+            raise ValueError("unknown modality {}".format(kwargs["modality"]))
+        elements = kwargs["elements"] if "elements" in kwargs else None
+        return map(reformat, window.modalities[kwargs["modality"]].get_data(elements=elements))
 
-        # TODO: use the need_to_calc_times like the tool channel does
-
-        window = SphereDataWindow(abs_interval)
-
-        # METHOD 1: Directly connect to SPHERE - no need for SPHERE tool
-        @timeit
-        def method1():
-            if "modality" not in kwargs:
-                raise KeyError("modality not in tool_parameters")
-            if kwargs["modality"] not in window.modalities:
-                raise ValueError("unknown modality {}".format(kwargs["modality"]))
-            elements = kwargs["elements"] if "elements" in kwargs else None
-            return map(reformat, window.modalities[kwargs["modality"]].get_data(elements=elements))
-
-        # METHOD 2: Use the tools
-        @timeit
-        def method2():
-            # TODO: tool.tool is ugly
-            stream_ref.tool.tool.execute(None, abs_interval, stream_ref.writer)
-            # stream_ref.tool.execute(abs_interval, stream_ref.writer)
-            stream_ref.calculated_intervals += TimeIntervals([abs_interval])
-
-            return ((timestamp, data) for (timestamp, data) in self.data[stream_ref.stream_id]
-                    if timestamp in abs_interval)
-            # result = []
-            # for (timestamp, data) in self.data[stream_ref.stream_id]:
-            #     if abs_interval.start < timestamp <= abs_interval.end:
-            #         result.append((timestamp, data))
-            # return result
-
-        # result1 = method1()
-        result2 = method2()
-
-        # assert(all(x == y for x, y in zip(result1, result2)))
-
-        # assume that the data are already sorted by time
-        return stream_ref.modifiers.execute(result2)
+    def _get_data(self, stream_ref):
+        """
+        Gets the data. Assumes that it is already sorted by timestamp
+        :param stream_ref: The stream reference
+        :return: The data generator
+        """
+        return (StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream_ref.stream_id]
+                if timestamp in stream_ref.absolute_interval)
 
     def get_default_ref(self):
         return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifiers': Identity()}
