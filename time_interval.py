@@ -29,7 +29,7 @@ from dateutil.parser import parse
 import logging
 
 
-class TimeIntervals(Printable):  # example object: (t1,t2]U(t3,t4]U...
+class TimeIntervals(Printable):  # example object: (t1,t2] U (t3,t4] U ...
     def __init__(self, intervals=None):
         self.intervals = []
         if intervals:
@@ -43,7 +43,7 @@ class TimeIntervals(Printable):  # example object: (t1,t2]U(t3,t4]U...
                 self.intervals.append(v)
     
     def __str__(self):
-        return " U ".join(["(" + str(interval.start) + "," + str(interval.end) + "]" for interval in self.intervals])
+        return " U ".join(map(str, self.intervals))
 
     @property
     def is_empty(self):
@@ -129,10 +129,6 @@ class TimeInterval(object):
 
     @start.setter
     def start(self, val):
-        # if not isinstance(val, (datetime, timedelta)):
-        #     raise TypeError("start should datetime.datetime object")
-        # if self._end is not None and val >= self._end:
-        #     raise ValueError("start should be < end")
         self.validate_types(val)
         self._start = val
     
@@ -142,15 +138,11 @@ class TimeInterval(object):
     
     @end.setter
     def end(self, val):
-        # if not isinstance(val, (datetime, timedelta)):
-        #     raise TypeError("end should datetime.datetime object")
-        # if self._start is not None and val <= self._start:
-        #     raise ValueError("start should be < end")
         self.validate_types(val)
         self._end = val
     
     def __str__(self):
-        return "({0}, {1})".format(self.start, self.end)
+        return "({0}, {1}]".format(self.start, self.end)
 
     def __repr__(self):
         return "{}(start={}, end={})".format(self.__class__.__name__, repr(self.start), repr(self.end))
