@@ -24,26 +24,25 @@ from memory_channel import ReadOnlyMemoryChannel
 from ..stream import StreamId, StreamReference
 
 from ..modifiers import Identity, Last, IData
-from ..utils import Printable, UTC, MIN_DATE
-from ..time_interval import TimeInterval
+from ..utils import Printable, MIN_DATE, UTC
+from ..time_interval import TimeInterval, TimeIntervals
 
-from datetime import time, datetime, timedelta
 from dateutil.parser import parse
 import os
 from semantic_version import Version
-from datetime import datetime
 import logging
 
 
 class FileDateTimeVersion(Printable):
+    """
+    Simple class to hold file details along with the timestamp and version number from the filename.
+    Uses semantic version.
+    """
     def __init__(self, filename, split_char='_'):
         self.long_filename = filename
         self.filename_no_extension, self.extension = os.path.splitext(filename)
-        
         self.timestamp, self.version = self.filename_no_extension.split(split_char, 1)
-        
-        self.timestamp = parse(self.timestamp)
-        
+        self.timestamp = parse(self.timestamp).replace(tzinfo=UTC)
         self.version = Version(self.version[1:])
     
     @property
@@ -66,16 +65,10 @@ class FileChannel(ReadOnlyMemoryChannel):
     def __init__(self, channel_id, path, up_to_timestamp=MIN_DATE):
         self.path = path
         super(FileChannel, self).__init__(channel_id=channel_id, up_to_timestamp=up_to_timestamp)
-    
-    def repr_stream(self, stream_id):
-        # TODO: self.streams no longer a list!
-        s = 'externally defined by the file system, read-only stream'
-        # s = s + ', currently holding ' + str(len(self.streams[stream_id])) + ' files'
-        return s
-    
+
     def file_filter(self, sorted_file_names):
         for file_long_name in sorted_file_names:
-            if file_long_name[:11] != '__init__.py':
+            if file_long_name[:11] != '__init__.py' and file_long_name[-3:] != 'pyc':
                 try:
                     tool_info = FileDateTimeVersion(file_long_name)
                     
@@ -96,9 +89,7 @@ class FileChannel(ReadOnlyMemoryChannel):
                 # Empty folder
                 continue
             
-            stream_id = StreamId(
-                name=name
-            )
+            stream_id = StreamId(name=name)
             
             # # OLD CODE - leave for reference/debugging
             # self.streams[stream_id] = []
@@ -106,45 +97,48 @@ class FileChannel(ReadOnlyMemoryChannel):
             #     if tool_info.timestamp <= up_to_timestamp:
             #         # This is the original version
             #         self.streams[stream_id].append((tool_info, self.data_loader(stream_id.name, tool_info)))
-            
+
+            # TODO: why lambda: None for the get_results_func?
             self.streams[stream_id] = StreamReference(
-                channel_id=self.state.channel_id,
+                channel=self,
                 stream_id=stream_id,
                 time_interval=TimeInterval(start=MIN_DATE, end=up_to_timestamp),
-                modifier=Last() + IData(),
-                get_results_func=lambda: None
+                calculated_intervals=TimeIntervals(),
+                modifiers=Last() + IData(),
+                get_results_func=lambda stream_ref, **kwargs: self.get_results(stream_ref, **kwargs),
+                tool=None,
+                input_streams=None
             )
     
-    def data_loader(self, short_path, file_long_name):
+    def data_loader(self, short_path, file_info):
         raise NotImplementedError
     
     def get_default_ref(self):
-        return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifier': Identity()}
+        return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifiers': Identity()}
     
-    def get_results(self, stream_ref, args, kwargs):
-        start = stream_ref.time_interval.start
-        end = stream_ref.time_interval.end
+    def get_results(self, stream_ref, **kwargs):
+        # start = stream_ref.time_interval.start
+        # end = stream_ref.time_interval.end
         
-        if isinstance(start, timedelta) or isinstance(end, timedelta):
-            raise ValueError('Cannot calculate a relative stream_ref')
+        # if isinstance(start, timedelta) or isinstance(end, timedelta):
+        #     raise ValueError('Cannot calculate a relative stream_ref')
         
-        if end > self.up_to_timestamp:
+        if stream_ref.time_interval.end > self.up_to_timestamp:
             raise ValueError(
                 'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
         
         result = []
         
-        stream_name = stream_ref.stream_id.name
-        module_path = os.path.join(self.path, stream_name)
+        module_path = os.path.join(self.path, stream_ref.stream_id.name)
         
         for tool_info in self.file_filter(sorted(os.listdir(module_path))):
             if tool_info.timestamp <= self.up_to_timestamp:
-                result.append((tool_info, self.data_loader(stream_name, tool_info)))
+                result.append((tool_info, self.data_loader(stream_ref.stream_id.name, tool_info)))
         
         result.sort(key=lambda x: x[0].timestamp)
-        result = stream_ref.modifier.execute(
-            (x for x in result)
-        )
+
+        if stream_ref.modifiers:
+            result = stream_ref.modifiers.execute(iter(result))
         
         return result
 

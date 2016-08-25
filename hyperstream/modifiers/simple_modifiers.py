@@ -212,7 +212,7 @@ class Average(Modifier):
         for data in data_gen:
             res = res + data
             count += 1
-        return res / count
+        return float(res) / count if count > 0 else float('nan')
 
 
 class Count(Modifier):

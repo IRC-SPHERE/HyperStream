@@ -21,28 +21,37 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from hyperstream import Tool
+from hyperstream import Tool, TimeInterval
 from hyperstream.utils import MIN_DATE
-from datetime import date, datetime, timedelta
+from datetime import timedelta
 import logging
 
 
 class Clock(Tool):
-    def normalise_kwargs(self, kwargs):
-        return self._normalise_kwargs({}, **kwargs)
-    
-    def process_params(self, first=MIN_DATE, stride=timedelta(seconds=1)):
-        return [], {'first': first, 'stride': stride}
-    
-    def execute(self, stream_def, start, end, writer, first, stride):
-        logging.info('Clock running from ' + str(start) + ' to ' + str(end) + ' with stride ' + str(stride))
-        assert isinstance(start, (date, datetime))
-        assert isinstance(end, (date, datetime))
-        if start < first:
-            start = first
-        n_strides = int((start - first).total_seconds() // stride.total_seconds())
-        t = first + n_strides * stride
-        while t <= end:
-            if t > start:
+    def __init__(self, first=MIN_DATE, stride=timedelta(seconds=1)):
+        """
+        Simple clock ticker tool
+        :param first: Start of the clock
+        :param stride: Tick stride as timedelta
+        """
+        super(Clock, self).__init__(first=first, stride=stride)
+        # TODO: type checking
+        self.first = first
+        self.stride = stride
+
+    def execute(self, input_streams, interval, writer):
+        if not isinstance(interval, TimeInterval):
+            raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
+        logging.info('{} running from {} to {} with stride {}'.format(
+            self.__class__.__name__, str(interval.start), str(interval.end), str(self.stride)))
+        self._execute(input_streams, interval, writer)
+
+    def _execute(self, input_streams, interval, writer):
+        if interval.start < self.first:
+            interval.start = self.first
+        n_strides = int((interval.start - self.first).total_seconds() // self.stride.total_seconds())
+        t = self.first + n_strides * self.stride
+        while t <= interval.end:
+            if t > interval.start:
                 writer([(t, t)])
-            t += stride
+            t += self.stride

@@ -20,7 +20,9 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from memory_channel import MemoryChannel
+from memory_channel import MemoryChannel, ReadOnlyMemoryChannel
 from sphere_channel import SphereChannel
 from tool_channel import ToolChannel
+from file_channel import FileChannel
+from module_channel import ModuleChannel
 from database_channel import DatabaseChannel

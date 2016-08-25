@@ -22,19 +22,16 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from hyperstream.tool import Tool
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
-import logging
 
 
 # TODO Switch to persistent connectivity rather than connecting each time
 class SphereSilhouette(Tool):
-    def __init__(self):
-        self.sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True,
-                                                include_redcap=False)
+    sphere_connector = SphereConnector(config_filename='config_strauss.json', include_mongo=True, include_redcap=False)
 
-    def normalise_kwargs(self, kwargs):
-        self._normalise_kwargs({'optim', 'optim2'}, **kwargs)
+    def __init__(self, filters):
+        super(SphereSilhouette, self).__init__(filters=filters)
+        self.filters = filters
 
-    def execute(self, stream_def, start, end, writer, filters):
-        logging.info('SphereSilhouette running from ' + str(start) + ' to ' + str(end) + ' using filters ' + str(filters))
-        window = DataWindow(start=start, end=end, sphere_connector=self.sphere_connector)
-        writer(window.video.get_data(elements='silhouette', filters=filters))
+    def _execute(self, input_streams, interval, writer):
+        window = DataWindow(start=interval.start, end=interval.end, sphere_connector=self.sphere_connector)
+        writer(window.video.get_data(elements='silhouette', filters=self.filters))

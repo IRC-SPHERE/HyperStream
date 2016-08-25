@@ -21,16 +21,15 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from hyperstream import Tool
-import logging
 
 
-class Merge(Tool):
-    def process_params(self, *args, **kwargs):
-        return self._normalise_kwargs(set(), **kwargs)
+class Aggregate(Tool):
+    def __init__(self, timer, func):
+        super(Aggregate, self).__init__(timer=timer, func=func)
+        self.timer = timer
+        self.func = func
 
-    def execute(self, stream_def, start, end, writer, timer, data, func):
-        logging.info('Merge running from ' + str(start) + ' to ' + str(end))
-        
-        for (t, _) in timer():
+    def _execute(self, input_streams, interval, writer):
+        for (t, _) in self.timer():
             writer([(t, 'pool')])
             # TODO

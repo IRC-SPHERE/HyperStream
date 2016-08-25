@@ -20,18 +20,37 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from hyperstream import Tool
+from hyperstream import Tool, TimeInterval, RelativeTimeInterval
+from datetime import timedelta
 import logging
 
 
-class Merge(Tool):
-    def execute(self, stream_def, start, end, writer, timer, data, func):
-        logging.info('Merge running from ' + str(start) + ' to ' + str(end))
-        rel_start = stream_def.kwargs['data'].start
-        rel_end = stream_def.kwargs['data'].end
+class Aggregate(Tool):
+    def __init__(self, timer, func):
+        super(Aggregate, self).__init__(timer=timer, func=func)
+        self.timer = timer
+        self.func = func
+
+    def _execute(self, input_streams, interval, writer):
+        if not input_streams or len(input_streams) != 1:
+            raise ValueError("Aggregate tool takes a single stream as input")
+
+        rel_start = timedelta(0)
+        rel_end = timedelta(0)
+        if isinstance(input_streams[0].time_interval, RelativeTimeInterval):
+            rel_start = input_streams[0].time_interval.start
+            rel_end = input_streams[0].time_interval.end
+        elif isinstance(input_streams[0].time_interval, TimeInterval):
+            if interval != input_streams[0].time_interval:
+                # TODO: What if stream and input stream have different absolute intervals?
+                raise NotImplementedError
+
+        data = input_streams[0].window(interval).items()
+
         window = []
         future = []
-        for (t, _) in timer:
+        for (t, _) in self.timer.window(interval).items():
+            # logging.debug("item: {}".format(str(t)))
             while (len(window) > 0) and (window[0][0] <= t + rel_start):
                 window = window[1:]
             while (len(future) > 0) and (future[0][0] <= t + rel_end):
@@ -41,16 +60,27 @@ class Merge(Tool):
                     window.append(doc)
             while True:
                 try:
+                    # TODO Relative time logic can go here
+                    # logging.debug("Calling next(input_streams[0].window(interval.start, interval.end).items())")
                     doc = next(data)
+                    # logging.debug(doc)
                     if t + rel_start < doc[0] <= t + rel_end:
                         window.append(doc)
                     elif doc[0] > t + rel_end:
                         future.append(doc)
                         break
+                    else:
+                        pass
                 except StopIteration:
                     break
+                except TypeError:
+                    raise
             # single-document case:
-            writer([(t, func((doc for doc in window)))])
+            try:
+                writer([(t, self.func.execute(iter(window)))])
+            except Exception as e:
+                # TODO: for debugging
+                raise e
             # multi-document case:
 
 # for x in func( (doc for doc in window) ):

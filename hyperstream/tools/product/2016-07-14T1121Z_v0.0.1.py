@@ -21,12 +21,16 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from hyperstream import Tool
-import logging
 
 
 class Product(Tool):
-    def execute(self, stream_def, start, end, writer, stream1, stream2):
-        logging.info('Product running from ' + str(start) + ' to ' + str(end))
-        for (t, data1) in stream1:
-            (_, data2) = next(stream2)
+    def __init__(self):
+        super(Product, self).__init__()
+
+    def _execute(self, input_streams, interval, writer):
+        if len(input_streams) != 2:
+            raise ValueError("Product tool operates on two input streams")
+
+        for (t, data1) in input_streams[0]:
+            (_, data2) = next(input_streams[1])
             writer([(t, data1 * data2)])
