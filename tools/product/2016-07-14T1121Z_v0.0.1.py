@@ -24,9 +24,6 @@ from hyperstream import Tool
 
 
 class Product(Tool):
-    def __init__(self):
-        super(Product, self).__init__()
-
     def _execute(self, input_streams, interval, writer):
         if len(input_streams) != 2:
             raise ValueError("Product tool operates on two input streams")

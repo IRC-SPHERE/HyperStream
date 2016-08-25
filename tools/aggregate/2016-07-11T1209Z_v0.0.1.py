@@ -32,4 +32,4 @@ class Aggregate(Tool):
     def _execute(self, input_streams, interval, writer):
         for (t, _) in self.timer():
             writer([(t, 'pool')])
-            # TODO
+            raise NotImplementedError

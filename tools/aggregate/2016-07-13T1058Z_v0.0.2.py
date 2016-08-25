@@ -22,7 +22,6 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from hyperstream import Tool, TimeInterval, RelativeTimeInterval
 from datetime import timedelta
-import logging
 
 
 class Aggregate(Tool):
@@ -82,6 +81,5 @@ class Aggregate(Tool):
                 # TODO: for debugging
                 raise e
             # multi-document case:
-
-# for x in func( (doc for doc in window) ):
-#        writer([(t,x)])
+            # for x in func( (doc for doc in window) ):
+            #        writer([(t,x)])
