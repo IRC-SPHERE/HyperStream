@@ -58,6 +58,5 @@ class Aggregate(Tool):
             # single-document case:
             writer([(t, self.func((doc for doc in window)))])
             # multi-document case:
-
-# for x in func( (doc for doc in window) ):
-#        writer([(t,x)])
+            # for x in func( (doc for doc in window) ):
+            #        writer([(t,x)])
