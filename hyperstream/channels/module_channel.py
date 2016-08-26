@@ -21,19 +21,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from file_channel import FileChannel
-from ..modifiers import Last, IData
-from ..utils import Printable, MIN_DATE
+from ..utils import Printable
 
 from os.path import join
 from re import sub
 import logging
 import imp
-
-
-class ModuleStreamInstance(Printable):
-    def __init__(self, module_importer, version):
-        self.module_importer = module_importer
-        self.version = version
 
 
 class ModuleChannel(FileChannel):
@@ -67,8 +60,4 @@ class ModuleChannel(FileChannel):
                 
                 return module
         
-        # return ModuleStreamInstance(module_importer, tool_info.version)
         return tool_info.version, module_importer
-    
-    def get_default_ref(self):
-        return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifiers': Last() + IData()}

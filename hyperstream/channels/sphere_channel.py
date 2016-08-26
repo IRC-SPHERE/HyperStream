@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from memory_channel import MemoryChannel
-from ..modifiers import Identity
+# from ..modifiers import Identity
 from ..time_interval import TimeIntervals, TimeInterval
 from ..utils import MIN_DATE, MAX_DATE, timeit
 from ..stream import StreamInstance
@@ -78,8 +78,10 @@ class SphereChannel(MemoryChannel):
         self.up_to_timestamp = up_to_timestamp
 
     def execute_tool(self, stream_ref, interval):
-        # TODO: tool.tool is ugly
-        stream_ref.tool.execute(None, interval, stream_ref.writer)
+        try:
+            stream_ref.tool.execute(None, interval, stream_ref.writer)
+        except AttributeError:
+            raise
 
     def _get_data_not_used(self, stream_ref, **kwargs):
         """
@@ -105,9 +107,6 @@ class SphereChannel(MemoryChannel):
         """
         return (StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream_ref.stream_id]
                 if timestamp in stream_ref.absolute_interval)
-
-    def get_default_ref(self):
-        return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifiers': Identity()}
 
     def get_stream_writer(self, stream_id):
         def writer(document_collection):

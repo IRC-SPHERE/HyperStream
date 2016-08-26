@@ -25,8 +25,8 @@ import logging
 from datetime import datetime, timedelta
 
 from hyperstream import OnlineEngine, HyperStreamConfig, StreamId
-from hyperstream.modifiers import List, Average, Count, Component, First, IData, Data, Time, Head
-from hyperstream.utils import UTC
+from hyperstream.modifiers import Component
+from hyperstream.utils import UTC, online_average
 from sphere_connector_package.sphere_connector import SphereLogger
 
 
@@ -49,6 +49,7 @@ if __name__ == '__main__':
     M = online_engine.channels.memory
     S = online_engine.channels.sphere
     T = online_engine.channels.tools
+    D = online_engine.channels.mongo
     
     # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
     environmental = StreamId(name='environmental', meta_data={'house': "1"})
@@ -60,60 +61,67 @@ if __name__ == '__main__':
     average = StreamId('aver')
     count = StreamId('count')
     sum_ = StreamId('sum')
+    sphere = StreamId('sphere')
     
     # Simple querying
-    el = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063') + List()).items()
-    edl = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063') + Data() + List()).items()
+    el = S[environmental].define().window((t1, t1 + minute)).modify(Component('electricity-04063')).items()
+    edl = S[environmental].define().window((t1, t1 + minute)).modify(Component('electricity-04063')).values()
 
     q1 = "\n".join("=".join(map(str, ee)) for ee in el)
 
     print(q1)
     print(edl)
 
+    clock_tool = T[clock].define(stride=30 * second)
+    env_tool = T[sphere].define(modality='environmental')
+
     # Windowed querying
-    # M[every30s] = T[clock].define(stride=30 * second).modify(First() + IData())
-    # M[every30s] = T[clock].define(stride=30 * second).modify(Head(1) + Data())
-    # M[every30s] = T[clock].define(stride=30 * second).modify(Time())
-    # M[every30s] = T[clock].define(stride=30 * second)
-    M.create_stream(stream_id=every30s, tool=T[clock].define(stride=30 * second))
+    M.create_stream(stream_id=every30s, tool_stream=clock_tool)
 
-    # m_kitchen_30_s_window = \
-    #     S[environmental].define(modality='environmental').window(-30, 0).modify(Component('motion-S1_K'))
-    # m_kitchen_30_s_window = S[environmental].define(modality='environmental').modify(Component('motion-S1_K'))
-    S.create_stream(stream_id=m_kitchen_30_s_window).define(modality='environmental').modify(Component('motion-S1_K'))
+    print("\n----------")
+    print("M[every30s]")
+    print("\n".join(map(str, M[every30s].define().window((t1, t2)))))
+    print("----------")
+    print("")
 
-    # M[average] = T[aggregate].define(
-    #     input_streams=[m_kitchen_30_s_window],
-    #     timer=M[every30s],
-    #     func=Data() + Average()
-    # )
-    #
-    # M[count] = T[aggregate].define(
-    #     input_streams=[m_kitchen_30_s_window],
-    #     timer=M[every30s],
-    #     func=Data() + Count()
-    # )
+    S.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=env_tool).modify(Component('motion-S1_K'))
 
+    print("\n------------------------")
+    print("S[m_kitchen_30_s_window]")
+    print("\n".join(map(str, S[m_kitchen_30_s_window].define().window((t1, t2)))))
+    print("------------------------")
+    print("")
+
+    # Want to be able to reuse the same aggregate tool, but with different parameters (in this case func)
+    # Since define() just returns back the object, we have an issue that a new object isn't being created
+    # Note that in fact T[aggregate] is returning a stream, and the items() function of the stream just returns a
+    # single element, which is the tool class, pre-built with its kwargs
+    # So we basically want to have a new stream being created by define, rather than the same one getting reused.
+    # Since define is only used for this purpose, there shouldn't be a problem?
+    # Hence it seems reasonable to simply use copy.deepcopy when returning the stream object
+
+    import numpy as np
     averager = T[aggregate].define(
-        input_streams=[S[m_kitchen_30_s_window]],
+        input_streams=[S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
         timer=M[every30s],
-        func=Data() + Average()
+        func=lambda x: online_average(map(lambda xi: xi.value, x))
     )
 
     counter = T[aggregate].define(
-        input_streams=[S[m_kitchen_30_s_window]],
+        input_streams=[S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
         timer=M[every30s],
-        func=Data() + Count()
+        func=lambda x: len(list(x))
     )
 
-    M.create_stream(stream_id=average, tool=averager)
-    M.create_stream(stream_id=count, tool=counter)
+    M.create_stream(stream_id=average, tool_stream=averager)
+    M.create_stream(stream_id=count, tool_stream=counter)
 
-    stream_ref = M[average].window((t1, t2)).modify(Data() + List())
-    aa = stream_ref.items()
+    stream_ref = M[average].define().window((t1, t2))
+    aa = stream_ref.values()
     print(aa)
     assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
-    cc = M[count].window((t1, t1 + 5 * minute)).modify(Data() + List()).items()
+    stream_ref = M[count].define().window((t1, t1 + 5 * minute))
+    cc = stream_ref.values()
     print(cc)
     assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])

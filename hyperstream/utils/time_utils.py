@@ -20,18 +20,18 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from hyperstream.tool import Tool, check_input_stream_count
+import pytz
+from datetime import datetime
 
 
-class SurelyEmpty(Tool):
-    def __init__(self, threshold):
-        super(SurelyEmpty, self).__init__(threshold=threshold)
-        self.threshold = threshold
+class UTC(pytz.UTC):
+    def __repr__(self):
+        return "UTC"
 
-    @check_input_stream_count(1)
-    def _execute(self, input_streams, interval, writer):
-        # Convert the location probability vector to an empty room vector using the threshold given
-        # noinspection PyCompatibility
-        for (timestamp, value) in self.input_streams[0].iteritems():
-            yield(timestamp, [x for x in value if x > self.threshold])
 
+MIN_DATE = datetime.min.replace(tzinfo=UTC)
+MAX_DATE = datetime.max.replace(tzinfo=UTC)
+
+
+def utcnow():
+    return datetime.utcnow().replace(tzinfo=UTC)

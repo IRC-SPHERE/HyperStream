@@ -21,9 +21,9 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from memory_channel import ReadOnlyMemoryChannel
-from ..stream import StreamId, Stream
+from ..stream import StreamId, Stream, StreamInstance
 
-from ..modifiers import Identity, Last, IData
+# from ..modifiers import Last, IData
 from ..utils import Printable, MIN_DATE, UTC
 from ..time_interval import TimeInterval, TimeIntervals
 
@@ -98,23 +98,18 @@ class FileChannel(ReadOnlyMemoryChannel):
             #         # This is the original version
             #         self.streams[stream_id].append((tool_info, self.data_loader(stream_id.name, tool_info)))
 
-            # TODO: why lambda: None for the get_results_func?
             self.streams[stream_id] = Stream(
                 channel=self,
                 stream_id=stream_id,
                 time_interval=TimeInterval(start=MIN_DATE, end=up_to_timestamp),
                 calculated_intervals=TimeIntervals(),
-                modifiers=Last() + IData(),
-                # get_results_func=lambda stream_ref, **kwargs: self.get_results(stream_ref, **kwargs),
+                modifier=None,  # Last() + IData(),
                 tool=None,
                 input_streams=None
             )
     
     def data_loader(self, short_path, file_info):
         raise NotImplementedError
-    
-    def get_default_ref(self):
-        return {'start': MIN_DATE, 'end': self.up_to_timestamp, 'modifiers': Identity()}
     
     def get_results(self, stream_ref):
         # TODO: Make this behave like the other channels
@@ -125,14 +120,18 @@ class FileChannel(ReadOnlyMemoryChannel):
         result = []
         module_path = os.path.join(self.path, stream_ref.stream_id.name)
         
-        for tool_info in self.file_filter(sorted(os.listdir(module_path))):
-            if tool_info.timestamp <= self.up_to_timestamp:
-                result.append((tool_info, self.data_loader(stream_ref.stream_id.name, tool_info)))
+        for file_info in self.file_filter(sorted(os.listdir(module_path))):
+            if file_info.timestamp <= self.up_to_timestamp:
+                # result.append((file_info, self.data_loader(stream_ref.stream_id.name, file_info)))
+                result.append(StreamInstance(
+                    timestamp=file_info.timestamp,
+                    value=self.data_loader(stream_ref.stream_id.name, file_info)
+                ))
         
-        result.sort(key=lambda x: x[0].timestamp)
+        result.sort(key=lambda x: x.timestamp)
 
-        if stream_ref.modifiers:
-            result = stream_ref.modifiers.execute(iter(result))
+        if stream_ref.modifier:
+            result = stream_ref.modifier.execute(iter(result))
         
         return result
 

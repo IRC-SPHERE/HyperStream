@@ -61,4 +61,9 @@ m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
 average = StreamId('average')
 count = StreamId('count')
 sphere_silhouette = StreamId('sphere_silhouette')
+sphere = StreamId('sphere')
 
+
+# Some tools
+clock_tool = T[clock].define(stride=30 * second)
+env_tool = T[sphere].define(modality='environmental')

@@ -66,8 +66,8 @@ class HyperStringTests(unittest.TestCase):
     
     def test_simple_query(self):
         # Simple querying
-        el = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063') + List()).items()
-        edl = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063') + Data() + List()).items()
+        el = S[environmental].define().window((t1, t1 + minute)).modify(Component('electricity-04063') + List())
+        edl = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063') + Data() + List())
         
         q1 = "\n".join("=".join(map(str, ee)) for ee in el)
         
@@ -81,11 +81,11 @@ class HyperStringTests(unittest.TestCase):
                       '2016-04-28 20:00:31.405000+00:00=0.0\n'
                       '2016-04-28 20:00:50.132000+00:00=0.0')
 
-        assert (edl == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        assert (edl.items() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_average(self):
-        M[every30s] = T[clock].define(stride=30 * second)
-        mk_30s = S[environmental].window((-30 * second, 0)).modify(Component('motion-S1_K'))
+        M.create_stream(stream_id=every30s, tool_stream=clock_tool)
+        mk_30s = S[environmental].relative_window((-30 * second, 0)).modify(Component('motion-S1_K'))
         
         M[average] = T[aggregate].define(
             timer=M[every30s],
@@ -97,8 +97,9 @@ class HyperStringTests(unittest.TestCase):
         assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_count(self):
-        M[every30s] = T[clock].define(stride=30 * second)
-        mk_30s = S[environmental].window((-30 * second, 0)).modify(Component('motion-S1_K'))
+        M.create_stream(stream_id=every30s, tool_stream=clock_tool)
+        mk_30s = S.create_stream(stream_id=environmental, tool_stream=env_tool)\
+            .window((-30 * second, 0)).modify(Component('motion-S1_K'))
         
         M[count] = T[aggregate].define(
             timer=M[every30s],

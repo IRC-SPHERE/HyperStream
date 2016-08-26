@@ -25,13 +25,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from future.utils import python_2_unicode_compatible
 # import pprint
-import pytz
-from datetime import datetime
 from treelib.tree import Tree, NodePropertyAbsentError, NodeIDAbsentError
 import simplejson as json
 from bidict import bidict, ValueDuplicationError
-import time
-import logging
 
 
 @python_2_unicode_compatible
@@ -161,19 +157,6 @@ class Hashable(object):
             return hash((self.name, repr(sorted(self.__dict__.items()))))
 
 
-class UTC(pytz.UTC):
-    def __repr__(self):
-        return "UTC"
-
-
-MIN_DATE = datetime.min.replace(tzinfo=UTC)
-MAX_DATE = datetime.max.replace(tzinfo=UTC)
-
-
-def utcnow():
-    return datetime.utcnow().replace(tzinfo=UTC)
-
-
 class TypedBiDict(Printable):
     """
     Custom strongly typed bi-directional dictionary where keys and values must be a specific type.
@@ -244,13 +227,4 @@ class TypedBiDict(Printable):
         return self._store.iteritems()
 
 
-def timeit(f):
-    def timed(*args, **kw):
-        ts = time.time()
-        result = f(*args, **kw)
-        te = time.time()
 
-        logging.info('func:{} args:[{}, {}] took: {:2.4f} sec'.format(f.__name__, args, kw, te - ts))
-        return result
-
-    return timed
