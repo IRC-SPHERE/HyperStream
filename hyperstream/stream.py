@@ -145,7 +145,7 @@ class Stream(Hashable):
 
     def window(self, time_interval):
         """
-        Sets the time window for this stream reference
+        Sets the time window for this stream
         :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
         :type time_interval: Iterable, TimeInterval
         :return: self (for chaining)
@@ -164,7 +164,7 @@ class Stream(Hashable):
 
     def relative_window(self, time_interval):
         """
-        Sets the time window for this stream reference
+        Sets the time window for this stream
         :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
         :type time_interval: Iterable, TimeInterval
         :return: self (for chaining)

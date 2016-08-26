@@ -27,8 +27,7 @@ class PlateDefinitionModel(Document):
     plate_id = StringField(required=True, min_length=1, max_length=512)
     meta_data_id = StringField(required=True, min_length=1, max_length=512)
     description = StringField(required=False, min_length=0, max_length=512, default="")
-    # TODO: Really want to say either int or str but nothing else
-    values = ListField()  # field=IntField(min_value=0))
+    values = ListField(field=StringField(min_length=1, max_length=512))
     complement = BooleanField(required=False, default=False)
     parent_plate = StringField(required=False, min_length=1, max_length=512, default="")
 
