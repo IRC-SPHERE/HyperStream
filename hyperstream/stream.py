@@ -1,27 +1,25 @@
-"""
-The MIT License (MIT)
-Copyright (c) 2014-2017 University of Bristol
+# The MIT License (MIT) # Copyright (c) 2014-2017 University of Bristol
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in all
+#  copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+#  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+#  OR OTHER DEALINGS IN THE SOFTWARE.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
-OR OTHER DEALINGS IN THE SOFTWARE.
-"""
 from time_interval import TimeIntervals, parse_time_tuple, RelativeTimeInterval, TimeInterval
-from utils import Hashable, TypedBiDict, check_output_format
+from utils import Hashable, TypedBiDict, check_output_format, check_tool_defined
 
 import logging
 from copy import deepcopy
@@ -103,14 +101,19 @@ class Stream(Hashable):
         self.kwargs = {}
         self.tool = tool
         self.input_streams = input_streams
-        self.defined = False
 
         # Here we define the output type. When modifiers are applied, this changes
         self.output_format = 'doc_gen'
 
     def __str__(self):
-        return "{}(stream_id={}, channel_id={}, interval={}, modifiers={})".format(
-            self.__class__.__name__, self.stream_id, self.channel.channel_id, self.time_interval, self.modifier)
+        return "{}(stream_id={}, channel_id={}, tool={}, input_streams=[{}], interval={}, modifiers={})".format(
+            self.__class__.__name__,
+            self.stream_id,
+            self.channel.channel_id,
+            self.tool.__class__.__name__ if self.tool else None,
+            ", ".join(map(lambda x: x.stream_id.name, self.input_streams)) if self.input_streams else None,
+            self.time_interval,
+            self.modifier)
         # s = "Stream"
         # s += "\n      CHANNEL_ID  : " + repr(self.channel.channel_id)
         # s += "\n      STREAM_ID   : " + repr(self.stream_id)
@@ -139,22 +142,6 @@ class Stream(Hashable):
     @property
     def writer(self):
         return self.channel.get_stream_writer(self.stream_id)
-
-    def define(self, input_streams=None, **kwargs):
-        """
-        Define the stream with the given input streams and keyword arguments
-        :param input_streams: The input streams
-        :param kwargs: keyword arguments
-        :return: self (for chaining)
-        """
-        # Don't obliterate existing input_streams definition if there was one
-        if input_streams:
-            self.input_streams = input_streams
-
-        # TODO: Possibly combine with existing kwargs ... defaults?
-        self.kwargs = kwargs
-        self.defined = True
-        return deepcopy(self)
 
     def window(self, time_interval):
         """
@@ -212,37 +199,13 @@ class Stream(Hashable):
         return self
 
     @property
-    def absolute_interval(self):
-        return self.time_interval
-        # start = self.time_interval.start if self.time_interval else timedelta(0)
-        # abs_start = start
-        # if isinstance(start, timedelta):
-        #     if isinstance(self.time_interval, RelativeTimeInterval):
-        #         raise StreamDataNotAvailableError('The stream reference to a stream has a relative start time, '
-        #                                           'need an absolute start time')
-        #     abs_start = self.time_interval.start + start
-        #
-        # end = self.time_interval.end if self.time_interval else timedelta(0)
-        # abs_end = end
-        # if isinstance(end, timedelta):
-        #     if isinstance(self.time_interval, RelativeTimeInterval):
-        #         raise StreamDataNotAvailableError('The stream reference to a stream has a relative end time, '
-        #                                           'need an absolute end time')
-        #     abs_end = self.time_interval.end + end
-        #
-        # if abs_end > self.channel.up_to_timestamp:
-        #     raise StreamDataNotAvailableError(
-        #         'The stream is not available after ' + str(self.channel.up_to_timestamp) + ' and cannot be obtained' +
-        #         ' (' + str(abs_end) + ' is provided)')
-        # return TimeInterval(start=abs_start, end=abs_end)
-
-    @property
     def required_intervals(self):
-        return TimeIntervals([self.absolute_interval]) - self.calculated_intervals
+        return TimeIntervals([self.time_interval]) - self.calculated_intervals
+
+    def execute(self):
+        self.channel.get_results(self)
 
     def __iter__(self):
-        if not self.defined:
-            raise RuntimeError("Stream not yet defined")
         for item in self.channel.get_results(self):
             yield item
 
@@ -256,9 +219,7 @@ class Stream(Hashable):
 
     @check_output_format({'doc_gen'})
     def iteritems(self):
-        if not self.defined:
-            raise RuntimeError("Stream not yet defined", self.stream_id)
-        return self.channel.get_results(self)
+        return iter(self)
 
     @check_output_format({'doc_gen'})
     def timestamps(self):
@@ -320,3 +281,48 @@ class Stream(Hashable):
         # TODO: Can this be done without list()?
         return list(self.iteritems())[-n:]
 
+
+class ToolStream(Stream):
+    def __init__(self, stream):
+        super(ToolStream, self).__init__(
+            channel=stream.channel,
+            stream_id=stream.stream_id,
+            time_interval=stream.time_interval,
+            calculated_intervals=stream.calculated_intervals,
+            modifier=stream.modifier,
+            tool=stream.tool,
+            input_streams=stream.input_streams)
+        self.defined = False
+
+    def define(self, input_streams=None, **kwargs):
+        """
+        Define the stream with the given input streams and keyword arguments
+        :param input_streams: The input streams
+        :param kwargs: keyword arguments
+        :return: self (for chaining)
+        """
+        if self.defined:
+            raise RuntimeError("Tool for stream {} already defined".format(self.stream_id))
+
+        # Don't obliterate existing input_streams definition if there was one
+        if input_streams:
+            self.input_streams = input_streams
+
+        # TODO: Possibly combine with existing kwargs ... defaults?
+        self.kwargs = kwargs
+        self.defined = True
+        return deepcopy(self)
+
+    # @check_tool_defined
+    # def execute(self):
+    #     self.channel.get_results(self)
+    #
+    # @check_tool_defined
+    # def __iter__(self):
+    #     for item in self.channel.get_results(self):
+    #         yield item
+    #
+    # @check_output_format({'doc_gen'})
+    # @check_tool_defined
+    # def iteritems(self):
+    #     return iter(self)
