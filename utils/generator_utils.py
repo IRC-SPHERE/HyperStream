@@ -20,18 +20,47 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from hyperstream.tool import Tool, check_input_stream_count
 
 
-class SurelyEmpty(Tool):
-    def __init__(self, threshold):
-        super(SurelyEmpty, self).__init__(threshold=threshold)
-        self.threshold = threshold
+def count(data):
+    cnt = 0
+    for _ in data:
+        cnt += 1
+    return cnt
 
-    @check_input_stream_count(1)
-    def _execute(self, input_streams, interval, writer):
-        # Convert the location probability vector to an empty room vector using the threshold given
-        # noinspection PyCompatibility
-        for (timestamp, value) in self.input_streams[0].iteritems():
-            yield(timestamp, [x for x in value if x > self.threshold])
 
+def online_sum(data, total=0.0):
+    for x in data:
+        total += x
+    return total
+
+
+def online_product(data, total=1.0):
+    for x in data:
+        total *= x
+    return total
+
+
+def online_average(data, n=0, mean=0.0):
+    for x in data:
+        n += 1
+        delta = x - mean
+        mean += delta / n
+
+    if n < 2:
+        return float('nan')
+    else:
+        return mean
+
+
+def online_variance(data, n=0, mean=0.0, m2=0.0):
+    for x in data:
+        n += 1
+        delta = x - mean
+        mean += delta / n
+        m2 += delta * (x - mean)
+
+    if n < 2:
+        return float('nan')
+    else:
+        return m2 / (n - 1)

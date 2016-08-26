@@ -22,10 +22,9 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from base_channel import BaseChannel
 from ..stream import Stream, StreamInstance
-from ..modifiers import Identity
 from datetime import timedelta
-from ..time_interval import TimeIntervals, TimeInterval
-from ..utils import MIN_DATE, MAX_DATE
+from ..time_interval import TimeIntervals
+from ..utils import MIN_DATE
 import logging
 from collections import defaultdict
 
@@ -36,26 +35,30 @@ class MemoryChannel(BaseChannel):
         self.max_stream_id = 0
         self.data = defaultdict(list)
 
-    def create_stream(self, stream_id, tool=None):
+    def create_stream(self, stream_id, tool_stream=None):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
         identifier stream_id
         """
-        # TODO: check time_interval and get_results_func in the below
-        # TODO: Tool definition is a bit ugly
-        try:
-            self.streams[stream_id] = Stream(
-                channel=self,
-                stream_id=stream_id,
-                time_interval=TimeInterval(MIN_DATE, MAX_DATE),
-                calculated_intervals=TimeIntervals(),
-                modifiers=Identity(),
-                tool=tool.items()(**tool.kwargs) if tool else None,
-                input_streams=tool.input_streams if tool else None
-            )
-        except TypeError as e:
-            # TODO: for debugging
-            raise e
+        if stream_id in self.streams:
+            raise ValueError("Stream already exists")
+
+        if tool_stream:
+            # TODO: Use tool versions - here we're just taking the latest one
+            tool_class = tool_stream.items()[-1].value
+            tool = tool_class(**tool_stream.kwargs)
+        else:
+            tool = None
+
+        self.streams[stream_id] = Stream(
+            channel=self,
+            stream_id=stream_id,
+            time_interval=None,
+            calculated_intervals=TimeIntervals(),
+            modifier=None,
+            tool=tool,
+            input_streams=tool_stream.input_streams if tool_stream else None
+        )
 
         return self.streams[stream_id]
 
@@ -90,16 +93,16 @@ class MemoryChannel(BaseChannel):
             if stream_ref.required_intervals.is_not_empty:
                 raise RuntimeError('Tool execution did not cover the specified interval.')
 
-        return stream_ref.modifiers.execute(iter(self._get_data(stream_ref)))
+        if stream_ref.modifier:
+            return stream_ref.modifier.execute(self._get_data(stream_ref))
+        else:
+            return self._get_data(stream_ref)
 
     def get_stream_writer(self, stream_id):
         def writer(document_collection):
             self.data[stream_id].extend(document_collection)
         return writer
     
-    def get_default_ref(self):
-        return {'start': None, 'end': None, 'modifiers': Identity()}
-
 
 class ReadOnlyMemoryChannel(BaseChannel):
     """
@@ -123,7 +126,7 @@ class ReadOnlyMemoryChannel(BaseChannel):
             self.update_streams(up_to_timestamp)
             self.update_state(up_to_timestamp)
 
-    def create_stream(self, stream_id, tool=None):
+    def create_stream(self, stream_id, tool_stream=None):
         raise RuntimeError("Read-only channel")
 
     def get_stream_writer(self, stream_id):
@@ -161,5 +164,5 @@ class ReadOnlyMemoryChannel(BaseChannel):
         for (tool_info, data) in self.streams[stream_ref.stream_id]:
             if start < tool_info.timestamp <= end:
                 result.append(StreamInstance(tool_info.timestamp, data))
-        result = stream_ref.modifiers.execute(iter(sorted(result, key=lambda x: x.timestamp)))
+        result = stream_ref.modifier.execute(iter(sorted(result, key=lambda x: x.timestamp)))
         return result

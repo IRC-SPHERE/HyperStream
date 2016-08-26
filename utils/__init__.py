@@ -20,18 +20,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from hyperstream.tool import Tool, check_input_stream_count
-
-
-class SurelyEmpty(Tool):
-    def __init__(self, threshold):
-        super(SurelyEmpty, self).__init__(threshold=threshold)
-        self.threshold = threshold
-
-    @check_input_stream_count(1)
-    def _execute(self, input_streams, interval, writer):
-        # Convert the location probability vector to an empty room vector using the threshold given
-        # noinspection PyCompatibility
-        for (timestamp, value) in self.input_streams[0].iteritems():
-            yield(timestamp, [x for x in value if x > self.threshold])
-
+from utils import MetaDataTree, Hashable, Printable, TypedBiDict
+from time_utils import UTC, MIN_DATE, MAX_DATE, utcnow
+from decorators import timeit, check_output_format
+from generator_utils import online_average, online_variance

@@ -21,9 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from module_channel import ModuleChannel
-from ..stream import StreamId, Stream
-from ..modifiers import Identity
-from ..time_interval import TimeIntervals
+from ..stream import StreamInstance
 
 
 class ToolChannel(ModuleChannel):
@@ -55,8 +53,9 @@ class ToolChannel(ModuleChannel):
     #     )
 
     def get_results(self, stream_ref):
-        (version, module_importer) = super(ToolChannel, self).get_results(stream_ref)
-        module = module_importer()
-        class_name = stream_ref.stream_id.name.title().replace("_", "")
-        tool_class = getattr(module, class_name)
-        return tool_class
+        results = super(ToolChannel, self).get_results(stream_ref)
+        for timestamp, (version, module_importer) in results:
+            module = module_importer()
+            class_name = stream_ref.stream_id.name.title().replace("_", "")
+            tool_class = getattr(module, class_name)
+            yield StreamInstance(timestamp, tool_class)

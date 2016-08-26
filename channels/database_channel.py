@@ -52,7 +52,7 @@ class DatabaseChannel(BaseChannel):
             if stream_ref.required_times.is_not_empty:
                 raise RuntimeError('Tool execution did not cover the specified interval.')
 
-        return stream_ref.modifiers.execute(iter(self._get_data(stream_ref)))
+        return stream_ref.modifier.execute(iter(self._get_data(stream_ref)))
 
         # abs_end, abs_start = self.get_absolute_start_end(stream_ref)
         #
@@ -94,7 +94,7 @@ class DatabaseChannel(BaseChannel):
     #     if need_to_calc_times.is_not_empty:
     #         raise ValueError('Tool execution did not cover the specified interval.')
 
-    def create_stream(self, stream_id, tool=None):
+    def create_stream(self, stream_id, tool_stream=None):
         # TODO: Functionality here
         raise NotImplementedError("Database streams currently need to be defined in the database")
 
