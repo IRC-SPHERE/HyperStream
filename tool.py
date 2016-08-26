@@ -1,25 +1,23 @@
-"""
-The MIT License (MIT)
-Copyright (c) 2014-2017 University of Bristol
+# The MIT License (MIT) # Copyright (c) 2014-2017 University of Bristol
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in all
+#  copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+#  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+#  OR OTHER DEALINGS IN THE SOFTWARE.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
-OR OTHER DEALINGS IN THE SOFTWARE.
-"""
 import logging
 from time_interval import TimeInterval
 from utils import Printable, Hashable
@@ -28,9 +26,9 @@ from utils import Printable, Hashable
 class Tool(Printable, Hashable):
     def __init__(self, **kwargs):
         if kwargs:
-            logging.debug('Defining a {} stream with kwargs {}'.format(self.__class__.__name__, kwargs))
+            logging.debug('Defining a {} tool with kwargs {}'.format(self.__class__.__name__, kwargs))
         else:
-            logging.debug('Defining a {} stream'.format(self.__class__.__name__))
+            logging.debug('Defining a {} tool'.format(self.__class__.__name__))
 
     def __eq__(self, other):
         # TODO: requires a unit test
@@ -64,9 +62,10 @@ def check_input_stream_count(expected_number_of_streams):
                 if input_streams:
                     raise ValueError("No input streams expected")
             else:
-                if not input_streams or len(input_streams) != expected_number_of_streams:
-                    raise ValueError("{} tool takes {} stream(s) as input".format(
-                        self.__class__.__name__, expected_number_of_streams))
+                given_number_of_streams = len(input_streams) if input_streams else 0
+                if given_number_of_streams != expected_number_of_streams:
+                    raise ValueError("{} tool takes {} stream(s) as input ({} given)".format(
+                        self.__class__.__name__, expected_number_of_streams, given_number_of_streams))
             return func(*args, **kwargs)
         return func_wrapper
     return stream_count_decorator
