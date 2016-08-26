@@ -37,10 +37,8 @@ class PlateManager(Printable):
         logging.info("Global plate definitions: ")
         logging.info(self.global_plate_definitions)
 
-        # Plate definitions (arrays of streams) version 2
-        # First we want to pull out all parent plates
-        # TODO: want to write for p in PlateDefinitionModel2.objects(parent_plate=''):
-        for p in PlateDefinitionModel.objects():
+        # Plate definitions (arrays of streams)
+        for p in PlateDefinitionModel.objects:
             if not p.values and not p.complement:
                 raise ValueError("Empty values in plate definition and complement=False")
 
@@ -68,30 +66,22 @@ class PlateManager(Printable):
             }
             """
 
-            if p.parent_plate:
-                values = []
+            if p.plate_id in (u'H1', u'H1.kitchen', u'H1_str'):
+                logging.debug(p.plate_id)
 
-                if not p.values:
-                    # Empty list: choose all values
-                    for n in self.global_plate_definitions.all_nodes():
-                        if n.tag == p.meta_data_id:
+            values = []
+            for n in self.global_plate_definitions.all_nodes():
+                if n.tag == p.meta_data_id:
+                    if not p.values or n.data in p.values:
+                        if p.parent_plate:
+                            # This plate has parent plates, so we need to get parent data for the node
                             values.insert(0, self.get_parent_data(self.global_plate_definitions, n, {n.tag: n.data}))
-                else:
-                    # Non-empty list - select only valid values
-                    # TODO: Gracefully skips invalid values but doesn't raise an error
-                    for n in self.global_plate_definitions.all_nodes():
-                        if n.tag == p.meta_data_id and n.data in p.values:
-                            values.insert(0, self.get_parent_data(self.global_plate_definitions, n, {n.tag: n.data}))
-            else:
-                if not p.values:
-                    # Empty list: choose all values
-                    values = [{n.tag: n.data} for n in self.global_plate_definitions.all_nodes()
-                              if n.tag == p.meta_data_id]
-                else:
-                    # Non-empty list - select only valid values
-                    # TODO: Gracefully skips invalid values but doesn't raise an error
-                    values = [{n.tag: n.data} for n in self.global_plate_definitions.all_nodes()
-                              if n.tag == p.meta_data_id and n.data in p.values]
+                        else:
+                            values.insert(0, {n.tag: n.data})
+                    # else:
+                    #     logging.warn('Invalid plate value "{}" for node id "{}"'.format(n.data, n.identifier))
+            if not values:
+                raise ValueError("Plate values for {} empty".format(p.plate_id))
 
             self.plates[p.plate_id] = values
 

@@ -20,7 +20,8 @@
 
 from channel import ChannelManager
 from tool import Tool
-from workflow import Workflow
+from client import Client
+from workflow import Workflow, WorkflowManager
 from stream import StreamId, Stream
 from time_interval import TimeInterval, TimeIntervals, RelativeTimeInterval
 from online_engine import OnlineEngine
