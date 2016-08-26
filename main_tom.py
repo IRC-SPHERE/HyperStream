@@ -21,7 +21,7 @@
 import logging
 from datetime import datetime, timedelta
 
-from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager
+from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client
 from hyperstream.modifiers import Component
 from hyperstream.utils import UTC
 from hyperstream.itertools2 import online_average, count as online_count
@@ -33,9 +33,12 @@ if __name__ == '__main__':
     sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
 
     hyperstream_config = HyperStreamConfig()
+    client = Client(hyperstream_config.mongo)
 
+    # Define some managers
     channels = ChannelManager(hyperstream_config.tool_path)
     plates = PlateManager(hyperstream_config.meta_data).plates
+    workflows = WorkflowManager(channels=channels, plates=plates)
 
     # Various constants
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
@@ -63,15 +66,23 @@ if __name__ == '__main__':
     sphere = StreamId('sphere')
 
     # Create a simple workflow for querying
-    simple_query_workflow = Workflow(
-                    channels=channels,
-                    plates=plates,
-                    workflow_id="simple_query_workflow",
-                    name="Simple query workflow",
-                    owner="TD",
-                    nodes=None,
-                    factors=None
-                )
+    w = Workflow(
+        channels=channels,
+        plates=plates,
+        workflow_id="simple_query_workflow",
+        name="Simple query workflow",
+        owner="TD",
+        description="Just a test of creating workflows")
+
+    # Create some streams (nodes)
+    # Note that creating a node with
+
+    node = w.create_node(node_id="ENV_H1", stream_name="environmental", plate_ids=["H1"])\
+        .window((t1, t1 + minute)).execute()
+
+    print(node.streams[0].items())
+
+    exit()
 
     # Simple querying
     el = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063')).items()
