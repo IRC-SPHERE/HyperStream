@@ -23,6 +23,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from time_interval import TimeIntervals, parse_time_tuple, RelativeTimeInterval, TimeInterval
 from utils import Hashable, TypedBiDict, check_output_format
 
+import logging
 from copy import deepcopy
 from collections import Iterable, namedtuple
 from datetime import datetime
@@ -202,7 +203,7 @@ class Stream(Hashable):
         """
         if self.modifier:
             # TODO: Repeated modifiers?
-            raise NotImplementedError
+            logging.warn("Overwriting modifier for stream {}".format(self.stream_id))
 
         self.modifier = modifier
 
@@ -256,7 +257,7 @@ class Stream(Hashable):
     @check_output_format({'doc_gen'})
     def iteritems(self):
         if not self.defined:
-            raise RuntimeError("Stream not yet defined")
+            raise RuntimeError("Stream not yet defined", self.stream_id)
         return self.channel.get_results(self)
 
     @check_output_format({'doc_gen'})
