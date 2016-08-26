@@ -1,29 +1,27 @@
-"""
-The MIT License (MIT)
-Copyright (c) 2014-2017 University of Bristol
+# The MIT License (MIT) # Copyright (c) 2014-2017 University of Bristol
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in all
+#  copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+#  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+#  OR OTHER DEALINGS IN THE SOFTWARE.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
-OR OTHER DEALINGS IN THE SOFTWARE.
-"""
 import unittest
 
 from hyperstream import TimeInterval, TimeIntervals
-from hyperstream.utils import online_average, count as online_count
+from hyperstream.itertools2 import online_average, count as online_count
 from hyperstream.modifiers import *
 from helpers import *
 
@@ -67,7 +65,7 @@ class HyperStringTests(unittest.TestCase):
     
     def test_simple_query(self):
         # Simple querying
-        el = S[environmental].define().window((t1, t1 + minute)).modify(Component('electricity-04063'))
+        el = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063'))
         edl = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063'))
         
         q1 = "\n".join("=".join(map(str, ee)) for ee in el)
@@ -85,8 +83,8 @@ class HyperStringTests(unittest.TestCase):
         assert (edl.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_average(self):
-        M[every30s] = M.create_stream(stream_id=every30s, tool_stream=clock_tool).define()
-        mk_30s = S[environmental].define().relative_window((-30 * second, 0)).modify(Component('motion-S1_K'))
+        M[every30s] = M.create_stream(stream_id=every30s, tool_stream=clock_tool)
+        mk_30s = S[environmental].relative_window((-30 * second, 0)).modify(Component('motion-S1_K'))
 
         averager = T[aggregate].define(
             timer=M[every30s],
@@ -96,7 +94,7 @@ class HyperStringTests(unittest.TestCase):
 
         M.create_stream(stream_id=average, tool_stream=averager)
         
-        aa = M[average].define().window((t1, t1 + 5 * minute)).values()
+        aa = M[average].window((t1, t1 + 5 * minute)).values()
         logging.info(aa)
         assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
@@ -112,10 +110,13 @@ class HyperStringTests(unittest.TestCase):
 
         M.create_stream(stream_id=count, tool_stream=counter)
 
-        cc = M[count].define().window((t1, t1 + 5 * minute)).values()
+        cc = M[count].window((t1, t1 + 5 * minute)).values()
         logging.info(cc)
         assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])
 
+    def test_database_channel(self):
+        # TODO: some tests go here
+        pass
 
 if __name__ == '__main__':
     unittest.main()

@@ -21,7 +21,7 @@
 import logging
 from datetime import datetime, timedelta
 
-from hyperstream import OnlineEngine, HyperStreamConfig, StreamId
+from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager
 from hyperstream.modifiers import Component
 from hyperstream.utils import UTC
 from hyperstream.itertools2 import online_average, count as online_count
@@ -33,9 +33,10 @@ if __name__ == '__main__':
     sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
 
     hyperstream_config = HyperStreamConfig()
-    
-    online_engine = OnlineEngine(hyperstream_config)
-    
+
+    channels = ChannelManager(hyperstream_config.tool_path)
+    plates = PlateManager(hyperstream_config.meta_data).plates
+
     # Various constants
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
     t2 = t1 + timedelta(minutes=5)
@@ -44,23 +45,34 @@ if __name__ == '__main__':
     hour = timedelta(hours=1)
 
     # Various channels
-    M = online_engine.channels.memory
-    S = online_engine.channels.sphere
-    T = online_engine.channels.tools
-    D = online_engine.channels.mongo
+    M = channels.memory
+    S = channels.sphere
+    T = channels.tools
+    D = channels.mongo
     
     # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
-    environmental = StreamId(name='environmental', meta_data={'house': "1"})
+    environmental = StreamId(name='environmental', meta_data={'house': '1'})
     clock = StreamId('clock')
     aggregate = StreamId('aggregate')
     every30s = StreamId('every30s')
     motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
     m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
-    average = StreamId('aver')
-    count = StreamId('count')
-    sum_ = StreamId('sum')
+    average = StreamId('averager', meta_data={'house': '1'})
+    count = StreamId('counter')
+    # sum_ = StreamId('sum')
     sphere = StreamId('sphere')
-    
+
+    # Create a simple workflow for querying
+    simple_query_workflow = Workflow(
+                    channels=channels,
+                    plates=plates,
+                    workflow_id="simple_query_workflow",
+                    name="Simple query workflow",
+                    owner="TD",
+                    nodes=None,
+                    factors=None
+                )
+
     # Simple querying
     el = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063')).items()
     edl = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063')).values()
@@ -101,7 +113,7 @@ if __name__ == '__main__':
     averager = T[aggregate].define(
         input_streams=[S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
         timer=M[every30s],
-        func=lambda x: online_average(map(lambda xi: xi.value, x))
+        func=online_average
     )
 
     counter = T[aggregate].define(
@@ -110,10 +122,10 @@ if __name__ == '__main__':
         func=online_count
     )
 
-    M.create_stream(stream_id=average, tool_stream=averager)
+    D[average].window((t1, t2)).execute()
     M.create_stream(stream_id=count, tool_stream=counter)
 
-    stream_ref = M[average].window((t1, t2))
+    stream_ref = D[average].window((t1, t2))
     aa = stream_ref.values()
     print(aa)
     assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
