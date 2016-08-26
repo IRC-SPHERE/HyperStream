@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from hyperstream import Stream
-from hyperstream.modifiers import *
+# from hyperstream.modifiers import *
 import unittest
 from helpers import *
 
@@ -29,9 +29,12 @@ from helpers import *
 class TestToolChannel(unittest.TestCase):
     def test_tool_channel(self):
         # Load in the objects and print them
-        clock_stream = T.streams[clock]
+        clock_stream = T[clock]
         assert(isinstance(clock_stream, Stream))
-        assert(clock_stream.modifier == Last() + IData())
+        # assert(clock_stream.modifier == Last() + IData())
 
         sphere_silhouette_stream = T.streams[sphere_silhouette]
         assert(sphere_silhouette_stream.time_interval.start == MIN_DATE)
+
+        agg_stream = T[aggregate]
+        assert(len(agg_stream.items()) > 1)

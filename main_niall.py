@@ -26,7 +26,7 @@ from datetime import datetime, timedelta
 
 from hyperstream import OnlineEngine, HyperStreamConfig, StreamId
 from hyperstream.modifiers import Component
-from hyperstream.utils import UTC, online_average
+from hyperstream.utils import UTC, online_average, count as online_count
 from sphere_connector_package.sphere_connector import SphereLogger
 
 
@@ -100,7 +100,6 @@ if __name__ == '__main__':
     # Since define is only used for this purpose, there shouldn't be a problem?
     # Hence it seems reasonable to simply use copy.deepcopy when returning the stream object
 
-    import numpy as np
     averager = T[aggregate].define(
         input_streams=[S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
         timer=M[every30s],
@@ -110,7 +109,7 @@ if __name__ == '__main__':
     counter = T[aggregate].define(
         input_streams=[S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
         timer=M[every30s],
-        func=lambda x: len(list(x))
+        func=online_count
     )
 
     M.create_stream(stream_id=average, tool_stream=averager)

@@ -23,4 +23,4 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from utils import MetaDataTree, Hashable, Printable, TypedBiDict
 from time_utils import UTC, MIN_DATE, MAX_DATE, utcnow
 from decorators import timeit, check_output_format
-from generator_utils import online_average, online_variance
+from generator_utils import online_average, online_variance, online_product, online_sum, count
