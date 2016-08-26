@@ -21,5 +21,4 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from modifier import Modifier
-from simple_modifiers import Average, ComponentFilter, Component, Count, DeleteNones, First, Head, IData, \
-    ITime, Last, Product, Sum, Tail, Time
+from simple_modifiers import ComponentFilter, Component, DeleteNones, First, Head, IData, ITime, Last, Tail, Time

@@ -23,6 +23,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 import unittest
 
 from hyperstream import TimeInterval, TimeIntervals
+from hyperstream.utils import online_average, count as online_count
 from hyperstream.modifiers import *
 from helpers import *
 
@@ -66,8 +67,8 @@ class HyperStringTests(unittest.TestCase):
     
     def test_simple_query(self):
         # Simple querying
-        el = S[environmental].define().window((t1, t1 + minute)).modify(Component('electricity-04063') + List())
-        edl = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063') + Data() + List())
+        el = S[environmental].define().window((t1, t1 + minute)).modify(Component('electricity-04063'))
+        edl = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063'))
         
         q1 = "\n".join("=".join(map(str, ee)) for ee in el)
         
@@ -81,34 +82,38 @@ class HyperStringTests(unittest.TestCase):
                       '2016-04-28 20:00:31.405000+00:00=0.0\n'
                       '2016-04-28 20:00:50.132000+00:00=0.0')
 
-        assert (edl.items() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        assert (edl.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_average(self):
-        M.create_stream(stream_id=every30s, tool_stream=clock_tool)
-        mk_30s = S[environmental].relative_window((-30 * second, 0)).modify(Component('motion-S1_K'))
-        
-        M[average] = T[aggregate].define(
+        M[every30s] = M.create_stream(stream_id=every30s, tool_stream=clock_tool).define()
+        mk_30s = S[environmental].define().relative_window((-30 * second, 0)).modify(Component('motion-S1_K'))
+
+        averager = T[aggregate].define(
             timer=M[every30s],
             input_streams=[mk_30s],
-            func=Data() + Average()
+            func=lambda x: online_average(map(lambda xi: xi.value, x))
         )
+
+        M.create_stream(stream_id=average, tool_stream=averager)
         
-        aa = M[average].window((t1, t1 + 5 * minute)).modify(Data() + List()).items()
+        aa = M[average].define().window((t1, t1 + 5 * minute)).values()
+        logging.info(aa)
         assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_count(self):
-        M.create_stream(stream_id=every30s, tool_stream=clock_tool)
-        mk_30s = S.create_stream(stream_id=environmental, tool_stream=env_tool)\
-            .window((-30 * second, 0)).modify(Component('motion-S1_K'))
+        # M.create_stream(stream_id=every30s, tool_stream=clock_tool)
+        mk_30s = S[environmental].relative_window((-30 * second, 0)).modify(Component('motion-S1_K'))
         
-        M[count] = T[aggregate].define(
+        counter = T[aggregate].define(
             timer=M[every30s],
             input_streams=[mk_30s],
-            func=Data() + Count()
+            func=online_count
         )
-        
-        cc = M[count].window((t1, t1 + 5 * minute)).modify(Data() + List()).items()
-        
+
+        M.create_stream(stream_id=count, tool_stream=counter)
+
+        cc = M[count].define().window((t1, t1 + 5 * minute)).values()
+        logging.info(cc)
         assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])
 
 
