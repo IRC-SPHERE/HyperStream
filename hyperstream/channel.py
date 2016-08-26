@@ -24,7 +24,7 @@ from utils import Printable, utcnow
 from errors import StreamNotFoundError, StreamAlreadyExistsError, ChannelNotFoundError
 from models import StreamDefinitionModel
 from stream import StreamId, Stream
-from modifiers import Identity
+# from modifiers import Identity
 from time_interval import TimeInterval, TimeIntervals
 
 # import logging
@@ -94,8 +94,8 @@ class ChannelCollection(ChannelCollectionBase, Printable):
             if stream_id in channel.streams:
                 raise StreamAlreadyExistsError(stream_id)
 
-            # TODO: Use tool versions
-            tool_class = self.tools[StreamId(s.tool_name)].items()
+            # TODO: Use tool versions - here we just take the latest one
+            tool_class = self.tools[StreamId(s.tool_name)].define().items()[-1].value
             tool = tool_class(**s.tool_parameters)
 
             # tool = self.tools.get_tool(s.tool_name, s.tool_version, s.tool_parameters)
@@ -111,7 +111,7 @@ class ChannelCollection(ChannelCollectionBase, Printable):
                     tool=tool,
                     time_interval=None,   # TODO
                     calculated_intervals=TimeIntervals(),
-                    modifiers=Identity(),
+                    modifier=None,
                     # get_results_func=channel.get_results,
                     input_streams=input_streams
                 )

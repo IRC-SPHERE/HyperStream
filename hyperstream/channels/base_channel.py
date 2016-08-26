@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from ..stream import StreamInstance, StreamDict
-from ..modifiers import Identity
+# from ..modifiers import Identity
 from ..utils import Printable, MIN_DATE, MAX_DATE
 
 
@@ -69,7 +69,7 @@ class BaseChannel(Printable):
         """
         raise NotImplementedError
     
-    def create_stream(self, stream_id, tool=None):
+    def create_stream(self, stream_id, tool_stream=None):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
         identifier stream_id
@@ -90,15 +90,7 @@ class BaseChannel(Printable):
              raise Exception('No stream with id '+str(stream_id))
         """
         raise NotImplementedError
-    
-    def get_default_ref(self):
-        """
-        Could be overridden by deriving classes, should return the default values for start,end,modifiers when
-        referring to a stream in this channel
-        """
-        # TODO: Should end be timedelta(0) ?
-        return {'start': MIN_DATE, 'end': MAX_DATE, 'modifiers': Identity()}
-    
+
     def __str__(self):
         s = self.__class__.__name__ + ' with ID: ' + str(self.channel_id)
         s += ' and containing {} streams:'.format(len(self.streams))

@@ -32,6 +32,7 @@ class Aggregate(Tool):
         self.timer = timer
         self.func = func
 
+    # noinspection PyCompatibility
     @check_input_stream_count(1)
     def _execute(self, input_streams, interval, writer):
         rel_start = timedelta(0)
@@ -46,12 +47,11 @@ class Aggregate(Tool):
                     interval, input_streams[0].time_interval))
                 raise NotImplementedError
 
-        data = input_streams[0].window(interval).items()
+        data = input_streams[0].window(interval).iteritems()
 
         window = []
         future = []
-        for (t, _) in self.timer.window(interval).items():
-            # logging.debug("item: {}".format(str(t)))
+        for (t, _) in self.timer.window(interval).iteritems():
             while (len(window) > 0) and (window[0][0] <= t + rel_start):
                 window = window[1:]
             while (len(future) > 0) and (future[0][0] <= t + rel_end):
@@ -61,10 +61,7 @@ class Aggregate(Tool):
                     window.append(doc)
             while True:
                 try:
-                    # TODO Relative time logic can go here
-                    # logging.debug("Calling next(input_streams[0].window(interval.start, interval.end).items())")
                     doc = next(data)
-                    # logging.debug(doc)
                     if t + rel_start < doc[0] <= t + rel_end:
                         window.append(doc)
                     elif doc[0] > t + rel_end:
@@ -75,7 +72,7 @@ class Aggregate(Tool):
                 except StopIteration:
                     break
             # single-document case:
-            writer([(t, self.func.execute(iter(window)))])
+            writer([(t, self.func(iter(window)))])
             # multi-document case:
             # for x in func( (doc for doc in window) ):
             #        writer([(t,x)])

@@ -20,18 +20,34 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from hyperstream.tool import Tool, check_input_stream_count
+import time
+import logging
 
 
-class SurelyEmpty(Tool):
-    def __init__(self, threshold):
-        super(SurelyEmpty, self).__init__(threshold=threshold)
-        self.threshold = threshold
+def timeit(f):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = f(*args, **kw)
+        te = time.time()
 
-    @check_input_stream_count(1)
-    def _execute(self, input_streams, interval, writer):
-        # Convert the location probability vector to an empty room vector using the threshold given
-        # noinspection PyCompatibility
-        for (timestamp, value) in self.input_streams[0].iteritems():
-            yield(timestamp, [x for x in value if x > self.threshold])
+        logging.info('func:{} args:[{}, {}] took: {:2.4f} sec'.format(f.__name__, args, kw, te - ts))
+        return result
 
+    return timed
+
+
+def check_output_format(expected_formats):
+    """
+    Decorator for stream outputs that checks the format of the outputs after modifiers have been applied
+    :param expected_formats: The expected output formats
+    :type expected_formats: tuple, set
+    :return: the decorator
+    """
+    def output_format_decorator(func):
+        def func_wrapper(*args, **kwargs):
+            self = args[0]
+            if self.output_format not in expected_formats:
+                raise ValueError("expected output format {}, got {}".format('doc_gen', self.output_format))
+            return func(*args, **kwargs)
+        return func_wrapper
+    return output_format_decorator

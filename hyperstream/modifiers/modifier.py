@@ -66,3 +66,4 @@ class ComposedModifier(Modifier):
         return isinstance(other, ComposedModifier) and \
                self.modifier_1 == other.modifier_1 and \
                self.modifier_2 == other.modifier_2
+
