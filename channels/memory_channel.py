@@ -1,25 +1,23 @@
-"""
-The MIT License (MIT)
-Copyright (c) 2014-2017 University of Bristol
+# The MIT License (MIT) # Copyright (c) 2014-2017 University of Bristol
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in all
+#  copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+#  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+#  OR OTHER DEALINGS IN THE SOFTWARE.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
-OR OTHER DEALINGS IN THE SOFTWARE.
-"""
 from base_channel import BaseChannel
 from ..stream import Stream, StreamInstance
 from datetime import timedelta
@@ -42,6 +40,8 @@ class MemoryChannel(BaseChannel):
         """
         if stream_id in self.streams:
             raise ValueError("Stream already exists")
+
+        # TODO: Want to be able to define the streams in the database
 
         if tool_stream:
             # TODO: Use tool versions - here we're just taking the latest one
@@ -75,7 +75,7 @@ class MemoryChannel(BaseChannel):
         :param kwargs: The keyword arguments
         :return: The data generator
         """
-        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream_ref.stream_id]
+        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream_ref]
                        if timestamp in stream_ref.absolute_interval), key=lambda x: x.timestamp)
 
     def get_results(self, stream_ref):
@@ -98,9 +98,9 @@ class MemoryChannel(BaseChannel):
         else:
             return self._get_data(stream_ref)
 
-    def get_stream_writer(self, stream_id):
+    def get_stream_writer(self, stream_ref):
         def writer(document_collection):
-            self.data[stream_id].extend(document_collection)
+            self.data[stream_ref].extend(document_collection)
         return writer
     
 
@@ -129,7 +129,7 @@ class ReadOnlyMemoryChannel(BaseChannel):
     def create_stream(self, stream_id, tool_stream=None):
         raise RuntimeError("Read-only channel")
 
-    def get_stream_writer(self, stream_id):
+    def get_stream_writer(self, stream_ref):
         raise RuntimeError("Read-only channel")
     
     # def str_stream(self, stream_id):

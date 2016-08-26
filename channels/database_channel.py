@@ -1,25 +1,4 @@
-"""
-The MIT License (MIT)
-Copyright (c) 2014-2017 University of Bristol
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
-OR OTHER DEALINGS IN THE SOFTWARE.
-"""
+# The MIT License (MIT) # Copyright (c) 2014-2017 University of Bristol #  # Permission is hereby granted, free of charge, to any person obtaining a copy # of this software and associated documentation files (the "Software"), to deal # in the Software without restriction, including without limitation the rights # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell # copies of the Software, and to permit persons to whom the Software is # furnished to do so, subject to the following conditions: #  # The above copyright notice and this permission notice shall be included in all # copies or substantial portions of the Software. #  # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. # IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE # OR OTHER DEALINGS IN THE SOFTWARE.
 from base_channel import BaseChannel
 from ..models import StreamInstanceModel
 from ..stream import StreamInstance
@@ -44,8 +23,8 @@ class DatabaseChannel(BaseChannel):
 
     def get_results(self, stream_ref):
         # TODO: This is identical to MemoryChannel - can they share a base instantiation (BaseChannel)??
-        if not stream_ref.required_times.is_empty:
-            for interval in stream_ref.required_times.intervals:
+        if not stream_ref.required_intervals.is_empty:
+            for interval in stream_ref.required_intervals:
                 self.execute_tool(stream_ref, interval)
                 stream_ref.calculated_intervals += TimeIntervals([interval])
 
@@ -98,17 +77,16 @@ class DatabaseChannel(BaseChannel):
         # TODO: Functionality here
         raise NotImplementedError("Database streams currently need to be defined in the database")
 
-    def get_stream_writer(self, stream_id):
+    def get_stream_writer(self, stream_ref):
         def writer(document_collection):
-            # TODO: Should this be for (doc_datetime, doc) in ... and then in StreamInstanceModel datetime=doc_datetime
             # TODO: Does this check whether a stream_id/datetime pair already exists in the DB? (unique pairs?)
-            for doc in document_collection:
+            for t, doc in document_collection:
                 instance = StreamInstanceModel(
-                    stream_id=stream_id,
-                    stream_type="",
-                    datetime=utcnow(),
-                    metadata={},
-                    version="",
+                    stream_id=stream_ref.stream_id,
+                    stream_type=stream_ref.stream_type,
+                    datetime=t,
+                    metadata=stream_ref.tool.metadata,
+                    version=stream_ref.tool.version,
                     value=doc
                 )
                 instance.save()
