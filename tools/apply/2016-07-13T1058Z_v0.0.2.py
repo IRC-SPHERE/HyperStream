@@ -20,18 +20,19 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
+from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 
 
-class SurelyEmpty(Tool):
-    def __init__(self, threshold):
-        super(SurelyEmpty, self).__init__(threshold=threshold)
-        self.threshold = threshold
+class Apply(Tool):
+    """
+    Simple tool that applies a function to every data item
+    """
+    def __init__(self, func):
+        super(Apply, self).__init__(func=func)
+        self.func = func
 
     @check_input_stream_count(1)
     def _execute(self, input_streams, interval, writer):
-        # Convert the location probability vector to an empty room vector using the threshold given
-        # noinspection PyCompatibility
-        for (timestamp, value) in self.input_streams[0].iteritems():
-            yield(timestamp, [x for x in value if x > self.threshold])
-
+        for t, d in input_streams[0].window(interval):
+            writer(StreamInstance(t, self.func(d)))

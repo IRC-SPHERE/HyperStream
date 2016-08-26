@@ -21,15 +21,16 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from modifier import Modifier
+from ..stream import StreamInstance
 
 
-class Identity(Modifier):
-    def __init__(self):
-        super(Identity, self).__init__()
-        self.types = {'data_gen': 'data_gen', 'doc_gen': 'doc_gen', 'data': 'data', 'doc': 'doc'}
-
-    def execute(self, data):
-        return data
+# class Identity(Modifier):
+#     def __init__(self):
+#         super(Identity, self).__init__()
+#         self.types = {'data_gen': 'data_gen', 'doc_gen': 'doc_gen', 'data': 'data', 'doc': 'doc'}
+#
+#     def execute(self, data):
+#         return data
 
 
 class First(Modifier):
@@ -84,14 +85,14 @@ class Tail(Modifier):
             yield d
 
 
-class Data(Modifier):
-    def __init__(self):
-        super(Data, self).__init__()
-        self.types = {'doc_gen': 'data_gen'}
-
-    def execute(self, doc_gen):
-        for (time, data) in doc_gen:
-            yield data
+# class Data(Modifier):
+#     def __init__(self):
+#         super(Data, self).__init__()
+#         self.types = {'doc_gen': 'data_gen'}
+#
+#     def execute(self, doc_gen):
+#         for (time, data) in doc_gen:
+#             yield data
 
 
 class Time(Modifier):
@@ -124,13 +125,13 @@ class ITime(Modifier):
         return time
 
 
-class List(Modifier):
-    def __init__(self):
-        super(List, self).__init__()
-        self.types = {'data_gen': 'data', 'doc_gen': 'data'}
-
-    def execute(self, data):
-        return list(data)
+# class List(Modifier):
+#     def __init__(self):
+#         super(List, self).__init__()
+#         self.types = {'data_gen': 'data', 'doc_gen': 'data'}
+#
+#     def execute(self, data):
+#         return list(data)
 
 
 class Component(Modifier):
@@ -142,7 +143,7 @@ class Component(Modifier):
     def execute(self, doc_gen):
         for (time, data) in doc_gen:
             if self.key in data:
-                yield (time, data[self.key])
+                yield StreamInstance(time, data[self.key])
 
 
 class ComponentFilter(Modifier):
@@ -156,7 +157,7 @@ class ComponentFilter(Modifier):
         for (time, data) in doc_gen:
             try:
                 if data[self.key] in self.values:
-                    yield (time, data)
+                    yield StreamInstance(time, data)
             except KeyError:
                 pass
 
@@ -172,56 +173,56 @@ class DeleteNones(Modifier):
             for (key, value) in data.items():
                 if value is not None:
                     data2[key] = value
-            yield (time, data2)
+            yield StreamInstance(time, data2)
 
 
-class Sum(Modifier):
-    def __init__(self, first=0):
-        super(Sum, self).__init__()
-        self.types = {'data_gen': 'data'}
-        self.first = first
-
-    def execute(self, data_gen):
-        res = self.first
-        for data in data_gen:
-            res = res + data
-        return res
-
-
-class Product(Modifier):
-    def __init__(self, first=1):
-        super(Product, self).__init__()
-        self.types = {'data_gen': 'data'}
-        self.first = first
-
-    def execute(self, data_gen):
-        res = self.first
-        for data in data_gen:
-            res = res * data
-        return res
+# class Sum(Modifier):
+#     def __init__(self, first=0):
+#         super(Sum, self).__init__()
+#         self.types = {'data_gen': 'data'}
+#         self.first = first
+#
+#     def execute(self, data_gen):
+#         res = self.first
+#         for data in data_gen:
+#             res = res + data
+#         return res
 
 
-class Average(Modifier):
-    def __init__(self):
-        super(Average, self).__init__()
-        self.types = {'data_gen': 'data'}
+# class Product(Modifier):
+#     def __init__(self, first=1):
+#         super(Product, self).__init__()
+#         self.types = {'data_gen': 'data'}
+#         self.first = first
+#
+#     def execute(self, data_gen):
+#         res = self.first
+#         for data in data_gen:
+#             res = res * data
+#         return res
 
-    def execute(self, data_gen):
-        res = 0
-        count = 0
-        for data in data_gen:
-            res = res + data
-            count += 1
-        return float(res) / count if count > 0 else float('nan')
+
+# class Average(Modifier):
+#     def __init__(self):
+#         super(Average, self).__init__()
+#         self.types = {'data_gen': 'data'}
+#
+#     def execute(self, data_gen):
+#         res = 0
+#         count = 0
+#         for data in data_gen:
+#             res = res + data
+#             count += 1
+#         return float(res) / count if count > 0 else float('nan')
 
 
-class Count(Modifier):
-    def __init__(self):
-        super(Count, self).__init__()
-        self.types = {'data_gen': 'data'}
-
-    def execute(self, data_gen):
-        count = 0
-        for _ in data_gen:
-            count += 1
-        return count
+# class Count(Modifier):
+#     def __init__(self):
+#         super(Count, self).__init__()
+#         self.types = {'data_gen': 'data'}
+#
+#     def execute(self, data_gen):
+#         count = 0
+#         for _ in data_gen:
+#             count += 1
+#         return count
