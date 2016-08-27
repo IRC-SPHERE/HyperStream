@@ -113,23 +113,7 @@ class ChannelManager(ChannelCollectionBase, Printable):
                 if stream_id in channel.streams:
                     raise StreamAlreadyExistsError(stream_id)
 
-                # TODO: Use tool versions - here we just take the latest one
-                tool_stream = self.tools[StreamId(s.tool_name)]
-                tool_class = tool_stream.items()[-1].value
-
-                # Check that the number of arguments is correct for this tool
-                expected = len(inspect.getargspec(tool_class.__init__)[0])
-                if expected != len(s.tool_parameters) + 1:
-                    raise ValueError("Tool {} takes {} arguments ({} given)".format(
-                        tool_class.__name__, expected, len(s.tool_parameters)))
-
-                # Instantiate tool
-                tool = tool_class(**s.tool_parameters)
-                if not tool:
-                    raise ToolNotFoundError
-
-                # Make sure that the tool stream is defined
-                tool_stream.define(input_streams=input_streams, **s.tool_parameters)
+                tool = self.get_tool(s.tool_name, s.tool_parameters, input_streams)
 
                 stream = Stream(
                     channel=channel,
@@ -149,3 +133,28 @@ class ChannelManager(ChannelCollectionBase, Printable):
             if len(stream_objects) > 0 and len(stream_objects) == len(copy):
                 raise StreamNotFoundError("{} stream objects still remain".format(len(stream_objects)))
 
+    def get_tool(self, tool_name, tool_parameters, input_streams):
+        # TODO: Use tool versions - here we just take the latest one
+        tool_stream = self.tools[StreamId(tool_name)]
+        tool_class = tool_stream.items()[-1].value
+
+        # Check that the number of arguments is correct for this tool
+        expected = len(inspect.getargspec(tool_class.__init__)[0])
+        if expected != len(tool_parameters) + 1:
+            raise ValueError("Tool {} takes {} arguments ({} given)".format(
+                tool_class.__name__, expected, len(tool_parameters) + 1))
+
+        # Instantiate tool
+        tool = tool_class(**tool_parameters)
+        if not tool:
+            raise ToolNotFoundError
+
+        # Input streams should be stream objects
+        for stream in input_streams:
+            if not(isinstance(input_streams, Stream)):
+                raise ValueError("Stream expected ({} given)".format(type(stream)))
+
+        # Make sure that the tool stream is defined
+        tool_stream.define(input_streams=input_streams, **tool_parameters)
+
+        return tool
