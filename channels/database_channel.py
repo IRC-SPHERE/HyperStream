@@ -13,13 +13,16 @@ class DatabaseChannel(BaseChannel):
 
     def update_streams(self, up_to_timestamp):
         intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
-        for stream_id in self.streams.keys():
-            self.streams[stream_id].calculated_intervals = intervals
+        # for stream_id in self.streams.keys():
+        #     self.streams[stream_id].calculated_intervals = intervals
+        for stream in self.streams:
+            stream.calculated_intervals = intervals
+        self.up_to_timestamp = up_to_timestamp
 
     def _get_data(self, stream_ref):
         # TODO: Get the data from the database. Should the responsibility be here or in Stream.Items()?
         return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream_ref.items()
-                       if timestamp in stream_ref.absolute_interval), key=lambda x: x.timestamp)
+                       if timestamp in stream_ref.time_interval), key=lambda x: x.timestamp)
 
     def get_results(self, stream_ref):
         # TODO: This is identical to MemoryChannel - can they share a base instantiation (BaseChannel)??

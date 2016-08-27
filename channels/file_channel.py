@@ -96,7 +96,7 @@ class FileChannel(ReadOnlyMemoryChannel):
             #         # This is the original version
             #         self.streams[stream_id].append((tool_info, self.data_loader(stream_id.name, tool_info)))
 
-            self.streams[stream_id] = Stream(
+            stream = Stream(
                 channel=self,
                 stream_id=stream_id,
                 time_interval=TimeInterval(start=MIN_DATE, end=up_to_timestamp),
@@ -105,7 +105,9 @@ class FileChannel(ReadOnlyMemoryChannel):
                 tool=None,
                 input_streams=None
             )
-    
+
+            self.streams[stream_id] = stream
+
     def data_loader(self, short_path, file_info):
         raise NotImplementedError
     
