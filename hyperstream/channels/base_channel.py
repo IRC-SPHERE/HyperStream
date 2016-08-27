@@ -45,7 +45,7 @@ class BaseChannel(Printable):
         :return: The data generator
         """
         return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream_ref.items()
-                       if timestamp in stream_ref.absolute_interval), key=lambda x: x.timestamp)
+                       if timestamp in stream_ref.time_interval), key=lambda x: x.timestamp)
 
     def execute_tool(self, stream_ref, interval):
         """
@@ -92,14 +92,15 @@ class BaseChannel(Printable):
     def __str__(self):
         s = self.__class__.__name__ + ' with ID: ' + str(self.channel_id)
         s += ' and containing {} streams:'.format(len(self.streams))
-        for stream_id in self.streams:
-            calculated_ranges = repr(self.streams[stream_id].calculated_intervals) \
-                if stream_id in self.calculated_intervals else "Error - stream not found"
-
-            s += '\nSTREAM ID: ' + str(stream_id)
+        # for stream_id in self.streams:
+        #     calculated_ranges = repr(self.streams[stream_id].calculated_intervals) \
+        #         if stream_id in self.calculated_intervals else "Error - stream not found"
+        for stream in self.streams:
+            calculated_ranges = repr(stream.calculated_intervals)
+            s += '\nSTREAM ID: ' + str(stream.stream_id)
             s += "\n  CALCULATED RANGES: " + calculated_ranges
             s += "\n  STREAM DEFINITION: "
-            s += str(self.streams[stream_id])
+            s += str(stream)
         return s
     
     def __getitem__(self, item):

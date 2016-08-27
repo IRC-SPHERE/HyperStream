@@ -19,6 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream import Stream
+from hyperstream.utils import MIN_DATE
 # from hyperstream.modifiers import *
 import unittest
 from helpers import *

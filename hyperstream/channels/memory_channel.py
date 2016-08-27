@@ -50,7 +50,7 @@ class MemoryChannel(BaseChannel):
         else:
             tool = None
 
-        self.streams[stream_id] = Stream(
+        stream = Stream(
             channel=self,
             stream_id=stream_id,
             time_interval=None,
@@ -60,7 +60,8 @@ class MemoryChannel(BaseChannel):
             input_streams=tool_stream.input_streams if tool_stream else None
         )
 
-        return self.streams[stream_id]
+        self.streams[stream_id] = stream
+        return stream
 
     def update_streams(self, up_to_timestamp):
         raise NotImplementedError
@@ -75,8 +76,8 @@ class MemoryChannel(BaseChannel):
         :param kwargs: The keyword arguments
         :return: The data generator
         """
-        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream_ref]
-                       if timestamp in stream_ref.absolute_interval), key=lambda x: x.timestamp)
+        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream_ref.stream_id]
+                       if timestamp in stream_ref.time_interval), key=lambda x: x.timestamp)
 
     def get_results(self, stream_ref):
         """
@@ -88,6 +89,7 @@ class MemoryChannel(BaseChannel):
         if not stream_ref.required_intervals.is_empty:
             for interval in stream_ref.required_intervals:
                 self.execute_tool(stream_ref, interval)
+                # TODO: Incorrect time interval???
                 stream_ref.calculated_intervals += TimeIntervals([interval])
 
             if stream_ref.required_intervals.is_not_empty:
@@ -100,7 +102,7 @@ class MemoryChannel(BaseChannel):
 
     def get_stream_writer(self, stream_ref):
         def writer(document_collection):
-            self.data[stream_ref].extend(document_collection)
+            self.data[stream_ref.stream_id].extend(document_collection)
         return writer
     
 
@@ -147,8 +149,10 @@ class ReadOnlyMemoryChannel(BaseChannel):
         I.e., all the streams that have been created before or at that timestamp are calculated exactly until
         up_to_timestamp.
         """
-        for stream_id in self.streams:
-            self.streams[stream_id].calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
+        # for stream_id in self.streams:
+        #     self.streams[stream_id].calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
+        for stream in self.streams:
+            stream.calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
         self.up_to_timestamp = up_to_timestamp
     
     def get_results(self, stream_ref):

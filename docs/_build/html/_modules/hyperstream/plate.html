@@ -1,0 +1,188 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hyperstream.plate &#8212; HyperStream 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="HyperStream 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hyperstream.plate</h1><div class="highlight"><pre>
+<span></span><span class="c1"># The MIT License (MIT) # Copyright (c) 2014-2017 University of Bristol</span>
+<span class="c1">#</span>
+<span class="c1">#  Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1">#  of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1">#  in the Software without restriction, including without limitation the rights</span>
+<span class="c1">#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1">#  copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1">#  furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1">#  The above copyright notice and this permission notice shall be included in all</span>
+<span class="c1">#  copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1">#  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,</span>
+<span class="c1">#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span>
+<span class="c1">#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.</span>
+<span class="c1">#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,</span>
+<span class="c1">#  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR</span>
+<span class="c1">#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE</span>
+<span class="c1">#  OR OTHER DEALINGS IN THE SOFTWARE.</span>
+
+<span class="kn">from</span> <span class="nn">utils</span> <span class="k">import</span> <span class="n">Printable</span><span class="p">,</span> <span class="n">MetaDataTree</span>
+<span class="kn">from</span> <span class="nn">models</span> <span class="k">import</span> <span class="n">PlateDefinitionModel</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+
+
+<div class="viewcode-block" id="PlateManager"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.plate.PlateManager">[docs]</a><span class="k">class</span> <span class="nc">PlateManager</span><span class="p">(</span><span class="n">Printable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meta_data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plates</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_plate_definitions</span> <span class="o">=</span> <span class="n">MetaDataTree</span><span class="p">()</span>
+
+        <span class="c1"># Populate the global plate definitions from dict given in the config file</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">meta_data</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">global_plate_definitions</span><span class="o">.</span><span class="n">create_node</span><span class="p">(</span><span class="o">**</span><span class="n">item</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Global plate definitions: &quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_plate_definitions</span><span class="p">)</span>
+
+        <span class="c1"># Plate definitions (arrays of streams)</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PlateDefinitionModel</span><span class="o">.</span><span class="n">objects</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">values</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">complement</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Empty values in plate definition and complement=False&quot;</span><span class="p">)</span>
+
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Want to get meta-data dictionaries for all plate combinations</span>
+<span class="sd">            e.g.</span>
+
+<span class="sd">            H plate, want</span>
+
+<span class="sd">            {&#39;H&#39;: [</span>
+<span class="sd">              {&#39;house&#39;: &#39;1&#39;},</span>
+<span class="sd">              {&#39;house&#39;: &#39;2&#39;}</span>
+<span class="sd">            ]}</span>
+
+<span class="sd">            H1 plate, want</span>
+
+<span class="sd">            {&#39;H1&#39;: [{&#39;house&#39;: &#39;1&#39;}]}</span>
+
+<span class="sd">            H.R plate, want</span>
+
+<span class="sd">            {&#39;H.R&#39;: [</span>
+<span class="sd">              {&#39;house&#39;: &#39;1&#39;, &#39;resident&#39;: &#39;1&#39;},</span>
+<span class="sd">              {&#39;house&#39;: &#39;1&#39;: &#39;resident&#39;: &#39;2&#39;},</span>
+<span class="sd">              {&#39;house&#39;: &#39;2&#39;: &#39;resident&#39;: &#39;1&#39;}</span>
+<span class="sd">            }</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">plate_id</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">u&#39;H1&#39;</span><span class="p">,</span> <span class="s1">u&#39;H1.kitchen&#39;</span><span class="p">,</span> <span class="s1">u&#39;H1_str&#39;</span><span class="p">):</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">plate_id</span><span class="p">)</span>
+
+            <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_plate_definitions</span><span class="o">.</span><span class="n">all_nodes</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="n">p</span><span class="o">.</span><span class="n">meta_data_id</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">values</span> <span class="ow">or</span> <span class="n">n</span><span class="o">.</span><span class="n">data</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">parent_plate</span><span class="p">:</span>
+                            <span class="c1"># This plate has parent plates, so we need to get parent data for the node</span>
+                            <span class="n">values</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parent_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_plate_definitions</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="p">{</span><span class="n">n</span><span class="o">.</span><span class="n">tag</span><span class="p">:</span> <span class="n">n</span><span class="o">.</span><span class="n">data</span><span class="p">}))</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">values</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">{</span><span class="n">n</span><span class="o">.</span><span class="n">tag</span><span class="p">:</span> <span class="n">n</span><span class="o">.</span><span class="n">data</span><span class="p">})</span>
+                    <span class="c1"># else:</span>
+                    <span class="c1">#     logging.warn(&#39;Invalid plate value &quot;{}&quot; for node id &quot;{}&quot;&#39;.format(n.data, n.identifier))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">values</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Plate values for </span><span class="si">{}</span><span class="s2"> empty&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">plate_id</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">plates</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">plate_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="PlateManager.get_parent_data"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.plate.PlateManager.get_parent_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_parent_data</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recurse up the tree getting parent data</span>
+<span class="sd">        :param tree: The tree</span>
+<span class="sd">        :param node: The current node</span>
+<span class="sd">        :param d: The initial dictionary</span>
+<span class="sd">        :return: The hierarchical dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">parent</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parent</span><span class="o">.</span><span class="n">is_root</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">d</span>
+        <span class="n">d</span><span class="p">[</span><span class="n">parent</span><span class="o">.</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">return</span> <span class="n">PlateManager</span><span class="o">.</span><span class="n">get_parent_data</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, SPHERE WP5 Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -78,6 +78,7 @@ class Stream(Hashable):
     Stream reference class
     """
     _calculated_intervals = None
+    defined = False
 
     def __init__(self, channel, stream_id, time_interval, calculated_intervals, modifier, tool, input_streams):
         """
@@ -141,7 +142,7 @@ class Stream(Hashable):
 
     @property
     def writer(self):
-        return self.channel.get_stream_writer(self.stream_id)
+        return self.channel.get_stream_writer(self)
 
     def window(self, time_interval):
         """
