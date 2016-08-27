@@ -19,8 +19,15 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from mongoengine import Document, StringField, EmbeddedDocument, EmbeddedDocumentListField, ListField, DateTimeField, \
-    BooleanField, DynamicField
+    BooleanField, DynamicField, DictField, EmbeddedDocumentField
 from time_range import TimeRangeModel
+
+
+class ToolModel(EmbeddedDocument):
+    name = StringField(required=True, min_length=1, max_length=512)
+    version = StringField(required=True, min_length=1, max_length=512)
+    # TODO: strong typing
+    parameters = DictField()
 
 
 class PlateDefinitionModel(Document):
@@ -51,7 +58,8 @@ class NodeDefinitionModel(EmbeddedDocument):
 
 
 class FactorDefinitionModel(EmbeddedDocument):
-    tool = StringField(required=True, min_length=1, max_length=512)
+    # tool = StringField(required=True, min_length=1, max_length=512)
+    tool = EmbeddedDocumentField(document_type=ToolModel, required=True)
     sources = ListField(field=StringField(min_length=1, max_length=512), required=False)
     sink = StringField(min_length=1, max_length=512, required=False)
 
