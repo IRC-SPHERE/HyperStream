@@ -78,11 +78,11 @@ if __name__ == '__main__':
     # Note that creating a node with
 
     node = w.create_node(node_id="ENV_H1", stream_name="environmental", plate_ids=["H1"])\
-        .window((t1, t1 + minute)).execute()
+        .window((t1, t1 + 1 * minute)).execute()
 
     print(node.streams[0].items())
 
-    exit()
+    # exit()
 
     # Simple querying
     el = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063')).items()
@@ -127,16 +127,20 @@ if __name__ == '__main__':
         func=online_average
     )
 
+    print(id(averager))
+
     counter = T[aggregate].define(
         input_streams=[S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
         timer=M[every30s],
         func=online_count
     )
 
-    D[average].window((t1, t2)).execute()
+    print(id(counter))
+
+    M.create_stream(stream_id=average, tool_stream=averager)
     M.create_stream(stream_id=count, tool_stream=counter)
 
-    stream_ref = D[average].window((t1, t2))
+    stream_ref = M[average].window((t1, t2))
     aa = stream_ref.values()
     print(aa)
     assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])

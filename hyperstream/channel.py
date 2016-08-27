@@ -131,7 +131,7 @@ class ChannelManager(ChannelCollectionBase, Printable):
                 # Make sure that the tool stream is defined
                 tool_stream.define(input_streams=input_streams, **s.tool_parameters)
 
-                channel.streams[stream_id] = Stream(
+                stream = Stream(
                     channel=channel,
                     stream_id=stream_id,
                     tool=tool,
@@ -140,6 +140,8 @@ class ChannelManager(ChannelCollectionBase, Printable):
                     modifier=None,
                     input_streams=input_streams
                 )
+
+                channel.streams[stream_id] = stream
 
                 stream_objects.remove(s)
                 if s in undefined:
