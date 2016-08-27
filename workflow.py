@@ -24,6 +24,8 @@ from stream import StreamId
 import logging
 from errors import StreamNotFoundError
 
+import itertools
+
 
 class Node(Printable):
     """
@@ -148,13 +150,13 @@ class Workflow(Printable):
         logging.info("Added node with id {}".format(node_id))
         return node
 
-    def add_factor(self, tool, sources, sink):
+    def create_factor(self, tool, sources, sink):
         """
-
-        Args:
-            tool:
-            sources:
-            sink:
+        Create a factor: This is a tool, with its input streams (sources) and output stream (sink)
+        :param tool: The tool
+        :param sources: The input streams
+        :param sink: The output stream
+        :return: None
         """
         sources = [self.nodes[s] for s in sources]
         sink = self.nodes[sink]
@@ -165,13 +167,13 @@ class Workflow(Printable):
 
 class WorkflowManager(Printable):
     """
+    Workflow manager
     """
     def __init__(self, channels, plates):
         """
 
-        Args:
-            channels:
-            plates:
+        :param channels:
+        :param plates:
         """
         self.channels = channels
         self.plates = plates
@@ -194,8 +196,28 @@ class WorkflowManager(Printable):
                     n = workflow_definition.nodes[node_id]
                     workflow.create_node(node_id, n.stream_name, n.plate_ids)
 
+                # NOTE that we have to replicate the factor over the plate
+                # This is fairly simple in the case of
+                # 1. a single plate.
+                # However we can have:
+                # 2. nested plates
+                # 3. intersecting plates
+                # 4. a combination of 2. and 3.
                 for f in workflow_definition.factors:
-                    workflow.add_factor(f.tool, f.sources, f.sink)
+                    continue
+                    source_nodes = [workflow.nodes[s] for s in f.sources]
+                    sink_node = workflow.nodes[f.sink]
+
+                    # sort the plate lists by increasing length
+                    factor_plates = sorted([plates[plate_id] for plate_id in
+                                            list(itertools.chain.from_iterable(s.plate_ids for s in source_nodes))],
+                                           key=lambda x: len(x))
+
+                    # TODO: Here we need to get the subgraph of the plate tree so that we can build our for loops later
+                    # TODO: One for loop for each level of nesting
+                    # TODO: populate input streams
+                    tool = channels.get_tool(f.tool.name, f.tool.parameters, input_streams=[])
+                    workflow.create_factor(tool, source_nodes, sink_node)
 
                 self.add_workflow(workflow, False)
             except StreamNotFoundError as e:
@@ -204,9 +226,9 @@ class WorkflowManager(Printable):
     def add_workflow(self, workflow, commit=False):
         """
 
-        Args:
-            workflow:
-            commit:
+        :param workflow:
+        :param commit:
+        :return:
         """
         self.workflows[workflow.workflow_id] = workflow
         logging.info("Added workflow {} to workflow manager".format(workflow.workflow_id))
@@ -220,8 +242,8 @@ class WorkflowManager(Printable):
     def commit_workflow(self, workflow_id):
         """
 
-        Args:
-            workflow_id:
+        :param workflow_id:
+        :return:
         """
         # TODO: We should also be committing the Stream definitions if there are new ones
 
@@ -243,24 +265,25 @@ class WorkflowManager(Printable):
 
     def commit_all(self):
         """
-
+        Commit all workflows to the database
+        :return:
         """
         for workflow_id in self.uncommitted_workflows:
             self.commit_workflow(workflow_id)
 
     def execute_all(self):
         """
-
+        Execute all workflows
         """
         for workflow in self.workflows:
             self.workflows[workflow].execute()
 
-    def add_plate(self, plate, commit=False):
+    def create_plate(self, plate, commit=False):
         """
-
-        Args:
-            plate:
-            commit:
+        Create a plate. Make sure all workflows can use it, and optionally commit it to database
+        :param plate: The plate
+        :param commit: Commit to database
+        :return: None
         """
         # TODO: Add the plate, make sure all workflows can use it, and optionally commit it to database
         raise NotImplementedError
