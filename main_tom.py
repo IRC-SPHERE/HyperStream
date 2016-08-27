@@ -75,14 +75,40 @@ if __name__ == '__main__':
         description="Just a test of creating workflows")
 
     # Create some streams (nodes)
-    # Note that creating a node with
-
     node = w.create_node(node_id="ENV_H1", stream_name="environmental", plate_ids=["H1"])\
         .window((t1, t1 + 1 * minute)).execute()
 
-    print(node.streams[0].items())
+    # Check the values
+    assert(node.streams[0].values()[:1] ==
+           [{u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
+             'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
+             'temperature': None}])
 
-    # exit()
+    # More complex workflow
+    w = Workflow(
+        channels=channels,
+        plates=plates,
+        workflow_id="windowed_query_workflow",
+        name="Windowed query workflow",
+        owner="TD",
+        description="Another test of creating workflows")
+
+    # Try to recreate the following:
+    clock_tool = T[clock].define(stride=30 * second)
+    M.create_stream(stream_id=every30s, tool_stream=clock_tool)
+    env_tool = T[sphere].define(modality='environmental')
+    S.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=env_tool).modify(Component('motion-S1_K'))
+    s = S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))
+    counter = T[aggregate].define(input_streams=[s], timer=M[every30s], func=online_count)
+    M.create_stream(stream_id=count, tool_stream=counter)
+    print(M[count].window((t1, t1 + 5 * minute)).values())
+
+    w.create_node()
+    # TODO: tool parameters
+    w.create_factor(tool='clock', sources=None)
+    # w.create_node(node_id=)
+
+    exit()
 
     # Simple querying
     el = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063')).items()
