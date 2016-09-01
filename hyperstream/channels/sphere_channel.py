@@ -18,6 +18,8 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
+# TODO: the sphere channel should come out of hyperstream
+
 import os
 from collections import Iterable
 import logging
