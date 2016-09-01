@@ -81,7 +81,7 @@ if __name__ == '__main__':
     # Define streams
     tool_clock_30s = T[id_tool_clock].define(stride=30 * second)
     tool_sphere_environmental = T[id_tool_sphere].define(modality='environmental')
-    
+
     M.create_stream(stream_id=id_memory_every30s, tool_stream=tool_clock_30s)
     
     print 'Mean kitchen:'
