@@ -9,7 +9,9 @@ __pycache__/
 *.so
 
 niall/
-niall_old_*
+niall_old_*.py$
+
+*.sqp
 
 # Distribution / packaging
 .Python
@@ -86,6 +88,7 @@ celerybeat-schedule
 
 # dotenv
 .env
+*.swp
 
 # virtualenv
 venv/
