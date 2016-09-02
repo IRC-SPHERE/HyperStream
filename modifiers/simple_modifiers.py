@@ -153,11 +153,15 @@ class ComponentFilter(Modifier):
 
     def execute(self, doc_gen):
         for (time, data) in doc_gen:
-            try:
-                if data[self.key] in self.values:
-                    yield StreamInstance(time, data)
-            except KeyError:
-                pass
+            if data[self.key] in self.values:
+                yield StreamInstance(time, data)
+                
+            # TODO: this try/excelt seems unnecessary
+            # try:
+            #     if data[self.key] in self.values:
+            #         yield StreamInstance(time, data)
+            # except KeyError:
+            #     pass
 
 
 class DeleteNones(Modifier):
