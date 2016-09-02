@@ -41,6 +41,18 @@ class Node(Printable):
         self.node_id = node_id
         self.streams = streams
         self.plate_ids = plate_ids
+        
+    def modify(self, modifier):
+        """
+        Applies a modifier to all streams
+        :param modifier
+        :return: self (for chaining)
+        """
+        
+        for stream in self.streams:
+            stream.modify(modifier)
+            
+        return self
 
     def window(self, time_interval):
         """
@@ -74,6 +86,9 @@ class Node(Printable):
             logging.info("Executing stream {}".format(stream.stream_id))
             stream.execute()
         return self
+    
+    def __iter__(self):
+        return iter(self.streams)
 
 
 class Factor(Printable):
@@ -112,7 +127,7 @@ class Workflow(Printable):
         self.description = description
         self.owner = owner
         self.nodes = {}
-        self.factors = []
+        self.factors = {}
         logging.info("New workflow created with id {}".format(workflow_id))
 
     def execute(self):
@@ -123,13 +138,14 @@ class Workflow(Printable):
         for node in self.nodes:
             logging.debug("Executing node {}".format(node))
             node.execute()
-
-    def create_node(self, node_id, stream_name, plate_ids):
+        
+    def create_streams(self, channel, stream_name, plate_ids, tool_stream=None):
         """
         Create a node in the graph, using the stream name and plate
-        :param node_id: The node id
+        :param channel: the channel containing the stream
         :param stream_name: The name of the stream
         :param plate_ids: The plate ids. The stream meta-data will be auto-generated from these
+        :param tool_stream:
         :return: The streams associated with this node
         """
         streams = []
@@ -142,27 +158,63 @@ class Workflow(Printable):
                 # Construct stream id
                 stream_id = StreamId(name=stream_name, meta_data=pv)
 
-                # Now try to locate the stream and add it (raises StreamNotFoundError if not found)
-                streams.append(self.channels.get_stream(stream_id))
+                streams.append(
+                    channel.create_stream(
+                        stream_id=stream_id,
+                        tool_stream=tool_stream
+                    )
+                )
 
-        node = Node(node_id, streams, plate_ids)
-        self.nodes[node_id] = node
-        logging.info("Added node with id {}".format(node_id))
+        node = Node(stream_name, streams, plate_ids)
+        self.nodes[stream_name] = node
+        logging.info("Added node with id {}".format(stream_name))
+        
         return node
+    
+    def define_tool_and_create_streams(self, tool_channel, tool_id, output_channel, output_stream_name, node_names, timer, func):
+        
+        streams = []
+        
+        for node_name in node_names:
+            for stream in self.nodes[node_name].streams:
+                # Define the tool
+                tool_stream = tool_channel[tool_id].define(
+                    input_streams=[stream],
+                    timer=timer,
+                    func=func
+                )
 
-    def create_factor(self, tool, sources, sink):
-        """
-        Create a factor: This is a tool, with its input streams (sources) and output stream (sink)
-        :param tool: The tool
-        :param sources: The input streams
-        :param sink: The output stream
-        :return: None
-        """
-        sources = [self.nodes[s] for s in sources]
-        sink = self.nodes[sink]
-        # TODO: Check that the tool exists
-        self.factors.append(Factor(tool, sources, sink))
-        logging.info("Added factor with tool name {}".format(tool))
+                # Append the stream to the list
+                stream_id = StreamId(
+                    output_stream_name,
+                    stream.stream_id.meta_data
+                )
+                
+                streams.append(
+                    output_channel.create_stream(
+                        stream_id=stream_id,
+                        tool_stream=tool_stream
+                    )
+                )
+                
+        node = Node(
+            node_id=output_stream_name,
+            streams=streams,
+            plate_ids=None
+        )
+        
+        self.nodes[output_stream_name] = node
+        
+        return node
+    
+    def iteritems(self):
+        return self.nodes.iteritems()
+    
+    def __getitem__(self, stream_name):
+        return self.nodes[stream_name]
+    
+    
+
 
 
 class WorkflowManager(Printable):
