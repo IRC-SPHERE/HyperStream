@@ -18,4 +18,4 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from itertools2 import online_average, online_variance, online_product, online_sum, count
+from itertools2 import online_average, online_variance, online_product, online_sum, count, any_set
