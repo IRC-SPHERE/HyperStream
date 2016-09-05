@@ -69,7 +69,7 @@ class WorkflowDefinitionModel(Document):
     name = StringField(required=True, min_length=1, max_length=512)
     description = StringField(required=True, min_length=1, max_length=4096)
     nodes = EmbeddedDocumentListField(document_type=NodeDefinitionModel, required=False)
-    nodes_old = DynamicField(required=False)
+    # nodes_old = DynamicField(required=False)
     # plates = MapField(field=EmbeddedDocumentListField(document_type=PlateDefinitionModel))
     factors = EmbeddedDocumentListField(document_type=FactorDefinitionModel, required=True)
     owner = StringField(required=False, min_length=1, max_length=512)
