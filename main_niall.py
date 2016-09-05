@@ -84,55 +84,48 @@ if __name__ == '__main__':
     ).relative_window(
         relative_window
     )
-
-    for stream in w['id_sphere_m_kitchen'].streams:
-        print stream
-        for kk, vv in stream.window(interval).iteritems():
-            print '', kk, vv
-        print
-    print
     
     def aggregate_gen(streams):
+        streams = [w.channels.memory[id_memory_every30s]] + streams
         return w.channels.tools[id_tool_aggregate].define(
             input_streams=streams,
-            timer=w.channels.memory[id_memory_every30s],
             func=online_average
         )
     
     
-    tool_m_kitchen_avg = w.define_tool_and_create_streams(
+    tool_m_kitchen_avg = w.create_factor(
         tooling_callback=aggregate_gen,
         output_channel=w.channels.memory,
         output_stream_name='id_memory_m_kitchen_mean',
         plate_ids=('H',),
         node_names=[
-            'id_sphere_m_kitchen',
+            'id_memory_every30s',
+            'id_sphere_m_kitchen'
         ],
     )
     
-    
-    # def ceil_applier(streams):
-    #     return w.channels.tools[id_tool_apply].define(
-    #         input_streams=streams,
-    #         func=ceil
-    #     )
-    #
-    #
-    # tool_m_kitchen_plus_10 = w.define_tool_and_create_streams(
-    #     tooling_callback=ceil_applier,
-    #     output_channel=w.channels.memory,
-    #     output_stream_name='id_plus_10',
-    #     plate_ids=('H',),
-    #     node_names=[
-    #         'id_memory_m_kitchen_mean'
-    #     ]
-    # )
-    #
-    # for node_name, node in w.nodes.iteritems():
-    #     print node
-    #     for stream in node.streams:
-    #         print stream
-    #         for kk, vv in stream.window(interval).iteritems():
-    #             print '', kk, vv
-    #         print
-    #     print
+    def ceil_applier(streams):
+        return w.channels.tools[id_tool_apply].define(
+            input_streams=streams,
+            func=ceil
+        )
+
+
+    tool_m_kitchen_plus_10 = w.create_factor(
+        tooling_callback=ceil_applier,
+        output_channel=w.channels.memory,
+        output_stream_name='id_plus_10',
+        plate_ids=('H',),
+        node_names=[
+            'id_memory_m_kitchen_mean'
+        ]
+    )
+
+    for node_name, node in w.nodes.iteritems():
+        print node
+        for stream in node.streams:
+            print stream
+            for kk, vv in stream.window(interval).iteritems():
+                print '', kk, vv
+            print
+        print
