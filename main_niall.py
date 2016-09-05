@@ -65,7 +65,7 @@ if __name__ == '__main__':
     # Define tool streams: these do not need to be duplicated over plates
     tool_clock_30s = w.channels.tools[id_tool_clock].define(stride=timedelta(seconds=30))
     tool_sphere_environmental = w.channels.tools[id_tool_sphere].define(modality='environmental')
-    tool_apply_ceil = w.channels.tools[id_tool_apply].define(ceil)
+    tool_apply_ceil = w.channels.tools[id_tool_apply].define(func=ceil)
     
     # Create a clock that ticks every 30 seconds
     id_memory_every30s = StreamId('timer_every30s')
@@ -74,6 +74,7 @@ if __name__ == '__main__':
         tool_stream=tool_clock_30s
     )
     
+    # Create the motion in the kitchen stream
     w.create_streams(
         channel=w.channels.sphere,
         stream_name='id_sphere_m_kitchen',
@@ -87,6 +88,7 @@ if __name__ == '__main__':
     
     def aggregate_gen(streams):
         streams = [w.channels.memory[id_memory_every30s]] + streams
+        
         return w.channels.tools[id_tool_aggregate].define(
             input_streams=streams,
             func=online_average
@@ -111,21 +113,23 @@ if __name__ == '__main__':
         )
 
 
-    tool_m_kitchen_plus_10 = w.create_factor(
+    factor_m_kitchen_ceil = w.create_factor(
         tooling_callback=ceil_applier,
         output_channel=w.channels.memory,
-        output_stream_name='id_plus_10',
+        output_stream_name='id_memory_m_kitchen_ceil',
         plate_ids=('H',),
         node_names=[
             'id_memory_m_kitchen_mean'
         ]
     )
+    
+    w.window(interval)
 
-    for node_name, node in w.nodes.iteritems():
-        print node
-        for stream in node.streams:
-            print stream
-            for kk, vv in stream.window(interval).iteritems():
-                print '', kk, vv
-            print
-        print
+    # for node_name, node in w.nodes.iteritems():
+    #     print node
+    #     for stream in node.streams:
+    #         print stream
+    #         for kk, vv in stream.window(interval).head(5):
+    #             print '', kk, vv
+    #         print
+    #     print
