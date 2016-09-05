@@ -177,7 +177,7 @@ class Workflow(Printable):
             
     def create_node(self, stream_name, plate_ids):
         """
-        Create a node in the graph, using the stream name and plate
+        Create a node in the graph. Note: assumes that the streams already exist
         :param node_id: The node id
         :param stream_name: The name of the stream
         :param plate_ids: The plate ids. The stream meta-data will be auto-generated from these
@@ -307,7 +307,7 @@ class WorkflowManager(Printable):
                 for node_id in workflow_definition.nodes:
                     n = workflow_definition.nodes[node_id]
                     # TODO from niall: note, changed create_node to take only two arguments.
-                    #  note are we certain that node_id == node_id
+                    #   rest: please think about whether we can always guarantee that node_id == n.stream_name
                     workflow.create_node(n.stream_name, n.plate_ids)
                 
                 # NOTE that we have to replicate the factor over the plate
