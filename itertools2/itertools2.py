@@ -55,7 +55,7 @@ def online_average(data, n=0, mean=0.0):
         mean += delta / n
     
     # TODO from niall: Possibly unnecessary bug: np.mean([1]) = 1. Suggest (n < 1)
-    if n < 2:
+    if n < 1:
         return float('nan')
     else:
         return mean
