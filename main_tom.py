@@ -148,16 +148,18 @@ if __name__ == '__main__':
     # Hence it seems reasonable to simply use copy.deepcopy when returning the stream object
 
     averager = T[aggregate].define(
-        input_streams=[S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
-        timer=M[every30s],
+        input_streams=[
+            M[every30s],
+            S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
         func=online_average
     )
 
     print(id(averager))
 
     counter = T[aggregate].define(
-        input_streams=[S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
-        timer=M[every30s],
+        input_streams=[
+            M[every30s],
+            S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
         func=online_count
     )
 

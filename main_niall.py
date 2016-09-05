@@ -76,6 +76,8 @@ if __name__ == '__main__':
     # Windowed querying
     M.create_stream(stream_id=every30s, tool_stream=clock_tool)
 
+    # TODO: If the clock tool hasn't been defined, the aggregates below will fail since their stream definitions use it
+
     print("\n----------")
     print("M[every30s]")
     print("\n".join(map(str, M[every30s].window((t1, t2)))))
@@ -99,14 +101,16 @@ if __name__ == '__main__':
     # Hence it seems reasonable to simply use copy.deepcopy when returning the stream object
 
     averager = T[aggregate].define(
-        input_streams=[S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
-        timer=M[every30s],
+        input_streams=[
+            M[every30s],
+            S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
         func=lambda x: online_average(map(lambda xi: xi.value, x))
     )
 
     counter = T[aggregate].define(
-        input_streams=[S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
-        timer=M[every30s],
+        input_streams=[
+            M[every30s],
+            S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
         func=online_count
     )
 
