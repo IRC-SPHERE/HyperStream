@@ -58,20 +58,28 @@ if __name__ == '__main__':
     
     # Define tool IDs (directory must exist in hyperstream/tools/*)
     id_tool_sphere = StreamId('sphere')
-    id_tool_clock = StreamId('clock')
-    id_tool_aggregate = StreamId('aggregate')
+    id_tool_sliding_window = StreamId('sliding_window')
+    id_tool_sliding_apply = StreamId('sliding_apply')
     id_tool_apply = StreamId('apply')
     
     # Define tool streams: these do not need to be duplicated over plates
-    tool_clock_30s = w.channels.tools[id_tool_clock].define(stride=timedelta(seconds=30))
-    tool_sphere_environmental = w.channels.tools[id_tool_sphere].define(modality='environmental')
-    tool_apply_ceil = w.channels.tools[id_tool_apply].define(func=ceil)
+    tool_sliding_window_30s_10s = w.channels.tools[id_tool_sliding_window].define(
+        lower=timedelta(seconds=-30),
+        upper=timedelta(seconds=0),
+        increment=timedelta(seconds=10)
+    )
+    tool_sphere_environmental = w.channels.tools[id_tool_sphere].define(
+        modality='environmental'
+    )
+    tool_apply_ceil = w.channels.tools[id_tool_apply].define(
+        func=ceil
+    )
     
     # Create a clock that ticks every 30 seconds
-    id_memory_every30s = StreamId('timer_every30s')
+    id_memory_sliding_window_30s_10s = StreamId('sliding_window_30s_10s')
     w.channels.memory.create_stream(
-        stream_id=id_memory_every30s,
-        tool_stream=tool_clock_30s
+        stream_id=id_memory_sliding_window_30s_10s,
+        tool_stream=tool_sliding_window_30s_10s
     )
     
     # Create the motion in the kitchen stream
@@ -82,14 +90,13 @@ if __name__ == '__main__':
         tool_stream=tool_sphere_environmental
     ).modify(
         Component('motion-S1_K')
-    ).relative_window(
-        relative_window
     )
     
+    
     def aggregate_gen(streams):
-        streams = [w.channels.memory[id_memory_every30s]] + streams
+        streams = [w.channels.memory[id_memory_sliding_window_30s_10s]] + streams
         
-        return w.channels.tools[id_tool_aggregate].define(
+        return w.channels.tools[id_tool_sliding_apply].define(
             input_streams=streams,
             func=online_average
         )
@@ -106,13 +113,25 @@ if __name__ == '__main__':
         ],
     )
     
+    for node_name, node in w.nodes.iteritems():
+        print node
+        for stream in node.streams:
+            print stream
+            for kk, vv in stream.window(interval).head(5):
+                print '', kk, vv
+            print
+        print
+    
+    exit()
+    
+    
     def ceil_applier(streams):
         return w.channels.tools[id_tool_apply].define(
             input_streams=streams,
             func=ceil
         )
-
-
+    
+    
     factor_m_kitchen_ceil = w.create_factor(
         tooling_callback=ceil_applier,
         output_channel=w.channels.memory,
@@ -124,7 +143,7 @@ if __name__ == '__main__':
     )
     
     w.window(interval)
-
+    
     # for node_name, node in w.nodes.iteritems():
     #     print node
     #     for stream in node.streams:
