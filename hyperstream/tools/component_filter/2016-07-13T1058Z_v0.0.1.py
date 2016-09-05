@@ -18,5 +18,28 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from modifier import Modifier
-from simple_modifiers import ComponentFilter, Component, DeleteNones, First, Head, IData, ITime, Last, Tail, Time
+from hyperstream.stream import StreamInstance
+from hyperstream.tool import Tool, check_input_stream_count
+
+
+class ComponentFilter(Tool):
+    """
+    Simple tool that picks out a component of the data dict if it is a range of values. If compliment is true,
+    the component is picked out if it is not in the list. e.g. to delete None values, use:
+    ComponentFilter(key, values=[None], complement=true)
+    """
+    def __init__(self, key, values, complement):
+        super(ComponentFilter, self).__init__(key=key, values=values, complement=False)
+        self.key = key
+        self.values = values
+        self.complement = complement
+
+    @check_input_stream_count(1)
+    def _execute(self, input_streams, interval, writer):
+        for time, data in input_streams[0].window(interval):
+            if self.complement:
+                if data[self.key] not in self.values:
+                    yield StreamInstance(time, data)
+            else:
+                if data[self.key] in self.values:
+                    yield StreamInstance(time, data)
