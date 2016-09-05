@@ -87,8 +87,7 @@ class HyperStringTests(unittest.TestCase):
         mk_30s = S[environmental].relative_window((-30 * second, 0)).modify(Component('motion-S1_K'))
 
         averager = T[aggregate].define(
-            timer=M[every30s],
-            input_streams=[mk_30s],
+            input_streams=[M[every30s], mk_30s],
             func=lambda x: online_average(map(lambda xi: xi.value, x))
         )
 
@@ -103,8 +102,7 @@ class HyperStringTests(unittest.TestCase):
         mk_30s = S[environmental].relative_window((-30 * second, 0)).modify(Component('motion-S1_K'))
         
         counter = T[aggregate].define(
-            timer=M[every30s],
-            input_streams=[mk_30s],
+            input_streams=[M[every30s], mk_30s],
             func=online_count
         )
 
