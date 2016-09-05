@@ -23,6 +23,7 @@ from models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitio
 from stream import StreamId
 import logging
 from errors import StreamNotFoundError
+from collections import defaultdict
 
 import itertools
 
@@ -31,6 +32,7 @@ class Node(Printable):
     """
     A node in the graph. This consists of a set of streams defined over a set of plates
     """
+    
     def __init__(self, node_id, streams, plate_ids):
         """
         Initialise the node
@@ -41,7 +43,27 @@ class Node(Printable):
         self.node_id = node_id
         self.streams = streams
         self.plate_ids = plate_ids
-
+        
+        """
+        When defining streams, it will be useful to be able to query node objects
+        to determine the streams that have metadata of a particular value.
+        Use Node.reverse_lookup as follows:
+            meta_data = {'a': 1, 'b': 1}
+            
+        """
+    
+    def modify(self, modifier):
+        """
+        Applies a modifier to all streams
+        :param modifier
+        :return: self (for chaining)
+        """
+        
+        for stream in self.streams:
+            stream.modify(modifier)
+        
+        return self
+    
     def window(self, time_interval):
         """
         Sets the time window for all the streams
@@ -52,7 +74,7 @@ class Node(Printable):
         for stream in self.streams:
             stream.window(time_interval)
         return self
-
+    
     def relative_window(self, time_interval):
         """
         Sets the time window for all the streams
@@ -63,7 +85,7 @@ class Node(Printable):
         for stream in self.streams:
             stream.relative_window(time_interval)
         return self
-
+    
     def execute(self):
         """
         Execute all of the streams for this node
@@ -73,12 +95,22 @@ class Node(Printable):
             # TODO: This is where the execution logic for the streams goes (e.g. add to Queuing system)
             logging.info("Executing stream {}".format(stream.stream_id))
             stream.execute()
+        
         return self
+    
+    def __iter__(self):
+        return iter(self.streams)
+    
+    def intersection(self, meta):
+        keys = self.streams[0].stream_id.meta_data.keys()
+        
+        return StreamId(self.node_id, dict(*zip((kk, meta[kk]) for kk in keys)))
 
 
 class Factor(Printable):
     """
     """
+    
     def __init__(self, tool, sources, sink):
         """
         Initialise this factor
@@ -95,6 +127,7 @@ class Workflow(Printable):
     """
     Workflow. This defines the graph of operations through "nodes" and "factors".
     """
+    
     def __init__(self, channels, plates, workflow_id, name, description, owner):
         """
         Initalise the workflow
@@ -112,9 +145,10 @@ class Workflow(Printable):
         self.description = description
         self.owner = owner
         self.nodes = {}
-        self.factors = []
+        self.factors = {}
+        
         logging.info("New workflow created with id {}".format(workflow_id))
-
+    
     def execute(self):
         """
         Here we execute the streams in the workflow
@@ -123,52 +157,77 @@ class Workflow(Printable):
         for node in self.nodes:
             logging.debug("Executing node {}".format(node))
             node.execute()
-
-    def create_node(self, node_id, stream_name, plate_ids):
+    
+    def create_streams(self, channel, stream_name, plate_ids, tool_stream=None):
         """
         Create a node in the graph, using the stream name and plate
-        :param node_id: The node id
+        :param channel: the channel containing the stream
         :param stream_name: The name of the stream
         :param plate_ids: The plate ids. The stream meta-data will be auto-generated from these
+        :param tool_stream:
         :return: The streams associated with this node
         """
         streams = []
-
+        
         for plate_id in plate_ids:
             # Currently allowing multiple plates here
             plate_values = self.plates[plate_id]
-
+            
             for pv in plate_values:
                 # Construct stream id
                 stream_id = StreamId(name=stream_name, meta_data=pv)
-
-                # Now try to locate the stream and add it (raises StreamNotFoundError if not found)
-                streams.append(self.channels.get_stream(stream_id))
-
-        node = Node(node_id, streams, plate_ids)
-        self.nodes[node_id] = node
-        logging.info("Added node with id {}".format(node_id))
+                
+                streams.append(
+                    channel.create_stream(
+                        stream_id=stream_id,
+                        tool_stream=tool_stream
+                    )
+                )
+        
+        node = Node(stream_name, streams, plate_ids)
+        self.nodes[stream_name] = node
+        logging.info("Added node with id {}".format(stream_name))
+        
         return node
-
-    def create_factor(self, tool, sources, sink):
-        """
-        Create a factor: This is a tool, with its input streams (sources) and output stream (sink)
-        :param tool: The tool
-        :param sources: The input streams
-        :param sink: The output stream
-        :return: None
-        """
-        sources = [self.nodes[s] for s in sources]
-        sink = self.nodes[sink]
-        # TODO: Check that the tool exists
-        self.factors.append(Factor(tool, sources, sink))
-        logging.info("Added factor with tool name {}".format(tool))
+    
+    def create_factors(self, tooling_callback, output_channel, output_stream_name, plate_ids):
+        streams = []
+        
+        for plate_id in plate_ids:
+            for pv in self.plates[plate_id]:
+                tool_stream = tooling_callback(
+                    [self.nodes[node_name].intersection(pv) for node_name in node_names]
+                )
+                
+                streams.append(
+                    output_channel.create_stream(
+                        stream_id=StreamId(output_stream_name, pv),
+                        tool_stream=tool_stream
+                    )
+                )
+        
+        node = Node(
+            node_id=output_stream_name,
+            streams=streams,
+            plate_ids=None
+        )
+        
+        self.nodes[output_stream_name] = node
+        
+        return node
+    
+    def iteritems(self):
+        return self.nodes.iteritems()
+    
+    def __getitem__(self, stream_name):
+        return self.nodes[stream_name]
 
 
 class WorkflowManager(Printable):
     """
     Workflow manager
     """
+    
     def __init__(self, channels, plates):
         """
 
@@ -177,10 +236,10 @@ class WorkflowManager(Printable):
         """
         self.channels = channels
         self.plates = plates
-
+        
         self.workflows = FrozenKeyDict()
         self.uncommitted_workflows = set()
-
+        
         for workflow_definition in WorkflowDefinitionModel.objects():
             try:
                 workflow = Workflow(
@@ -191,11 +250,11 @@ class WorkflowManager(Printable):
                     description=workflow_definition.description,
                     owner=workflow_definition.owner
                 )
-
+                
                 for node_id in workflow_definition.nodes:
                     n = workflow_definition.nodes[node_id]
                     workflow.create_node(node_id, n.stream_name, n.plate_ids)
-
+                
                 # NOTE that we have to replicate the factor over the plate
                 # This is fairly simple in the case of
                 # 1. a single plate.
@@ -207,22 +266,22 @@ class WorkflowManager(Printable):
                     continue
                     source_nodes = [workflow.nodes[s] for s in f.sources]
                     sink_node = workflow.nodes[f.sink]
-
+                    
                     # sort the plate lists by increasing length
                     factor_plates = sorted([plates[plate_id] for plate_id in
                                             list(itertools.chain.from_iterable(s.plate_ids for s in source_nodes))],
                                            key=lambda x: len(x))
-
+                    
                     # TODO: Here we need to get the subgraph of the plate tree so that we can build our for loops later
                     # TODO: One for loop for each level of nesting
                     # TODO: populate input streams
                     tool = channels.get_tool(f.tool.name, f.tool.parameters, input_streams=[])
                     workflow.create_factor(tool, source_nodes, sink_node)
-
+                
                 self.add_workflow(workflow, False)
             except StreamNotFoundError as e:
                 logging.error(str(e))
-
+    
     def add_workflow(self, workflow, commit=False):
         """
 
@@ -232,13 +291,13 @@ class WorkflowManager(Printable):
         """
         self.workflows[workflow.workflow_id] = workflow
         logging.info("Added workflow {} to workflow manager".format(workflow.workflow_id))
-
+        
         # Optionally also save the workflow to database
         if commit:
             self.commit_workflow(workflow.workflow_id)
         else:
             self.uncommitted_workflows.add(workflow.workflow_id)
-
+    
     def commit_workflow(self, workflow_id):
         """
 
@@ -246,9 +305,9 @@ class WorkflowManager(Printable):
         :return:
         """
         # TODO: We should also be committing the Stream definitions if there are new ones
-
+        
         workflow = self.workflows[workflow_id]
-
+        
         workflow_definition = WorkflowDefinitionModel(
             workflow_id=workflow.workflow_id,
             name=workflow.name,
@@ -258,11 +317,11 @@ class WorkflowManager(Printable):
                      for f in workflow.factors],
             owner=workflow.owner
         )
-
+        
         workflow_definition.save()
         self.uncommitted_workflows.remove(workflow_id)
         logging.info("Committed workflow {} to database".format(workflow_id))
-
+    
     def commit_all(self):
         """
         Commit all workflows to the database
@@ -270,14 +329,14 @@ class WorkflowManager(Printable):
         """
         for workflow_id in self.uncommitted_workflows:
             self.commit_workflow(workflow_id)
-
+    
     def execute_all(self):
         """
         Execute all workflows
         """
         for workflow in self.workflows:
             self.workflows[workflow].execute()
-
+    
     def create_plate(self, plate, commit=False):
         """
         Create a plate. Make sure all workflows can use it, and optionally commit it to database
@@ -287,4 +346,3 @@ class WorkflowManager(Printable):
         """
         # TODO: Add the plate, make sure all workflows can use it, and optionally commit it to database
         raise NotImplementedError
-

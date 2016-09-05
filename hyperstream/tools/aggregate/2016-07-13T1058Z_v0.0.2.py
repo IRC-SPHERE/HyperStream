@@ -24,6 +24,7 @@ from datetime import timedelta
 import logging
 
 
+# TODO from niall: suggest renaming this class to "WindowApply" or similar
 class Aggregate(Tool):
     def __init__(self, timer, func):
         super(Aggregate, self).__init__(timer=timer, func=func)
