@@ -61,6 +61,7 @@ if __name__ == '__main__':
     id_tool_sliding_window = StreamId('sliding_window')
     id_tool_sliding_apply = StreamId('sliding_apply')
     id_tool_apply = StreamId('apply')
+    id_tool_component = StreamId('component')
     
     # Define tool streams: these do not need to be duplicated over plates
     tool_sliding_window_30s_10s = w.channels.tools[id_tool_sliding_window].define(
@@ -68,33 +69,59 @@ if __name__ == '__main__':
         upper=timedelta(seconds=0),
         increment=timedelta(seconds=10)
     )
+    
     tool_sphere_environmental = w.channels.tools[id_tool_sphere].define(
         modality='environmental'
     )
+    
     tool_apply_ceil = w.channels.tools[id_tool_apply].define(
         func=ceil
     )
     
     # Create a clock that ticks every 30 seconds
-    id_memory_sliding_window_30s_10s = StreamId('sliding_window_30s_10s')
+    id_memory_sliding_window = StreamId('sliding_window_30s_10s')
     w.channels.memory.create_stream(
-        stream_id=id_memory_sliding_window_30s_10s,
+        stream_id=id_memory_sliding_window,
         tool_stream=tool_sliding_window_30s_10s
     )
     
-    # Create the motion in the kitchen stream
+    # Create the environmental stream
     w.create_streams(
         channel=w.channels.sphere,
-        stream_name='id_sphere_m_kitchen',
+        stream_name='id_sphere_env',
         plate_ids=('H',),
         tool_stream=tool_sphere_environmental
-    ).modify(
-        Component('motion-S1_K')
+    )
+    
+    # # Create a component tool to pick out the motion-S1_K sensor
+    # tool_component_motion_kitchen = w.channels.tools[id_tool_component].define(
+    #     input_streams=w.nodes['id_sphere_env'],
+    #     key='motion-S1_K'
+    # )
+    #
+    # # Create the motion in the kitchen stream
+    # w.create_streams(
+    #     channel=w.channels.memory,
+    #     stream_name='id_sphere_m_kitchen',
+    #     plate_ids=('H',),
+    #     tool_stream=tool_component_motion_kitchen
+    # )
+    
+    tool_m_kitchen_avg = w.create_factor(
+        tooling_callback=lambda streams: \
+            w.channels.tools[id_tool_component].define(input_streams=streams,
+                                                       key='motion-S1_K'),
+        output_channel=w.channels.memory,
+        output_stream_name='id_memory_m_kitchen',
+        plate_ids=('H',),
+        node_names=[
+            'id_sphere_env'
+        ],
     )
     
     
     def aggregate_gen(streams):
-        streams = [w.channels.memory[id_memory_sliding_window_30s_10s]] + streams
+        streams = [w.channels.memory[id_memory_sliding_window]] + streams
         
         return w.channels.tools[id_tool_sliding_apply].define(
             input_streams=streams,
@@ -102,23 +129,23 @@ if __name__ == '__main__':
         )
     
     
-    tool_m_kitchen_avg = w.create_factor(
+    w.create_factor(
         tooling_callback=aggregate_gen,
         output_channel=w.channels.memory,
         output_stream_name='id_memory_m_kitchen_mean',
         plate_ids=('H',),
         node_names=[
-            'id_memory_every30s',
-            'id_sphere_m_kitchen'
+            'id_memory_sliding_window_30s_10s',
+            'id_memory_m_kitchen'
         ],
     )
     
     for node_name, node in w.nodes.iteritems():
         print node
         for stream in node.streams:
-            print stream
+            print '\t', stream
             for kk, vv in stream.window(interval).head(5):
-                print '', kk, vv
+                print '\t\t', kk, vv
             print
         print
     

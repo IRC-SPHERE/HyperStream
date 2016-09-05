@@ -104,7 +104,7 @@ class Stream(Hashable):
         self.input_streams = input_streams
 
         # Here we define the output type. When modifiers are applied, this changes
-        self.output_format = 'doc_gen'
+        # self.output_format = 'doc_gen'
 
     def __str__(self):
         return "{}(stream_id={}, channel_id={}, tool={}, input_streams=[{}], interval={}, modifiers={})".format(
@@ -182,23 +182,6 @@ class Stream(Hashable):
             raise ValueError
         return self
 
-    def modify(self, modifier):
-        """
-        Defines the modifiers for this stream reference
-        :param modifier: The modifier
-        :type modifier: Modifier
-        :return: self (for chaining)
-        """
-        if self.modifier:
-            # TODO: Repeated modifiers?
-            logging.warn("Overwriting modifier for stream {}".format(self.stream_id))
-
-        self.modifier = modifier
-
-        # Reset output format - note that since the old modifier is clobbered, the original type will always be doc_gen
-        self.output_format = modifier.types['doc_gen']
-        return self
-
     @property
     def required_intervals(self):
         return TimeIntervals([self.time_interval]) - self.calculated_intervals
@@ -210,7 +193,7 @@ class Stream(Hashable):
         for item in self.channel.get_results(self):
             yield item
 
-    @check_output_format({'doc_gen'})
+    # @check_output_format({'doc_gen'})
     def items(self):
         """
         Return all results as a list
@@ -218,42 +201,42 @@ class Stream(Hashable):
         """
         return list(self.iteritems())
 
-    @check_output_format({'doc_gen'})
+    # @check_output_format({'doc_gen'})
     def iteritems(self):
         return iter(self)
 
-    @check_output_format({'doc_gen'})
+    # @check_output_format({'doc_gen'})
     def timestamps(self):
         return list(self.itertimestamps())
 
-    @check_output_format({'doc_gen'})
+    # @check_output_format({'doc_gen'})
     def itertimestamps(self):
         if self.modifier:
             # TODO: This is designed to replace the Time() modifier
             raise NotImplementedError
         return map(lambda x: x.timestamp, self.iteritems())
 
-    @check_output_format({'data_gen', 'doc_gen'})
+    # @check_output_format({'data_gen', 'doc_gen'})
     def values(self):
-        if self.output_format == 'doc_gen':
-            return list(self.itervalues())
-        else:
-            return self.items()
+        # if self.output_format == 'doc_gen':
+        return list(self.itervalues())
+        # else:
+        #     return self.items()
 
-    @check_output_format({'data_gen', 'doc_gen'})
+    # @check_output_format({'data_gen', 'doc_gen'})
     def itervalues(self):
-        if self.output_format == 'doc_gen':
-            return map(lambda x: x.value, self.iteritems())
-        else:
-            return self.iteritems()
+        # if self.output_format == 'doc_gen':
+        return map(lambda x: x.value, self.iteritems())
+        # else:
+        #     return self.iteritems()
 
-    @check_output_format({'doc_gen'})
+    # @check_output_format({'doc_gen'})
     def last(self):
         # TODO: This is designed to replace the Last() modifier
         # TODO: Can this be done without list()?
         return self.items()[-1]
 
-    @check_output_format({'doc_gen'})
+    # @check_output_format({'doc_gen'})
     def first(self, default=None, key=None):
         # TODO: This is designed to replace the Last() modifier
         if key is None:
@@ -266,7 +249,7 @@ class Stream(Hashable):
                     return el
         return default
 
-    @check_output_format({'doc_gen'})
+    # @check_output_format({'doc_gen'})
     def head(self, n):
         # TODO: this is designed to replace the Head() modifier
         i = 0
@@ -276,11 +259,35 @@ class Stream(Hashable):
                 break
             yield d
 
-    @check_output_format({'doc_gen'})
+    # @check_output_format({'doc_gen'})
     def tail(self, n):
         # TODO: This is designed to replace the Tail() modifier
         # TODO: Can this be done without list()?
         return list(self.iteritems())[-n:]
+
+    # @check_output_format({'doc_gen'})
+    def component(self, key):
+        # TODO: is this needed now we have a Component() tool?
+        for (time, data) in self.iteritems():
+            if key in data:
+                yield StreamInstance(time, data[key])
+
+    # @check_output_format({'doc_gen'})
+    def component_filter(self, key, values):
+        # TODO: is this needed now we have a ComponentFilter() tool?
+        for (time, data) in self.iteritems():
+            if key in data and data[key] in values:
+                yield StreamInstance(time, data)
+
+    # @check_output_format({'doc_gen'})
+    def delete_nones(self):
+        # TODO: Test this against ComponentFilter(key, values=[None], complement=true)
+        for (time, data) in self.iteritems():
+            data2 = {}
+            for (key, value) in data.items():
+                if value is not None:
+                    data2[key] = value
+            yield StreamInstance(time, data2)
 
 
 class ToolStream(Stream):
