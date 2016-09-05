@@ -24,6 +24,7 @@ from hyperstream.tool import Tool, check_input_stream_count
 class Product(Tool):
     @check_input_stream_count(2)
     def _execute(self, input_streams, interval, writer):
+        # TODO: should the loop below be: for (t, data1) in input_streams[0].window(interval)?
         for (t, data1) in input_streams[0]:
             (_, data2) = next(input_streams[1])
             writer([(t, data1 * data2)])
