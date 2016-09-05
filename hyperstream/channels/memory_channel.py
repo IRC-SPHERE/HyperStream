@@ -76,6 +76,8 @@ class MemoryChannel(BaseChannel):
         :param kwargs: The keyword arguments
         :return: The data generator
         """
+        
+        # TODO from niall: is it strictly necessary to sort here? Do the database ops not maintain order?
         return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream_ref.stream_id]
                        if timestamp in stream_ref.time_interval), key=lambda x: x.timestamp)
 
@@ -102,7 +104,12 @@ class MemoryChannel(BaseChannel):
 
     def get_stream_writer(self, stream_ref):
         def writer(document_collection):
-            self.data[stream_ref.stream_id].extend(document_collection)
+            # TODO from niall: I added this type check to fix bug with the Apply tool. \
+            #   please verify that it does not interfere with other code
+            if isinstance(document_collection, StreamInstance):
+                self.data[stream_ref.stream_id].append(document_collection)
+            else:
+                self.data[stream_ref.stream_id].extend(document_collection)
         return writer
     
 
