@@ -157,7 +157,36 @@ class Workflow(Printable):
         for node in self.nodes:
             logging.debug("Executing node {}".format(node))
             node.execute()
-    
+
+    def create_node(self, node_id, stream_name, plate_ids):
+        """
+        Create a node in the graph, using the stream name and plate
+        :param node_id: The node id
+        :param stream_name: The name of the stream
+        :param plate_ids: The plate ids. The stream meta-data will be auto-generated from these
+        :return: The streams associated with this node
+        """
+        # TODO: I put this function back in because we want to be able to create a node from the database definition
+        # TODO: Merge with create_streams
+
+        streams = []
+
+        for plate_id in plate_ids:
+            # Currently allowing multiple plates here
+            plate_values = self.plates[plate_id]
+
+            for pv in plate_values:
+                # Construct stream id
+                stream_id = StreamId(name=stream_name, meta_data=pv)
+
+                # Now try to locate the stream and add it (raises StreamNotFoundError if not found)
+                streams.append(self.channels.get_stream(stream_id))
+
+        node = Node(node_id, streams, plate_ids)
+        self.nodes[node_id] = node
+        logging.info("Added node with id {}".format(node_id))
+        return node
+
     def create_streams(self, channel, stream_name, plate_ids, tool_stream=None):
         """
         Create a node in the graph, using the stream name and plate
@@ -254,7 +283,7 @@ class WorkflowManager(Printable):
                 for node_id in workflow_definition.nodes:
                     n = workflow_definition.nodes[node_id]
                     workflow.create_node(node_id, n.stream_name, n.plate_ids)
-                
+
                 # NOTE that we have to replicate the factor over the plate
                 # This is fairly simple in the case of
                 # 1. a single plate.
