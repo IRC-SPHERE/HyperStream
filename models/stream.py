@@ -53,8 +53,6 @@ class StreamDefinitionModel(Document):
     tool_parameters = DictField()
 
     input_streams = EmbeddedDocumentListField(required=False, document_type=StreamIdField)
-    # TODO: strong typing
-    modifiers = ListField()
     # TODO: remove?
     parameters = DictField()
     sandbox = StringField()
