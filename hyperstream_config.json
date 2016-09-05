@@ -39,7 +39,7 @@
         {"identifier": "2.kitchen", "tag": "location", "data": "kitchen", "parent": "2"},
         {"identifier": "2.lounge", "tag": "location", "data": "lounge", "parent": "2"},
         {"identifier": "2.bedroom_1", "tag": "location", "data": "bedroom 1", "parent": "2"},
-        {"identifier": "2.bedroom_2", "tag": "location", "data": "bedroom 2", "parent": "1"},
+        {"identifier": "2.bedroom_2", "tag": "location", "data": "bedroom 2", "parent": "2"},
         {"identifier": "2.bathroom", "tag": "location", "data": "bathroom", "parent": "2"},
         {"identifier": "2.toilet", "tag": "location", "data": "toilet", "parent": "2"},
         {"identifier": "2.study", "tag": "location", "data": "study", "parent": "2"},

@@ -19,6 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
+from math import ceil
 from datetime import datetime, timedelta
 
 from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client
@@ -52,24 +53,25 @@ if __name__ == '__main__':
         workflow_id="nt_multimodal_test",
         name="Test of multimodal performance",
         owner="nt",
-        description="Another test of creating workflows")
+        description="Another test of creating workflows"
+    )
     
+    # Define tool IDs (directory must exist in hyperstream/tools/*)
     id_tool_sphere = StreamId('sphere')
     id_tool_clock = StreamId('clock')
     id_tool_aggregate = StreamId('aggregate')
+    id_tool_apply = StreamId('apply')
     
+    # Define tool streams: these do not need to be duplicated over plates
+    tool_clock_30s = w.channels.tools[id_tool_clock].define(stride=timedelta(seconds=30))
+    tool_sphere_environmental = w.channels.tools[id_tool_sphere].define(modality='environmental')
+    tool_apply_ceil = w.channels.tools[id_tool_apply].define(ceil)
+    
+    # Create a clock that ticks every 30 seconds
     id_memory_every30s = StreamId('timer_every30s')
-    
-    tool_clock_30s = w.channels.tools[id_tool_clock].define(
-        stride=timedelta(seconds=30)
-    )
     w.channels.memory.create_stream(
         stream_id=id_memory_every30s,
         tool_stream=tool_clock_30s
-    )
-    
-    tool_sphere_environmental = w.channels.tools[id_tool_sphere].define(
-        modality='environmental'
     )
     
     w.create_streams(
@@ -79,30 +81,58 @@ if __name__ == '__main__':
         tool_stream=tool_sphere_environmental
     ).modify(
         Component('motion-S1_K')
-        # ComponentFilter('uid', ('S1_K', ))
     ).relative_window(
         relative_window
     )
 
+    for stream in w['id_sphere_m_kitchen'].streams:
+        print stream
+        for kk, vv in stream.window(interval).iteritems():
+            print '', kk, vv
+        print
+    print
+    
+    def aggregate_gen(streams):
+        return w.channels.tools[id_tool_aggregate].define(
+            input_streams=streams,
+            timer=w.channels.memory[id_memory_every30s],
+            func=online_average
+        )
+    
+    
     tool_m_kitchen_avg = w.define_tool_and_create_streams(
-        tool_channel=w.channels.tools,
-        tool_id=id_tool_aggregate,
+        tooling_callback=aggregate_gen,
         output_channel=w.channels.memory,
-        output_stream_name='stream_memory_m_kitchen_mean',
+        output_stream_name='id_memory_m_kitchen_mean',
+        plate_ids=('H',),
         node_names=[
             'id_sphere_m_kitchen',
         ],
-        timer=w.channels.memory[id_memory_every30s],
-        func=online_average
     )
     
-    for stream in w['stream_memory_m_kitchen_mean'].window(interval).streams:
-        for kk, vv in stream.iteritems():
-            print kk, vv
     
-    # for stream_name, node in w.iteritems():
-    #     print stream_name, node
-    #     for stream in node:
-    #         print '', stream
+    # def ceil_applier(streams):
+    #     return w.channels.tools[id_tool_apply].define(
+    #         input_streams=streams,
+    #         func=ceil
+    #     )
+    #
+    #
+    # tool_m_kitchen_plus_10 = w.define_tool_and_create_streams(
+    #     tooling_callback=ceil_applier,
+    #     output_channel=w.channels.memory,
+    #     output_stream_name='id_plus_10',
+    #     plate_ids=('H',),
+    #     node_names=[
+    #         'id_memory_m_kitchen_mean'
+    #     ]
+    # )
+    #
+    # for node_name, node in w.nodes.iteritems():
+    #     print node
+    #     for stream in node.streams:
+    #         print stream
     #         for kk, vv in stream.window(interval).iteritems():
-    #             print '', '', kk, vv
+    #             print '', kk, vv
+    #         print
+    #     print
