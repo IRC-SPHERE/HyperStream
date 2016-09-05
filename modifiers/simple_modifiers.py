@@ -31,56 +31,56 @@ from ..stream import StreamInstance
 #         return data
 
 
-class First(Modifier):
-    def __init__(self):
-        super(First, self).__init__()
-        self.types = {'data_gen': 'data', 'doc_gen': 'doc'}
-
-    def execute(self, data):
-        for d in data:
-            return d
-        return None
-
-
-class Last(Modifier):
-    def __init__(self):
-        super(Last, self).__init__()
-        self.types = {'data_gen': 'data', 'doc_gen': 'doc'}
-
-    def execute(self, data):
-        res = None
-        for d in data:
-            res = d
-        return res
-
-
-class Head(Modifier):
-    def __init__(self, n):
-        super(Head, self).__init__()
-        self.types = {'data_gen': 'data_gen', 'doc_gen': 'doc_gen'}
-        self.n = n
-
-    def execute(self, data):
-        i = 0
-        for d in data:
-            i += 1
-            if i > self.n:
-                break
-            yield d
-
-
-class Tail(Modifier):
-    def __init__(self, n):
-        super(Tail, self).__init__()
-        self.types = {'data_gen': 'data_gen', 'doc_gen': 'doc_gen'}
-        self.n = n
-
-    def execute(self, data):
-        tail = ()
-        for d in data:
-            tail = (tail + (d,))[-self.n:]
-        for d in tail:
-            yield d
+# class First(Modifier):
+#     def __init__(self):
+#         super(First, self).__init__()
+#         self.types = {'data_gen': 'data', 'doc_gen': 'doc'}
+#
+#     def execute(self, data):
+#         for d in data:
+#             return d
+#         return None
+#
+#
+# class Last(Modifier):
+#     def __init__(self):
+#         super(Last, self).__init__()
+#         self.types = {'data_gen': 'data', 'doc_gen': 'doc'}
+#
+#     def execute(self, data):
+#         res = None
+#         for d in data:
+#             res = d
+#         return res
+#
+#
+# class Head(Modifier):
+#     def __init__(self, n):
+#         super(Head, self).__init__()
+#         self.types = {'data_gen': 'data_gen', 'doc_gen': 'doc_gen'}
+#         self.n = n
+#
+#     def execute(self, data):
+#         i = 0
+#         for d in data:
+#             i += 1
+#             if i > self.n:
+#                 break
+#             yield d
+#
+#
+# class Tail(Modifier):
+#     def __init__(self, n):
+#         super(Tail, self).__init__()
+#         self.types = {'data_gen': 'data_gen', 'doc_gen': 'doc_gen'}
+#         self.n = n
+#
+#     def execute(self, data):
+#         tail = ()
+#         for d in data:
+#             tail = (tail + (d,))[-self.n:]
+#         for d in tail:
+#             yield d
 
 
 # class Data(Modifier):
