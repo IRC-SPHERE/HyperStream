@@ -52,18 +52,6 @@ class Node(Printable):
             
         """
     
-    def modify(self, modifier):
-        """
-        Applies a modifier to all streams
-        :param modifier
-        :return: self (for chaining)
-        """
-        
-        for stream in self.streams:
-            stream.modify(modifier)
-        
-        return self
-    
     def window(self, time_interval):
         """
         Sets the time window for all the streams
@@ -268,12 +256,6 @@ class Workflow(Printable):
         )
         
         return self.factors[output_stream_name]
-    
-    def iteritems(self):
-        return self.nodes.iteritems()
-    
-    def __getitem__(self, stream_name):
-        return self.nodes[stream_name]
 
 
 class WorkflowManager(Printable):
@@ -304,8 +286,7 @@ class WorkflowManager(Printable):
                     owner=workflow_definition.owner
                 )
                 
-                for node_id in workflow_definition.nodes:
-                    n = workflow_definition.nodes[node_id]
+                for n in workflow_definition.nodes:
                     # TODO from niall: note, changed create_node to take only two arguments.
                     #   rest: please think about whether we can always guarantee that node_id == n.stream_name
                     workflow.create_node(n.stream_name, n.plate_ids)
