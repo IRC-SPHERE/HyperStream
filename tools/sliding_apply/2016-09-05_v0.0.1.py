@@ -1,0 +1,91 @@
+"""
+The MIT License (MIT)
+Copyright (c) 2014-2017 University of Bristol
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
+from hyperstream import TimeInterval, RelativeTimeInterval
+from hyperstream.tool import Tool, check_input_stream_count
+from datetime import timedelta
+import logging
+
+
+class SlidingApply(Tool):
+    def __init__(self, func):
+        super(SlidingApply, self).__init__(func=func)
+        self.func = func
+    
+    # noinspection PyCompatibility
+    @check_input_stream_count(2)
+    def _execute(self, input_streams, interval, writer):
+        sliding_window = input_streams[0]
+        data_stream = input_streams[1]
+                
+        data = data_stream.window(interval).iteritems()
+        
+        window = []
+        future = []
+        
+        for lower, upper in sliding_window.window(interval).iteritems():
+            # Prune the old data points from the window
+            num_to_remove = 0
+            for win_time, win_data in window:
+                if lower <= win_time <= upper:
+                    break
+                    
+                num_to_remove += 1
+            window = window[num_to_remove:]
+            
+            # Add those stolen from the future
+            num_to_remove = 0
+            for doc in future:
+                fut_time, fut_data = doc
+                
+                if lower <= fut_time <= upper:
+                    break
+                
+                num_to_remove += 1
+                window.append(doc)
+            future = future[num_to_remove:]
+            
+            # Take data from the window
+            while True:
+                try:
+                    doc = next(data)
+                    tt, dd = doc
+                    
+                    if lower <= tt <= upper:
+                        window.append(doc)
+                        
+                    elif tt > upper:
+                        future.append(doc)
+                        break
+                        
+                except StopIteration:
+                    break
+
+            # print interval.start, interval.end
+            # print '\t', lower, upper
+            # for datum in window:
+            #     print '\t\t{} {}'.format(datum.timestamp, datum.value)
+            # print '\t', self.func(window)
+            # print
+            
+            writer([(upper, self.func(iter(window)))])
