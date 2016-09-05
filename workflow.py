@@ -190,15 +190,13 @@ class Workflow(Printable):
         
         return node
     
-    def create_factors(self, tooling_callback, output_channel, output_stream_name, plate_ids, node_names):
+    def create_factors(self, tooling_callback, output_channel, output_stream_name, plate_ids):
         streams = []
         
-        # for node_name in node_names:
-        #     for stream in self.nodes[node_name].streams:
         for plate_id in plate_ids:
             for pv in self.plates[plate_id]:
                 tool_stream = tooling_callback(
-                    [node.intersection(pv) for node_name, node in self.nodes.iteritems()]
+                    [self.nodes[node_name].intersection(pv) for node_name in node_names]
                 )
                 
                 streams.append(
