@@ -28,6 +28,14 @@ def count(data):
     return cnt
 
 
+def any_set(data):
+    for dt, val in data:
+        if val:
+            return True
+        
+    return False
+
+
 def online_sum(data, total=0.0):
     for x in data:
         total += x.value if isinstance(x, StreamInstance) else x
@@ -45,7 +53,8 @@ def online_average(data, n=0, mean=0.0):
         n += 1
         delta = (x.value if isinstance(x, StreamInstance) else x) - mean
         mean += delta / n
-
+    
+    # TODO from niall: Possibly unnecessary bug: np.mean([1]) = 1. Suggest (n < 1)
     if n < 2:
         return float('nan')
     else:
@@ -59,7 +68,7 @@ def online_variance(data, n=0, mean=0.0, m2=0.0):
         delta = x - mean
         mean += delta / n
         m2 += delta * (x - mean)
-
+    
     if n < 2:
         return float('nan')
     else:
