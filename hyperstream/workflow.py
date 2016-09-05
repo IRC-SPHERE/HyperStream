@@ -52,18 +52,6 @@ class Node(Printable):
             
         """
     
-    def modify(self, modifier):
-        """
-        Applies a modifier to all streams
-        :param modifier
-        :return: self (for chaining)
-        """
-        
-        for stream in self.streams:
-            stream.modify(modifier)
-        
-        return self
-    
     def window(self, time_interval):
         """
         Sets the time window for all the streams

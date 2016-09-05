@@ -61,6 +61,7 @@ if __name__ == '__main__':
     id_tool_clock = StreamId('clock')
     id_tool_aggregate = StreamId('aggregate')
     id_tool_apply = StreamId('apply')
+    id_tool_component = StreamId('component')
     
     # Define tool streams: these do not need to be duplicated over plates
     tool_clock_30s = w.channels.tools[id_tool_clock].define(stride=timedelta(seconds=30))
@@ -73,15 +74,24 @@ if __name__ == '__main__':
         stream_id=id_memory_every30s,
         tool_stream=tool_clock_30s
     )
-    
-    # Create the motion in the kitchen stream
-    w.create_streams(
+
+    # Create the environmental stream
+    streams = w.create_streams(
         channel=w.channels.sphere,
-        stream_name='id_sphere_m_kitchen',
+        stream_name='id_sphere_env',
         plate_ids=('H',),
         tool_stream=tool_sphere_environmental
-    ).modify(
-        Component('motion-S1_K')
+    )
+
+    # Create a component tool to pick out the motion-S1_K sensor
+    tool_component_motion_kitchen = w.channels.tools[id_tool_component].define(input_streams=streams, key='motion-S1_K')
+
+    # Create the motion in the kitchen stream
+    w.create_streams(
+        channel=w.channels.memory,
+        stream_name='id_sphere_m_kitchen',
+        plate_ids=('H',),
+        tool_stream=tool_component_motion_kitchen
     ).relative_window(
         relative_window
     )

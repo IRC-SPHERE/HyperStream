@@ -22,7 +22,6 @@ import unittest
 
 from hyperstream import TimeInterval, TimeIntervals
 from hyperstream.itertools2 import online_average, count as online_count
-from hyperstream.modifiers import *
 from helpers import *
 
 
@@ -65,9 +64,15 @@ class HyperStringTests(unittest.TestCase):
     
     def test_simple_query(self):
         # Simple querying
-        el = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063'))
-        edl = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063'))
-        
+        env = S[environmental].window((t1, t1 + minute))
+
+        eid = StreamId('electricity')
+
+        elec_tool = T[component].define(input_streams=[env], key='electricity-04063')
+        M.create_stream(stream_id=eid, tool_stream=elec_tool)
+
+        el = M[eid].window((t1, t1 + minute))
+
         q1 = "\n".join("=".join(map(str, ee)) for ee in el)
         
         # print(q1)
@@ -80,11 +85,14 @@ class HyperStringTests(unittest.TestCase):
                       '2016-04-28 20:00:31.405000+00:00=0.0\n'
                       '2016-04-28 20:00:50.132000+00:00=0.0')
 
-        assert (edl.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        assert (el.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_average(self):
         M[every30s] = M.create_stream(stream_id=every30s, tool_stream=clock_tool)
-        mk_30s = S[environmental].relative_window((-30 * second, 0)).modify(Component('motion-S1_K'))
+        motion_tool = T[component].define(input_streams=[S[environmental]], key='motion-S1_K')
+        M.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=motion_tool)
+
+        mk_30s = M[m_kitchen_30_s_window].relative_window((-30 * second, 0))
 
         averager = T[aggregate].define(
             input_streams=[M[every30s], mk_30s],
@@ -98,8 +106,7 @@ class HyperStringTests(unittest.TestCase):
         assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_count(self):
-        # M.create_stream(stream_id=every30s, tool_stream=clock_tool)
-        mk_30s = S[environmental].relative_window((-30 * second, 0)).modify(Component('motion-S1_K'))
+        mk_30s = M[m_kitchen_30_s_window].relative_window((-30 * second, 0))
         
         counter = T[aggregate].define(
             input_streams=[M[every30s], mk_30s],

@@ -22,7 +22,6 @@ import logging
 from datetime import datetime, timedelta
 
 from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client
-from hyperstream.modifiers import Component
 from hyperstream.utils import UTC
 from hyperstream.itertools2 import online_average, count as online_count
 from sphere_connector_package.sphere_connector import SphereLogger
@@ -59,11 +58,13 @@ if __name__ == '__main__':
     aggregate = StreamId('aggregate')
     every30s = StreamId('every30s')
     motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
+    env_kitchen_30_s_window = StreamId('env_kitchen_30_s_window')
     m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
     average = StreamId('averager', meta_data={'house': '1'})
     count = StreamId('counter')
     # sum_ = StreamId('sum')
     sphere = StreamId('sphere')
+    component = StreamId('component')
 
     # Create a simple workflow for querying
     w = Workflow(
@@ -75,8 +76,7 @@ if __name__ == '__main__':
         description="Just a test of creating workflows")
 
     # Create some streams (nodes)
-    node = w.create_node(node_id="ENV_H1", stream_name="environmental", plate_ids=["H1"])\
-        .window((t1, t1 + 1 * minute)).execute()
+    node = w.create_node(stream_name="environmental", plate_ids=["H1"]).window((t1, t1 + 1 * minute))
 
     # Check the values
     assert(node.streams[0].values()[:1] ==
@@ -97,27 +97,35 @@ if __name__ == '__main__':
     clock_tool = T[clock].define(stride=30 * second)
     M.create_stream(stream_id=every30s, tool_stream=clock_tool)
     env_tool = T[sphere].define(modality='environmental')
-    S.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=env_tool).modify(Component('motion-S1_K'))
-    s = S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))
-    counter = T[aggregate].define(input_streams=[s], timer=M[every30s], func=online_count)
+    S.create_stream(stream_id=env_kitchen_30_s_window, tool_stream=env_tool)
+
+    motion_tool = T[component].define(input_streams=[S[env_kitchen_30_s_window]], key='motion-S1_K')
+    M.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=motion_tool)
+
+    s = M[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))
+    counter = T[aggregate].define(input_streams=[M[every30s], s], func=online_count)
     M.create_stream(stream_id=count, tool_stream=counter)
     print(M[count].window((t1, t1 + 5 * minute)).values())
 
-    w.create_node()
-    # TODO: tool parameters
-    w.create_factor(tool='clock', sources=None)
+    # w.create_node()
+    # # TODO: tool parameters
+    # w.create_factor(tool='clock', sources=None)
     # w.create_node(node_id=)
 
     exit()
 
     # Simple querying
-    el = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063')).items()
-    edl = S[environmental].window((t1, t1 + minute)).modify(Component('electricity-04063')).values()
+    env = S[environmental].window((t1, t1 + minute))
+    eid = StreamId('electricity')
+    elec_tool = T[component].define(input_streams=[env], key='electricity-04063')
+    M.create_stream(stream_id=eid, tool_stream=elec_tool)
+
+    el = M[eid].window((t1, t1 + minute))
 
     q1 = "\n".join("=".join(map(str, ee)) for ee in el)
 
     print(q1)
-    print(edl)
+    print(el.values())
 
     clock_tool = T[clock].define(stride=30 * second)
     env_tool = T[sphere].define(modality='environmental')
@@ -131,11 +139,13 @@ if __name__ == '__main__':
     print("----------")
     print("")
 
-    S.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=env_tool).modify(Component('motion-S1_K'))
+    M[every30s] = M.create_stream(stream_id=every30s, tool_stream=clock_tool)
+    motion_tool = T[component].define(input_streams=[S[environmental]], key='motion-S1_K')
+    M.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=motion_tool)
 
     print("\n------------------------")
     print("S[m_kitchen_30_s_window]")
-    print("\n".join(map(str, S[m_kitchen_30_s_window].window((t1, t2)))))
+    print("\n".join(map(str, M[m_kitchen_30_s_window].window((t1, t2)))))
     print("------------------------")
     print("")
 
