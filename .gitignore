@@ -8,6 +8,9 @@ __pycache__/
 # C extensions
 *.so
 
+niall/
+niall_old_*
+
 # Distribution / packaging
 .Python
 env/
