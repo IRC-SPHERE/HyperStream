@@ -19,4 +19,4 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from modifier import Modifier
-from simple_modifiers import ComponentFilter, Component, DeleteNones, First, Head, IData, ITime, Last, Tail, Time
+from simple_modifiers import ComponentFilter, Component, DeleteNones, IData, ITime, Time
