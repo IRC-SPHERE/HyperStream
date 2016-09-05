@@ -86,17 +86,17 @@ class Node(Printable):
             stream.relative_window(time_interval)
         return self
     
-    def execute(self):
-        """
-        Execute all of the streams for this node
-        :return: self (for chaining)
-        """
-        for stream in self.streams:
-            # TODO: This is where the execution logic for the streams goes (e.g. add to Queuing system)
-            logging.info("Executing stream {}".format(stream.stream_id))
-            stream.execute()
-        
-        return self
+    # def execute(self):
+    #     """
+    #     Execute all of the streams for this node
+    #     :return: self (for chaining)
+    #     """
+    #     for stream in self.streams:
+    #         # TODO: This is where the execution logic for the streams goes (e.g. add to Queuing system)
+    #         logging.info("Executing stream {}".format(stream.stream_id))
+    #         stream.execute()
+    #
+    #     return self
     
     def __iter__(self):
         return iter(self.streams)
@@ -121,6 +121,23 @@ class Factor(Printable):
         self.tool = tool
         self.sources = sources
         self.sink = sink
+    
+    def execute(self):
+        return self.tool.get_results(self)
+
+
+class FactorWrapper(Printable):
+    """
+    
+    """
+    
+    def __init__(self, factor_name, factors):
+        self.factor_name = factor_name
+        self.factors = factors
+    
+    def execute(self):
+        for factor in self.factors:
+            factor.execute
 
 
 class Workflow(Printable):
@@ -154,6 +171,7 @@ class Workflow(Printable):
         Here we execute the streams in the workflow
         :return:
         """
+<<<<<<< HEAD
         for node in self.nodes:
             logging.debug("Executing node {}".format(node))
             node.execute()
@@ -161,14 +179,26 @@ class Workflow(Printable):
     def create_node(self, node_id, stream_name, plate_ids):
         """
         Create a node in the graph, using the stream name and plate
+=======
+        for factor in self.factors:
+            logging.debug("Executing factor {}".format(factor))
+            factor.execute()
+            
+    def create_node(self, stream_name, plate_ids):
+        """
+        Create a node in the graph. Note: assumes that the streams already exist
+>>>>>>> d18426f5b8b610c75f9b82cd93a0627be3005e85
         :param node_id: The node id
         :param stream_name: The name of the stream
         :param plate_ids: The plate ids. The stream meta-data will be auto-generated from these
         :return: The streams associated with this node
         """
+<<<<<<< HEAD
         # TODO: I put this function back in because we want to be able to create a node from the database definition
         # TODO: Merge with create_streams
 
+=======
+>>>>>>> d18426f5b8b610c75f9b82cd93a0627be3005e85
         streams = []
 
         for plate_id in plate_ids:
@@ -182,11 +212,20 @@ class Workflow(Printable):
                 # Now try to locate the stream and add it (raises StreamNotFoundError if not found)
                 streams.append(self.channels.get_stream(stream_id))
 
+<<<<<<< HEAD
         node = Node(node_id, streams, plate_ids)
         self.nodes[node_id] = node
         logging.info("Added node with id {}".format(node_id))
         return node
 
+=======
+        node = Node(stream_name, streams, plate_ids)
+        self.nodes[stream_name] = node
+        logging.info("Added node with id {}".format(stream_name))
+        
+        return node
+    
+>>>>>>> d18426f5b8b610c75f9b82cd93a0627be3005e85
     def create_streams(self, channel, stream_name, plate_ids, tool_stream=None):
         """
         Create a node in the graph, using the stream name and plate
@@ -219,31 +258,40 @@ class Workflow(Printable):
         
         return node
     
-    def create_factors(self, tooling_callback, output_channel, output_stream_name, plate_ids):
-        streams = []
+    def create_factor(self, tooling_callback, output_channel, output_stream_name, plate_ids, node_names):
+        factors = []
         
         for plate_id in plate_ids:
             for pv in self.plates[plate_id]:
-                tool_stream = tooling_callback(
-                    [self.nodes[node_name].intersection(pv) for node_name in node_names]
+                sources_ids = [self.nodes[node_name].intersection(pv)
+                               for node_name in node_names if node_name in self.nodes]
+                sources = [self.channels.get_stream(sources_id) for sources_id in sources_ids]
+                
+                sink = output_channel.create_stream(
+                    stream_id=StreamId(output_stream_name, pv),
+                    tool_stream=tooling_callback(sources)
                 )
                 
-                streams.append(
-                    output_channel.create_stream(
-                        stream_id=StreamId(output_stream_name, pv),
-                        tool_stream=tool_stream
-                    )
+                factor = Factor(
+                    tool=sink.tool,
+                    sources=sources,
+                    sink=sink
                 )
+                
+                factors.append(factor)
         
-        node = Node(
-            node_id=output_stream_name,
-            streams=streams,
-            plate_ids=None
+        self.factors[output_stream_name] = FactorWrapper(
+            factor_name=output_stream_name,
+            factors=factors
         )
         
-        self.nodes[output_stream_name] = node
+        self.nodes[output_stream_name] = Node(
+            node_id=output_stream_name,
+            streams=[factor.sink for factor in factors],
+            plate_ids=plate_ids
+        )
         
-        return node
+        return self.factors[output_stream_name]
     
     def iteritems(self):
         return self.nodes.iteritems()
@@ -282,8 +330,15 @@ class WorkflowManager(Printable):
                 
                 for node_id in workflow_definition.nodes:
                     n = workflow_definition.nodes[node_id]
+<<<<<<< HEAD
                     workflow.create_node(node_id, n.stream_name, n.plate_ids)
 
+=======
+                    # TODO from niall: note, changed create_node to take only two arguments.
+                    #   rest: please think about whether we can always guarantee that node_id == n.stream_name
+                    workflow.create_node(n.stream_name, n.plate_ids)
+                
+>>>>>>> d18426f5b8b610c75f9b82cd93a0627be3005e85
                 # NOTE that we have to replicate the factor over the plate
                 # This is fairly simple in the case of
                 # 1. a single plate.
