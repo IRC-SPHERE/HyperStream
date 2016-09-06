@@ -101,7 +101,7 @@ class FileChannel(ReadOnlyMemoryChannel):
                 stream_id=stream_id,
                 # time_interval=TimeInterval(start=MIN_DATE, end=up_to_timestamp),
                 calculated_intervals=TimeIntervals(),
-                tool=None,
+                # tool=None,
                 input_streams=None
             )
 
@@ -112,9 +112,9 @@ class FileChannel(ReadOnlyMemoryChannel):
     
     def get_results(self, stream):
         # TODO: Make this behave like the other channels
-        if stream.time_interval.end > self.up_to_timestamp:
-            raise ValueError(
-                'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
+        # if time_interval.end > self.up_to_timestamp:
+        #     raise ValueError(
+        #         'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
         
         result = []
         module_path = os.path.join(self.path, stream.stream_id.name)

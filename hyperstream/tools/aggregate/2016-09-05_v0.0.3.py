@@ -40,21 +40,23 @@ class Aggregate(Tool):
 
         rel_start = timedelta(0)
         rel_end = timedelta(0)
-        if isinstance(data_stream.time_interval, RelativeTimeInterval):
-            rel_start = data_stream.time_interval.start
-            rel_end = data_stream.time_interval.end
-        elif isinstance(data_stream.time_interval, TimeInterval):
-            if interval != data_stream.time_interval:
-                # TODO: What if stream and input stream have different absolute intervals?
-                logging.error("interval {} != input_streams[0].time_interval {}".format(
-                    interval, data_stream.time_interval))
-                raise NotImplementedError
+        # if isinstance(data_stream.time_interval, RelativeTimeInterval):
+        #     rel_start = data_stream.time_interval.start
+        #     rel_end = data_stream.time_interval.end
+        # elif isinstance(data_stream.time_interval, TimeInterval):
+        #     if interval != data_stream.time_interval:
+        #         # TODO: What if stream and input stream have different absolute intervals?
+        #         logging.error("interval {} != input_streams[0].time_interval {}".format(
+        #             interval, data_stream.time_interval))
+        #         raise NotImplementedError
 
-        data = data_stream.window(interval).iteritems()
+        # data = data_stream.window(interval).iteritems()
+        data = iter(data_stream)
 
         window = []
         future = []
-        for (t, _) in timer.window(interval).iteritems():
+        # for (t, _) in timer.window(interval).iteritems():
+        for (t, _) in iter(timer):
             while (len(window) > 0) and (window[0][0] <= t + rel_start):
                 window = window[1:]
             while (len(future) > 0) and (future[0][0] <= t + rel_end):

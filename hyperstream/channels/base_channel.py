@@ -19,6 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from ..stream import StreamInstance, StreamDict
+from ..time_interval import TimeIntervals
 from ..utils import Printable, MIN_DATE, MAX_DATE
 
 
@@ -53,15 +54,26 @@ class BaseChannel(Printable):
         :param interval: the time interval
         :return: None
         """
-        stream.tool.execute(stream.input_streams, interval, stream.writer)
+        if interval.end > self.up_to_timestamp:
+            raise ValueError(
+                'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
 
-    def get_results(self, stream):  # TODO: force_calc=False):
+        required_intervals = TimeIntervals([interval]) - stream.calculated_intervals
+        if not required_intervals.is_empty:
+            for interval in required_intervals:
+                stream.tool.execute(stream.input_streams, interval, stream.writer)
+                stream.calculated_intervals += TimeIntervals([interval])
+
+            if stream.required_intervals.is_not_empty:
+                raise RuntimeError('Tool execution did not cover the specified time interval.')
+
+        # stream.tool.execute(stream.input_streams, interval, stream.writer)
+
+    def get_results(self, stream):
         """
         Must be overridden by deriving classes.
-        1. Calculates/receives the documents in the stream interval determined by the stream
-        2. Applies the modifiers within stream
-        3. Applies channel custom modifiers as determined by kwargs
-        4. Returns success or failure and the results (for some channels the values of kwargs can override the
+        1. Calculates/receives the documents in the stream for the time interval given
+        2. Returns success or failure and the results (for some channels the values of kwargs can override the
         return process, e.g. introduce callbacks)
         """
         raise NotImplementedError
