@@ -31,6 +31,7 @@ class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
     """
     Simple helper class for storing data instances that's a bit neater than simple tuples
     """
+    
     def __new__(cls, timestamp, value):
         if not isinstance(timestamp, datetime):
             raise ValueError("Timestamp must be datetime.datetime")
@@ -42,6 +43,7 @@ class StreamDict(TypedBiDict):
     Custom bi-directional dictionary where keys are StreamID objects and values are Stream objects.
     Raises ValueDuplicationError if the same Stream is added again
     """
+    
     def __init__(self, *args, **kwargs):
         super(StreamDict, self).__init__(StreamId, Stream, *args, **kwargs)
 
@@ -50,23 +52,24 @@ class StreamId(Hashable):
     """
     Helper class for stream identifiers. A stream identifier contains the stream name and any meta-data
     """
+    
     def __init__(self, name, meta_data=None):
         self.name = name
         self.meta_data = meta_data if meta_data else {}
-
+    
     def __str__(self):
         if self.meta_data:
             return self.name + ": [" + ", ".join("{}={}".format(k, v) for k, v in self.meta_data.items()) + "]"
         else:
             return self.name
-
+    
     def __repr__(self):
         return "{}(name={}, meta_data={})".format(
             self.__class__.__name__,
             repr(self.name),
             repr(self.meta_data)
         )
-
+    
     def __eq__(self, other):
         return isinstance(other, StreamId) and \
                self.name == other.name and \
@@ -79,7 +82,7 @@ class Stream(Hashable):
     """
     _calculated_intervals = None
     defined = False
-
+    
     def __init__(self, channel, stream_id, time_interval, calculated_intervals, modifier, tool, input_streams):
         """
         :type channel: BaseChannel
@@ -102,10 +105,10 @@ class Stream(Hashable):
         self.kwargs = {}
         self.tool = tool
         self.input_streams = input_streams
-
+        
         # Here we define the output type. When modifiers are applied, this changes
         # self.output_format = 'doc_gen'
-
+    
     def __str__(self):
         return "{}(stream_id={}, channel_id={}, tool={}, input_streams=[{}], interval={}, modifiers={})".format(
             self.__class__.__name__,
@@ -123,27 +126,27 @@ class Stream(Hashable):
         # s += "\n      MODIFIERS   : " + repr(self.modifiers)
         # s += "\n    "
         # return s
-
+    
     def __repr__(self):
         return str(self)
-
+    
     def __eq__(self, other):
         return str(self) == str(other)
-
+    
     @property
     def calculated_intervals(self):
         # TODO: this should be read from the stream_status collection if it's in the database channel
         return self._calculated_intervals
-
+    
     @calculated_intervals.setter
     def calculated_intervals(self, value):
         # TODO: this should be written to the stream_status collection if it's in the database channel
         self._calculated_intervals = value
-
+    
     @property
     def writer(self):
         return self.channel.get_stream_writer(self)
-
+    
     def window(self, time_interval):
         """
         Sets the time window for this stream
@@ -162,7 +165,7 @@ class Stream(Hashable):
         else:
             raise ValueError
         return self
-
+    
     def relative_window(self, time_interval):
         """
         Sets the time window for this stream
@@ -181,18 +184,18 @@ class Stream(Hashable):
         else:
             raise ValueError
         return self
-
+    
     @property
     def required_intervals(self):
         return TimeIntervals([self.time_interval]) - self.calculated_intervals
-
+    
     def execute(self):
         self.channel.get_results(self)
-
+    
     def __iter__(self):
         for item in self.channel.get_results(self):
             yield item
-
+    
     # @check_output_format({'doc_gen'})
     def items(self):
         """
@@ -200,42 +203,42 @@ class Stream(Hashable):
         :return:
         """
         return list(self.iteritems())
-
+    
     # @check_output_format({'doc_gen'})
     def iteritems(self):
         return iter(self)
-
+    
     # @check_output_format({'doc_gen'})
     def timestamps(self):
         return list(self.itertimestamps())
-
+    
     # @check_output_format({'doc_gen'})
     def itertimestamps(self):
         if self.modifier:
             # TODO: This is designed to replace the Time() modifier
             raise NotImplementedError
         return map(lambda x: x.timestamp, self.iteritems())
-
+    
     # @check_output_format({'data_gen', 'doc_gen'})
     def values(self):
         # if self.output_format == 'doc_gen':
         return list(self.itervalues())
         # else:
         #     return self.items()
-
+    
     # @check_output_format({'data_gen', 'doc_gen'})
     def itervalues(self):
         # if self.output_format == 'doc_gen':
         return map(lambda x: x.value, self.iteritems())
         # else:
         #     return self.iteritems()
-
+    
     # @check_output_format({'doc_gen'})
     def last(self):
         # TODO: This is designed to replace the Last() modifier
         # TODO: Can this be done without list()?
         return self.items()[-1]
-
+    
     # @check_output_format({'doc_gen'})
     def first(self, default=None, key=None):
         # TODO: This is designed to replace the Last() modifier
@@ -248,7 +251,7 @@ class Stream(Hashable):
                 if key(el):
                     return el
         return default
-
+    
     # @check_output_format({'doc_gen'})
     def head(self, n):
         # TODO: this is designed to replace the Head() modifier
@@ -258,27 +261,27 @@ class Stream(Hashable):
             if i > n:
                 break
             yield d
-
+    
     # @check_output_format({'doc_gen'})
     def tail(self, n):
         # TODO: This is designed to replace the Tail() modifier
         # TODO: Can this be done without list()?
         return list(self.iteritems())[-n:]
-
+    
     # @check_output_format({'doc_gen'})
     def component(self, key):
         # TODO: is this needed now we have a Component() tool?
         for (time, data) in self.iteritems():
             if key in data:
                 yield StreamInstance(time, data[key])
-
+    
     # @check_output_format({'doc_gen'})
     def component_filter(self, key, values):
         # TODO: is this needed now we have a ComponentFilter() tool?
         for (time, data) in self.iteritems():
             if key in data and data[key] in values:
                 yield StreamInstance(time, data)
-
+    
     # @check_output_format({'doc_gen'})
     def delete_nones(self):
         # TODO: Test this against ComponentFilter(key, values=[None], complement=true)
@@ -302,7 +305,7 @@ class ToolStream(Stream):
             input_streams=stream.input_streams)
         self.output_stream = None
         self.defined = False
-
+    
     def define(self, input_streams=None, **kwargs):
         """
         Define the stream with the given input streams and keyword arguments
@@ -312,35 +315,40 @@ class ToolStream(Stream):
         """
         if self.defined:
             raise RuntimeError("Tool for stream {} already defined".format(self.stream_id))
-
+        
         # Don't obliterate existing input_streams definition if there was one
         if input_streams:
             self.input_streams = input_streams
-
+        
         # TODO: Possibly combine with existing kwargs ... defaults?
         self.kwargs = kwargs
         self.defined = True
         return deepcopy(self)
-        
+    
     def set_output_stream(self, output_stream):
         self.output_stream = output_stream
+        self.output_stream.tool = self
         
         return self
-
+    
     @check_tool_defined
     def execute(self):
         tool_class = self.items()[-1].value
         tool = tool_class(**self.kwargs)
         
         self.output_stream.window(self.time_interval)
-        self.output_stream.channel.get_results(self.output_stream, tool)
-
-    # @check_tool_defined
-    # def __iter__(self):
-    #     for item in self.channel.get_results(self):
-    #         yield item
-    #
-    # @check_output_format({'doc_gen'})
-    # @check_tool_defined
-    # def iteritems(self):
-    #     return iter(self)
+        self.output_stream.channel.get_results(
+            stream_ref=self.output_stream,
+            input_streams=self.input_streams,
+            tool=tool
+        )
+        
+        # @check_tool_defined
+        # def __iter__(self):
+        #     for item in self.channel.get_results(self):
+        #         yield item
+        #
+        # @check_output_format({'doc_gen'})
+        # @check_tool_defined
+        # def iteritems(self):
+        #     return iter(self)

@@ -43,6 +43,7 @@ class SphereDataWindow(DataWindow):
     """
     Helper class to use the global sphere_connector object
     """
+    
     def __init__(self, time_interval):
         if isinstance(time_interval, TimeInterval):
             start, end = time_interval.to_tuple()
@@ -57,20 +58,20 @@ class SphereChannel(MemoryChannel):
     """
     SPHERE MongoDB storing the raw sensor data
     """
-
+    
     def __init__(self, channel_id, up_to_timestamp=None):
         super(SphereChannel, self).__init__(channel_id=channel_id)
-
+        
         if up_to_timestamp is None:
             # TODO: maybe should be utcnow, but then we'd have to keep updating it?
             up_to_timestamp = MAX_DATE  # utcnow()
-
+        
         if up_to_timestamp > MIN_DATE:
             self.update_streams(up_to_timestamp)
-
-        # from collections import defaultdict
-        # self.visited = defaultdict(lambda: False)
-
+            
+            # from collections import defaultdict
+            # self.visited = defaultdict(lambda: False)
+    
     def update_streams(self, up_to_timestamp):
         """
         Call this function to report to the system that the SPHERE MongoDB is fully populated until up_to_timestamp
@@ -78,13 +79,13 @@ class SphereChannel(MemoryChannel):
         for stream_id in self.streams:
             self.streams[stream_id].calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
         self.up_to_timestamp = up_to_timestamp
-
+    
     def execute_tool(self, stream_ref, interval):
         try:
             stream_ref.tool.execute(None, interval, stream_ref.writer)
         except AttributeError:
             raise
-
+    
     def _get_data_not_used(self, stream_ref, **kwargs):
         """
         Another version of _get_data, which directly uses SphereDataWindow, rather than executing the tool
@@ -100,7 +101,7 @@ class SphereChannel(MemoryChannel):
             raise ValueError("unknown modality {}".format(kwargs["modality"]))
         elements = kwargs["elements"] if "elements" in kwargs else None
         return map(reformat, window.modalities[kwargs["modality"]].get_data(elements=elements))
-
+    
     def _get_data(self, stream_ref):
         """
         Gets the data. Assumes that it is already sorted by timestamp
@@ -113,16 +114,20 @@ class SphereChannel(MemoryChannel):
         for d in self.data[stream_ref.stream_id]:
             if d.timestamp in stream_ref.time_interval:
                 yield d
-
+    
     def get_stream_writer(self, stream_ref):
         def writer(document_collection):
             data = map(reformat, document_collection)
             self.data[stream_ref.stream_id].extend(data)
             logging.debug((id(self), len(self.data)))
+        
         return writer
 
 
 def reformat(doc):
+    if isinstance(doc, StreamInstance):
+        return doc
+    
     dt = doc['datetime']
     del doc['datetime']
     return StreamInstance(dt, doc)
