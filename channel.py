@@ -155,3 +155,28 @@ class ChannelManager(ChannelCollectionBase, Printable):
         # tool_stream.define(input_streams=input_streams, **tool_parameters)
 
         return tool
+
+    def get_tool2(self, tool, tool_parameters):
+        # TODO: Use tool versions - here we just take the latest one
+        if isinstance(tool, (str, unicode)):
+            tool_id = StreamId(tool)
+        elif isinstance(tool, StreamId):
+            tool_id = tool
+        else:
+            raise TypeError(tool)
+
+        tool_stream = self.tools[tool_id]
+        tool_class = tool_stream.items()[-1].value
+
+        # Check that the number of arguments is correct for this tool
+        expected = len(inspect.getargspec(tool_class.__init__)[0])
+        if expected != len(tool_parameters) + 1:
+            raise ValueError("Tool {} takes {} arguments ({} given)".format(
+                tool_class.__name__, expected, len(tool_parameters) + 1))
+
+        # Instantiate tool
+        tool = tool_class(**tool_parameters)
+        if not tool:
+            raise ToolNotFoundError
+
+        return tool
