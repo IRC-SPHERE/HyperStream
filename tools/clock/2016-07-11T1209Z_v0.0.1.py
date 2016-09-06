@@ -19,6 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream import TimeInterval
+from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.utils import MIN_DATE
 from datetime import timedelta
@@ -52,5 +53,5 @@ class Clock(Tool):
         t = self.first + n_strides * self.stride
         while t <= interval.end:
             if t > interval.start:
-                writer([(t, t)])
+                writer([StreamInstance(t, t)])
             t += self.stride

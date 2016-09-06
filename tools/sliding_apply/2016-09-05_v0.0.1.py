@@ -22,6 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from hyperstream import TimeInterval, RelativeTimeInterval
+from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 from datetime import timedelta
 import logging
@@ -88,4 +89,4 @@ class SlidingApply(Tool):
             # print '\t', self.func(execute)
             # print
             
-            writer([(upper, self.func(iter(window)))])
+            writer([StreamInstance(upper, self.func(iter(window)))])
