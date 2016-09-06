@@ -108,20 +108,17 @@ class ChannelManager(ChannelCollectionBase, Printable):
                 if len(undefined) > before:
                     continue
 
-                # TODO: Do we need a TimeInterval defined here?
-
                 if stream_id in channel.streams:
                     raise StreamAlreadyExistsError(stream_id)
 
+                # TODO: Create a Factor here?
                 tool = self.get_tool(s.tool_name, s.tool_parameters, input_streams)
 
                 stream = Stream(
                     channel=channel,
                     stream_id=stream_id,
-                    tool=tool,
-                    time_interval=None,   # TODO
+                    # tool=tool,
                     calculated_intervals=TimeIntervals(),
-                    modifier=None,
                     input_streams=input_streams
                 )
 
@@ -155,6 +152,6 @@ class ChannelManager(ChannelCollectionBase, Printable):
                 raise ValueError("Stream expected ({} given)".format(type(stream)))
 
         # Make sure that the tool stream is defined
-        tool_stream.define(input_streams=input_streams, **tool_parameters)
+        # tool_stream.define(input_streams=input_streams, **tool_parameters)
 
         return tool

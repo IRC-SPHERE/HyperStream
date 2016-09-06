@@ -40,4 +40,4 @@ class Factor(Printable):
         # return self.tool.get_results(self)
         self.tool.execute(input_streams=[s.stream for s in self.sources] if self.sources else None,
                           interval=time_interval,
-                          writer=self.sink.writer)
+                          writer=self.sink.stream.writer)

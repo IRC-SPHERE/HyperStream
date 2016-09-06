@@ -27,7 +27,7 @@ import logging
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
 
 from memory_channel import MemoryChannel
-from ..stream import StreamInstance
+from ..stream import StreamInstance, Stream
 from ..time_interval import TimeIntervals, TimeInterval
 from ..utils import MIN_DATE, MAX_DATE
 
@@ -107,18 +107,25 @@ class SphereChannel(MemoryChannel):
         :param stream: The stream reference
         :return: The data generator
         """
-        logging.debug((id(self), len(self.data)))
+        if not isinstance(stream, Stream):
+            raise ValueError("Expected Stream, got {}".format(type(stream)))
+
+        logging.debug((id(self), len(self.data), len(self.data[stream])))
         # return (d for d in self.data[stream]
         #         if d.timestamp in stream.time_interval)
-        for d in self.data[stream.stream_id]:
-            if d.timestamp in stream.time_interval:
-                yield d
+        # for d in self.data[stream.stream_id]:
+        #     if d.timestamp in stream.time_interval:
+        #         yield d
+        return self.data[stream]
 
     def get_stream_writer(self, stream):
+        if not isinstance(stream, Stream):
+            raise ValueError("Expected Stream, got {}".format(type(stream)))
+
         def writer(document_collection):
             data = map(reformat, document_collection)
-            self.data[stream.stream_id].extend(data)
-            logging.debug((id(self), len(self.data)))
+            self.data[stream].extend(data)
+            logging.debug((id(self), len(self.data), len(self.data[stream])))
         return writer
 
 
