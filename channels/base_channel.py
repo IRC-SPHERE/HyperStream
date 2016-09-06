@@ -19,7 +19,6 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from ..stream import StreamInstance, StreamDict
-# from ..modifiers import Identity
 from ..utils import Printable, MIN_DATE, MAX_DATE
 
 
@@ -66,7 +65,22 @@ class BaseChannel(Printable):
         return process, e.g. introduce callbacks)
         """
         raise NotImplementedError
-    
+
+    def get_or_create_stream(self, stream_id, tool_stream=None):
+        """
+        Helper function to get a stream or create one if it's not already defined
+        :param stream_id: The stream id
+        :param tool_stream: The tool stream
+        :return: The stream object
+        """
+        if stream_id in self.streams:
+            print("found {}".format(stream_id))
+            return self.streams[stream_id]
+        else:
+            # Try to create the stream
+            print("creating {}".format(stream_id))
+            return self.create_stream(stream_id=stream_id, tool_stream=tool_stream)
+
     def create_stream(self, stream_id, tool_stream=None):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
