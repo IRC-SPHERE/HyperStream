@@ -53,10 +53,8 @@ class MemoryChannel(BaseChannel):
         stream = Stream(
             channel=self,
             stream_id=stream_id,
-            time_interval=None,
             calculated_intervals=TimeIntervals(),
-            modifier=None,
-            tool=tool,
+            # tool=tool,
             input_streams=tool_stream.input_streams if tool_stream else None
         )
 
@@ -73,11 +71,8 @@ class MemoryChannel(BaseChannel):
         """
         Get the data generator. Sorts on timestamp
         :param stream: The stream reference
-        :param kwargs: The keyword arguments
         :return: The data generator
         """
-        
-        # TODO from niall: is it strictly necessary to sort here? Do the database ops not maintain order?
         return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream.stream_id]
                        if timestamp in stream.time_interval), key=lambda x: x.timestamp)
 
@@ -85,18 +80,8 @@ class MemoryChannel(BaseChannel):
         """
         Calculates/receives the documents in the stream interval determined by the stream
         :param stream: The stream reference
-        :param kwargs: Keyword arguments
         :return:
         """
-        if not stream.required_intervals.is_empty:
-            for interval in stream.required_intervals:
-                self.execute_tool(stream, interval)
-                # TODO: Incorrect time interval???
-                stream.calculated_intervals += TimeIntervals([interval])
-
-            if stream.required_intervals.is_not_empty:
-                raise RuntimeError('Tool execution did not cover the specified interval.')
-
         return self._get_data(stream)
 
     def get_stream_writer(self, stream):
@@ -161,13 +146,13 @@ class ReadOnlyMemoryChannel(BaseChannel):
     
     def get_results(self, stream):
         # TODO: make this behave like the other channels
-        start = stream.time_interval.start
-        end = stream.time_interval.end
-        if isinstance(start, timedelta) or isinstance(end, timedelta):
-            raise ValueError('Cannot calculate a relative stream')
-        if end > self.up_to_timestamp:
-            raise ValueError(
-                'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
+        # start = time_interval.start
+        # end = time_interval.end
+        # if isinstance(start, timedelta) or isinstance(end, timedelta):
+        #     raise ValueError('Cannot calculate a relative stream')
+        # if end > self.up_to_timestamp:
+        #     raise ValueError(
+        #         'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
         result = []
         for (tool_info, data) in self.streams[stream.stream_id]:
             if start < tool_info.timestamp <= end:

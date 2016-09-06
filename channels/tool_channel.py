@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from module_channel import ModuleChannel
-from ..stream import StreamInstance, ToolStream
+from ..stream import StreamInstance  # , ToolStream
 
 
 class ToolChannel(ModuleChannel):
@@ -34,10 +34,10 @@ class ToolChannel(ModuleChannel):
             tool_class = getattr(module, class_name)
             yield StreamInstance(timestamp, tool_class)
 
-    def __setitem__(self, key, value):
-        if not isinstance(value, ToolStream):
-            raise ValueError
-        super(ToolChannel, self).__setitem__(key, value)
-
-    def __getitem__(self, item):
-        return ToolStream(super(ToolChannel, self).__getitem__(item))
+    # def __setitem__(self, key, value):
+    #     if not isinstance(value, ToolStream):
+    #         raise ValueError
+    #     super(ToolChannel, self).__setitem__(key, value)
+    #
+    # def __getitem__(self, item):
+    #     return ToolStream(super(ToolChannel, self).__getitem__(item))

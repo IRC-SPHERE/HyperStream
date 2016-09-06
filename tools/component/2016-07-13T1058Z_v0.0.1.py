@@ -32,6 +32,6 @@ class Component(Tool):
 
     @check_input_stream_count(1)
     def _execute(self, input_streams, interval, writer):
-        for time, data in input_streams[0].window(interval):
+        for time, data in input_streams[0]:  # .window(interval):
             if self.key in data:
                 writer(StreamInstance(time, data[self.key]))
