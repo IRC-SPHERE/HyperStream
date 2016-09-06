@@ -22,6 +22,7 @@ import unittest
 
 from hyperstream import TimeInterval, TimeIntervals, Workflow, StreamView
 from hyperstream.itertools2 import online_average, count as online_count
+from hyperstream.utils import MIN_DATE
 from helpers import *
 
 
@@ -64,16 +65,21 @@ class HyperStringTests(unittest.TestCase):
     
     def test_simple_query(self):
         # Simple querying
-        env = S[environmental].execute((t1, t1 + minute))
+        ti = TimeInterval(t1, t1 + minute)
 
-        eid = StreamId('electricity')
+        # env_tool = T[sphere].items()[-1].value(modality='environmental')
+        env_tool = channels.get_tool2("sphere", dict(modality="environmental"))
+        env_tool.execute(input_streams=None, interval=ti, writer=S[environmental].writer)
 
-        elec_tool = T[component].define(input_streams=[env], key='electricity-04063')
-        M.create_stream(stream_id=eid, tool_stream=elec_tool)
+        # elec_tool = T[component].define(input_streams=[env], key='electricity-04063')
+        elec_tool = T[component].items()[-1].value(key='electricity-04063')
 
-        el = M[eid].execute((t1, t1 + minute))
+        elec = M.create_stream(stream_id=StreamId('electricity'))
 
-        q1 = "\n".join("=".join(map(str, ee)) for ee in el)
+        # el = M[eid].execute((t1, t1 + minute))
+        elec_tool.execute(input_streams=[S[environmental]], interval=ti, writer=elec.writer)
+
+        q1 = "\n".join("=".join(map(str, ee)) for ee in elec)
         
         # print(q1)
         # print(edl)
@@ -85,23 +91,36 @@ class HyperStringTests(unittest.TestCase):
                       '2016-04-28 20:00:31.405000+00:00=0.0\n'
                       '2016-04-28 20:00:50.132000+00:00=0.0')
 
-        assert (el.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        assert (elec.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_average(self):
-        M[every30s] = M.create_stream(stream_id=every30s, tool_stream=clock_tool)
-        motion_tool = T[component].define(input_streams=[S[environmental]], key='motion-S1_K')
-        M.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=motion_tool)
+        ti = TimeInterval(t1, t1 + 5 * minute)
 
-        mk_30s = M[m_kitchen_30_s_window].relative_window((-30 * second, 0))
+        clock_tool = channels.get_tool2(clock, dict(first=MIN_DATE, stride=30*second))
+        M.create_stream(stream_id=every30s)
 
-        averager = T[aggregate].define(
-            input_streams=[M[every30s], mk_30s],
-            func=lambda x: online_average(map(lambda xi: xi.value, x))
-        )
+        clock_tool.execute(None, TimeInterval(ti.start - 30 * second, ti.end), M[every30s].writer)
 
-        M.create_stream(stream_id=average, tool_stream=averager)
-        
-        aa = M[average].execute((t1, t1 + 5 * minute)).values()
+        motion_tool = channels.get_tool2(component, dict(key='motion-S1_K'))
+        # T[component].define(input_streams=[S[environmental]], key='motion-S1_K')
+        M.create_stream(stream_id=m_kitchen_30_s_window)  # , tool_stream=motion_tool)
+
+        motion_tool.execute([S[environmental]], ti, M[m_kitchen_30_s_window].writer)
+
+        # mk_30s = M[m_kitchen_30_s_window].relative_window((-30 * second, 0))
+
+        # averager = T[aggregate].define(
+        #     input_streams=[M[every30s], mk_30s],
+        #     func=lambda x: online_average(map(lambda xi: xi.value, x))
+        # )
+
+        averager = channels.get_tool2(aggregate, dict(func=lambda x: online_average(map(lambda xi: xi.value, x))))
+        M.create_stream(stream_id=average)  # , tool_stream=averager)
+
+        averager.execute([M[every30s], M[m_kitchen_30_s_window]], ti, M[average].writer)
+
+        # aa = M[average].execute((t1, t1 + 5 * minute)).values()
+        aa = M[average].values()
         logging.info(aa)
         assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
