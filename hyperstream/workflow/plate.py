@@ -18,10 +18,16 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from utils import Printable, MetaDataTree
-from models import PlateDefinitionModel
+from ..utils import Printable, MetaDataTree
+from ..models import PlateDefinitionModel
 
 import logging
+
+
+class Plate(Printable):
+    def __init__(self, meta_data_id, values):
+        self.meta_data_id = meta_data_id
+        self.values = values
 
 
 class PlateManager(Printable):
@@ -83,7 +89,7 @@ class PlateManager(Printable):
             if not values:
                 raise ValueError("Plate values for {} empty".format(p.plate_id))
 
-            self.plates[p.plate_id] = values
+            self.plates[p.plate_id] = Plate(meta_data_id=p.meta_data_id, values=values)
 
     @staticmethod
     def get_parent_data(tree, node, d):

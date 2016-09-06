@@ -34,8 +34,8 @@ class SlidingWindow(Tool):
         """
         Simple clock ticker tool
         :param first: Start of the clock
-        :param width: The width of the sliding window
-        :param increment: The increment of the sliding window
+        :param width: The width of the sliding execute
+        :param increment: The increment of the sliding execute
         """
         super(SlidingWindow, self).__init__(
             first=first,
