@@ -37,29 +37,29 @@ class BaseChannel(Printable):
         """
         raise NotImplementedError
 
-    def _get_data(self, stream_ref):
+    def _get_data(self, stream):
         """
         Default way of getting data from streams. Can be overridden for special stream types
-        :param stream_ref: The stream reference
+        :param stream: The stream reference
         :return: The data generator
         """
-        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream_ref.items()
-                       if timestamp in stream_ref.time_interval), key=lambda x: x.timestamp)
+        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream.items()
+                       if timestamp in stream.time_interval), key=lambda x: x.timestamp)
 
-    def execute_tool(self, stream_ref, interval):
+    def execute_tool(self, stream, interval):
         """
         Executes the stream's tool over the given time interval
-        :param stream_ref: the stream reference
+        :param stream: the stream reference
         :param interval: the time interval
         :return: None
         """
-        stream_ref.tool.execute(stream_ref.input_streams, interval, stream_ref.writer)
+        stream.tool.execute(stream.input_streams, interval, stream.writer)
 
-    def get_results(self, stream_ref):  # TODO: force_calc=False):
+    def get_results(self, stream):  # TODO: force_calc=False):
         """
         Must be overridden by deriving classes.
-        1. Calculates/receives the documents in the stream interval determined by the stream_ref
-        2. Applies the modifiers within stream_ref
+        1. Calculates/receives the documents in the stream interval determined by the stream
+        2. Applies the modifiers within stream
         3. Applies channel custom modifiers as determined by kwargs
         4. Returns success or failure and the results (for some channels the values of kwargs can override the
         return process, e.g. introduce callbacks)
@@ -88,7 +88,7 @@ class BaseChannel(Printable):
         """
         raise NotImplementedError
 
-    def get_stream_writer(self, stream_ref):
+    def get_stream_writer(self, stream):
         """
         Must be overridden by deriving classes, must return a function(document_collection) which writes all the
         given documents of the form (timestamp,data) from document_collection to the stream
