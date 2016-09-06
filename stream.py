@@ -300,6 +300,7 @@ class ToolStream(Stream):
             modifier=stream.modifier,
             tool=stream.tool,
             input_streams=stream.input_streams)
+        self.output_stream = None
         self.defined = False
 
     def define(self, input_streams=None, **kwargs):
@@ -320,11 +321,20 @@ class ToolStream(Stream):
         self.kwargs = kwargs
         self.defined = True
         return deepcopy(self)
+        
+    def set_output_stream(self, output_stream):
+        self.output_stream = output_stream
+        
+        return self
 
-    # @check_tool_defined
-    # def execute(self):
-    #     self.channel.get_results(self)
-    #
+    @check_tool_defined
+    def execute(self):
+        tool_class = self.items()[-1].value
+        tool = tool_class(**self.kwargs)
+        
+        self.output_stream.window(self.time_interval)
+        self.output_stream.channel.get_results(self.output_stream, tool)
+
     # @check_tool_defined
     # def __iter__(self):
     #     for item in self.channel.get_results(self):
