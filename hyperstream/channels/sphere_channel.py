@@ -110,13 +110,13 @@ class SphereChannel(MemoryChannel):
         if not isinstance(stream, Stream):
             raise ValueError("Expected Stream, got {}".format(type(stream)))
 
-        logging.debug((id(self), len(self.data), len(self.data[stream])))
+        logging.debug((id(self), len(self.data), len(self.data[stream.stream_id])))
         # return (d for d in self.data[stream]
         #         if d.timestamp in stream.time_interval)
         # for d in self.data[stream.stream_id]:
         #     if d.timestamp in stream.time_interval:
         #         yield d
-        return self.data[stream]
+        return self.data[stream.stream_id]
 
     def get_stream_writer(self, stream):
         if not isinstance(stream, Stream):
@@ -124,8 +124,8 @@ class SphereChannel(MemoryChannel):
 
         def writer(document_collection):
             data = map(reformat, document_collection)
-            self.data[stream].extend(data)
-            logging.debug((id(self), len(self.data), len(self.data[stream])))
+            self.data[stream.stream_id].extend(data)
+            logging.debug((id(self), len(self.data), len(self.data[stream.stream_id])))
         return writer
 
 

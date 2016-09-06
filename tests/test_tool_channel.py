@@ -33,7 +33,7 @@ class TestToolChannel(unittest.TestCase):
         # assert(clock_stream.modifier == Last() + IData())
 
         sphere_silhouette_stream = T.streams[sphere_silhouette]
-        assert(sphere_silhouette_stream.time_interval.start == MIN_DATE)
+        assert(sphere_silhouette_stream.channel.can_create == False)
 
         agg_stream = T[aggregate]
         assert(len(agg_stream.items()) > 1)

@@ -20,7 +20,7 @@
 
 import unittest
 
-from hyperstream import TimeInterval, TimeIntervals
+from hyperstream import TimeInterval, TimeIntervals, Workflow, StreamView
 from hyperstream.itertools2 import online_average, count as online_count
 from helpers import *
 
@@ -122,6 +122,35 @@ class HyperStringTests(unittest.TestCase):
     def test_database_channel(self):
         # TODO: some tests go here
         pass
+
+    def test_simple_workflow(self):
+        # Create a simple one step workflow for querying
+        w = Workflow(
+            channels=channels,
+            plates=plates,
+            workflow_id="simple_query_workflow",
+            name="Simple query workflow",
+            owner="TD",
+            description="Just a test of creating workflows")
+
+        time_interval = TimeInterval(t1, t1 + 1 * minute)
+
+        # Create some streams (collected in a node)
+        node = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1"])  # .window((t1, t1 + 1 * minute))
+
+        # Create a factor to produce some data
+        w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
+                        sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
+
+        # Execute the workflow
+        w.execute(time_interval)
+
+        # Check the values
+        assert (node.streams[0].values()[:1] ==
+                [{u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
+                  'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
+                  'temperature': None}])
+
 
 if __name__ == '__main__':
     unittest.main()
