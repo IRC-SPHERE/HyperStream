@@ -55,6 +55,9 @@ class BaseChannel(Printable):
         :return: None
         """
         tool.execute(stream_ref.input_streams, interval, stream_ref.writer)
+        
+    def execute_tool3(self, tool, input_streams, interval, writer):
+        tool.execute(input_streams, interval, writer)
 
     def execute_tool(self, stream_ref, interval):
         """
