@@ -124,6 +124,10 @@ if __name__ == '__main__':
         sink=n_clock.streams[0]
     )
 
+    # TODO: Something along the following lines
+    # with w.for_each(houses.values) as house:
+    #     pass
+
     for house in houses.values:
         # for house in [[]]:
         f_env = w.create_factor(
@@ -222,12 +226,12 @@ if __name__ == '__main__':
     M.create_stream(stream_id=average, tool_stream=averager)
     M.create_stream(stream_id=count, tool_stream=counter)
 
-    stream_ref = M[average].execute((t1, t2))
-    aa = stream_ref.values()
+    stream = M[average].execute((t1, t2))
+    aa = stream.values()
     print(aa)
     assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
-    stream_ref = M[count].execute((t1, t1 + 5 * minute))
-    cc = stream_ref.values()
+    stream = M[count].execute((t1, t1 + 5 * minute))
+    cc = stream.values()
     print(cc)
     assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])
