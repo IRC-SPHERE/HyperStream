@@ -22,7 +22,7 @@ from ..utils import Printable, FrozenKeyDict
 from node import Node
 from factor import Factor
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
-from ..stream import StreamId
+from ..stream import StreamId, StreamView
 from ..errors import StreamNotFoundError
 import logging
 from collections import defaultdict
@@ -61,7 +61,8 @@ class Workflow(Printable):
         Here we execute the streams in the workflow
         :return:
         """
-        for factor_collection in self.factor_collections.values():
+        # TODO: Currently expects the factors to be declared sequentially
+        for factor_collection in self.factor_collections.values()[::-1]:
             for factor in factor_collection:
                 logging.debug("Executing factor {}".format(factor))
                 factor.execute(time_interval)
@@ -158,17 +159,14 @@ class Workflow(Printable):
 
                     sources = [self.channels.get_stream(source_id) for source_id in source_ids]
                     sink = output_channel.create_stream(
-                        stream_id=StreamId(output_stream_name, plate_values),
-                        tool_stream=tool_stream
+                        stream_id=StreamId(output_stream_name, pv)
                     )
 
                     factor = self.create_factor(
                         tool_name=tool_name,
                         tool_parameters=tool_parameters,
-                        output_channel=output_channel,
-                        output_stream_name=output_stream_name,
-                        plate_values=pv,
-                        node_names=node_names
+                        sources=[StreamView(s) for s in sources],
+                        sink=StreamView(sink)
                     )
 
                     factors.append(factor)
@@ -176,10 +174,8 @@ class Workflow(Printable):
             factor = self.create_factor(
                 tool_name=tool_name,
                 tool_parameters=tool_parameters,
-                output_channel=output_channel,
-                output_stream_name=output_stream_name,
-                plate_values=None,
-                node_names=node_names
+                sources=None,
+                sink=StreamView(output_channel.create_stream(stream_id=StreamId(output_stream_name)))
             )
 
             factors.append(factor)

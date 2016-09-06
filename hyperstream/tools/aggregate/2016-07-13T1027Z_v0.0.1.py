@@ -19,6 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.tool import Tool, check_input_stream_count
+from hyperstream.stream import StreamInstance
 
 
 class Aggregate(Tool):
@@ -52,7 +53,7 @@ class Aggregate(Tool):
                 except StopIteration:
                     break
             # single-document case:
-            writer([(t, self.func((doc for doc in window)))])
+            writer([StreamInstance(t, self.func((doc for doc in window)))])
             # multi-document case:
             # for x in func( (doc for doc in execute) ):
-            #        writer([(t,x)])
+            #        writer([StreamInstance(t,x)])

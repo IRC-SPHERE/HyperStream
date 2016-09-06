@@ -19,6 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream import TimeInterval, RelativeTimeInterval
+from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 from datetime import timedelta
 import logging
@@ -77,7 +78,7 @@ class Aggregate(Tool):
                 except StopIteration:
                     break
             # single-document case:
-            writer([(t, self.func(iter(window)))])
+            writer([StreamInstance(t, self.func(iter(window)))])
             # multi-document case:
             # for x in func( (doc for doc in execute) ):
-            #        writer([(t,x)])
+            #        writer([StreamInstance(t,x)])

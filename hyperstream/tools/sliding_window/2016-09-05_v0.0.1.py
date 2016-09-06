@@ -22,6 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from hyperstream import TimeInterval
+from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.utils import MIN_DATE
 from hyperstream.time_interval import RelativeTimeInterval
@@ -65,7 +66,7 @@ class SlidingWindow(Tool):
         upper = lower + self.width
         
         while upper <= interval.end:
-            writer([(lower, upper)])
+            writer([StreamInstance(lower, upper)])
 
             lower += self.increment
             upper += self.increment
