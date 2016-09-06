@@ -27,6 +27,18 @@ from collections import Iterable, namedtuple
 from datetime import datetime
 
 
+class StreamView(namedtuple("StreamView", "stream time_interval")):
+    """
+    Simple helper class for storing streams with time intervals (i.e. a "view" on a stream)
+    """
+    def __new__(cls, stream, time_interval=None):
+        if not isinstance(stream, Stream):
+            raise ValueError("stream must be Stream object")
+        if time_interval is not None and not isinstance(time_interval, TimeInterval):
+            raise ValueError("time_interval must be TimeInterval object")
+        return super(StreamView, cls).__new__(cls, stream, time_interval)
+
+
 class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
     """
     Simple helper class for storing data instances that's a bit neater than simple tuples
@@ -146,7 +158,7 @@ class Stream(Hashable):
 
     def window(self, time_interval):
         """
-        Sets the time window for this stream
+        Sets the time execute for this stream
         :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
         :type time_interval: Iterable, TimeInterval
         :return: self (for chaining)
@@ -165,7 +177,7 @@ class Stream(Hashable):
 
     def relative_window(self, time_interval):
         """
-        Sets the time window for this stream
+        Sets the time execute for this stream
         :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
         :type time_interval: Iterable, TimeInterval
         :return: self (for chaining)
@@ -175,9 +187,9 @@ class Stream(Hashable):
         elif isinstance(time_interval, Iterable):
             self.time_interval = parse_time_tuple(*time_interval)
             if not isinstance(self.time_interval, RelativeTimeInterval):
-                raise ValueError("Use window to define absolute time windows")
+                raise ValueError("Use execute to define absolute time windows")
         elif isinstance(time_interval, RelativeTimeInterval):
-            raise ValueError("Use window to define absolute time windows")
+            raise ValueError("Use execute to define absolute time windows")
         else:
             raise ValueError
         return self

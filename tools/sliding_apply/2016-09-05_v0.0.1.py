@@ -38,13 +38,13 @@ class SlidingApply(Tool):
         sliding_window = input_streams[0]
         data_stream = input_streams[1]
                 
-        data = data_stream.window(interval).iteritems()
+        data = data_stream.execute(interval).iteritems()
         
         window = []
         future = []
         
-        for lower, upper in sliding_window.window(interval).iteritems():
-            # Prune the old data points from the window
+        for lower, upper in sliding_window.execute(interval).iteritems():
+            # Prune the old data points from the execute
             num_to_remove = 0
             for win_time, win_data in window:
                 if lower <= win_time <= upper:
@@ -65,7 +65,7 @@ class SlidingApply(Tool):
                 window.append(doc)
             future = future[num_to_remove:]
             
-            # Take data from the window
+            # Take data from the execute
             while True:
                 try:
                     doc = next(data)
@@ -83,9 +83,9 @@ class SlidingApply(Tool):
 
             # print interval.start, interval.end
             # print '\t', lower, upper
-            # for datum in window:
+            # for datum in execute:
             #     print '\t\t{} {}'.format(datum.timestamp, datum.value)
-            # print '\t', self.func(window)
+            # print '\t', self.func(execute)
             # print
             
             writer([(upper, self.func(iter(window)))])

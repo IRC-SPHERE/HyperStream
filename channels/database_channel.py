@@ -52,7 +52,7 @@ class DatabaseChannel(BaseChannel):
             if stream_ref.required_times.is_not_empty:
                 raise RuntimeError('Tool execution did not cover the specified interval.')
 
-        return stream_ref.modifier.execute(iter(self._get_data(stream_ref)))
+        return self._get_data(stream_ref)
 
         # abs_end, abs_start = self.get_absolute_start_end(stream_ref)
         #

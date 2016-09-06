@@ -36,7 +36,7 @@ class ComponentFilter(Tool):
 
     @check_input_stream_count(1)
     def _execute(self, input_streams, interval, writer):
-        for time, data in input_streams[0].window(interval):
+        for time, data in input_streams[0].execute(interval):
             if self.complement:
                 if data[self.key] not in self.values:
                     yield StreamInstance(time, data)
