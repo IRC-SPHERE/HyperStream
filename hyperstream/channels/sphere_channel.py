@@ -79,21 +79,21 @@ class SphereChannel(MemoryChannel):
             self.streams[stream_id].calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
         self.up_to_timestamp = up_to_timestamp
 
-    def execute_tool(self, stream_ref, interval):
+    def execute_tool(self, stream, interval):
         try:
-            stream_ref.tool.execute(None, interval, stream_ref.writer)
+            stream.tool.execute(None, interval, stream.writer)
         except AttributeError:
             raise
 
-    def _get_data_not_used(self, stream_ref, **kwargs):
+    def _get_data_not_used(self, stream, **kwargs):
         """
         Another version of _get_data, which directly uses SphereDataWindow, rather than executing the tool
-        :param stream_ref: Stream reference
+        :param stream: Stream reference
         :param kwargs: Keyword arguments
         :return: The data generator
         """
         # TODO: Perhaps this is sufficient, rather than requiring all of the SPHERE specific tools
-        window = SphereDataWindow(stream_ref.time_interval)
+        window = SphereDataWindow(stream.time_interval)
         if "modality" not in kwargs:
             raise KeyError("modality not in tool_parameters")
         if kwargs["modality"] not in window.modalities:
@@ -101,23 +101,23 @@ class SphereChannel(MemoryChannel):
         elements = kwargs["elements"] if "elements" in kwargs else None
         return map(reformat, window.modalities[kwargs["modality"]].get_data(elements=elements))
 
-    def _get_data(self, stream_ref):
+    def _get_data(self, stream):
         """
         Gets the data. Assumes that it is already sorted by timestamp
-        :param stream_ref: The stream reference
+        :param stream: The stream reference
         :return: The data generator
         """
         logging.debug((id(self), len(self.data)))
-        # return (d for d in self.data[stream_ref]
-        #         if d.timestamp in stream_ref.time_interval)
-        for d in self.data[stream_ref.stream_id]:
-            if d.timestamp in stream_ref.time_interval:
+        # return (d for d in self.data[stream]
+        #         if d.timestamp in stream.time_interval)
+        for d in self.data[stream.stream_id]:
+            if d.timestamp in stream.time_interval:
                 yield d
 
-    def get_stream_writer(self, stream_ref):
+    def get_stream_writer(self, stream):
         def writer(document_collection):
             data = map(reformat, document_collection)
-            self.data[stream_ref.stream_id].extend(data)
+            self.data[stream.stream_id].extend(data)
             logging.debug((id(self), len(self.data)))
         return writer
 
