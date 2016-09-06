@@ -21,11 +21,11 @@
 import logging
 from datetime import datetime, timedelta
 
-from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client
+from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client, \
+    TimeInterval, StreamView
 from hyperstream.utils import UTC
 from hyperstream.itertools2 import online_average, count as online_count
 from sphere_connector_package.sphere_connector import SphereLogger
-
 
 if __name__ == '__main__':
     # TODO: hyperstream needs it's own logger (can be a clone of this one)
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     S = channels.sphere
     T = channels.tools
     D = channels.mongo
-    
+
     # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
     environmental = StreamId(name='environmental', meta_data={'house': '1'})
     clock = StreamId('clock')
@@ -75,14 +75,14 @@ if __name__ == '__main__':
         owner="TD",
         description="Just a test of creating workflows")
 
-    # Create some streams (nodes)
-    node = w.create_node(stream_name="environmental", plate_ids=["H1"]).window((t1, t1 + 1 * minute))
+    # Create some streams (collected in a node)
+    node = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1"]).window((t1, t1 + 1 * minute))
 
     # Check the values
-    assert(node.streams[0].values()[:1] ==
-           [{u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
-             'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
-             'temperature': None}])
+    assert (node.streams[0].values()[:1] ==
+            [{u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
+              'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
+              'temperature': None}])
 
     # More complex workflow
     w = Workflow(
@@ -107,20 +107,64 @@ if __name__ == '__main__':
     M.create_stream(stream_id=count, tool_stream=counter)
     print(M[count].window((t1, t1 + 5 * minute)).values())
 
-    # w.create_node()
-    # # TODO: tool parameters
-    # w.create_factor(tool='clock', sources=None)
+    #############################################################
+    houses = w.plates["H1"]
+
+    # Create the nodes using pre-existing streams in the database
+    n_environ = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1"])
+    n_clock = w.create_node(stream_name="clock", channel=M, plate_ids=None)
+    n_motion_kitchen = w.create_node(stream_name="m_kitchen_30_s_window", channel=M, plate_ids=["H1"])
+    n_motion_kitchen_count = w.create_node(stream_name="motion_kitchen_count", channel=M, plate_ids=["H1"])
+
+    # Create the clock factor
+    f_timer = w.create_factor(
+        tool_name="clock",
+        tool_parameters=dict(stride=30 * second),
+        sources=None,
+        sink=n_clock.streams[0]
+    )
+
+    for house in houses.values:
+        # for house in [[]]:
+        f_env = w.create_factor(
+            tool_name="sphere",
+            tool_parameters=dict(modality="environmental"),
+            sources=None,
+            sink=n_environ.streams[0]
+        )
+
+        f_motion = w.create_factor(
+            tool_name="component",
+            tool_parameters=dict(key="motion-S1_K"),
+            sources=[StreamView(s) for s in n_environ.streams],
+            sink=n_motion_kitchen.streams[0]
+        )
+
+        f_kitchen_motion = w.create_factor(
+            tool_name="aggregate",
+            tool_parameters=dict(func=online_count),
+            sources=[StreamView(n_clock.streams[0]), StreamView(n_motion_kitchen.streams[0])],
+            sink=n_motion_kitchen_count.streams[0]
+        )
+
+        # Execute the factors
+        f_env.execute(TimeInterval(t1, t1 + 5 * minute))
+        f_motion.execute(TimeInterval(t1, t1 + 5 * minute))
+        f_kitchen_motion.execute(TimeInterval(t1, t1 + 5 * minute))
+
+        print(f_kitchen_motion.sink.window((t1, t1 + 5 * minute)).values())
+
     # w.create_node(node_id=)
 
     exit()
 
     # Simple querying
-    env = S[environmental].window((t1, t1 + minute))
+    env = S[environmental].execute((t1, t1 + minute))
     eid = StreamId('electricity')
     elec_tool = T[component].define(input_streams=[env], key='electricity-04063')
     M.create_stream(stream_id=eid, tool_stream=elec_tool)
 
-    el = M[eid].window((t1, t1 + minute))
+    el = M[eid].execute((t1, t1 + minute))
 
     q1 = "\n".join("=".join(map(str, ee)) for ee in el)
 
@@ -135,7 +179,7 @@ if __name__ == '__main__':
 
     print("\n----------")
     print("M[every30s]")
-    print("\n".join(map(str, M[every30s].window((t1, t2)))))
+    print("\n".join(map(str, M[every30s].execute((t1, t2)))))
     print("----------")
     print("")
 
@@ -145,7 +189,7 @@ if __name__ == '__main__':
 
     print("\n------------------------")
     print("S[m_kitchen_30_s_window]")
-    print("\n".join(map(str, M[m_kitchen_30_s_window].window((t1, t2)))))
+    print("\n".join(map(str, M[m_kitchen_30_s_window].execute((t1, t2)))))
     print("------------------------")
     print("")
 
@@ -178,12 +222,12 @@ if __name__ == '__main__':
     M.create_stream(stream_id=average, tool_stream=averager)
     M.create_stream(stream_id=count, tool_stream=counter)
 
-    stream_ref = M[average].window((t1, t2))
+    stream_ref = M[average].execute((t1, t2))
     aa = stream_ref.values()
     print(aa)
     assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
-    stream_ref = M[count].window((t1, t1 + 5 * minute))
+    stream_ref = M[count].execute((t1, t1 + 5 * minute))
     cc = stream_ref.values()
     print(cc)
     assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])

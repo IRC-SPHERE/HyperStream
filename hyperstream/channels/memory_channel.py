@@ -39,7 +39,7 @@ class MemoryChannel(BaseChannel):
         identifier stream_id
         """
         if stream_id in self.streams:
-            raise ValueError("Stream already exists")
+            raise ValueError("Stream with id '{}' already exists".format(stream_id))
 
         # TODO: Want to be able to define the streams in the database
 
@@ -97,10 +97,7 @@ class MemoryChannel(BaseChannel):
             if stream_ref.required_intervals.is_not_empty:
                 raise RuntimeError('Tool execution did not cover the specified interval.')
 
-        if stream_ref.modifier:
-            return stream_ref.modifier.execute(self._get_data(stream_ref))
-        else:
-            return self._get_data(stream_ref)
+        return self._get_data(stream_ref)
 
     def get_stream_writer(self, stream_ref):
         def writer(document_collection):
@@ -175,5 +172,4 @@ class ReadOnlyMemoryChannel(BaseChannel):
         for (tool_info, data) in self.streams[stream_ref.stream_id]:
             if start < tool_info.timestamp <= end:
                 result.append(StreamInstance(tool_info.timestamp, data))
-        result = stream_ref.modifier.execute(iter(sorted(result, key=lambda x: x.timestamp)))
-        return result
+        return sorted(result, key=lambda x: x.timestamp)

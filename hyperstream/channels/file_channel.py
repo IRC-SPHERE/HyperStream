@@ -129,9 +129,5 @@ class FileChannel(ReadOnlyMemoryChannel):
                 ))
         
         result.sort(key=lambda x: x.timestamp)
-
-        if stream_ref.modifier:
-            result = stream_ref.modifier.execute(iter(result))
-        
         return result
 

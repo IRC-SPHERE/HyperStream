@@ -64,14 +64,14 @@ class HyperStringTests(unittest.TestCase):
     
     def test_simple_query(self):
         # Simple querying
-        env = S[environmental].window((t1, t1 + minute))
+        env = S[environmental].execute((t1, t1 + minute))
 
         eid = StreamId('electricity')
 
         elec_tool = T[component].define(input_streams=[env], key='electricity-04063')
         M.create_stream(stream_id=eid, tool_stream=elec_tool)
 
-        el = M[eid].window((t1, t1 + minute))
+        el = M[eid].execute((t1, t1 + minute))
 
         q1 = "\n".join("=".join(map(str, ee)) for ee in el)
         
@@ -101,7 +101,7 @@ class HyperStringTests(unittest.TestCase):
 
         M.create_stream(stream_id=average, tool_stream=averager)
         
-        aa = M[average].window((t1, t1 + 5 * minute)).values()
+        aa = M[average].execute((t1, t1 + 5 * minute)).values()
         logging.info(aa)
         assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
@@ -115,7 +115,7 @@ class HyperStringTests(unittest.TestCase):
 
         M.create_stream(stream_id=count, tool_stream=counter)
 
-        cc = M[count].window((t1, t1 + 5 * minute)).values()
+        cc = M[count].execute((t1, t1 + 5 * minute)).values()
         logging.info(cc)
         assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])
 

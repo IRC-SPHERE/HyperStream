@@ -32,5 +32,5 @@ class Apply(Tool):
 
     @check_input_stream_count(1)
     def _execute(self, input_streams, interval, writer):
-        for t, d in input_streams[0].window(interval):
+        for t, d in input_streams[0].execute(interval):
             writer(StreamInstance(t, self.func(d)))
