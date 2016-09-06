@@ -73,8 +73,10 @@ class MemoryChannel(BaseChannel):
         :param stream: The stream reference
         :return: The data generator
         """
-        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream.stream_id]
-                       if timestamp in stream.time_interval), key=lambda x: x.timestamp)
+        # return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream.stream_id]
+        #                if timestamp in stream.time_interval), key=lambda x: x.timestamp)
+        # TODO: Put the check back in for the time interval
+        return sorted(self.data[stream.stream_id], key=lambda x: x.timestamp)
 
     def get_results(self, stream):
         """

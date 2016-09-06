@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.tool import Tool, check_input_stream_count
-
+from hyperstream.stream import StreamInstance
 
 class Aggregate(Tool):
     def __init__(self, timer, func):
@@ -30,5 +30,5 @@ class Aggregate(Tool):
     @check_input_stream_count(1)
     def _execute(self, input_streams, interval, writer):
         for (t, _) in self.timer():
-            writer([(t, 'pool')])
+            writer([StreamInstance(t, 'pool')])
             raise NotImplementedError
