@@ -26,7 +26,7 @@ from utils import Printable, Hashable
 class Tool(Printable, Hashable):
     def __init__(self, **kwargs):
         if kwargs:
-            logging.debug('Defining a {} tool with kwargs {}'.format(self.__class__.__name__, kwargs))
+            logging.debug('Defining a {} tool with parameters {}'.format(self.__class__.__name__, kwargs))
         else:
             logging.debug('Defining a {} tool'.format(self.__class__.__name__))
 

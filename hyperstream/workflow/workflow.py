@@ -56,7 +56,7 @@ class Workflow(Printable):
         
         logging.info("New workflow created with id {}".format(workflow_id))
     
-    def execute(self):
+    def execute(self, time_interval):
         """
         Here we execute the streams in the workflow
         :return:
@@ -64,7 +64,7 @@ class Workflow(Printable):
         for factor_collection in self.factor_collections.values():
             for factor in factor_collection:
                 logging.debug("Executing factor {}".format(factor))
-                factor.execute()
+                factor.execute(time_interval)
             
     def create_node(self, stream_name, channel, plate_ids):
         """

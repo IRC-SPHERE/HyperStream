@@ -44,14 +44,15 @@ class DatabaseChannel(BaseChannel):
 
     def get_results(self, stream):
         # TODO: This is identical to MemoryChannel - can they share a base instantiation (BaseChannel)??
-        if not stream.required_intervals.is_empty:
-            for interval in stream.required_intervals:
-                self.execute_tool(stream, interval)
-                stream.calculated_intervals += TimeIntervals([interval])
-
-            if stream.required_times.is_not_empty:
-                raise RuntimeError('Tool execution did not cover the specified interval.')
-
+        # required_intervals = TimeIntervals([time_interval]) - stream.calculated_intervals
+        # if not required_intervals.is_empty:
+        #     for interval in stream.required_intervals:
+        #         self.execute_tool(stream, interval)
+        #         stream.calculated_intervals += TimeIntervals([interval])
+        #
+        #     if stream.required_times.is_not_empty:
+        #         raise RuntimeError('Tool execution did not cover the specified time_interval.')
+        #
         return self._get_data(stream)
 
     def create_stream(self, stream_id, tool_stream=None):
