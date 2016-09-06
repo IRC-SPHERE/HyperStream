@@ -26,11 +26,11 @@ class ToolChannel(ModuleChannel):
     """
     Special case of the file/module channel to load the tools to execute other streams
     """
-    def get_results(self, stream_ref):
-        results = super(ToolChannel, self).get_results(stream_ref)
+    def get_results(self, stream):
+        results = super(ToolChannel, self).get_results(stream)
         for timestamp, (version, module_importer) in results:
             module = module_importer()
-            class_name = stream_ref.stream_id.name.title().replace("_", "")
+            class_name = stream.stream_id.name.title().replace("_", "")
             tool_class = getattr(module, class_name)
             yield StreamInstance(timestamp, tool_class)
 

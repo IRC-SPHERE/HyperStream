@@ -92,21 +92,17 @@ class Stream(Hashable):
     _calculated_intervals = None
     defined = False
 
-    def __init__(self, channel, stream_id, time_interval, calculated_intervals, modifier, tool, input_streams):
+    def __init__(self, channel, stream_id, calculated_intervals, tool, input_streams):
         """
         :type channel: BaseChannel
         :type stream_id: StreamId
-        :type time_interval: TimeInterval, None
         :type calculated_intervals: TimeIntervals
-        :type modifier: Modifier, None
         :type tool: Stream, None
         """
         self.channel = channel
         if not isinstance(stream_id, StreamId):
             raise TypeError(str(type(stream_id)))
         self.stream_id = stream_id
-        self.time_interval = time_interval
-        self.modifier = modifier
         # self.get_results_func = get_results_func
         if not isinstance(calculated_intervals, TimeIntervals):
             raise TypeError(str(type(calculated_intervals)))
@@ -124,17 +120,7 @@ class Stream(Hashable):
             self.stream_id,
             self.channel.channel_id,
             self.tool.__class__.__name__ if self.tool else None,
-            ", ".join(map(lambda x: x.stream_id.name, self.input_streams)) if self.input_streams else None,
-            self.time_interval,
-            self.modifier)
-        # s = "Stream"
-        # s += "\n      CHANNEL_ID  : " + repr(self.channel.channel_id)
-        # s += "\n      STREAM_ID   : " + repr(self.stream_id)
-        # s += "\n      START       : " + repr(self.time_interval.start if self.time_interval else None)
-        # s += "\n      END         : " + repr(self.time_interval.end if self.time_interval else None)
-        # s += "\n      MODIFIERS   : " + repr(self.modifiers)
-        # s += "\n    "
-        # return s
+            ", ".join(map(lambda x: x.stream_id.name, self.input_streams)) if self.input_streams else None)
 
     def __repr__(self):
         return str(self)
@@ -156,50 +142,50 @@ class Stream(Hashable):
     def writer(self):
         return self.channel.get_stream_writer(self)
 
-    def window(self, time_interval):
-        """
-        Sets the time execute for this stream
-        :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-        :type time_interval: Iterable, TimeInterval
-        :return: self (for chaining)
-        """
-        if isinstance(time_interval, TimeInterval):
-            self.time_interval = time_interval
-        elif isinstance(time_interval, Iterable):
-            self.time_interval = parse_time_tuple(*time_interval)
-            if isinstance(self.time_interval, RelativeTimeInterval):
-                raise ValueError("Use relative_window to define relative time windows")
-        elif isinstance(time_interval, RelativeTimeInterval):
-            raise ValueError("Use relative_window to define relative time windows")
-        else:
-            raise ValueError
-        return self
+    # def window(self, time_interval):
+    #     """
+    #     Sets the time execute for this stream
+    #     :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
+    #     :type time_interval: Iterable, TimeInterval
+    #     :return: self (for chaining)
+    #     """
+    #     if isinstance(time_interval, TimeInterval):
+    #         self.time_interval = time_interval
+    #     elif isinstance(time_interval, Iterable):
+    #         self.time_interval = parse_time_tuple(*time_interval)
+    #         if isinstance(self.time_interval, RelativeTimeInterval):
+    #             raise ValueError("Use relative_window to define relative time windows")
+    #     elif isinstance(time_interval, RelativeTimeInterval):
+    #         raise ValueError("Use relative_window to define relative time windows")
+    #     else:
+    #         raise ValueError
+    #     return self
+    #
+    # def relative_window(self, time_interval):
+    #     """
+    #     Sets the time execute for this stream
+    #     :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
+    #     :type time_interval: Iterable, TimeInterval
+    #     :return: self (for chaining)
+    #     """
+    #     if isinstance(time_interval, RelativeTimeInterval):
+    #         self.time_interval = time_interval
+    #     elif isinstance(time_interval, Iterable):
+    #         self.time_interval = parse_time_tuple(*time_interval)
+    #         if not isinstance(self.time_interval, RelativeTimeInterval):
+    #             raise ValueError("Use execute to define absolute time windows")
+    #     elif isinstance(time_interval, RelativeTimeInterval):
+    #         raise ValueError("Use execute to define absolute time windows")
+    #     else:
+    #         raise ValueError
+    #     return self
 
-    def relative_window(self, time_interval):
-        """
-        Sets the time execute for this stream
-        :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-        :type time_interval: Iterable, TimeInterval
-        :return: self (for chaining)
-        """
-        if isinstance(time_interval, RelativeTimeInterval):
-            self.time_interval = time_interval
-        elif isinstance(time_interval, Iterable):
-            self.time_interval = parse_time_tuple(*time_interval)
-            if not isinstance(self.time_interval, RelativeTimeInterval):
-                raise ValueError("Use execute to define absolute time windows")
-        elif isinstance(time_interval, RelativeTimeInterval):
-            raise ValueError("Use execute to define absolute time windows")
-        else:
-            raise ValueError
-        return self
+    # @property
+    # def required_intervals(self):
+    #     return TimeIntervals([self.time_interval]) - self.calculated_intervals
 
-    @property
-    def required_intervals(self):
-        return TimeIntervals([self.time_interval]) - self.calculated_intervals
-
-    def execute(self):
-        self.channel.get_results(self)
+    # def execute(self):
+    #     self.channel.get_results(self)
 
     def __iter__(self):
         for item in self.channel.get_results(self):
@@ -307,9 +293,8 @@ class ToolStream(Stream):
         super(ToolStream, self).__init__(
             channel=stream.channel,
             stream_id=stream.stream_id,
-            time_interval=stream.time_interval,
+            # time_interval=stream.time_interval,
             calculated_intervals=stream.calculated_intervals,
-            modifier=stream.modifier,
             tool=stream.tool,
             input_streams=stream.input_streams)
         self.defined = False
