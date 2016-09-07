@@ -48,325 +48,29 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-hyperstream.channels.base_channel">
-<span id="hyperstream-channels-base-channel-module"></span><h2>hyperstream.channels.base_channel module<a class="headerlink" href="#module-hyperstream.channels.base_channel" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="hyperstream.channels.base_channel.BaseChannel">
-<em class="property">class </em><code class="descclassname">hyperstream.channels.base_channel.</code><code class="descname">BaseChannel</code><span class="sig-paren">(</span><em>channel_id</em>, <em>can_calc=False</em>, <em>can_create=False</em>, <em>calc_agent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/base_channel.html#BaseChannel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.base_channel.BaseChannel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.channels.base_channel.BaseChannel.create_stream">
-<code class="descname">create_stream</code><span class="sig-paren">(</span><em>stream_id</em>, <em>tool_stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/base_channel.html#BaseChannel.create_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.base_channel.BaseChannel.create_stream" title="Permalink to this definition">¶</a></dt>
-<dd><p>Must be overridden by deriving classes, must create the stream according to the tool and return its unique
-identifier stream_id</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.base_channel.BaseChannel.execute_tool">
-<code class="descname">execute_tool</code><span class="sig-paren">(</span><em>stream_ref</em>, <em>interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/base_channel.html#BaseChannel.execute_tool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.base_channel.BaseChannel.execute_tool" title="Permalink to this definition">¶</a></dt>
-<dd><p>Executes the stream&#8217;s tool over the given time interval
-:param stream_ref: the stream reference
-:param interval: the time interval
-:return: None</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.base_channel.BaseChannel.get_results">
-<code class="descname">get_results</code><span class="sig-paren">(</span><em>stream_ref</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/base_channel.html#BaseChannel.get_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.base_channel.BaseChannel.get_results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Must be overridden by deriving classes.
-1. Calculates/receives the documents in the stream interval determined by the stream_ref
-2. Applies the modifiers within stream_ref
-3. Applies channel custom modifiers as determined by kwargs
-4. Returns success or failure and the results (for some channels the values of kwargs can override the
-return process, e.g. introduce callbacks)</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.base_channel.BaseChannel.get_stream_writer">
-<code class="descname">get_stream_writer</code><span class="sig-paren">(</span><em>stream_ref</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/base_channel.html#BaseChannel.get_stream_writer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.base_channel.BaseChannel.get_stream_writer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Must be overridden by deriving classes, must return a function(document_collection) which writes all the
-given documents of the form (timestamp,data) from document_collection to the stream</p>
-<blockquote>
-<div><blockquote>
-<div>Example:
-if stream_id==1:</div></blockquote>
-<dl class="docutils">
-<dt>def f(document_collection):</dt>
-<dd><dl class="first last docutils">
-<dt>for (timestamp,data) in document_collection:</dt>
-<dd>database[timestamp] = data
-return(f)</dd>
-<dt>else:</dt>
-<dd>raise Exception(&#8216;No stream with id &#8216;+str(stream_id))</dd>
-</dl>
-</dd>
-</dl>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.base_channel.BaseChannel.update_streams">
-<code class="descname">update_streams</code><span class="sig-paren">(</span><em>up_to_timestamp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/base_channel.html#BaseChannel.update_streams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.base_channel.BaseChannel.update_streams" title="Permalink to this definition">¶</a></dt>
-<dd><p>Deriving classes must override this function</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="hyperstream-channels-base-channel-module">
+<h2>hyperstream.channels.base_channel module<a class="headerlink" href="#hyperstream-channels-base-channel-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-hyperstream.channels.database_channel">
-<span id="hyperstream-channels-database-channel-module"></span><h2>hyperstream.channels.database_channel module<a class="headerlink" href="#module-hyperstream.channels.database_channel" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="hyperstream.channels.database_channel.DatabaseChannel">
-<em class="property">class </em><code class="descclassname">hyperstream.channels.database_channel.</code><code class="descname">DatabaseChannel</code><span class="sig-paren">(</span><em>channel_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/database_channel.html#DatabaseChannel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.database_channel.DatabaseChannel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.channels.base_channel.BaseChannel" title="hyperstream.channels.base_channel.BaseChannel"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.channels.base_channel.BaseChannel</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.channels.database_channel.DatabaseChannel.create_stream">
-<code class="descname">create_stream</code><span class="sig-paren">(</span><em>stream_id</em>, <em>tool_stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/database_channel.html#DatabaseChannel.create_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.database_channel.DatabaseChannel.create_stream" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.database_channel.DatabaseChannel.get_results">
-<code class="descname">get_results</code><span class="sig-paren">(</span><em>stream_ref</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/database_channel.html#DatabaseChannel.get_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.database_channel.DatabaseChannel.get_results" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.database_channel.DatabaseChannel.get_stream_writer">
-<code class="descname">get_stream_writer</code><span class="sig-paren">(</span><em>stream_ref</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/database_channel.html#DatabaseChannel.get_stream_writer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.database_channel.DatabaseChannel.get_stream_writer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.database_channel.DatabaseChannel.update_streams">
-<code class="descname">update_streams</code><span class="sig-paren">(</span><em>up_to_timestamp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/database_channel.html#DatabaseChannel.update_streams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.database_channel.DatabaseChannel.update_streams" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="hyperstream-channels-database-channel-module">
+<h2>hyperstream.channels.database_channel module<a class="headerlink" href="#hyperstream-channels-database-channel-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-hyperstream.channels.file_channel">
-<span id="hyperstream-channels-file-channel-module"></span><h2>hyperstream.channels.file_channel module<a class="headerlink" href="#module-hyperstream.channels.file_channel" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="hyperstream.channels.file_channel.FileChannel">
-<em class="property">class </em><code class="descclassname">hyperstream.channels.file_channel.</code><code class="descname">FileChannel</code><span class="sig-paren">(</span><em>channel_id</em>, <em>path</em>, <em>up_to_timestamp=datetime.datetime(1</em>, <em>1</em>, <em>1</em>, <em>0</em>, <em>0</em>, <em>tzinfo=&lt;UTC&gt;)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/file_channel.html#FileChannel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.file_channel.FileChannel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel" title="hyperstream.channels.memory_channel.ReadOnlyMemoryChannel"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.channels.memory_channel.ReadOnlyMemoryChannel</span></code></a></p>
-<p>An abstract stream channel where the streams are recursive sub-folders under a given path and documents correspond to
-all those files which have a timestamp as their prefix in the format yyyy_mm_dd_hh_mm_ss_mmm_*.
-All the derived classes must override the function data_loader(short_path,file_long_name) which determines how the
-data are loaded into the document of the stream.
-The files of the described format must never be deleted.
-The call update(up_to_timestamp) must not be called unless it is guaranteed that later no files with earlier
-timestamps are added.</p>
-<dl class="method">
-<dt id="hyperstream.channels.file_channel.FileChannel.data_loader">
-<code class="descname">data_loader</code><span class="sig-paren">(</span><em>short_path</em>, <em>file_info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/file_channel.html#FileChannel.data_loader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.file_channel.FileChannel.data_loader" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.file_channel.FileChannel.file_filter">
-<code class="descname">file_filter</code><span class="sig-paren">(</span><em>sorted_file_names</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/file_channel.html#FileChannel.file_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.file_channel.FileChannel.file_filter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.file_channel.FileChannel.get_results">
-<code class="descname">get_results</code><span class="sig-paren">(</span><em>stream_ref</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/file_channel.html#FileChannel.get_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.file_channel.FileChannel.get_results" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="hyperstream.channels.file_channel.FileChannel.path">
-<code class="descname">path</code><em class="property"> = ''</em><a class="headerlink" href="#hyperstream.channels.file_channel.FileChannel.path" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.file_channel.FileChannel.update_streams">
-<code class="descname">update_streams</code><span class="sig-paren">(</span><em>up_to_timestamp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/file_channel.html#FileChannel.update_streams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.file_channel.FileChannel.update_streams" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.channels.file_channel.FileDateTimeVersion">
-<em class="property">class </em><code class="descclassname">hyperstream.channels.file_channel.</code><code class="descname">FileDateTimeVersion</code><span class="sig-paren">(</span><em>filename</em>, <em>split_char='_'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/file_channel.html#FileDateTimeVersion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.file_channel.FileDateTimeVersion" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
-<p>Simple class to hold file details along with the timestamp and version number from the filename.
-Uses semantic version.</p>
-<dl class="attribute">
-<dt id="hyperstream.channels.file_channel.FileDateTimeVersion.is_python">
-<code class="descname">is_python</code><a class="headerlink" href="#hyperstream.channels.file_channel.FileDateTimeVersion.is_python" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="hyperstream-channels-file-channel-module">
+<h2>hyperstream.channels.file_channel module<a class="headerlink" href="#hyperstream-channels-file-channel-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-hyperstream.channels.memory_channel">
-<span id="hyperstream-channels-memory-channel-module"></span><h2>hyperstream.channels.memory_channel module<a class="headerlink" href="#module-hyperstream.channels.memory_channel" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="hyperstream.channels.memory_channel.MemoryChannel">
-<em class="property">class </em><code class="descclassname">hyperstream.channels.memory_channel.</code><code class="descname">MemoryChannel</code><span class="sig-paren">(</span><em>channel_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.channels.base_channel.BaseChannel" title="hyperstream.channels.base_channel.BaseChannel"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.channels.base_channel.BaseChannel</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.channels.memory_channel.MemoryChannel.check_calculation_times">
-<code class="descname">check_calculation_times</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel.check_calculation_times"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel.check_calculation_times" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.memory_channel.MemoryChannel.create_stream">
-<code class="descname">create_stream</code><span class="sig-paren">(</span><em>stream_id</em>, <em>tool_stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel.create_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel.create_stream" title="Permalink to this definition">¶</a></dt>
-<dd><p>Must be overridden by deriving classes, must create the stream according to the tool and return its unique
-identifier stream_id</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.memory_channel.MemoryChannel.get_results">
-<code class="descname">get_results</code><span class="sig-paren">(</span><em>stream_ref</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel.get_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel.get_results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates/receives the documents in the stream interval determined by the stream_ref
-:param stream_ref: The stream reference
-:param kwargs: Keyword arguments
-:return:</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.memory_channel.MemoryChannel.get_stream_writer">
-<code class="descname">get_stream_writer</code><span class="sig-paren">(</span><em>stream_ref</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel.get_stream_writer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel.get_stream_writer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.memory_channel.MemoryChannel.update_streams">
-<code class="descname">update_streams</code><span class="sig-paren">(</span><em>up_to_timestamp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel.update_streams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel.update_streams" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.channels.memory_channel.ReadOnlyMemoryChannel">
-<em class="property">class </em><code class="descclassname">hyperstream.channels.memory_channel.</code><code class="descname">ReadOnlyMemoryChannel</code><span class="sig-paren">(</span><em>channel_id</em>, <em>up_to_timestamp=datetime.datetime(1</em>, <em>1</em>, <em>1</em>, <em>0</em>, <em>0</em>, <em>tzinfo=&lt;UTC&gt;)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#ReadOnlyMemoryChannel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.channels.base_channel.BaseChannel" title="hyperstream.channels.base_channel.BaseChannel"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.channels.base_channel.BaseChannel</span></code></a></p>
-<p>An abstract channel with a read-only set of memory-based streams.
-By default it is constructed empty with the last update at MIN_DATE.
-New streams and documents within streams are created with the update(up_to_timestamp) method,
-which ensures that the channel is up to date until up_to_timestamp.
-No documents nor streams are ever deleted.
-Any deriving class must override update_streams(up_to_timestamp) which must update self.streams to be calculated
-until up_to_timestamp exactly.
-The data structure self.streams is a dict of streams indexed by stream_id, each stream is a list of tuples
-(timestamp,data), in no specific order.
-Names and identifiers are the same in this channel.</p>
-<dl class="method">
-<dt id="hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.create_stream">
-<code class="descname">create_stream</code><span class="sig-paren">(</span><em>stream_id</em>, <em>tool_stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#ReadOnlyMemoryChannel.create_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.create_stream" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.get_results">
-<code class="descname">get_results</code><span class="sig-paren">(</span><em>stream_ref</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#ReadOnlyMemoryChannel.get_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.get_results" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.get_stream_writer">
-<code class="descname">get_stream_writer</code><span class="sig-paren">(</span><em>stream_ref</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#ReadOnlyMemoryChannel.get_stream_writer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.get_stream_writer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.update_state">
-<code class="descname">update_state</code><span class="sig-paren">(</span><em>up_to_timestamp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#ReadOnlyMemoryChannel.update_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.update_state" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call this function to ensure that the channel is up to date at the time of timestamp.
-I.e., all the streams that have been created before or at that timestamp are calculated exactly until
-up_to_timestamp.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.update_streams">
-<code class="descname">update_streams</code><span class="sig-paren">(</span><em>up_to_timestamp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#ReadOnlyMemoryChannel.update_streams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.update_streams" title="Permalink to this definition">¶</a></dt>
-<dd><p>Deriving classes must override this function</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="hyperstream-channels-memory-channel-module">
+<h2>hyperstream.channels.memory_channel module<a class="headerlink" href="#hyperstream-channels-memory-channel-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-hyperstream.channels.module_channel">
-<span id="hyperstream-channels-module-channel-module"></span><h2>hyperstream.channels.module_channel module<a class="headerlink" href="#module-hyperstream.channels.module_channel" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="hyperstream.channels.module_channel.ModuleChannel">
-<em class="property">class </em><code class="descclassname">hyperstream.channels.module_channel.</code><code class="descname">ModuleChannel</code><span class="sig-paren">(</span><em>channel_id</em>, <em>path</em>, <em>up_to_timestamp=datetime.datetime(1</em>, <em>1</em>, <em>1</em>, <em>0</em>, <em>0</em>, <em>tzinfo=&lt;UTC&gt;)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/module_channel.html#ModuleChannel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.module_channel.ModuleChannel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.channels.file_channel.FileChannel" title="hyperstream.channels.file_channel.FileChannel"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.channels.file_channel.FileChannel</span></code></a></p>
-<p>A channel of module streams, the documents in the streams contain functions that can be called to import the
-respective module</p>
-<dl class="method">
-<dt id="hyperstream.channels.module_channel.ModuleChannel.data_loader">
-<code class="descname">data_loader</code><span class="sig-paren">(</span><em>short_path</em>, <em>tool_info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/module_channel.html#ModuleChannel.data_loader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.module_channel.ModuleChannel.data_loader" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.module_channel.ModuleChannel.file_filter">
-<code class="descname">file_filter</code><span class="sig-paren">(</span><em>sorted_file_names</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/module_channel.html#ModuleChannel.file_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.module_channel.ModuleChannel.file_filter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.module_channel.ModuleChannel.update_state">
-<code class="descname">update_state</code><span class="sig-paren">(</span><em>up_to_timestamp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/module_channel.html#ModuleChannel.update_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.module_channel.ModuleChannel.update_state" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="hyperstream.channels.module_channel.ModuleChannel.versions">
-<code class="descname">versions</code><em class="property"> = None</em><a class="headerlink" href="#hyperstream.channels.module_channel.ModuleChannel.versions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="hyperstream-channels-module-channel-module">
+<h2>hyperstream.channels.module_channel module<a class="headerlink" href="#hyperstream-channels-module-channel-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-hyperstream.channels.sphere_channel">
-<span id="hyperstream-channels-sphere-channel-module"></span><h2>hyperstream.channels.sphere_channel module<a class="headerlink" href="#module-hyperstream.channels.sphere_channel" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="hyperstream.channels.sphere_channel.SphereChannel">
-<em class="property">class </em><code class="descclassname">hyperstream.channels.sphere_channel.</code><code class="descname">SphereChannel</code><span class="sig-paren">(</span><em>channel_id</em>, <em>up_to_timestamp=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/sphere_channel.html#SphereChannel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.sphere_channel.SphereChannel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.channels.memory_channel.MemoryChannel" title="hyperstream.channels.memory_channel.MemoryChannel"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.channels.memory_channel.MemoryChannel</span></code></a></p>
-<p>SPHERE MongoDB storing the raw sensor data</p>
-<dl class="method">
-<dt id="hyperstream.channels.sphere_channel.SphereChannel.execute_tool">
-<code class="descname">execute_tool</code><span class="sig-paren">(</span><em>stream_ref</em>, <em>interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/sphere_channel.html#SphereChannel.execute_tool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.sphere_channel.SphereChannel.execute_tool" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.sphere_channel.SphereChannel.get_stream_writer">
-<code class="descname">get_stream_writer</code><span class="sig-paren">(</span><em>stream_ref</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/sphere_channel.html#SphereChannel.get_stream_writer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.sphere_channel.SphereChannel.get_stream_writer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.channels.sphere_channel.SphereChannel.update_streams">
-<code class="descname">update_streams</code><span class="sig-paren">(</span><em>up_to_timestamp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/sphere_channel.html#SphereChannel.update_streams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.sphere_channel.SphereChannel.update_streams" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call this function to report to the system that the SPHERE MongoDB is fully populated until up_to_timestamp</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.channels.sphere_channel.SphereDataWindow">
-<em class="property">class </em><code class="descclassname">hyperstream.channels.sphere_channel.</code><code class="descname">SphereDataWindow</code><span class="sig-paren">(</span><em>time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/sphere_channel.html#SphereDataWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.sphere_channel.SphereDataWindow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sphere_connector_package.sphere_connector.experiment.DataWindow</span></code></p>
-<p>Helper class to use the global sphere_connector object</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="hyperstream.channels.sphere_channel.reformat">
-<code class="descclassname">hyperstream.channels.sphere_channel.</code><code class="descname">reformat</code><span class="sig-paren">(</span><em>doc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/sphere_channel.html#reformat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.sphere_channel.reformat" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="hyperstream-channels-sphere-channel-module">
+<h2>hyperstream.channels.sphere_channel module<a class="headerlink" href="#hyperstream-channels-sphere-channel-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-hyperstream.channels.tool_channel">
-<span id="hyperstream-channels-tool-channel-module"></span><h2>hyperstream.channels.tool_channel module<a class="headerlink" href="#module-hyperstream.channels.tool_channel" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="hyperstream.channels.tool_channel.ToolChannel">
-<em class="property">class </em><code class="descclassname">hyperstream.channels.tool_channel.</code><code class="descname">ToolChannel</code><span class="sig-paren">(</span><em>channel_id</em>, <em>path</em>, <em>up_to_timestamp=datetime.datetime(1</em>, <em>1</em>, <em>1</em>, <em>0</em>, <em>0</em>, <em>tzinfo=&lt;UTC&gt;)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/tool_channel.html#ToolChannel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.tool_channel.ToolChannel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.channels.module_channel.ModuleChannel" title="hyperstream.channels.module_channel.ModuleChannel"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.channels.module_channel.ModuleChannel</span></code></a></p>
-<p>Special case of the file/module channel to load the tools to execute other streams</p>
-<dl class="method">
-<dt id="hyperstream.channels.tool_channel.ToolChannel.get_results">
-<code class="descname">get_results</code><span class="sig-paren">(</span><em>stream_ref</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/tool_channel.html#ToolChannel.get_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.tool_channel.ToolChannel.get_results" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="hyperstream-channels-tool-channel-module">
+<h2>hyperstream.channels.tool_channel module<a class="headerlink" href="#hyperstream-channels-tool-channel-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-hyperstream.channels">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-hyperstream.channels" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -380,14 +84,14 @@ respective module</p>
   <ul>
 <li><a class="reference internal" href="#">hyperstream.channels package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-hyperstream.channels.base_channel">hyperstream.channels.base_channel module</a></li>
-<li><a class="reference internal" href="#module-hyperstream.channels.database_channel">hyperstream.channels.database_channel module</a></li>
-<li><a class="reference internal" href="#module-hyperstream.channels.file_channel">hyperstream.channels.file_channel module</a></li>
-<li><a class="reference internal" href="#module-hyperstream.channels.memory_channel">hyperstream.channels.memory_channel module</a></li>
-<li><a class="reference internal" href="#module-hyperstream.channels.module_channel">hyperstream.channels.module_channel module</a></li>
-<li><a class="reference internal" href="#module-hyperstream.channels.sphere_channel">hyperstream.channels.sphere_channel module</a></li>
-<li><a class="reference internal" href="#module-hyperstream.channels.tool_channel">hyperstream.channels.tool_channel module</a></li>
-<li><a class="reference internal" href="#module-hyperstream.channels">Module contents</a></li>
+<li><a class="reference internal" href="#hyperstream-channels-base-channel-module">hyperstream.channels.base_channel module</a></li>
+<li><a class="reference internal" href="#hyperstream-channels-database-channel-module">hyperstream.channels.database_channel module</a></li>
+<li><a class="reference internal" href="#hyperstream-channels-file-channel-module">hyperstream.channels.file_channel module</a></li>
+<li><a class="reference internal" href="#hyperstream-channels-memory-channel-module">hyperstream.channels.memory_channel module</a></li>
+<li><a class="reference internal" href="#hyperstream-channels-module-channel-module">hyperstream.channels.module_channel module</a></li>
+<li><a class="reference internal" href="#hyperstream-channels-sphere-channel-module">hyperstream.channels.sphere_channel module</a></li>
+<li><a class="reference internal" href="#hyperstream-channels-tool-channel-module">hyperstream.channels.tool_channel module</a></li>
+<li><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>

@@ -71,6 +71,18 @@
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
 
 
+<div class="viewcode-block" id="StreamView"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.StreamView">[docs]</a><span class="k">class</span> <span class="nc">StreamView</span><span class="p">(</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;StreamView&quot;</span><span class="p">,</span> <span class="s2">&quot;stream time_interval&quot;</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple helper class for storing streams with time intervals (i.e. a &quot;view&quot; on a stream)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;stream must be Stream object&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">time_interval</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time_interval</span><span class="p">,</span> <span class="n">TimeInterval</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;time_interval must be TimeInterval object&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">StreamView</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="StreamInstance"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.StreamInstance">[docs]</a><span class="k">class</span> <span class="nc">StreamInstance</span><span class="p">(</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;StreamInstance&quot;</span><span class="p">,</span> <span class="s2">&quot;timestamp value&quot;</span><span class="p">)):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Simple helper class for storing data instances that&#39;s a bit neater than simple tuples</span>
@@ -122,50 +134,37 @@
 <span class="sd">    Stream reference class</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_calculated_intervals</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">defined</span> <span class="o">=</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">,</span> <span class="n">calculated_intervals</span><span class="p">,</span> <span class="n">modifier</span><span class="p">,</span> <span class="n">tool</span><span class="p">,</span> <span class="n">input_streams</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">,</span> <span class="n">calculated_intervals</span><span class="p">,</span> <span class="n">input_streams</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :type channel: BaseChannel</span>
 <span class="sd">        :type stream_id: StreamId</span>
-<span class="sd">        :type time_interval: TimeInterval, None</span>
 <span class="sd">        :type calculated_intervals: TimeIntervals</span>
-<span class="sd">        :type modifier: Modifier, None</span>
 <span class="sd">        :type tool: Stream, None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="n">channel</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stream_id</span><span class="p">,</span> <span class="n">StreamId</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">stream_id</span><span class="p">)))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stream_id</span> <span class="o">=</span> <span class="n">stream_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">time_interval</span> <span class="o">=</span> <span class="n">time_interval</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">modifier</span> <span class="o">=</span> <span class="n">modifier</span>
         <span class="c1"># self.get_results_func = get_results_func</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">calculated_intervals</span><span class="p">,</span> <span class="n">TimeIntervals</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">calculated_intervals</span><span class="p">)))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">calculated_intervals</span> <span class="o">=</span> <span class="n">calculated_intervals</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tool</span> <span class="o">=</span> <span class="n">tool</span>
+        <span class="c1"># self.kwargs = {}</span>
+        <span class="c1"># self.tool = tool</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">input_streams</span> <span class="o">=</span> <span class="n">input_streams</span>
 
         <span class="c1"># Here we define the output type. When modifiers are applied, this changes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span> <span class="o">=</span> <span class="s1">&#39;doc_gen&#39;</span>
+        <span class="c1"># self.output_format = &#39;doc_gen&#39;</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(stream_id=</span><span class="si">{}</span><span class="s2">, channel_id=</span><span class="si">{}</span><span class="s2">, tool=</span><span class="si">{}</span><span class="s2">, input_streams=[</span><span class="si">{}</span><span class="s2">], interval=</span><span class="si">{}</span><span class="s2">, modifiers=</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(stream_id=</span><span class="si">{}</span><span class="s2">, channel_id=</span><span class="si">{}</span><span class="s2">, input_streams=[</span><span class="si">{}</span><span class="s2">])&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stream_id</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">channel_id</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tool</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tool</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_streams</span><span class="p">))</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_streams</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">time_interval</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">modifier</span><span class="p">)</span>
-        <span class="c1"># s = &quot;Stream&quot;</span>
-        <span class="c1"># s += &quot;\n      CHANNEL_ID  : &quot; + repr(self.channel.channel_id)</span>
-        <span class="c1"># s += &quot;\n      STREAM_ID   : &quot; + repr(self.stream_id)</span>
-        <span class="c1"># s += &quot;\n      START       : &quot; + repr(self.time_interval.start if self.time_interval else None)</span>
-        <span class="c1"># s += &quot;\n      END         : &quot; + repr(self.time_interval.end if self.time_interval else None)</span>
-        <span class="c1"># s += &quot;\n      MODIFIERS   : &quot; + repr(self.modifiers)</span>
-        <span class="c1"># s += &quot;\n    &quot;</span>
-        <span class="c1"># return s</span>
+            <span class="c1"># self.tool.__class__.__name__ if self.tool else None,</span>
+            <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_streams</span><span class="p">))</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_streams</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -185,119 +184,99 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">writer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">get_stream_writer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stream_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">get_stream_writer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Stream.window"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.window">[docs]</a>    <span class="k">def</span> <span class="nf">window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sets the time window for this stream</span>
-<span class="sd">        :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime</span>
-<span class="sd">        :type time_interval: Iterable, TimeInterval</span>
-<span class="sd">        :return: self (for chaining)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time_interval</span><span class="p">,</span> <span class="n">TimeInterval</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">time_interval</span> <span class="o">=</span> <span class="n">time_interval</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time_interval</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">time_interval</span> <span class="o">=</span> <span class="n">parse_time_tuple</span><span class="p">(</span><span class="o">*</span><span class="n">time_interval</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_interval</span><span class="p">,</span> <span class="n">RelativeTimeInterval</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Use relative_window to define relative time windows&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time_interval</span><span class="p">,</span> <span class="n">RelativeTimeInterval</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Use relative_window to define relative time windows&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span>
-        <span class="k">return</span> <span class="bp">self</span></div>
+    <span class="c1"># def window(self, time_interval):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Sets the time execute for this stream</span>
+    <span class="c1">#     :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime</span>
+    <span class="c1">#     :type time_interval: Iterable, TimeInterval</span>
+    <span class="c1">#     :return: self (for chaining)</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     if isinstance(time_interval, TimeInterval):</span>
+    <span class="c1">#         self.time_interval = time_interval</span>
+    <span class="c1">#     elif isinstance(time_interval, Iterable):</span>
+    <span class="c1">#         self.time_interval = parse_time_tuple(*time_interval)</span>
+    <span class="c1">#         if isinstance(self.time_interval, RelativeTimeInterval):</span>
+    <span class="c1">#             raise ValueError(&quot;Use relative_window to define relative time windows&quot;)</span>
+    <span class="c1">#     elif isinstance(time_interval, RelativeTimeInterval):</span>
+    <span class="c1">#         raise ValueError(&quot;Use relative_window to define relative time windows&quot;)</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         raise ValueError</span>
+    <span class="c1">#     return self</span>
+    <span class="c1">#</span>
+    <span class="c1"># def relative_window(self, time_interval):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Sets the time execute for this stream</span>
+    <span class="c1">#     :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime</span>
+    <span class="c1">#     :type time_interval: Iterable, TimeInterval</span>
+    <span class="c1">#     :return: self (for chaining)</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     if isinstance(time_interval, RelativeTimeInterval):</span>
+    <span class="c1">#         self.time_interval = time_interval</span>
+    <span class="c1">#     elif isinstance(time_interval, Iterable):</span>
+    <span class="c1">#         self.time_interval = parse_time_tuple(*time_interval)</span>
+    <span class="c1">#         if not isinstance(self.time_interval, RelativeTimeInterval):</span>
+    <span class="c1">#             raise ValueError(&quot;Use execute to define absolute time windows&quot;)</span>
+    <span class="c1">#     elif isinstance(time_interval, RelativeTimeInterval):</span>
+    <span class="c1">#         raise ValueError(&quot;Use execute to define absolute time windows&quot;)</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         raise ValueError</span>
+    <span class="c1">#     return self</span>
 
-<div class="viewcode-block" id="Stream.relative_window"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.relative_window">[docs]</a>    <span class="k">def</span> <span class="nf">relative_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sets the time window for this stream</span>
-<span class="sd">        :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime</span>
-<span class="sd">        :type time_interval: Iterable, TimeInterval</span>
-<span class="sd">        :return: self (for chaining)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time_interval</span><span class="p">,</span> <span class="n">RelativeTimeInterval</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">time_interval</span> <span class="o">=</span> <span class="n">time_interval</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time_interval</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">time_interval</span> <span class="o">=</span> <span class="n">parse_time_tuple</span><span class="p">(</span><span class="o">*</span><span class="n">time_interval</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_interval</span><span class="p">,</span> <span class="n">RelativeTimeInterval</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Use window to define absolute time windows&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time_interval</span><span class="p">,</span> <span class="n">RelativeTimeInterval</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Use window to define absolute time windows&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span>
-        <span class="k">return</span> <span class="bp">self</span></div>
+    <span class="c1"># @property</span>
+    <span class="c1"># def required_intervals(self):</span>
+    <span class="c1">#     return TimeIntervals([self.time_interval]) - self.calculated_intervals</span>
 
-<div class="viewcode-block" id="Stream.modify"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.modify">[docs]</a>    <span class="k">def</span> <span class="nf">modify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modifier</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Defines the modifiers for this stream reference</span>
-<span class="sd">        :param modifier: The modifier</span>
-<span class="sd">        :type modifier: Modifier</span>
-<span class="sd">        :return: self (for chaining)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modifier</span><span class="p">:</span>
-            <span class="c1"># TODO: Repeated modifiers?</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Overwriting modifier for stream </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stream_id</span><span class="p">))</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">modifier</span> <span class="o">=</span> <span class="n">modifier</span>
-
-        <span class="c1"># Reset output format - note that since the old modifier is clobbered, the original type will always be doc_gen</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span> <span class="o">=</span> <span class="n">modifier</span><span class="o">.</span><span class="n">types</span><span class="p">[</span><span class="s1">&#39;doc_gen&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span></div>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">required_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">TimeIntervals</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">time_interval</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculated_intervals</span>
-
-<div class="viewcode-block" id="Stream.execute"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+    <span class="c1"># def execute(self):</span>
+    <span class="c1">#     self.channel.get_results(self)</span>
 
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">item</span>
 
-    <span class="nd">@check_output_format</span><span class="p">({</span><span class="s1">&#39;doc_gen&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="c1"># @check_output_format({&#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.items"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return all results as a list</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span></div>
 
-    <span class="nd">@check_output_format</span><span class="p">({</span><span class="s1">&#39;doc_gen&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="c1"># @check_output_format({&#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.iteritems"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.iteritems">[docs]</a>    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
-    <span class="nd">@check_output_format</span><span class="p">({</span><span class="s1">&#39;doc_gen&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">timestamps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">itertimestamps</span><span class="p">())</span>
+    <span class="c1"># @check_output_format({&#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.timestamps"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.timestamps">[docs]</a>    <span class="k">def</span> <span class="nf">timestamps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">itertimestamps</span><span class="p">())</span></div>
 
-    <span class="nd">@check_output_format</span><span class="p">({</span><span class="s1">&#39;doc_gen&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">itertimestamps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modifier</span><span class="p">:</span>
-            <span class="c1"># TODO: This is designed to replace the Time() modifier</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-        <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
+    <span class="c1"># @check_output_format({&#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.itertimestamps"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.itertimestamps">[docs]</a>    <span class="k">def</span> <span class="nf">itertimestamps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span></div>
 
-    <span class="nd">@check_output_format</span><span class="p">({</span><span class="s1">&#39;data_gen&#39;</span><span class="p">,</span> <span class="s1">&#39;doc_gen&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span> <span class="o">==</span> <span class="s1">&#39;doc_gen&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">itervalues</span><span class="p">())</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="c1"># @check_output_format({&#39;data_gen&#39;, &#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.values"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.values">[docs]</a>    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># if self.output_format == &#39;doc_gen&#39;:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">itervalues</span><span class="p">())</span></div>
+        <span class="c1"># else:</span>
+        <span class="c1">#     return self.items()</span>
 
-    <span class="nd">@check_output_format</span><span class="p">({</span><span class="s1">&#39;data_gen&#39;</span><span class="p">,</span> <span class="s1">&#39;doc_gen&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">itervalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span> <span class="o">==</span> <span class="s1">&#39;doc_gen&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
+    <span class="c1"># @check_output_format({&#39;data_gen&#39;, &#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.itervalues"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.itervalues">[docs]</a>    <span class="k">def</span> <span class="nf">itervalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># if self.output_format == &#39;doc_gen&#39;:</span>
+        <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span></div>
+        <span class="c1"># else:</span>
+        <span class="c1">#     return self.iteritems()</span>
 
-    <span class="nd">@check_output_format</span><span class="p">({</span><span class="s1">&#39;doc_gen&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">last</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="c1"># @check_output_format({&#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.last"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.last">[docs]</a>    <span class="k">def</span> <span class="nf">last</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># TODO: This is designed to replace the Last() modifier</span>
         <span class="c1"># TODO: Can this be done without list()?</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
 
-    <span class="nd">@check_output_format</span><span class="p">({</span><span class="s1">&#39;doc_gen&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">first</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># @check_output_format({&#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.first"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.first">[docs]</a>    <span class="k">def</span> <span class="nf">first</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># TODO: This is designed to replace the Last() modifier</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
@@ -307,55 +286,77 @@
             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">key</span><span class="p">(</span><span class="n">el</span><span class="p">):</span>
                     <span class="k">return</span> <span class="n">el</span>
-        <span class="k">return</span> <span class="n">default</span>
+        <span class="k">return</span> <span class="n">default</span></div>
 
-    <span class="nd">@check_output_format</span><span class="p">({</span><span class="s1">&#39;doc_gen&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">head</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="c1"># @check_output_format({&#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.head"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.head">[docs]</a>    <span class="k">def</span> <span class="nf">head</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
         <span class="c1"># TODO: this is designed to replace the Head() modifier</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="n">n</span><span class="p">:</span>
                 <span class="k">break</span>
-            <span class="k">yield</span> <span class="n">d</span>
+            <span class="k">yield</span> <span class="n">d</span></div>
 
-    <span class="nd">@check_output_format</span><span class="p">({</span><span class="s1">&#39;doc_gen&#39;</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">tail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="c1"># @check_output_format({&#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.tail"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.tail">[docs]</a>    <span class="k">def</span> <span class="nf">tail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
         <span class="c1"># TODO: This is designed to replace the Tail() modifier</span>
         <span class="c1"># TODO: Can this be done without list()?</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())[</span><span class="o">-</span><span class="n">n</span><span class="p">:]</span></div>
 
+    <span class="c1"># @check_output_format({&#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.component"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.component">[docs]</a>    <span class="k">def</span> <span class="nf">component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="c1"># TODO: is this needed now we have a Component() tool?</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">StreamInstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="ToolStream"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.ToolStream">[docs]</a><span class="k">class</span> <span class="nc">ToolStream</span><span class="p">(</span><span class="n">Stream</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ToolStream</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
-            <span class="n">channel</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">channel</span><span class="p">,</span>
-            <span class="n">stream_id</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="p">,</span>
-            <span class="n">time_interval</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">time_interval</span><span class="p">,</span>
-            <span class="n">calculated_intervals</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">calculated_intervals</span><span class="p">,</span>
-            <span class="n">modifier</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">modifier</span><span class="p">,</span>
-            <span class="n">tool</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">tool</span><span class="p">,</span>
-            <span class="n">input_streams</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">input_streams</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">defined</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1"># @check_output_format({&#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.component_filter"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.component_filter">[docs]</a>    <span class="k">def</span> <span class="nf">component_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="c1"># TODO: is this needed now we have a ComponentFilter() tool?</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">StreamInstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ToolStream.define"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.ToolStream.define">[docs]</a>    <span class="k">def</span> <span class="nf">define</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_streams</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Define the stream with the given input streams and keyword arguments</span>
-<span class="sd">        :param input_streams: The input streams</span>
-<span class="sd">        :param kwargs: keyword arguments</span>
-<span class="sd">        :return: self (for chaining)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">defined</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Tool for stream </span><span class="si">{}</span><span class="s2"> already defined&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stream_id</span><span class="p">))</span>
+    <span class="c1"># @check_output_format({&#39;doc_gen&#39;})</span>
+<div class="viewcode-block" id="Stream.delete_nones"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.stream.Stream.delete_nones">[docs]</a>    <span class="k">def</span> <span class="nf">delete_nones</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># TODO: Test this against ComponentFilter(key, values=[None], complement=true)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">data2</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">data2</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">yield</span> <span class="n">StreamInstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">data2</span><span class="p">)</span></div></div>
 
-        <span class="c1"># Don&#39;t obliterate existing input_streams definition if there was one</span>
-        <span class="k">if</span> <span class="n">input_streams</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">input_streams</span> <span class="o">=</span> <span class="n">input_streams</span>
 
-        <span class="c1"># TODO: Possibly combine with existing kwargs ... defaults?</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">defined</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
+<span class="c1"># class ToolStream(Stream):</span>
+<span class="c1">#     def __init__(self, stream):</span>
+<span class="c1">#         super(ToolStream, self).__init__(</span>
+<span class="c1">#             channel=stream.channel,</span>
+<span class="c1">#             stream_id=stream.stream_id,</span>
+<span class="c1">#             calculated_intervals=stream.calculated_intervals,</span>
+<span class="c1">#             # tool=stream.tool,</span>
+<span class="c1">#             input_streams=stream.input_streams)</span>
+<span class="c1">#         self.defined = False</span>
+<span class="c1">#</span>
+<span class="c1">#     def define(self, input_streams=None):  # , **kwargs):</span>
+<span class="c1">#         &quot;&quot;&quot;</span>
+<span class="c1">#         Define the stream with the given input streams and keyword arguments</span>
+<span class="c1">#         :param input_streams: The input streams</span>
+<span class="c1">#         :param kwargs: keyword arguments</span>
+<span class="c1">#         :return: self (for chaining)</span>
+<span class="c1">#         &quot;&quot;&quot;</span>
+<span class="c1">#         if self.defined:</span>
+<span class="c1">#             raise RuntimeError(&quot;Tool for stream {} already defined&quot;.format(self.stream_id))</span>
+<span class="c1">#</span>
+<span class="c1">#         # Don&#39;t obliterate existing input_streams definition if there was one</span>
+<span class="c1">#         if input_streams:</span>
+<span class="c1">#             self.input_streams = input_streams</span>
+<span class="c1">#</span>
+<span class="c1">#         # TODO: Possibly combine with existing kwargs ... defaults?</span>
+<span class="c1">#         # self.kwargs = kwargs</span>
+<span class="c1">#         self.defined = True</span>
+<span class="c1">#         return deepcopy(self)</span>
 
     <span class="c1"># @check_tool_defined</span>
     <span class="c1"># def execute(self):</span>

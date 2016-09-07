@@ -110,18 +110,6 @@ need accurate microsecond support.</dd>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="hyperstream.models.stream.StreamDefinitionModel.modifiers">
-<code class="descclassname">StreamDefinitionModel.</code><code class="descname">modifiers</code><a class="headerlink" href="#hyperstream.models.stream.StreamDefinitionModel.modifiers" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list field that wraps a standard field, allowing multiple instances
-of the field to be used as a list in the database.</p>
-<p>If using with ReferenceFields see: <span class="xref std std-ref">one-to-many-with-listfields</span></p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Required means it cannot be empty - as the default for ListFields is []</p>
-</div>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="hyperstream.models.stream.StreamDefinitionModel.objects">
 <code class="descclassname">StreamDefinitionModel.</code><code class="descname">objects</code><a class="headerlink" href="#hyperstream.models.stream.StreamDefinitionModel.objects" title="Permalink to this definition">¶</a></dt>
 <dd><p>The default QuerySet Manager.</p>
@@ -498,7 +486,8 @@ of the field to be used as a list in the database.</p>
 <dl class="attribute">
 <dt id="hyperstream.models.workflow.FactorDefinitionModel.tool">
 <code class="descname">tool</code><a class="headerlink" href="#hyperstream.models.workflow.FactorDefinitionModel.tool" title="Permalink to this definition">¶</a></dt>
-<dd><p>A unicode string field.</p>
+<dd><p>An embedded document field - with a declared document_type.
+Only valid values are subclasses of <code class="xref py py-class docutils literal"><span class="pre">EmbeddedDocument</span></code>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -507,6 +496,12 @@ of the field to be used as a list in the database.</p>
 <dt id="hyperstream.models.workflow.NodeDefinitionModel">
 <em class="property">class </em><code class="descclassname">hyperstream.models.workflow.</code><code class="descname">NodeDefinitionModel</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/models/workflow.html#NodeDefinitionModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.models.workflow.NodeDefinitionModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">mongoengine.document.EmbeddedDocument</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.models.workflow.NodeDefinitionModel.channel_id">
+<code class="descname">channel_id</code><a class="headerlink" href="#hyperstream.models.workflow.NodeDefinitionModel.channel_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="hyperstream.models.workflow.NodeDefinitionModel.plate_ids">
 <code class="descname">plate_ids</code><a class="headerlink" href="#hyperstream.models.workflow.NodeDefinitionModel.plate_ids" title="Permalink to this definition">¶</a></dt>
@@ -642,6 +637,41 @@ of the field to be used as a list in the database.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="hyperstream.models.workflow.ToolModel">
+<em class="property">class </em><code class="descclassname">hyperstream.models.workflow.</code><code class="descname">ToolModel</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/models/workflow.html#ToolModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.models.workflow.ToolModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">mongoengine.document.EmbeddedDocument</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.models.workflow.ToolModel.name">
+<code class="descname">name</code><a class="headerlink" href="#hyperstream.models.workflow.ToolModel.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.workflow.ToolModel.parameters">
+<code class="descname">parameters</code><a class="headerlink" href="#hyperstream.models.workflow.ToolModel.parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary field that wraps a standard Python dictionary. This is
+similar to an embedded document, but the structure is not defined.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Required means it cannot be empty - as the default for DictFields is {}</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.3.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified">Changed in version 0.5: </span>- Can now handle complex / varying types of data</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.workflow.ToolModel.version">
+<code class="descname">version</code><a class="headerlink" href="#hyperstream.models.workflow.ToolModel.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="hyperstream.models.workflow.WorkflowDefinitionModel">
 <em class="property">class </em><code class="descclassname">hyperstream.models.workflow.</code><code class="descname">WorkflowDefinitionModel</code><span class="sig-paren">(</span><em>*args</em>, <em>**values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/models/workflow.html#WorkflowDefinitionModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.models.workflow.WorkflowDefinitionModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">mongoengine.document.Document</span></code></p>
@@ -703,14 +733,6 @@ embedded documents to provide additional query helpers.</p>
 <div class="versionadded">
 <p><span class="versionmodified">New in version 0.9.</span></p>
 </div>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="hyperstream.models.workflow.WorkflowDefinitionModel.nodes_old">
-<code class="descclassname">WorkflowDefinitionModel.</code><code class="descname">nodes_old</code><a class="headerlink" href="#hyperstream.models.workflow.WorkflowDefinitionModel.nodes_old" title="Permalink to this definition">¶</a></dt>
-<dd><p>A truly dynamic field type capable of handling different and varying
-types of data.</p>
-<p>Used by <code class="xref py py-class docutils literal"><span class="pre">DynamicDocument</span></code> to handle dynamic data</p>
 </dd></dl>
 
 <dl class="attribute">
