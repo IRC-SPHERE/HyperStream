@@ -81,54 +81,67 @@ class ChannelManager(ChannelCollectionBase, Printable):
         Pulls out all of the stream definitions from the database, and populates the channels with stream references
         :return: None
         """
+        for s in StreamDefinitionModel.objects():
+            stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
+            channel = self.get_channel(s.channel_id)
+
+            if stream_id in channel.streams:
+                raise StreamAlreadyExistsError(stream_id)
+
+            stream = Stream(
+                channel=channel,
+                stream_id=stream_id,
+                calculated_intervals=TimeIntervals()
+            )
+
+            channel.streams[stream_id] = stream
 
         # Would like to just loop over the objects, but because some streams depend on other streams, we will have to
         # loop through multiple times until they're all processed
-        stream_objects = set(StreamDefinitionModel.objects())
-        undefined = set()
-
-        while stream_objects:
-            logging.debug("{} stream objects to process".format(len(stream_objects)))
-
-            copy = stream_objects.copy()
-            for s in copy:
-                stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
-                channel = self.get_channel(s.channel_id)
-
-                logging.debug("Getting input streams for {}".format(stream_id))
-                input_streams = []
-                before = len(undefined)
-                for input_stream in s.input_streams:
-                    input_stream_id = StreamId(name=input_stream.name, meta_data=input_stream.meta_data)
-                    if input_stream_id in channel:
-                        input_streams.append(channel.streams[input_stream_id])
-                    else:
-                        undefined.add(input_stream_id)
-
-                if len(undefined) > before:
-                    continue
-
-                if stream_id in channel.streams:
-                    raise StreamAlreadyExistsError(stream_id)
-
-                # TODO: Create a Factor here?
-                tool = self.get_tool(s.tool_name, s.tool_parameters, input_streams)
-
-                stream = Stream(
-                    channel=channel,
-                    stream_id=stream_id,
-                    # tool=tool,
-                    calculated_intervals=TimeIntervals(),
-                    input_streams=input_streams
-                )
-
-                channel.streams[stream_id] = stream
-
-                stream_objects.remove(s)
-                if s in undefined:
-                    undefined.remove(s)
-            if len(stream_objects) > 0 and len(stream_objects) == len(copy):
-                raise StreamNotFoundError("{} stream objects still remain".format(len(stream_objects)))
+        # stream_objects = set(StreamDefinitionModel.objects())
+        # # undefined = set()
+        #
+        # while stream_objects:
+        #     logging.debug("{} stream objects to process".format(len(stream_objects)))
+        #
+        #     copy = stream_objects.copy()
+        #     for s in copy:
+        #         stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
+        #         channel = self.get_channel(s.channel_id)
+        #
+        #         # logging.debug("Getting input streams for {}".format(stream_id))
+        #         # input_streams = []
+        #         # before = len(undefined)
+        #         # for input_stream in s.input_streams:
+        #         #     input_stream_id = StreamId(name=input_stream.name, meta_data=input_stream.meta_data)
+        #         #     if input_stream_id in channel:
+        #         #         input_streams.append(channel.streams[input_stream_id])
+        #         #     else:
+        #         #         undefined.add(input_stream_id)
+        #         #
+        #         # if len(undefined) > before:
+        #         #     continue
+        #
+        #         if stream_id in channel.streams:
+        #             raise StreamAlreadyExistsError(stream_id)
+        #
+        #         # TODO: Create a Factor here?
+        #         # tool = self.get_tool(s.tool_name, s.tool_parameters, input_streams)
+        #
+        #         stream = Stream(
+        #             channel=channel,
+        #             stream_id=stream_id,
+        #             # tool=tool,
+        #             calculated_intervals=TimeIntervals()
+        #         )
+        #
+        #         channel.streams[stream_id] = stream
+        #
+        #         # stream_objects.remove(s)
+        #         # if s in undefined:
+        #         #     undefined.remove(s)
+        #     # if len(stream_objects) > 0 and len(stream_objects) == len(copy):
+        #     #     raise StreamNotFoundError("{} stream objects still remain".format(len(stream_objects)))
 
     def get_tool(self, tool_name, tool_parameters, input_streams):
         # TODO: Use tool versions - here we just take the latest one

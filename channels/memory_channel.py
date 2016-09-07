@@ -42,21 +42,11 @@ class MemoryChannel(BaseChannel):
             raise ValueError("Stream with id '{}' already exists".format(stream_id))
         
         # TODO: Want to be able to define the streams in the database
-        
-        # if tool_stream:
-        #     # TODO: Use tool versions - here we're just taking the latest one
-        #     tool_class = tool_stream.items()[-1].value
-        #     tool = tool_class(**tool_stream.kwargs)
-        # else:
-        #     tool = None
-        
+
         stream = Stream(
             channel=self,
             stream_id=stream_id,
-            calculated_intervals=TimeIntervals(),
-            # tool=tool,
-            # input_streams=tool_stream.input_streams if tool_stream else None
-            input_streams=None
+            calculated_intervals=TimeIntervals()
         )
         
         self.streams[stream_id] = stream

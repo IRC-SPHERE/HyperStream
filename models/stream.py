@@ -46,21 +46,16 @@ class StreamDefinitionModel(Document):
     stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
     stream_type = StringField(required=True, min_length=1, max_length=512)
     channel_id = StringField(required=True, min_length=1, max_length=512)
-    last_updated = DateTimeField(required=True)
-    tool_name = StringField(required=True, min_length=1, max_length=512)
-    tool_version = StringField(required=True, min_length=1, max_length=512)
-    # TODO: strong typing
-    tool_parameters = DictField()
-    
-    input_streams = EmbeddedDocumentListField(required=False, document_type=StreamIdField)
-    # TODO: remove?
+    # tool_name = StringField(required=True, min_length=1, max_length=512)
+    # tool_version = StringField(required=True, min_length=1, max_length=512)
+    # tool_parameters = DictField()
+    # input_streams = EmbeddedDocumentListField(required=False, document_type=StreamIdField)
     parameters = DictField()
     sandbox = StringField()
     
     meta = {
         'collection': 'stream_definitions',
-        'indexes': [{'fields': ['stream_id', 'tool_version']}],
-        'ordering': ['last_updated']
+        'indexes': [{'fields': ['stream_id']}],
     }
 
 
