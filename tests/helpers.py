@@ -18,7 +18,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream import HyperStreamConfig, OnlineEngine, UTC, StreamId
+from hyperstream import HyperStreamConfig, OnlineEngine, UTC, StreamId, ChannelManager, WorkflowManager, PlateManager
 
 from sphere_connector_package.sphere_connector import SphereConnector, SphereLogger
 from datetime import datetime, timedelta
@@ -41,6 +41,9 @@ sphere_connector = SphereConnector(include_mongo=True, include_redcap=False, sph
 hyperstream_config = HyperStreamConfig()
 online_engine = OnlineEngine(hyperstream_config)
 
+channels = ChannelManager(hyperstream_config.tool_path)
+plates = PlateManager(hyperstream_config.meta_data).plates
+workflows = WorkflowManager(channels=channels, plates=plates)
 
 # Various channels
 M = online_engine.channels.memory
@@ -64,5 +67,5 @@ component = StreamId('component')
 
 
 # Some tools
-clock_tool = T[clock].define(stride=30 * second)
-env_tool = T[sphere].define(modality='environmental')
+# clock_tool = T[clock].define(stride=30 * second)
+# env_tool = T[sphere].define(modality='environmental')

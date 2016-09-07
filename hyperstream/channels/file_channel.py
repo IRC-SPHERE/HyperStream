@@ -99,10 +99,9 @@ class FileChannel(ReadOnlyMemoryChannel):
             stream = Stream(
                 channel=self,
                 stream_id=stream_id,
-                time_interval=TimeInterval(start=MIN_DATE, end=up_to_timestamp),
+                # time_interval=TimeInterval(start=MIN_DATE, end=up_to_timestamp),
                 calculated_intervals=TimeIntervals(),
-                modifier=None,  # Last() + IData(),
-                tool=None,
+                # tool=None,
                 input_streams=None
             )
 
@@ -111,27 +110,22 @@ class FileChannel(ReadOnlyMemoryChannel):
     def data_loader(self, short_path, file_info):
         raise NotImplementedError
     
-    def get_results(self, stream_ref):
+    def get_results(self, stream):
         # TODO: Make this behave like the other channels
-        if stream_ref.time_interval.end > self.up_to_timestamp:
-            raise ValueError(
-                'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
+        # if time_interval.end > self.up_to_timestamp:
+        #     raise ValueError(
+        #         'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
         
         result = []
-        module_path = os.path.join(self.path, stream_ref.stream_id.name)
+        module_path = os.path.join(self.path, stream.stream_id.name)
         
         for file_info in self.file_filter(sorted(os.listdir(module_path))):
             if file_info.timestamp <= self.up_to_timestamp:
-                # result.append((file_info, self.data_loader(stream_ref.stream_id.name, file_info)))
                 result.append(StreamInstance(
                     timestamp=file_info.timestamp,
-                    value=self.data_loader(stream_ref.stream_id.name, file_info)
+                    value=self.data_loader(stream.stream_id.name, file_info)
                 ))
         
         result.sort(key=lambda x: x.timestamp)
-
-        if stream_ref.modifier:
-            result = stream_ref.modifier.execute(iter(result))
-        
         return result
 

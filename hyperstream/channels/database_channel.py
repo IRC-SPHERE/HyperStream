@@ -37,77 +37,38 @@ class DatabaseChannel(BaseChannel):
             stream.calculated_intervals = intervals
         self.up_to_timestamp = up_to_timestamp
 
-    def _get_data(self, stream_ref):
+    def _get_data(self, stream):
         # TODO: Get the data from the database. Should the responsibility be here or in Stream.Items()?
-        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream_ref.items()
-                       if timestamp in stream_ref.time_interval), key=lambda x: x.timestamp)
+        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream.items()
+                       if timestamp in stream.time_interval), key=lambda x: x.timestamp)
 
-    def get_results(self, stream_ref):
+    def get_results(self, stream):
         # TODO: This is identical to MemoryChannel - can they share a base instantiation (BaseChannel)??
-        if not stream_ref.required_intervals.is_empty:
-            for interval in stream_ref.required_intervals:
-                self.execute_tool(stream_ref, interval)
-                stream_ref.calculated_intervals += TimeIntervals([interval])
+        # required_intervals = TimeIntervals([time_interval]) - stream.calculated_intervals
+        # if not required_intervals.is_empty:
+        #     for interval in stream.required_intervals:
+        #         self.execute_tool(stream, interval)
+        #         stream.calculated_intervals += TimeIntervals([interval])
+        #
+        #     if stream.required_times.is_not_empty:
+        #         raise RuntimeError('Tool execution did not cover the specified time_interval.')
+        #
+        return self._get_data(stream)
 
-            if stream_ref.required_times.is_not_empty:
-                raise RuntimeError('Tool execution did not cover the specified interval.')
-
-        return stream_ref.modifier.execute(iter(self._get_data(stream_ref)))
-
-        # abs_end, abs_start = self.get_absolute_start_end(stream_ref)
-        #
-        # done_calc_times = stream_ref.calculated_intervals
-        # need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
-        #
-        # self.do_calculations(stream_ref, abs_start, abs_end, need_to_calc_times)
-        #
-        # result = []
-        # for (timestamp, data) in stream_ref.items():
-        #     if abs_start < timestamp <= abs_end:
-        #         result.append((timestamp, data))
-        #
-        # result.sort(key=lambda x: x[0])
-        #
-        # # make a generator out from result and then apply the modifiers
-        # result = stream_ref.modifiers(iter(result))  # (x for x in result))
-        # return result
-    
-    # def do_calculations(self, stream_ref, abs_start, abs_end, need_to_calc_times):
-    #     if need_to_calc_times.is_empty:
-    #         return
-    #
-    #     tool = stream_ref.tool
-    #
-    #     for (start2, end2) in need_to_calc_times.value:
-    #         kwargs2 = self.get_params(stream_ref.kwargs, start2, end2)
-    #
-    #         # Here we're actually executing the tool
-    #         tool(stream_ref, start2, end2, stream_ref.writer, **kwargs2)
-    #
-    #         stream_ref.calculated_intervals += TimeIntervals([(start2, end2)])
-    #
-    #     done_calc_times = stream_ref.calculated_intervals
-    #     need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times
-    #     logging.debug(done_calc_times)
-    #     logging.debug(need_to_calc_times)
-    #
-    #     if need_to_calc_times.is_not_empty:
-    #         raise ValueError('Tool execution did not cover the specified interval.')
-
-    def create_stream(self, stream_id, tool_stream=None):
+    def create_stream(self, stream_id):  # , tool_stream=None):
         # TODO: Functionality here
         raise NotImplementedError("Database streams currently need to be defined in the database")
 
-    def get_stream_writer(self, stream_ref):
+    def get_stream_writer(self, stream):
         def writer(document_collection):
             # TODO: Does this check whether a stream_id/datetime pair already exists in the DB? (unique pairs?)
             for t, doc in document_collection:
                 instance = StreamInstanceModel(
-                    stream_id=stream_ref.stream_id,
-                    stream_type=stream_ref.stream_type,
+                    stream_id=stream.stream_id,
+                    stream_type=stream.stream_type,
                     datetime=t,
-                    metadata=stream_ref.tool.metadata,
-                    version=stream_ref.tool.version,
+                    metadata=stream.tool.metadata,
+                    version=stream.tool.version,
                     value=doc
                 )
                 instance.save()

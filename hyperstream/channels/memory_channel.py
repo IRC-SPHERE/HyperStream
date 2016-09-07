@@ -33,31 +33,30 @@ class MemoryChannel(BaseChannel):
         self.max_stream_id = 0
         self.data = defaultdict(list)
 
-    def create_stream(self, stream_id, tool_stream=None):
+    def create_stream(self, stream_id):  # , tool_stream=None):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
         identifier stream_id
         """
         if stream_id in self.streams:
-            raise ValueError("Stream already exists")
+            raise ValueError("Stream with id '{}' already exists".format(stream_id))
 
         # TODO: Want to be able to define the streams in the database
 
-        if tool_stream:
-            # TODO: Use tool versions - here we're just taking the latest one
-            tool_class = tool_stream.items()[-1].value
-            tool = tool_class(**tool_stream.kwargs)
-        else:
-            tool = None
+        # if tool_stream:
+        #     # TODO: Use tool versions - here we're just taking the latest one
+        #     tool_class = tool_stream.items()[-1].value
+        #     tool = tool_class(**tool_stream.kwargs)
+        # else:
+        #     tool = None
 
         stream = Stream(
             channel=self,
             stream_id=stream_id,
-            time_interval=None,
             calculated_intervals=TimeIntervals(),
-            modifier=None,
-            tool=tool,
-            input_streams=tool_stream.input_streams if tool_stream else None
+            # tool=tool,
+            # input_streams=tool_stream.input_streams if tool_stream else None
+            input_streams=None
         )
 
         self.streams[stream_id] = stream
@@ -69,48 +68,33 @@ class MemoryChannel(BaseChannel):
     def check_calculation_times(self):
         pass
 
-    def _get_data(self, stream_ref):
+    def _get_data(self, stream):
         """
         Get the data generator. Sorts on timestamp
-        :param stream_ref: The stream reference
-        :param kwargs: The keyword arguments
+        :param stream: The stream reference
         :return: The data generator
         """
-        
-        # TODO from niall: is it strictly necessary to sort here? Do the database ops not maintain order?
-        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream_ref.stream_id]
-                       if timestamp in stream_ref.time_interval), key=lambda x: x.timestamp)
+        # return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream.stream_id]
+        #                if timestamp in stream.time_interval), key=lambda x: x.timestamp)
+        # TODO: Put the check back in for the time interval
+        return sorted(self.data[stream.stream_id], key=lambda x: x.timestamp)
 
-    def get_results(self, stream_ref):
+    def get_results(self, stream):
         """
-        Calculates/receives the documents in the stream interval determined by the stream_ref
-        :param stream_ref: The stream reference
-        :param kwargs: Keyword arguments
+        Calculates/receives the documents in the stream interval determined by the stream
+        :param stream: The stream reference
         :return:
         """
-        if not stream_ref.required_intervals.is_empty:
-            for interval in stream_ref.required_intervals:
-                self.execute_tool(stream_ref, interval)
-                    
-                # TODO: Incorrect time interval???
-                stream_ref.calculated_intervals += TimeIntervals([interval])
+        return self._get_data(stream)
 
-            if stream_ref.required_intervals.is_not_empty:
-                raise RuntimeError('Tool execution did not cover the specified interval.')
-
-        if stream_ref.modifier:
-            return stream_ref.modifier.execute(self._get_data(stream_ref))
-        else:
-            return self._get_data(stream_ref)
-
-    def get_stream_writer(self, stream_ref):
+    def get_stream_writer(self, stream):
         def writer(document_collection):
             # TODO from niall: I added this type check to fix bug with the Apply tool. \
             #   please verify that it does not interfere with other code
             if isinstance(document_collection, StreamInstance):
-                self.data[stream_ref.stream_id].append(document_collection)
+                self.data[stream.stream_id].append(document_collection)
             else:
-                self.data[stream_ref.stream_id].extend(document_collection)
+                self.data[stream.stream_id].extend(document_collection)
         return writer
     
 
@@ -136,10 +120,10 @@ class ReadOnlyMemoryChannel(BaseChannel):
             self.update_streams(up_to_timestamp)
             self.update_state(up_to_timestamp)
 
-    def create_stream(self, stream_id, tool_stream=None):
+    def create_stream(self, stream_id):  # , tool_stream=None):
         raise RuntimeError("Read-only channel")
 
-    def get_stream_writer(self, stream_ref):
+    def get_stream_writer(self, stream):
         raise RuntimeError("Read-only channel")
     
     # def str_stream(self, stream_id):
@@ -163,18 +147,17 @@ class ReadOnlyMemoryChannel(BaseChannel):
             stream.calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
         self.up_to_timestamp = up_to_timestamp
     
-    def get_results(self, stream_ref):
+    def get_results(self, stream):
         # TODO: make this behave like the other channels
-        start = stream_ref.time_interval.start
-        end = stream_ref.time_interval.end
-        if isinstance(start, timedelta) or isinstance(end, timedelta):
-            raise ValueError('Cannot calculate a relative stream_ref')
-        if end > self.up_to_timestamp:
-            raise ValueError(
-                'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
+        # start = time_interval.start
+        # end = time_interval.end
+        # if isinstance(start, timedelta) or isinstance(end, timedelta):
+        #     raise ValueError('Cannot calculate a relative stream')
+        # if end > self.up_to_timestamp:
+        #     raise ValueError(
+        #         'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
         result = []
-        for (tool_info, data) in self.streams[stream_ref.stream_id]:
+        for (tool_info, data) in self.streams[stream.stream_id]:
             if start < tool_info.timestamp <= end:
                 result.append(StreamInstance(tool_info.timestamp, data))
-        result = stream_ref.modifier.execute(iter(sorted(result, key=lambda x: x.timestamp)))
-        return result
+        return sorted(result, key=lambda x: x.timestamp)

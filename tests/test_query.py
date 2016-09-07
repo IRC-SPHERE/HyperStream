@@ -20,11 +20,13 @@
 
 import unittest
 
-from hyperstream import TimeInterval, TimeIntervals
+from hyperstream import TimeInterval, TimeIntervals, Workflow, StreamView, RelativeTimeInterval
 from hyperstream.itertools2 import online_average, count as online_count
+from hyperstream.utils import MIN_DATE
 from helpers import *
 
 
+# noinspection PyMethodMayBeStatic
 class HyperStringTests(unittest.TestCase):
     def test_time_interval(self):
         now = datetime(2016, 1, 1, 0, 0, 0)
@@ -64,16 +66,17 @@ class HyperStringTests(unittest.TestCase):
     
     def test_simple_query(self):
         # Simple querying
-        env = S[environmental].window((t1, t1 + minute))
+        ti = TimeInterval(t1, t1 + minute)
 
-        eid = StreamId('electricity')
+        elec = M.create_stream(stream_id=StreamId('electricity'))
 
-        elec_tool = T[component].define(input_streams=[env], key='electricity-04063')
-        M.create_stream(stream_id=eid, tool_stream=elec_tool)
+        env_tool = channels.get_tool2("sphere", dict(modality="environmental"))
+        elec_tool = T[component].items()[-1].value(key='electricity-04063')
 
-        el = M[eid].window((t1, t1 + minute))
+        env_tool.execute(input_streams=None, interval=ti, writer=S[environmental].writer)
+        elec_tool.execute(input_streams=[S[environmental]], interval=ti, writer=elec.writer)
 
-        q1 = "\n".join("=".join(map(str, ee)) for ee in el)
+        q1 = "\n".join("=".join(map(str, ee)) for ee in elec)
         
         # print(q1)
         # print(edl)
@@ -85,43 +88,77 @@ class HyperStringTests(unittest.TestCase):
                       '2016-04-28 20:00:31.405000+00:00=0.0\n'
                       '2016-04-28 20:00:50.132000+00:00=0.0')
 
-        assert (el.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        assert (elec.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_average(self):
-        M[every30s] = M.create_stream(stream_id=every30s, tool_stream=clock_tool)
-        motion_tool = T[component].define(input_streams=[S[environmental]], key='motion-S1_K')
-        M.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=motion_tool)
+        ti = TimeInterval(t1, t1 + 5 * minute)
+        rel = RelativeTimeInterval(-30 * second, 0)
 
-        mk_30s = M[m_kitchen_30_s_window].relative_window((-30 * second, 0))
+        # Create some memory streams
+        M.create_stream(stream_id=every30s)
+        M.create_stream(stream_id=m_kitchen_30_s_window)
+        M.create_stream(stream_id=average)
 
-        averager = T[aggregate].define(
-            input_streams=[M[every30s], mk_30s],
-            func=lambda x: online_average(map(lambda xi: xi.value, x))
-        )
+        # Create the tools
+        clock_tool = channels.get_tool2(clock, dict(first=MIN_DATE, stride=30*second))
+        motion_tool = channels.get_tool2(component, dict(key='motion-S1_K'))
+        average_tool = channels.get_tool2(aggregate, dict(func=lambda x: online_average(map(lambda xi: xi.value, x))))
 
-        M.create_stream(stream_id=average, tool_stream=averager)
-        
-        aa = M[average].window((t1, t1 + 5 * minute)).values()
+        # Execute the tools
+        clock_tool.execute(None, ti, M[every30s].writer)
+        motion_tool.execute([S[environmental]], ti, M[m_kitchen_30_s_window].writer)
+        average_tool.execute([M[every30s], M[m_kitchen_30_s_window]], rel, M[average].writer)
+
+        # mk_30s = M[m_kitchen_30_s_window].relative_window((-30 * second, 0))
+        # aa = M[average].execute((t1, t1 + 5 * minute)).values()
+        aa = M[average].values()
         logging.info(aa)
         assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     def test_windowed_querying_count(self):
-        mk_30s = M[m_kitchen_30_s_window].relative_window((-30 * second, 0))
-        
-        counter = T[aggregate].define(
-            input_streams=[M[every30s], mk_30s],
-            func=online_count
-        )
+        ti = TimeInterval(t1, t1 + 5 * minute)
 
-        M.create_stream(stream_id=count, tool_stream=counter)
+        M.create_stream(stream_id=count)
+        counter = channels.get_tool2(aggregate, dict(func=online_count))
+        counter.execute([M[every30s], M[m_kitchen_30_s_window]], ti, M[count].writer)
 
-        cc = M[count].window((t1, t1 + 5 * minute)).values()
+        # cc = M[count].execute((t1, t1 + 5 * minute)).values()
+        cc = M[count].values()
         logging.info(cc)
         assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])
 
     def test_database_channel(self):
         # TODO: some tests go here
         pass
+
+    def test_simple_workflow(self):
+        # Create a simple one step workflow for querying
+        w = Workflow(
+            channels=channels,
+            plates=plates,
+            workflow_id="simple_query_workflow",
+            name="Simple query workflow",
+            owner="TD",
+            description="Just a test of creating workflows")
+
+        time_interval = TimeInterval(t1, t1 + 1 * minute)
+
+        # Create some streams (collected in a node)
+        node = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1"])  # .window((t1, t1 + 1 * minute))
+
+        # Create a factor to produce some data
+        w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
+                        sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
+
+        # Execute the workflow
+        w.execute(time_interval)
+
+        # Check the values
+        assert (node.streams[0].values()[:1] ==
+                [{u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
+                  'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
+                  'temperature': None}])
+
 
 if __name__ == '__main__':
     unittest.main()
