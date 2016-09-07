@@ -22,11 +22,12 @@ import logging
 from datetime import datetime, timedelta
 
 from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client
-from hyperstream.time_interval import RelativeTimeInterval
-from hyperstream.modifiers import Component
+from hyperstream.time_interval import RelativeTimeInterval, TimeInterval
 from hyperstream.utils import UTC
 from hyperstream.itertools2 import online_average, count as online_count, any_set
 from sphere_connector_package.sphere_connector import SphereLogger
+
+from hyperstream.utils.time_utils import MIN_DATE
 
 if __name__ == '__main__':
     # TODO: hyperstream needs it's own logger (can be a clone of this one)
@@ -54,91 +55,101 @@ if __name__ == '__main__':
     
     # A couple of parameters
     relative_window = (-30 * second, timedelta(0))
-    interval = (t1, t2)
-        
+    interval = TimeInterval(t1, t1 + 5 * minute)
+    
     #
     #
     #
     #
     # Define sliding window stream
-    stream_id_tool_sliding_window = StreamId('sliding_window')
-    stream_id_memory_sliding_window = StreamId('stream_id_memory_sliding_window')
+    stream_memory_sliding_window = M.create_stream(StreamId('stream_id_memory_sliding_window'))
     
-    stream_tool_sliding_window = T[stream_id_tool_sliding_window].define(
-        input_streams=[],
-        lower=timedelta(seconds=-30),
-        upper=timedelta(seconds=0),
-        increment=timedelta(seconds=10)
+    stream_tool_sliding_window = channels.get_tool2(
+        tool="sliding_window",
+        tool_parameters=dict(
+            first=MIN_DATE,
+            lower=timedelta(seconds=-30),
+            upper=timedelta(seconds=0),
+            increment=timedelta(seconds=10)
+        )
     )
     
-    stream_memory_sliding_window = M.create_stream(
-        stream_id_memory_sliding_window,
-        stream_tool_sliding_window
+    stream_tool_sliding_window.execute(
+        input_streams=None,
+        interval=interval,
+        writer=stream_memory_sliding_window.writer
     )
+
+    print str(stream_memory_sliding_window.values()[0])
     
     #
     #
     #
     #
     # Define the motion in kitchen tool
-    stream_id_tool_sphere = StreamId('sphere')
-    stream_id_memory_environmental = StreamId('stream_id_memory_environmental')
     
-    stream_tool_sphere_environmental = T[stream_id_tool_sphere].define(
-        input_streams=[],
-        modality='environmental'
+    stream_sphere_environmental = S.create_stream(StreamId('stream_id_memory_environmental'))
+    
+    stream_tool_sphere_environmental = channels.get_tool2(
+        tool='sphere',
+        tool_parameters=dict(
+            modality='environmental'
+        )
     )
     
-    stream_sphere_environmental = S.create_stream(
-        stream_id_memory_environmental,
-        stream_tool_sphere_environmental
+    stream_tool_sphere_environmental.execute(
+        input_streams=None,
+        interval=interval,
+        writer=stream_sphere_environmental.writer
     )
+
+    print stream_sphere_environmental.values()[0]
     
     #
     #
     #
     #
     # Filter the motion in kitchen
-    id_tool_component = StreamId('component')
-    id_memory_m_kitchen = StreamId('id_memory_m_kitchen')
+    stream_memory_motion = M.create_stream(StreamId('id_memory_m_kitchen'))
     
-    tool_motion = T[id_tool_component].define(
+    tool_motion = channels.get_tool2(
+        tool='component',
+        tool_parameters=dict(
+            key='motion-S1_K'
+        )
+    )
+    
+    tool_motion.execute(
         input_streams=[
             stream_sphere_environmental
         ],
-        key='motion-S1_K'
+        interval=interval,
+        writer=stream_memory_motion.writer
     )
-    
-    stream_memory_motion = M.create_stream(
-        id_memory_m_kitchen,
-        tool_motion
-    )
+
+    print stream_memory_motion.values()
     
     #
     #
     #
     #
     # Aggregate over the window
-    id_tool_sliding_apply = StreamId('sliding_apply')
-    id_memory_m_kitchen_mean = StreamId('id_memory_m_kitchen_mean')
+    stream_memory_m_kitchen_mean = M.create_stream(StreamId('id_memory_m_kitchen_mean'))
     
-    tool_sliding_apply = T[id_tool_sliding_apply].define(
+    tool_sliding_apply = channels.get_tool2(
+        tool='sliding_apply',
+        tool_parameters=dict(
+            func=online_average
+        )
+    )
+    
+    tool_sliding_apply.execute(
         input_streams=[
             stream_memory_sliding_window,
             stream_memory_motion
         ],
-        func=online_average
+        interval=interval,
+        writer=stream_memory_m_kitchen_mean.writer
     )
     
-    stream_memory_m_kitchen_mean = M.create_stream(
-        id_memory_m_kitchen_mean,
-        tool_sliding_apply
-    )
-    
-    #
-    #
-    #
-    #
-    # Print some data
-    for kv in stream_memory_m_kitchen_mean.window(interval).iteritems():
-        print kv
+    print stream_memory_m_kitchen_mean.values()

@@ -23,6 +23,8 @@ from mongoengine import Document, StringField, EmbeddedDocument, EmbeddedDocumen
 from time_range import TimeRangeModel
 
 
+# TODO: These are SPHERE-sepcific and should be moved to outside hyperstream master.
+
 class ToolModel(EmbeddedDocument):
     name = StringField(required=True, min_length=1, max_length=512)
     version = StringField(required=True, min_length=1, max_length=512)
@@ -37,7 +39,7 @@ class PlateDefinitionModel(Document):
     values = ListField(field=StringField(min_length=1, max_length=512))
     complement = BooleanField(required=False, default=False)
     parent_plate = StringField(required=False, min_length=1, max_length=512, default="")
-
+    
     meta = {
         'collection': 'plate_definitions',
         'indexes': [{'fields': ['plate_id'], 'unique': True}],
@@ -74,7 +76,7 @@ class WorkflowDefinitionModel(Document):
     # plates = MapField(field=EmbeddedDocumentListField(document_type=PlateDefinitionModel))
     factors = EmbeddedDocumentListField(document_type=FactorDefinitionModel, required=True)
     owner = StringField(required=False, min_length=1, max_length=512)
-
+    
     meta = {
         'collection': 'workflow_definitions',
         'indexes': [{'fields': ['workflow_id']}],
@@ -87,31 +89,31 @@ class WorkflowStatusModel(Document):
     stream_type = StringField(required=True, min_length=1, max_length=512)
     last_updated = DateTimeField(required=True)
     last_accessed = DateTimeField(required=False)
-
+    
     # Time ranges requested for computation for this workflow
     requested_ranges = EmbeddedDocumentListField(document_type=TimeRangeModel, required=True)
-
+    
     # Actual ranges that have been computed. Note that this can be empty to begin with
     computed_ranges = EmbeddedDocumentListField(document_type=TimeRangeModel, required=False)
-
+    
     meta = {
         'collection': 'workflow_status',
         'indexes': [{'fields': ['stream_id']}],
         'ordering': ['start']
     }
-
+    
     def add_time_range(self, time_range):
         if not isinstance(time_range, TimeRangeModel):
             raise RuntimeError("Can only add TimeRangeModel objects")
-
+        
         self.computed_ranges.append(time_range)
         self.update_time_ranges()
         return self.computed_ranges
-
+    
     def update_time_ranges(self):
         sorted_by_lower_bound = sorted(self.computed_ranges, key=lambda r: r.start)
         merged = []
-
+        
         for higher in sorted_by_lower_bound:
             if not merged:
                 merged.append(higher)
