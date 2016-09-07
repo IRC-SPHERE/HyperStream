@@ -120,7 +120,9 @@ if __name__ == '__main__':
     )
     
     tool_motion.execute(
-        input_streams=[stream_sphere_environmental],
+        input_streams=[
+            stream_sphere_environmental
+        ],
         interval=interval,
         writer=stream_memory_motion.writer
     )

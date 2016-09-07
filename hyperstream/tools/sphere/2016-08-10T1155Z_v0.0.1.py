@@ -20,7 +20,14 @@
 
 from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.channels.sphere_channel import SphereDataWindow
-from hyperstream.stream import StreamInstances
+from hyperstream.stream import StreamInstance
+
+
+def reformat(doc):
+    dt = doc['datetime']
+    del doc['datetime']
+    
+    return StreamInstance(dt, doc)
 
 
 class Sphere(Tool):
@@ -32,4 +39,4 @@ class Sphere(Tool):
     def _execute(self, input_streams, interval):
         window = SphereDataWindow(interval)
         source = window.modalities[self.modality]
-        yield StreamInstances('datetime', source.get_data())
+        yield map(reformat, source.get_data())

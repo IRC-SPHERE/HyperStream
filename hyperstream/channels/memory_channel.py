@@ -32,7 +32,7 @@ class MemoryChannel(BaseChannel):
         super(MemoryChannel, self).__init__(channel_id=channel_id, can_calc=True, can_create=True)
         self.max_stream_id = 0
         self.data = defaultdict(list)
-
+    
     def create_stream(self, stream_id):  # , tool_stream=None):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
@@ -40,16 +40,16 @@ class MemoryChannel(BaseChannel):
         """
         if stream_id in self.streams:
             raise ValueError("Stream with id '{}' already exists".format(stream_id))
-
+        
         # TODO: Want to be able to define the streams in the database
-
+        
         # if tool_stream:
         #     # TODO: Use tool versions - here we're just taking the latest one
         #     tool_class = tool_stream.items()[-1].value
         #     tool = tool_class(**tool_stream.kwargs)
         # else:
         #     tool = None
-
+        
         stream = Stream(
             channel=self,
             stream_id=stream_id,
@@ -58,16 +58,16 @@ class MemoryChannel(BaseChannel):
             # input_streams=tool_stream.input_streams if tool_stream else None
             input_streams=None
         )
-
+        
         self.streams[stream_id] = stream
         return stream
-
+    
     def update_streams(self, up_to_timestamp):
         raise NotImplementedError
-
+    
     def check_calculation_times(self):
         pass
-
+    
     def _get_data(self, stream):
         """
         Get the data generator. Sorts on timestamp
@@ -78,7 +78,7 @@ class MemoryChannel(BaseChannel):
         #                if timestamp in stream.time_interval), key=lambda x: x.timestamp)
         # TODO: Put the check back in for the time interval
         return sorted(self.data[stream.stream_id], key=lambda x: x.timestamp)
-
+    
     def get_results(self, stream):
         """
         Calculates/receives the documents in the stream interval determined by the stream
@@ -86,17 +86,22 @@ class MemoryChannel(BaseChannel):
         :return:
         """
         return self._get_data(stream)
-
+    
     def get_stream_writer(self, stream):
         def writer(document_collection):
             # TODO from niall: I added this type check to fix bug with the Apply tool. \
             #   please verify that it does not interfere with other code
             if isinstance(document_collection, StreamInstance):
                 self.data[stream.stream_id].append(document_collection)
-            else:
+            elif isinstance(document_collection, list):
                 self.data[stream.stream_id].extend(document_collection)
+            else:
+                raise RuntimeError('Stream writer given unallowed data type. '
+                                   'Allowed types: {StreamInstance, list<StreamInstance>}. '
+                                   'Inputted type: {}. '.format(type(document_collection).__class__.__name__))
+        
         return writer
-    
+
 
 class ReadOnlyMemoryChannel(BaseChannel):
     """
@@ -119,22 +124,22 @@ class ReadOnlyMemoryChannel(BaseChannel):
         if up_to_timestamp > MIN_DATE:
             self.update_streams(up_to_timestamp)
             self.update_state(up_to_timestamp)
-
+    
     def create_stream(self, stream_id):  # , tool_stream=None):
         raise RuntimeError("Read-only channel")
-
+    
     def get_stream_writer(self, stream):
         raise RuntimeError("Read-only channel")
     
     # def str_stream(self, stream_id):
     #     return 'externally defined, memory-based, read-only stream'
-
+    
     def update_streams(self, up_to_timestamp):
         """
         Deriving classes must override this function
         """
         raise NotImplementedError
-
+    
     def update_state(self, up_to_timestamp):
         """
         Call this function to ensure that the channel is up to date at the time of timestamp.
