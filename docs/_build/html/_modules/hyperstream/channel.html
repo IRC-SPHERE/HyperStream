@@ -152,45 +152,78 @@
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">undefined</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">before</span><span class="p">:</span>
                     <span class="k">continue</span>
 
-                <span class="c1"># TODO: Do we need a TimeInterval defined here?</span>
-
                 <span class="k">if</span> <span class="n">stream_id</span> <span class="ow">in</span> <span class="n">channel</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">StreamAlreadyExistsError</span><span class="p">(</span><span class="n">stream_id</span><span class="p">)</span>
 
-                <span class="c1"># TODO: Use tool versions - here we just take the latest one</span>
-                <span class="n">tool_stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">StreamId</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">tool_name</span><span class="p">)]</span>
-                <span class="n">tool_class</span> <span class="o">=</span> <span class="n">tool_stream</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+                <span class="c1"># TODO: Create a Factor here?</span>
+                <span class="n">tool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tool</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">tool_name</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">tool_parameters</span><span class="p">,</span> <span class="n">input_streams</span><span class="p">)</span>
 
-                <span class="c1"># Check that the number of arguments is correct for this tool</span>
-                <span class="n">expected</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">tool_class</span><span class="o">.</span><span class="n">__init__</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="k">if</span> <span class="n">expected</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">tool_parameters</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Tool </span><span class="si">{}</span><span class="s2"> takes </span><span class="si">{}</span><span class="s2"> arguments (</span><span class="si">{}</span><span class="s2"> given)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">tool_class</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">expected</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">tool_parameters</span><span class="p">)))</span>
-
-                <span class="c1"># Instantiate tool</span>
-                <span class="n">tool</span> <span class="o">=</span> <span class="n">tool_class</span><span class="p">(</span><span class="o">**</span><span class="n">s</span><span class="o">.</span><span class="n">tool_parameters</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">tool</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">ToolNotFoundError</span>
-
-                <span class="c1"># Make sure that the tool stream is defined</span>
-                <span class="n">tool_stream</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="n">input_streams</span><span class="o">=</span><span class="n">input_streams</span><span class="p">,</span> <span class="o">**</span><span class="n">s</span><span class="o">.</span><span class="n">tool_parameters</span><span class="p">)</span>
-
-                <span class="n">channel</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span>
+                <span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span>
                     <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span>
                     <span class="n">stream_id</span><span class="o">=</span><span class="n">stream_id</span><span class="p">,</span>
-                    <span class="n">tool</span><span class="o">=</span><span class="n">tool</span><span class="p">,</span>
-                    <span class="n">time_interval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>   <span class="c1"># TODO</span>
+                    <span class="c1"># tool=tool,</span>
                     <span class="n">calculated_intervals</span><span class="o">=</span><span class="n">TimeIntervals</span><span class="p">(),</span>
-                    <span class="n">modifier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">input_streams</span><span class="o">=</span><span class="n">input_streams</span>
                 <span class="p">)</span>
+
+                <span class="n">channel</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">stream</span>
 
                 <span class="n">stream_objects</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">undefined</span><span class="p">:</span>
                     <span class="n">undefined</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stream_objects</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">stream_objects</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">copy</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">StreamNotFoundError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> stream objects still remain&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">stream_objects</span><span class="p">)))</span></div></div>
+                <span class="k">raise</span> <span class="n">StreamNotFoundError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> stream objects still remain&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">stream_objects</span><span class="p">)))</span></div>
 
+<div class="viewcode-block" id="ChannelManager.get_tool"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.channel.ChannelManager.get_tool">[docs]</a>    <span class="k">def</span> <span class="nf">get_tool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">,</span> <span class="n">tool_parameters</span><span class="p">,</span> <span class="n">input_streams</span><span class="p">):</span>
+        <span class="c1"># TODO: Use tool versions - here we just take the latest one</span>
+        <span class="n">tool_stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">StreamId</span><span class="p">(</span><span class="n">tool_name</span><span class="p">)]</span>
+        <span class="n">tool_class</span> <span class="o">=</span> <span class="n">tool_stream</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="c1"># Check that the number of arguments is correct for this tool</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">tool_class</span><span class="o">.</span><span class="n">__init__</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">expected</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tool_parameters</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Tool </span><span class="si">{}</span><span class="s2"> takes </span><span class="si">{}</span><span class="s2"> arguments (</span><span class="si">{}</span><span class="s2"> given)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">tool_class</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">expected</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">tool_parameters</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># Instantiate tool</span>
+        <span class="n">tool</span> <span class="o">=</span> <span class="n">tool_class</span><span class="p">(</span><span class="o">**</span><span class="n">tool_parameters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tool</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ToolNotFoundError</span>
+
+        <span class="c1"># Input streams should be stream objects</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">input_streams</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">input_streams</span><span class="p">,</span> <span class="n">Stream</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Stream expected (</span><span class="si">{}</span><span class="s2"> given)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">stream</span><span class="p">)))</span>
+
+        <span class="c1"># Make sure that the tool stream is defined</span>
+        <span class="c1"># tool_stream.define(input_streams=input_streams, **tool_parameters)</span>
+
+        <span class="k">return</span> <span class="n">tool</span></div>
+
+<div class="viewcode-block" id="ChannelManager.get_tool2"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.channel.ChannelManager.get_tool2">[docs]</a>    <span class="k">def</span> <span class="nf">get_tool2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tool</span><span class="p">,</span> <span class="n">tool_parameters</span><span class="p">):</span>
+        <span class="c1"># TODO: Use tool versions - here we just take the latest one</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tool</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">unicode</span><span class="p">)):</span>
+            <span class="n">tool_id</span> <span class="o">=</span> <span class="n">StreamId</span><span class="p">(</span><span class="n">tool</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tool</span><span class="p">,</span> <span class="n">StreamId</span><span class="p">):</span>
+            <span class="n">tool_id</span> <span class="o">=</span> <span class="n">tool</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">tool</span><span class="p">)</span>
+
+        <span class="n">tool_stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">tool_id</span><span class="p">]</span>
+        <span class="n">tool_class</span> <span class="o">=</span> <span class="n">tool_stream</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="c1"># Check that the number of arguments is correct for this tool</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">tool_class</span><span class="o">.</span><span class="n">__init__</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">expected</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tool_parameters</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Tool </span><span class="si">{}</span><span class="s2"> takes </span><span class="si">{}</span><span class="s2"> arguments (</span><span class="si">{}</span><span class="s2"> given)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">tool_class</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">expected</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">tool_parameters</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># Instantiate tool</span>
+        <span class="n">tool</span> <span class="o">=</span> <span class="n">tool_class</span><span class="p">(</span><span class="o">**</span><span class="n">tool_parameters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tool</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ToolNotFoundError</span>
+
+        <span class="k">return</span> <span class="n">tool</span></div></div>
 </pre></div>
 
           </div>

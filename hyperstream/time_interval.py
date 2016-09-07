@@ -161,7 +161,25 @@ class TimeInterval(object):
 
 class RelativeTimeInterval(TimeInterval):
     def __init__(self, start, end):
-        super(RelativeTimeInterval, self).__init__(start, end)
+        if isinstance(start, int):
+            start_time = timedelta(seconds=start)
+        elif isinstance(start, timedelta):
+            start_time = start
+        else:
+            raise ValueError(start)
+
+        if isinstance(end, int):
+            # TODO: add check for future (positive values) and ensure that start < end
+            end_time = timedelta(seconds=end)
+        elif isinstance(end, timedelta):
+            end_time = end
+        else:
+            raise ValueError(end)
+
+        if start_time >= end_time:
+            raise ValueError("start should be < end")
+
+        super(RelativeTimeInterval, self).__init__(start_time, end_time)
         
     def validate_types(self, val):
         if not isinstance(val, timedelta):
