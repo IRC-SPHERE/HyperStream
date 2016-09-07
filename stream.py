@@ -22,21 +22,21 @@ from time_interval import TimeIntervals, parse_time_tuple, RelativeTimeInterval,
 from utils import Hashable, TypedBiDict, check_output_format, check_tool_defined
 
 import logging
-from copy import deepcopy
+# from copy import deepcopy
 from collections import Iterable, namedtuple
 from datetime import datetime
 
-
-class StreamView(namedtuple("StreamView", "stream time_interval")):
-    """
-    Simple helper class for storing streams with time intervals (i.e. a "view" on a stream)
-    """
-    def __new__(cls, stream, time_interval=None):
-        if not isinstance(stream, Stream):
-            raise ValueError("stream must be Stream object")
-        if time_interval is not None and not isinstance(time_interval, TimeInterval):
-            raise ValueError("time_interval must be TimeInterval object")
-        return super(StreamView, cls).__new__(cls, stream, time_interval)
+#
+# class StreamView(namedtuple("StreamView", "stream time_interval")):
+#     """
+#     Simple helper class for storing streams with time intervals (i.e. a "view" on a stream)
+#     """
+#     def __new__(cls, stream, time_interval=None):
+#         if not isinstance(stream, Stream):
+#             raise ValueError("stream must be Stream object")
+#         if time_interval is not None and not isinstance(time_interval, TimeInterval):
+#             raise ValueError("time_interval must be TimeInterval object")
+#         return super(StreamView, cls).__new__(cls, stream, time_interval)
 
 
 class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
@@ -72,11 +72,21 @@ class StreamId(Hashable):
     
     def __init__(self, name, meta_data=None):
         self.name = name
-        self.meta_data = meta_data if meta_data else {}
+        if meta_data:
+            if isinstance(meta_data, dict):
+                self.meta_data = tuple(sorted(meta_data.items()))
+            elif isinstance(meta_data, tuple):
+                self.meta_data = meta_data
+            else:
+                raise ValueError("Expected dict or tuple, got {}".format(type(meta_data)))
+        else:
+            self.meta_data = tuple()
+        # self.meta_data = meta_data if meta_data else {}
     
     def __str__(self):
         if self.meta_data:
-            return self.name + ": [" + ", ".join("{}={}".format(k, v) for k, v in self.meta_data.items()) + "]"
+            # return self.name + ": [" + ", ".join("{}={}".format(k, v) for k, v in self.meta_data.items()) + "]"
+            return self.name + ": [" + ", ".join("{}={}".format(k, v) for k, v in self.meta_data) + "]"
         else:
             return self.name
     
@@ -100,7 +110,7 @@ class Stream(Hashable):
     _calculated_intervals = None
     defined = False
 
-    def __init__(self, channel, stream_id, calculated_intervals, input_streams):
+    def __init__(self, channel, stream_id, calculated_intervals):
         """
         :type channel: BaseChannel
         :type stream_id: StreamId
@@ -115,24 +125,19 @@ class Stream(Hashable):
         if not isinstance(calculated_intervals, TimeIntervals):
             raise TypeError(str(type(calculated_intervals)))
         self.calculated_intervals = calculated_intervals
-        self.tool_reference = None
-        # self.kwargs = {}
-        # self.tool = tool
-        self.input_streams = input_streams
+        self.tool_reference = None # needed to traverse the graph outside of workflows
 
         # Here we define the output type. When modifiers are applied, this changes
         # self.output_format = 'doc_gen'
         
-    def set_tool_reference(self, tool_reference):
+    def set_tool_reference(self, tool_reference): # needed to traverse the graph outside of workflows
         self.tool_reference = tool_reference
     
     def __str__(self):
-        return "{}(stream_id={}, channel_id={}, input_streams=[{}])".format(
+        return "{}(stream_id={}, channel_id={})".format(
             self.__class__.__name__,
             self.stream_id,
-            self.channel.channel_id,
-            # self.tool.__class__.__name__ if self.tool else None,
-            ", ".join(map(lambda x: x.stream_id.name, self.input_streams)) if self.input_streams else None)
+            self.channel.channel_id)
 
     def __repr__(self):
         return str(self)
@@ -295,47 +300,3 @@ class Stream(Hashable):
                 if value is not None:
                     data2[key] = value
             yield StreamInstance(time, data2)
-
-
-# class ToolStream(Stream):
-#     def __init__(self, stream):
-#         super(ToolStream, self).__init__(
-#             channel=stream.channel,
-#             stream_id=stream.stream_id,
-#             calculated_intervals=stream.calculated_intervals,
-#             # tool=stream.tool,
-#             input_streams=stream.input_streams)
-#         self.defined = False
-#
-#     def define(self, input_streams=None):  # , **kwargs):
-#         """
-#         Define the stream with the given input streams and keyword arguments
-#         :param input_streams: The input streams
-#         :param kwargs: keyword arguments
-#         :return: self (for chaining)
-#         """
-#         if self.defined:
-#             raise RuntimeError("Tool for stream {} already defined".format(self.stream_id))
-#
-#         # Don't obliterate existing input_streams definition if there was one
-#         if input_streams:
-#             self.input_streams = input_streams
-#
-#         # TODO: Possibly combine with existing kwargs ... defaults?
-#         # self.kwargs = kwargs
-#         self.defined = True
-#         return deepcopy(self)
-
-    # @check_tool_defined
-    # def execute(self):
-    #     self.channel.get_results(self)
-    #
-    # @check_tool_defined
-    # def __iter__(self):
-    #     for item in self.channel.get_results(self):
-    #         yield item
-    #
-    # @check_output_format({'doc_gen'})
-    # @check_tool_defined
-    # def iteritems(self):
-    #     return iter(self)

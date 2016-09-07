@@ -37,3 +37,7 @@ class ToolNotFoundError(Exception):
 
 class ChannelNotFoundError(Exception):
     pass
+
+
+class IncompatiblePlatesError(Exception):
+    pass
