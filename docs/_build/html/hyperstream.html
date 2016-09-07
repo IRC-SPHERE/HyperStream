@@ -50,14 +50,14 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="hyperstream.channels.html">hyperstream.channels package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#module-hyperstream.channels.base_channel">hyperstream.channels.base_channel module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#module-hyperstream.channels.database_channel">hyperstream.channels.database_channel module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#module-hyperstream.channels.file_channel">hyperstream.channels.file_channel module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#module-hyperstream.channels.memory_channel">hyperstream.channels.memory_channel module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#module-hyperstream.channels.module_channel">hyperstream.channels.module_channel module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#module-hyperstream.channels.sphere_channel">hyperstream.channels.sphere_channel module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#module-hyperstream.channels.tool_channel">hyperstream.channels.tool_channel module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#module-hyperstream.channels">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#hyperstream-channels-base-channel-module">hyperstream.channels.base_channel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#hyperstream-channels-database-channel-module">hyperstream.channels.database_channel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#hyperstream-channels-file-channel-module">hyperstream.channels.file_channel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#hyperstream-channels-memory-channel-module">hyperstream.channels.memory_channel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#hyperstream-channels-module-channel-module">hyperstream.channels.module_channel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#hyperstream-channels-sphere-channel-module">hyperstream.channels.sphere_channel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#hyperstream-channels-tool-channel-module">hyperstream.channels.tool_channel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.channels.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="hyperstream.itertools2.html">hyperstream.itertools2 package</a><ul>
@@ -147,6 +147,16 @@
 :param stream_id: The stream id
 :return: The stream reference</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.channel.ChannelManager.get_tool">
+<code class="descname">get_tool</code><span class="sig-paren">(</span><em>tool_name</em>, <em>tool_parameters</em>, <em>input_streams</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel.html#ChannelManager.get_tool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel.ChannelManager.get_tool" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.channel.ChannelManager.get_tool2">
+<code class="descname">get_tool2</code><span class="sig-paren">(</span><em>tool</em>, <em>tool_parameters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel.html#ChannelManager.get_tool2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel.ChannelManager.get_tool2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.channel.ChannelManager.update_channels">
@@ -251,12 +261,18 @@
 <div class="section" id="module-hyperstream.plate">
 <span id="hyperstream-plate-module"></span><h2>hyperstream.plate module<a class="headerlink" href="#module-hyperstream.plate" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
+<dt id="hyperstream.plate.Plate">
+<em class="property">class </em><code class="descclassname">hyperstream.plate.</code><code class="descname">Plate</code><span class="sig-paren">(</span><em>meta_data_id</em>, <em>values</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.plate.Plate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
 <dt id="hyperstream.plate.PlateManager">
-<em class="property">class </em><code class="descclassname">hyperstream.plate.</code><code class="descname">PlateManager</code><span class="sig-paren">(</span><em>meta_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/plate.html#PlateManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.plate.PlateManager" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">hyperstream.plate.</code><code class="descname">PlateManager</code><span class="sig-paren">(</span><em>meta_data</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.plate.PlateManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
 <dl class="staticmethod">
 <dt id="hyperstream.plate.PlateManager.get_parent_data">
-<em class="property">static </em><code class="descname">get_parent_data</code><span class="sig-paren">(</span><em>tree</em>, <em>node</em>, <em>d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/plate.html#PlateManager.get_parent_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.plate.PlateManager.get_parent_data" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">get_parent_data</code><span class="sig-paren">(</span><em>tree</em>, <em>node</em>, <em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.plate.PlateManager.get_parent_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Recurse up the tree getting parent data
 :param tree: The tree
 :param node: The current node
@@ -271,7 +287,7 @@
 <span id="hyperstream-stream-module"></span><h2>hyperstream.stream module<a class="headerlink" href="#module-hyperstream.stream" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="hyperstream.stream.Stream">
-<em class="property">class </em><code class="descclassname">hyperstream.stream.</code><code class="descname">Stream</code><span class="sig-paren">(</span><em>channel</em>, <em>stream_id</em>, <em>time_interval</em>, <em>calculated_intervals</em>, <em>modifier</em>, <em>tool</em>, <em>input_streams</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">hyperstream.stream.</code><code class="descname">Stream</code><span class="sig-paren">(</span><em>channel</em>, <em>stream_id</em>, <em>calculated_intervals</em>, <em>input_streams</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Hashable" title="hyperstream.utils.utils.Hashable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Hashable</span></code></a></p>
 <p>Stream reference class</p>
 <dl class="attribute">
@@ -280,91 +296,76 @@
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="hyperstream.stream.Stream.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.execute" title="Permalink to this definition">¶</a></dt>
+<dt id="hyperstream.stream.Stream.component">
+<code class="descname">component</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.component"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.component" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.stream.Stream.component_filter">
+<code class="descname">component_filter</code><span class="sig-paren">(</span><em>key</em>, <em>values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.component_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.component_filter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.stream.Stream.defined">
+<code class="descname">defined</code><em class="property"> = False</em><a class="headerlink" href="#hyperstream.stream.Stream.defined" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.stream.Stream.delete_nones">
+<code class="descname">delete_nones</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.delete_nones"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.delete_nones" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.stream.Stream.first">
-<code class="descname">first</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.stream.Stream.first" title="Permalink to this definition">¶</a></dt>
+<code class="descname">first</code><span class="sig-paren">(</span><em>default=None</em>, <em>key=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.first"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.first" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.stream.Stream.head">
-<code class="descname">head</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.stream.Stream.head" title="Permalink to this definition">¶</a></dt>
+<code class="descname">head</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.head"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.head" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.stream.Stream.items">
-<code class="descname">items</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.stream.Stream.items" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all results as a list
+:return:</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.stream.Stream.iteritems">
-<code class="descname">iteritems</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.stream.Stream.iteritems" title="Permalink to this definition">¶</a></dt>
+<code class="descname">iteritems</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.iteritems"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.iteritems" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.stream.Stream.itertimestamps">
-<code class="descname">itertimestamps</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.stream.Stream.itertimestamps" title="Permalink to this definition">¶</a></dt>
+<code class="descname">itertimestamps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.itertimestamps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.itertimestamps" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.stream.Stream.itervalues">
-<code class="descname">itervalues</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.stream.Stream.itervalues" title="Permalink to this definition">¶</a></dt>
+<code class="descname">itervalues</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.itervalues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.itervalues" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.stream.Stream.last">
-<code class="descname">last</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.stream.Stream.last" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.stream.Stream.modify">
-<code class="descname">modify</code><span class="sig-paren">(</span><em>modifier</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.modify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.modify" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the modifiers for this stream reference
-:param modifier: The modifier
-:type modifier: Modifier
-:return: self (for chaining)</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.stream.Stream.relative_window">
-<code class="descname">relative_window</code><span class="sig-paren">(</span><em>time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.relative_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.relative_window" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the time window for this stream
-:param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-:type time_interval: Iterable, TimeInterval
-:return: self (for chaining)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="hyperstream.stream.Stream.required_intervals">
-<code class="descname">required_intervals</code><a class="headerlink" href="#hyperstream.stream.Stream.required_intervals" title="Permalink to this definition">¶</a></dt>
+<code class="descname">last</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.last"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.last" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.stream.Stream.tail">
-<code class="descname">tail</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.stream.Stream.tail" title="Permalink to this definition">¶</a></dt>
+<code class="descname">tail</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.tail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.tail" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.stream.Stream.timestamps">
-<code class="descname">timestamps</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.stream.Stream.timestamps" title="Permalink to this definition">¶</a></dt>
+<code class="descname">timestamps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.timestamps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.timestamps" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.stream.Stream.values">
-<code class="descname">values</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.stream.Stream.values" title="Permalink to this definition">¶</a></dt>
+<code class="descname">values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.values" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.stream.Stream.window">
-<code class="descname">window</code><span class="sig-paren">(</span><em>time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.window" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the time window for this stream
-:param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-:type time_interval: Iterable, TimeInterval
-:return: self (for chaining)</p>
-</dd></dl>
 
 <dl class="attribute">
 <dt id="hyperstream.stream.Stream.writer">
@@ -396,18 +397,10 @@ Raises ValueDuplicationError if the same Stream is added again</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="hyperstream.stream.ToolStream">
-<em class="property">class </em><code class="descclassname">hyperstream.stream.</code><code class="descname">ToolStream</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#ToolStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.ToolStream" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.stream.Stream" title="hyperstream.stream.Stream"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.stream.Stream</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.stream.ToolStream.define">
-<code class="descname">define</code><span class="sig-paren">(</span><em>input_streams=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#ToolStream.define"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.ToolStream.define" title="Permalink to this definition">¶</a></dt>
-<dd><p>Define the stream with the given input streams and keyword arguments
-:param input_streams: The input streams
-:param kwargs: keyword arguments
-:return: self (for chaining)</p>
-</dd></dl>
-
+<dt id="hyperstream.stream.StreamView">
+<em class="property">class </em><code class="descclassname">hyperstream.stream.</code><code class="descname">StreamView</code><a class="reference internal" href="_modules/hyperstream/stream.html#StreamView"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.StreamView" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hyperstream.stream.StreamView" title="hyperstream.stream.StreamView"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.stream.StreamView</span></code></a></p>
+<p>Simple helper class for storing streams with time intervals (i.e. a &#8220;view&#8221; on a stream)</p>
 </dd></dl>
 
 </div>
@@ -527,124 +520,6 @@ absolute in iso strings,   e.g. (&#8220;2016-04-28T20:00:00.000Z&#8221;, &#8220;
 </div>
 <div class="section" id="module-hyperstream.workflow">
 <span id="hyperstream-workflow-module"></span><h2>hyperstream.workflow module<a class="headerlink" href="#module-hyperstream.workflow" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="hyperstream.workflow.Factor">
-<em class="property">class </em><code class="descclassname">hyperstream.workflow.</code><code class="descname">Factor</code><span class="sig-paren">(</span><em>tool</em>, <em>sources</em>, <em>sink</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#Factor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.Factor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.workflow.Node">
-<em class="property">class </em><code class="descclassname">hyperstream.workflow.</code><code class="descname">Node</code><span class="sig-paren">(</span><em>node_id</em>, <em>streams</em>, <em>plate_ids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#Node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.Node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
-<p>A node in the graph. This consists of a set of streams defined over a set of plates</p>
-<dl class="method">
-<dt id="hyperstream.workflow.Node.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#Node.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.Node.execute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute all of the streams for this node
-:return: self (for chaining)</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.workflow.Node.relative_window">
-<code class="descname">relative_window</code><span class="sig-paren">(</span><em>time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#Node.relative_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.Node.relative_window" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the time window for all the streams
-:param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-:type time_interval: Iterable, TimeInterval
-:return: self (for chaining)</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.workflow.Node.window">
-<code class="descname">window</code><span class="sig-paren">(</span><em>time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#Node.window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.Node.window" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the time window for all the streams
-:param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-:type time_interval: Iterable, TimeInterval
-:return: self (for chaining)</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.workflow.Workflow">
-<em class="property">class </em><code class="descclassname">hyperstream.workflow.</code><code class="descname">Workflow</code><span class="sig-paren">(</span><em>channels</em>, <em>plates</em>, <em>workflow_id</em>, <em>name</em>, <em>description</em>, <em>owner</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#Workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.Workflow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
-<p>Workflow. This defines the graph of operations through &#8220;nodes&#8221; and &#8220;factors&#8221;.</p>
-<dl class="method">
-<dt id="hyperstream.workflow.Workflow.add_factor">
-<code class="descname">create_factor</code><span class="sig-paren">(</span><em>tool</em>, <em>sources</em>, <em>sink</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#Workflow.add_factor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.Workflow.add_factor" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Args:</dt>
-<dd>tool:
-sources:
-sink:</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.workflow.Workflow.create_node">
-<code class="descname">create_node</code><span class="sig-paren">(</span><em>node_id</em>, <em>stream_name</em>, <em>plate_ids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#Workflow.create_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.Workflow.create_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a node in the graph, using the stream name and plate
-:param node_id: The node id
-:param stream_name: The name of the stream
-:param plate_ids: The plate ids. The stream meta-data will be auto-generated from these
-:return: The streams associated with this node</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.workflow.Workflow.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#Workflow.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.Workflow.execute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Here we execute the streams in the workflow
-:return:</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.workflow.WorkflowManager">
-<em class="property">class </em><code class="descclassname">hyperstream.workflow.</code><code class="descname">WorkflowManager</code><span class="sig-paren">(</span><em>channels</em>, <em>plates</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#WorkflowManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.WorkflowManager" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.workflow.WorkflowManager.add_plate">
-<code class="descname">create_plate</code><span class="sig-paren">(</span><em>plate</em>, <em>commit=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#WorkflowManager.add_plate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.WorkflowManager.add_plate" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Args:</dt>
-<dd>plate:
-commit:</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.workflow.WorkflowManager.add_workflow">
-<code class="descname">add_workflow</code><span class="sig-paren">(</span><em>workflow</em>, <em>commit=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#WorkflowManager.add_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.WorkflowManager.add_workflow" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Args:</dt>
-<dd>workflow:
-commit:</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.workflow.WorkflowManager.commit_all">
-<code class="descname">commit_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#WorkflowManager.commit_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.WorkflowManager.commit_all" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.workflow.WorkflowManager.commit_workflow">
-<code class="descname">commit_workflow</code><span class="sig-paren">(</span><em>workflow_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#WorkflowManager.commit_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.WorkflowManager.commit_workflow" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Args:</dt>
-<dd>workflow_id:</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.workflow.WorkflowManager.execute_all">
-<code class="descname">execute_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow.html#WorkflowManager.execute_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.WorkflowManager.execute_all" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="module-hyperstream">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-hyperstream" title="Permalink to this headline">¶</a></h2>
