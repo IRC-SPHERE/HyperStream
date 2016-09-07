@@ -78,7 +78,7 @@ class BaseChannel(Printable):
         """
         raise NotImplementedError
 
-    def get_or_create_stream(self, stream_id):  # , tool_stream=None):
+    def get_or_create_stream(self, stream_id):
         """
         Helper function to get a stream or create one if it's not already defined
         :param stream_id: The stream id
@@ -91,9 +91,9 @@ class BaseChannel(Printable):
         else:
             # Try to create the stream
             print("creating {}".format(stream_id))
-            return self.create_stream(stream_id=stream_id)  # , tool_stream=tool_stream)
+            return self.create_stream(stream_id=stream_id)
 
-    def create_stream(self, stream_id):  # , tool_stream=None):
+    def create_stream(self, stream_id):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
         identifier stream_id
