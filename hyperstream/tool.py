@@ -29,21 +29,24 @@ class Tool(Printable, Hashable):
             logging.debug('Defining a {} tool with parameters {}'.format(self.__class__.__name__, kwargs))
         else:
             logging.debug('Defining a {} tool'.format(self.__class__.__name__))
-
+        
+        self.sources = None
+        self.sink = None
+    
     def __eq__(self, other):
         # TODO: requires a unit test
         return isinstance(other, Tool) and hash(self) == hash(other)
-
+    
     def message(self, interval):
         return '{} running from {} to {}'.format(self.__class__.__name__, str(interval.start), str(interval.end))
-
+    
     @property
     def name(self):
         return self.__class__.__module__
-
+    
     def _execute(self, input_streams, interval):
         raise NotImplementedError
-
+    
     def execute(self, input_streams, interval, writer):
         if not isinstance(interval, TimeInterval):
             raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
@@ -59,6 +62,7 @@ def check_input_stream_count(expected_number_of_streams):
     :param expected_number_of_streams: The expected number of streams
     :return: the decorator
     """
+    
     def stream_count_decorator(func):
         def func_wrapper(*args, **kwargs):
             self = args[0]
@@ -72,5 +76,35 @@ def check_input_stream_count(expected_number_of_streams):
                     raise ValueError("{} tool takes {} stream(s) as input ({} given)".format(
                         self.__class__.__name__, expected_number_of_streams, given_number_of_streams))
             return func(*args, **kwargs)
+        
         return func_wrapper
+    
     return stream_count_decorator
+
+
+class ExplicitFactor(Printable, Hashable):
+    def __init__(self, tool, sources, sink):
+        if sources is not None and not isinstance(sources, list):
+            raise ValueError("Sources should be a list of streams")
+        
+        self.tool = tool
+        self.sources = sources
+        self.sink = sink
+        
+        self.sink.set_tool_reference(self)
+    
+    def execute(self, interval):
+        if not isinstance(interval, TimeInterval):
+            raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
+        
+        self.propagate_computation(interval)
+        
+        logging.info("Executing code for stream: {}".format(self.sink))
+        for stream_instance in self.tool._execute(self.sources, interval):
+            self.sink.writer(stream_instance)
+    
+    def propagate_computation(self, interval):
+        if self.sources is not None:
+            for source in self.sources:
+                logging.info("Propagating inference back to: {}".format(source))
+                source.tool_reference.execute(interval)
