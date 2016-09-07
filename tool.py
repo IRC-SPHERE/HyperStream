@@ -34,6 +34,9 @@ class Tool(Printable, Hashable):
         # TODO: requires a unit test
         return isinstance(other, Tool) and hash(self) == hash(other)
 
+    def message(self, interval):
+        return '{} running from {} to {}'.format(self.__class__.__name__, str(interval.start), str(interval.end))
+
     @property
     def name(self):
         return self.__class__.__module__
@@ -44,14 +47,10 @@ class Tool(Printable, Hashable):
     def execute(self, input_streams, interval, writer):
         if not isinstance(interval, TimeInterval):
             raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
-        logging.info('{} running from {} to {}'.format(self.__class__.__name__, str(interval.start), str(interval.end)))
+        logging.info(self.message(interval))
         
-        try:
-            for stream_instance in self._execute(input_streams, interval):
-                writer(stream_instance)
-        except Exception as ex:
-            raise ex
-        
+        for stream_instance in self._execute(input_streams, interval):
+            writer(stream_instance)
 
 
 def check_input_stream_count(expected_number_of_streams):

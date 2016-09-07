@@ -38,12 +38,9 @@ class Clock(Tool):
         self.first = first
         self.stride = stride
 
-    def execute(self, input_streams, interval, writer):
-        if not isinstance(interval, TimeInterval):
-            raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
-        logging.info('{} running from {} to {} with stride {}'.format(
-            self.__class__.__name__, str(interval.start), str(interval.end), str(self.stride)))
-        self._execute(input_streams, interval, writer)
+    def message(self, interval):
+        return '{} running from {} to {} with stride {}'.format(
+            self.__class__.__name__, str(interval.start), str(interval.end), str(self.stride))
 
     @check_input_stream_count(0)
     def _execute(self, input_streams, interval):
