@@ -23,6 +23,8 @@ from mongoengine import Document, DateTimeField, StringField, DictField, Dynamic
 from time_range import TimeRangeModel
 
 
+# TODO: Many of these are SPHERE-specific and should be moved to outside the hyperstream
+
 class StreamIdField(EmbeddedDocument):
     name = StringField(required=True, min_length=1, max_length=512)
     meta_data = DictField(required=True)
@@ -34,7 +36,7 @@ class StreamInstanceModel(Document):
     datetime = DateTimeField(required=True)
     tool_version = StringField(required=True, min_length=1, max_length=512)
     value = DynamicField(required=True)
-
+    
     meta = {
         'collection': 'streams',
         'indexes': [{'fields': ['stream_id'], 'unique': False}],
@@ -51,12 +53,12 @@ class StreamDefinitionModel(Document):
     tool_version = StringField(required=True, min_length=1, max_length=512)
     # TODO: strong typing
     tool_parameters = DictField()
-
+    
     input_streams = EmbeddedDocumentListField(required=False, document_type=StreamIdField)
     # TODO: remove?
     parameters = DictField()
     sandbox = StringField()
-
+    
     meta = {
         'collection': 'stream_definitions',
         'indexes': [{'fields': ['stream_id', 'tool_version']}],
@@ -70,25 +72,25 @@ class StreamStatusModel(Document):
     last_updated = DateTimeField(required=True)
     last_accessed = DateTimeField(required=False)
     computed_ranges = EmbeddedDocumentListField(document_type=TimeRangeModel, required=True)
-
+    
     meta = {
         'collection': 'stream_status',
         'indexes': [{'fields': ['stream_id']}],
         'ordering': ['last_updated']
     }
-
+    
     def add_time_range(self, time_range):
         if not isinstance(time_range, TimeRangeModel):
             raise RuntimeError("Can only add TimeRangeModel objects")
-
+        
         self.computed_ranges.append(time_range)
         self.update_time_ranges()
         return self.computed_ranges
-
+    
     def update_time_ranges(self):
         sorted_by_lower_bound = sorted(self.computed_ranges, key=lambda r: r.start)
         merged = []
-
+        
         for higher in sorted_by_lower_bound:
             if not merged:
                 merged.append(higher)
