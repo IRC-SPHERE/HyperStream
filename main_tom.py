@@ -22,7 +22,7 @@ import logging
 from datetime import datetime, timedelta
 
 from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client, \
-    TimeInterval, StreamView
+    TimeInterval  # , StreamView
 from hyperstream.utils import UTC
 from hyperstream.itertools2 import online_average, count as online_count
 from sphere_connector_package.sphere_connector import SphereLogger
@@ -77,18 +77,21 @@ if __name__ == '__main__':
 
     time_interval = TimeInterval(t1, t1 + 1 * minute)
 
+    h1 = w.plates["H1"]
+
     # Create some streams (collected in a node)
     node = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1"])  # .window((t1, t1 + 1 * minute))
 
     # Create a factor to produce some data
     factor = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
-                             sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
+                             source_nodes=None, sink_node=node)
+    # sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
 
     # Execute the workflow
     w.execute(time_interval)
 
     # Check the values
-    assert (node.streams[0].values()[:1] ==
+    assert (node.streams[('house', '1'), ].values()[:1] ==
             [{u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
               'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
               'temperature': None}])
@@ -130,48 +133,54 @@ if __name__ == '__main__':
     f_timer = w.create_factor(
         tool_name="clock",
         tool_parameters=dict(stride=30 * second),
-        sources=None,
-        sink=StreamView(n_clock.streams[0])
+        source_nodes=None,
+        sink_node=n_clock
+        # sink=StreamView(n_clock.streams[0])
     )
 
     # TODO: Something along the following lines
     # with w.for_each(houses.values) as house:
     #     pass
 
-    for house in houses.values:
+    # for house in houses.values:
         # for house in [[]]:
-        f_env = w.create_factor(
-            tool_name="sphere",
-            tool_parameters=dict(modality="environmental"),
-            sources=None,
-            sink=StreamView(n_environ.streams[0])
-        )
+    f_env = w.create_factor(
+        tool_name="sphere",
+        tool_parameters=dict(modality="environmental"),
+        source_nodes=None,
+        sink_node=n_environ
+        # sink=StreamView(n_environ.streams[0])
+    )
 
-        f_motion = w.create_factor(
-            tool_name="component",
-            tool_parameters=dict(key="motion-S1_K"),
-            sources=[StreamView(s) for s in n_environ.streams],
-            sink=StreamView(n_motion_kitchen.streams[0])
-        )
+    f_motion = w.create_factor(
+        tool_name="component",
+        tool_parameters=dict(key="motion-S1_K"),
+        source_nodes=[n_environ],
+        sink_node=n_motion_kitchen
+        # sources=[StreamView(s) for s in n_environ.streams],
+        # sink=StreamView(n_motion_kitchen.streams[0])
+    )
 
-        f_kitchen_motion = w.create_factor(
-            tool_name="aggregate",
-            tool_parameters=dict(func=online_count),
-            sources=[StreamView(n_clock.streams[0]), StreamView(n_motion_kitchen.streams[0])],
-            sink=StreamView(n_motion_kitchen_count.streams[0])
-        )
+    f_kitchen_motion = w.create_factor(
+        tool_name="aggregate",
+        tool_parameters=dict(func=online_count),
+        source_nodes=[n_clock, n_motion_kitchen],
+        sink_node=n_motion_kitchen_count
+        # sources=[StreamView(n_clock.streams[0]), StreamView(n_motion_kitchen.streams[0])],
+        # sink=StreamView(n_motion_kitchen_count.streams[0])
+    )
 
-        # Execute the factors
-        if False:
-            f_env.execute(TimeInterval(t1, t1 + 5 * minute))
-            f_motion.execute(TimeInterval(t1, t1 + 5 * minute))
-            f_kitchen_motion.execute(TimeInterval(t1, t1 + 5 * minute))
+    # Execute the factors
+    if False:
+        f_env.execute(TimeInterval(t1, t1 + 5 * minute))
+        f_motion.execute(TimeInterval(t1, t1 + 5 * minute))
+        f_kitchen_motion.execute(TimeInterval(t1, t1 + 5 * minute))
 
         # print(f_kitchen_motion.sink.window((t1, t1 + 5 * minute)).values())
 
     w.execute(TimeInterval(t1, t1 + 5 * minute))
 
-    print(n_motion_kitchen_count.streams[0].values())
+    print(n_motion_kitchen_count.streams[('house', '1'), ].values())
 
     exit()
 
