@@ -150,7 +150,7 @@ class HyperStringTests(unittest.TestCase):
         # Create a factor to produce some data
         w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
                         # sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
-                        sources=None, sink=node)
+                        source_nodes=None, sink_node=node)
 
         # Execute the workflow
         w.execute(time_interval)
@@ -244,6 +244,10 @@ class HyperStringTests(unittest.TestCase):
         )
         
         assert(stream_memory_m_kitchen_mean.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+    def test_overlapping_plates(self):
+        # TODO: Create test that involves multiple overlapping plates
+        assert False
 
 if __name__ == '__main__':
     unittest.main()
