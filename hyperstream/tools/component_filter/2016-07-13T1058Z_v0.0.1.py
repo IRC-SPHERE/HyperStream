@@ -35,7 +35,7 @@ class ComponentFilter(Tool):
         self.complement = complement
 
     @check_input_stream_count(1)
-    def _execute(self, input_streams, interval, writer):
+    def _execute(self, input_streams, interval):
         for time, data in input_streams[0].window(interval):
             if self.complement:
                 if data[self.key] not in self.values:

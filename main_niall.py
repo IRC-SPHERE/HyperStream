@@ -55,56 +55,90 @@ if __name__ == '__main__':
     # A couple of parameters
     relative_window = (-30 * second, timedelta(0))
     interval = (t1, t2)
+        
+    #
+    #
+    #
+    #
+    # Define sliding window stream
+    stream_id_tool_sliding_window = StreamId('sliding_window')
+    stream_id_memory_sliding_window = StreamId('stream_id_memory_sliding_window')
     
-    # Define streams
-    id_tool_sliding_window = StreamId('sliding_window')
-    tool_sliding_window = T[id_tool_sliding_window].define(
+    stream_tool_sliding_window = T[stream_id_tool_sliding_window].define(
+        input_streams=[],
         lower=timedelta(seconds=-30),
         upper=timedelta(seconds=0),
-        increment=timedelta(seconds=10))
+        increment=timedelta(seconds=10)
+    )
     
-    id_memory_sliding_window = StreamId('id_memory_sliding_window')
-    stream_memory_sliding_window = M.create_stream(stream_id=id_memory_sliding_window)
-    tool_sliding_window.set_output_stream(stream_memory_sliding_window)
+    stream_memory_sliding_window = M.create_stream(
+        stream_id_memory_sliding_window,
+        stream_tool_sliding_window
+    )
     
-    tool_sliding_window.window(interval).execute()
-    
+    #
+    #
+    #
+    #
     # Define the motion in kitchen tool
-    id_tool_sphere = StreamId('sphere')
-    tool_sphere_environmental = T[id_tool_sphere].define(modality='environmental')
+    stream_id_tool_sphere = StreamId('sphere')
+    stream_id_memory_environmental = StreamId('stream_id_memory_environmental')
     
-    id_memory_m_environmental = StreamId('stream_m_environmental')
-    stream_memory_environmental = S.create_stream(stream_id=id_memory_m_environmental)
-    tool_sphere_environmental.set_output_stream(stream_memory_environmental)
+    stream_tool_sphere_environmental = T[stream_id_tool_sphere].define(
+        input_streams=[],
+        modality='environmental'
+    )
     
-    tool_sphere_environmental.window(interval).execute()
+    stream_sphere_environmental = S.create_stream(
+        stream_id_memory_environmental,
+        stream_tool_sphere_environmental
+    )
     
+    #
+    #
+    #
+    #
     # Filter the motion in kitchen
     id_tool_component = StreamId('component')
+    id_memory_m_kitchen = StreamId('id_memory_m_kitchen')
+    
     tool_motion = T[id_tool_component].define(
-        input_streams=[stream_memory_environmental],
-        key='motion-S1_K')
+        input_streams=[
+            stream_sphere_environmental
+        ],
+        key='motion-S1_K'
+    )
     
-    id_memory_motion = StreamId('id_memory_motion')
-    stream_memory_motion = S.create_stream(id_memory_motion)
-    tool_motion.set_output_stream(stream_memory_motion)
+    stream_memory_motion = M.create_stream(
+        id_memory_m_kitchen,
+        tool_motion
+    )
     
-    tool_motion.window(interval).execute()
-    
+    #
+    #
+    #
+    #
     # Aggregate over the window
     id_tool_sliding_apply = StreamId('sliding_apply')
+    id_memory_m_kitchen_mean = StreamId('id_memory_m_kitchen_mean')
+    
     tool_sliding_apply = T[id_tool_sliding_apply].define(
-        input_streams=[stream_memory_sliding_window, stream_memory_motion],
+        input_streams=[
+            stream_memory_sliding_window,
+            stream_memory_motion
+        ],
         func=online_average
     )
     
-    id_memory_m_kitchen_mean = StreamId('id_memory_m_kitchen_mean')
-    stream_memory_m_kitchen_mean = S.create_stream(id_memory_m_kitchen_mean)
-    tool_sliding_apply.set_output_stream(stream_memory_m_kitchen_mean)
+    stream_memory_m_kitchen_mean = M.create_stream(
+        id_memory_m_kitchen_mean,
+        tool_sliding_apply
+    )
     
-    tool_sliding_apply.window(interval).execute()
-    
+    #
+    #
+    #
+    #
     # Print some data
-    for kv in stream_memory_m_kitchen_mean.iteritems():
+    for kv in stream_memory_m_kitchen_mean.window(interval).iteritems():
         print kv
-

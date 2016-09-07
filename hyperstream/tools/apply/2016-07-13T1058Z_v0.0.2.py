@@ -31,6 +31,6 @@ class Apply(Tool):
         self.func = func
 
     @check_input_stream_count(1)
-    def _execute(self, input_streams, interval, writer):
+    def _execute(self, input_streams, interval):
         for t, d in input_streams[0].window(interval):
-            writer(StreamInstance(t, self.func(d)))
+            yield StreamInstance(t, self.func(d))

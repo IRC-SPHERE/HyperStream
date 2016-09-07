@@ -23,7 +23,7 @@
 import os
 from collections import Iterable
 import logging
-
+from hyperstream.stream import StreamInstance, StreamInstances
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
 
 from memory_channel import MemoryChannel
@@ -116,18 +116,24 @@ class SphereChannel(MemoryChannel):
                 yield d
     
     def get_stream_writer(self, stream_ref):
-        def writer(document_collection):
-            data = map(reformat, document_collection)
-            self.data[stream_ref.stream_id].extend(data)
-            logging.debug((id(self), len(self.data)))
+        def writer(doc):
+            # TODO from niall: I think we are guaranteed that only StreamInstances will be StreamInstance-s
+            if isinstance(doc, StreamInstance):
+                self.data[stream_ref.stream_id].append(doc)
+                
+            elif isinstance(doc, StreamInstances):
+                data = map(reformat, doc.items)
+                self.data[stream_ref.stream_id].extend(data)
+                logging.debug((id(self), len(self.data)))
+                
+            else:
+                raise RuntimeError("Only StreamInstance or StreamInstances objects should be passed in here. \n"
+                                   "Received: {}".format(doc.__class__.__type__))
         
         return writer
 
 
 def reformat(doc):
-    if isinstance(doc, StreamInstance):
-        return doc
-    
     dt = doc['datetime']
     del doc['datetime']
     return StreamInstance(dt, doc)

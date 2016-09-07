@@ -38,6 +38,12 @@ class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
         return super(StreamInstance, cls).__new__(cls, timestamp, value)
 
 
+class StreamInstances(namedtuple("StreamInstance", "timestamp_key items")):
+    def __new__(cls, timestamp_key, items):
+        if not isinstance(timestamp_key, str):
+            raise ValueError
+        return super(StreamInstances, cls).__new__(cls, timestamp_key, items)
+
 class StreamDict(TypedBiDict):
     """
     Custom bi-directional dictionary where keys are StreamID objects and values are Stream objects.
@@ -325,30 +331,3 @@ class ToolStream(Stream):
         self.defined = True
         return deepcopy(self)
     
-    def set_output_stream(self, output_stream):
-        self.output_stream = output_stream
-        self.output_stream.tool = self
-        
-        return self
-    
-    @check_tool_defined
-    def execute(self):
-        tool_class = self.items()[-1].value
-        tool = tool_class(**self.kwargs)
-        
-        self.output_stream.window(self.time_interval)
-        self.output_stream.channel.get_results(
-            stream_ref=self.output_stream,
-            input_streams=self.input_streams,
-            tool=tool
-        )
-        
-        # @check_tool_defined
-        # def __iter__(self):
-        #     for item in self.channel.get_results(self):
-        #         yield item
-        #
-        # @check_output_format({'doc_gen'})
-        # @check_tool_defined
-        # def iteritems(self):
-        #     return iter(self)

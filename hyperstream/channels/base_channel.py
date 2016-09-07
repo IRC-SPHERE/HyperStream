@@ -47,18 +47,6 @@ class BaseChannel(Printable):
         return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream_ref.items()
                        if timestamp in stream_ref.time_interval), key=lambda x: x.timestamp)
 
-    def execute_tool2(self, tool, stream_ref, interval):
-        """
-        Executes the stream's tool over the given time interval
-        :param stream_ref: the stream reference
-        :param interval: the time interval
-        :return: None
-        """
-        tool.execute(stream_ref.input_streams, interval, stream_ref.writer)
-        
-    def execute_tool3(self, tool, input_streams, interval, writer):
-        tool.execute(input_streams, interval, writer)
-
     def execute_tool(self, stream_ref, interval):
         """
         Executes the stream's tool over the given time interval
