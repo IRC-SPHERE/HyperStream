@@ -159,6 +159,85 @@ class HyperStringTests(unittest.TestCase):
                   'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
                   'temperature': None}])
 
+    def test_chained_query(self):
+        interval = TimeInterval(t1, t1 + 5 * minute)
+        
+        # Define sliding window stream
+        stream_memory_sliding_window = M.create_stream(StreamId('stream_id_memory_sliding_window'))
+        
+        stream_tool_sliding_window = channels.get_tool2(
+            tool="sliding_window",
+            tool_parameters=dict(
+                first=MIN_DATE,
+                lower=timedelta(seconds=-30),
+                upper=timedelta(seconds=0),
+                increment=timedelta(seconds=10)
+            )
+        )
+        
+        stream_tool_sliding_window.execute(
+            input_streams=None,
+            interval=interval,
+            writer=stream_memory_sliding_window.writer
+        )
+        
+        # Define the motion in kitchen tool
+        
+        stream_sphere_environmental = S.create_stream(StreamId('stream_id_memory_environmental'))
+        
+        stream_tool_sphere_environmental = channels.get_tool2(
+            tool='sphere',
+            tool_parameters=dict(
+                modality='environmental'
+            )
+        )
+        
+        stream_tool_sphere_environmental.execute(
+            input_streams=None,
+            interval=interval,
+            writer=stream_sphere_environmental.writer
+        )
+        
+        # Filter the motion in kitchen
+        stream_memory_motion = M.create_stream(StreamId('id_memory_m_kitchen'))
+        
+        tool_motion = channels.get_tool2(
+            tool='component',
+            tool_parameters=dict(
+                key='motion-S1_K'
+            )
+        )
+        
+        tool_motion.execute(
+            input_streams=[stream_sphere_environmental],
+            interval=interval,
+            writer=stream_memory_motion.writer
+        )
+        
+        # Aggregate over the window
+        stream_memory_m_kitchen_mean = M.create_stream(StreamId('id_memory_m_kitchen_mean'))
+        
+        tool_sliding_apply = channels.get_tool2(
+            tool='sliding_apply',
+            tool_parameters=dict(
+                func=online_average
+            )
+        )
+        
+        tool_sliding_apply.execute(
+            input_streams=[
+                stream_memory_sliding_window,
+                stream_memory_motion
+            ],
+            interval=interval,
+            writer=stream_memory_m_kitchen_mean.writer
+        )
+        
+        #
+        
+        assert(stream_memory_m_kitchen_mean.values() ==
+               [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
 if __name__ == '__main__':
     unittest.main()
