@@ -19,25 +19,67 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 from ..utils import Printable
+from node import Node
+from ..tool import Tool
+import logging
 
 
 class Factor(Printable):
     """
     """
 
-    def __init__(self, tool, sources, sink):
+    def __init__(self, tool, sources, sink, plates):
         """
         Initialise this factor
         :param tool: The tool
-        :param sources: The source streams
-        :param sink: The sink stream
+        :param sources: The source nodes
+        :param sink: The sink node
+        :param plates: The plates over which this factor is defined
+        :type tool: Tool
+        :type sink: Node
         """
+        if not isinstance(tool, Tool):
+            raise ValueError("Expected node, got {}".format(type(tool)))
         self.tool = tool
+        if sources:
+            for source in sources:
+                if not isinstance(source, Node):
+                    raise ValueError("Expected node, got {}".format(type(source)))
         self.sources = sources
+        if not isinstance(sink, Node):
+            raise ValueError("Expected node, got {}".format(type(sink)))
         self.sink = sink
+
+        self.plates = plates
 
     def execute(self, time_interval):
         # return self.tool.get_results(self)
-        self.tool.execute(input_streams=[s.stream for s in self.sources] if self.sources else None,
-                          interval=time_interval,
-                          writer=self.sink.stream.writer)
+
+        sources = []
+        sink = None
+
+        if self.plates:
+            for plate in self.plates:
+                for pv in plate.values:
+                    if self.sources:
+                        for source in self.sources:
+                            if pv in source.streams:
+                                sources.append(source.streams[pv])
+                            else:
+                                logging.warn("Plate {} with value {} not valid for source {}".format(plate, pv, source))
+                    sink = self.sink.streams[pv]
+        else:
+            # The following is done below
+            # sources = [source.streams[None] for source in self.sources] if self.sources else None
+            sink = self.sink.streams[None]
+
+        if not sink:
+            raise RuntimeError("Sink undefined")
+
+        # Also add streams that live outside of the plates
+        if self.sources:
+            for source in self.sources:
+                if None in source.streams:
+                    sources.append(source.streams[None])
+
+        self.tool.execute(input_streams=sources, interval=time_interval, writer=sink.writer)
