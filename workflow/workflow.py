@@ -22,8 +22,8 @@ from ..utils import Printable, FrozenKeyDict
 from node import Node
 from factor import Factor
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
-from ..stream import StreamId, StreamView
-from ..errors import StreamNotFoundError
+from ..stream import StreamId  # , StreamView
+from ..errors import StreamNotFoundError, IncompatiblePlatesError
 import logging
 from collections import defaultdict
 
@@ -75,22 +75,25 @@ class Workflow(Printable):
         :param plate_ids: The plate ids. The stream meta-data will be auto-generated from these
         :return: The streams associated with this node
         """
-        streams = []
+        streams = {}
 
         if plate_ids:
             for plate_id in plate_ids:
-                # Currently allowing multiple plates here
-                plate_values = self.plates[plate_id].values
+                plate = self.plates[plate_id]
+                streams[plate] = {}
 
-                for pv in plate_values:
+                # Currently allowing multiple plates here
+
+                for pv in plate.values:
                     # Construct stream id
                     stream_id = StreamId(name=stream_name, meta_data=pv)
 
                     # Now try to locate the stream and add it (raises StreamNotFoundError if not found)
                     # streams.append(self.channels.get_stream(stream_id))
-                    streams.append(channel.get_or_create_stream(stream_id=stream_id))
+                    streams[pv] = channel.get_or_create_stream(stream_id=stream_id)
+
         else:
-            streams.append(channel.get_or_create_stream(stream_id=StreamId(name=stream_name)))
+            streams[None] = channel.get_or_create_stream(stream_id=StreamId(name=stream_name))
 
         node = Node(stream_name, streams, plate_ids)
         self.nodes[stream_name] = node
@@ -134,7 +137,22 @@ class Workflow(Printable):
         tool_stream = self.channels.tools[StreamId(tool_name)]
         tool_class = tool_stream.items()[-1].value
         tool = tool_class(**tool_parameters)
-        factor = Factor(tool=tool, sources=sources, sink=sink)
+
+        if sink.plate_ids:
+            if sources:
+                # Check that the plates are compatible
+                source_plates = itertools.chain(*(source.plate_ids for source in sources))
+                for p in sink.plate_ids:
+                    if p not in set(source_plates):
+                        raise IncompatiblePlatesError("{} not in source plates".format(p))
+                for p in source_plates:
+                    if p not in set(sink.plate_ids):
+                        raise IncompatiblePlatesError("{} not in sink plates".format(p))
+            plates = [self.plates[plate_id] for plate_id in sink.plate_ids]
+        else:
+            plates = None
+
+        factor = Factor(tool=tool, sources=sources, sink=sink, plates=plates)
         self.factor_collections[tool_name].append(factor)
         return factor
 
@@ -165,8 +183,8 @@ class Workflow(Printable):
                     factor = self.create_factor(
                         tool_name=tool_name,
                         tool_parameters=tool_parameters,
-                        sources=[StreamView(s) for s in sources],
-                        sink=StreamView(sink)
+                        sources=sources,  # [StreamView(s) for s in sources],
+                        sink=sink  # StreamView(sink)
                     )
 
                     factors.append(factor)
@@ -175,7 +193,8 @@ class Workflow(Printable):
                 tool_name=tool_name,
                 tool_parameters=tool_parameters,
                 sources=None,
-                sink=StreamView(output_channel.create_stream(stream_id=StreamId(output_stream_name)))
+                # sink=StreamView(output_channel.create_stream(stream_id=StreamId(output_stream_name)))
+                sink=output_channel.create_stream(StreamId(output_stream_name))
             )
 
             factors.append(factor)

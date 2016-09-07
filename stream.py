@@ -26,17 +26,17 @@ from copy import deepcopy
 from collections import Iterable, namedtuple
 from datetime import datetime
 
-
-class StreamView(namedtuple("StreamView", "stream time_interval")):
-    """
-    Simple helper class for storing streams with time intervals (i.e. a "view" on a stream)
-    """
-    def __new__(cls, stream, time_interval=None):
-        if not isinstance(stream, Stream):
-            raise ValueError("stream must be Stream object")
-        if time_interval is not None and not isinstance(time_interval, TimeInterval):
-            raise ValueError("time_interval must be TimeInterval object")
-        return super(StreamView, cls).__new__(cls, stream, time_interval)
+#
+# class StreamView(namedtuple("StreamView", "stream time_interval")):
+#     """
+#     Simple helper class for storing streams with time intervals (i.e. a "view" on a stream)
+#     """
+#     def __new__(cls, stream, time_interval=None):
+#         if not isinstance(stream, Stream):
+#             raise ValueError("stream must be Stream object")
+#         if time_interval is not None and not isinstance(time_interval, TimeInterval):
+#             raise ValueError("time_interval must be TimeInterval object")
+#         return super(StreamView, cls).__new__(cls, stream, time_interval)
 
 
 class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
@@ -72,11 +72,21 @@ class StreamId(Hashable):
     
     def __init__(self, name, meta_data=None):
         self.name = name
-        self.meta_data = meta_data if meta_data else {}
+        if meta_data:
+            if isinstance(meta_data, dict):
+                self.meta_data = tuple(sorted(meta_data.items()))
+            elif isinstance(meta_data, tuple):
+                self.meta_data = meta_data
+            else:
+                raise ValueError("Expected dict or tuple, got {}".format(type(meta_data)))
+        else:
+            self.meta_data = tuple()
+        # self.meta_data = meta_data if meta_data else {}
     
     def __str__(self):
         if self.meta_data:
-            return self.name + ": [" + ", ".join("{}={}".format(k, v) for k, v in self.meta_data.items()) + "]"
+            # return self.name + ": [" + ", ".join("{}={}".format(k, v) for k, v in self.meta_data.items()) + "]"
+            return self.name + ": [" + ", ".join("{}={}".format(k, v) for k, v in self.meta_data) + "]"
         else:
             return self.name
     
