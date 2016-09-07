@@ -101,148 +101,28 @@ class Workflow(Printable):
         
         return node
     
-    def create_streams(self, channel, stream_name, plate_ids):  # , tool_stream=None):
-        """
-        Create a node in the graph, using the stream name and plate
-        :param channel: the channel containing the stream
-        :param stream_name: The name of the stream
-        :param plate_ids: The plate ids. The stream meta-data will be auto-generated from these
-        :param tool_stream:
-        :return: The streams associated with this node
-        """
-        streams = []
-        
-        for plate_id in plate_ids:
-            # Currently allowing multiple plates here
-            plate_values = self.plates[plate_id]
-            
-            for pv in plate_values:
-                # Construct stream id
-                stream_id = StreamId(name=stream_name, meta_data=pv)
-                
-                streams.append(
-                    channel.create_stream(
-                        stream_id=stream_id
-                        # tool_stream=tool_stream
-                    )
-                )
-        
-        node = Node(stream_name, streams, plate_ids)
-        self.nodes[stream_name] = node
-        logging.info("Added node with id {}".format(stream_name))
-        
-        return node
-
-    def create_factor(self, tool_name, tool_parameters, sources, sink):
+    def create_factor(self, tool_name, tool_parameters, source_nodes, sink_node):
         tool_stream = self.channels.tools[StreamId(tool_name)]
         tool_class = tool_stream.items()[-1].value
         tool = tool_class(**tool_parameters)
 
-        if sink.plate_ids:
-            if sources:
+        if sink_node.plate_ids:
+            if source_nodes:
                 # Check that the plates are compatible
-                source_plates = itertools.chain(*(source.plate_ids for source in sources))
-                for p in sink.plate_ids:
+                source_plates = itertools.chain(*(source.plate_ids for source in source_nodes))
+                for p in sink_node.plate_ids:
                     if p not in set(source_plates):
                         raise IncompatiblePlatesError("{} not in source plates".format(p))
                 for p in source_plates:
-                    if p not in set(sink.plate_ids):
-                        raise IncompatiblePlatesError("{} not in sink plates".format(p))
-            plates = [self.plates[plate_id] for plate_id in sink.plate_ids]
+                    if p not in set(sink_node.plate_ids):
+                        raise IncompatiblePlatesError("{} not in sink_node plates".format(p))
+            plates = [self.plates[plate_id] for plate_id in sink_node.plate_ids]
         else:
             plates = None
 
-        factor = Factor(tool=tool, sources=sources, sink=sink, plates=plates)
+        factor = Factor(tool=tool, source_nodes=source_nodes, sink_node=sink_node, plates=plates)
         self.factor_collections[tool_name].append(factor)
         return factor
-
-    def create_factors(self, tool_name, tool_parameters, output_channel, output_stream_name,
-                       plate_ids=None, node_names=None):
-        # TODO: TD Version
-        factors = []
-
-        if plate_ids:
-            for plate_id in plate_ids:
-                for pv in self.plates[plate_id]:
-                    if not node_names:
-                        node_names = []
-
-                    source_ids = [self.nodes[node_name].intersection(pv)
-                                  for node_name in node_names if node_name in self.nodes]
-
-                    if source_ids:
-                        logging.debug("Found source ids: {}".format(", ".join(source_ids)))
-                    else:
-                        logging.debug("No source ids found")
-
-                    sources = [self.channels.get_stream(source_id) for source_id in source_ids]
-                    sink = output_channel.create_stream(
-                        stream_id=StreamId(output_stream_name, pv)
-                    )
-
-                    factor = self.create_factor(
-                        tool_name=tool_name,
-                        tool_parameters=tool_parameters,
-                        sources=sources,  # [StreamView(s) for s in sources],
-                        sink=sink  # StreamView(sink)
-                    )
-
-                    factors.append(factor)
-        else:
-            factor = self.create_factor(
-                tool_name=tool_name,
-                tool_parameters=tool_parameters,
-                sources=None,
-                # sink=StreamView(output_channel.create_stream(stream_id=StreamId(output_stream_name)))
-                sink=output_channel.create_stream(StreamId(output_stream_name))
-            )
-
-            factors.append(factor)
-
-        # self.factor_collections[tool_name] = factors
-
-        # Create output node at the same time
-        output_node = Node(
-            node_id=output_stream_name,
-            streams=[factor.sink for factor in factors],
-            plate_ids=plate_ids
-        )
-
-        self.nodes[output_stream_name] = output_node
-
-        return factors, output_node
-
-    def create_factors_old(self, tooling_callback, output_channel, output_stream_name, plate_ids, node_names):
-        factors = []
-        
-        for plate_id in plate_ids:
-            for pv in self.plates[plate_id]:
-                sources_ids = [self.nodes[node_name].intersection(pv)
-                               for node_name in node_names if node_name in self.nodes]
-                sources = [self.channels.get_stream(sources_id) for sources_id in sources_ids]
-                
-                sink = output_channel.create_stream(
-                    stream_id=StreamId(output_stream_name, pv),
-                    tool_stream=tooling_callback(sources)
-                )
-                
-                factor = Factor(
-                    tool=sink.tool,
-                    sources=sources,
-                    sink=sink
-                )
-                
-                factors.append(factor)
-        
-        self.factor_collections[output_stream_name] = factors
-        
-        self.nodes[output_stream_name] = Node(
-            node_id=output_stream_name,
-            streams=[factor.sink for factor in factors],
-            plate_ids=plate_ids
-        )
-        
-        return self.factor_collections[output_stream_name]
 
 
 class WorkflowManager(Printable):

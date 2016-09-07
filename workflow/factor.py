@@ -28,27 +28,27 @@ class Factor(Printable):
     """
     """
 
-    def __init__(self, tool, sources, sink, plates):
+    def __init__(self, tool, source_nodes, sink_node, plates):
         """
         Initialise this factor
         :param tool: The tool
-        :param sources: The source nodes
-        :param sink: The sink node
+        :param source_nodes: The source nodes
+        :param sink_node: The sink node
         :param plates: The plates over which this factor is defined
         :type tool: Tool
-        :type sink: Node
+        :type sink_node: Node
         """
         if not isinstance(tool, Tool):
             raise ValueError("Expected node, got {}".format(type(tool)))
         self.tool = tool
-        if sources:
-            for source in sources:
+        if source_nodes:
+            for source in source_nodes:
                 if not isinstance(source, Node):
                     raise ValueError("Expected node, got {}".format(type(source)))
-        self.sources = sources
-        if not isinstance(sink, Node):
-            raise ValueError("Expected node, got {}".format(type(sink)))
-        self.sink = sink
+        self.sources = source_nodes
+        if not isinstance(sink_node, Node):
+            raise ValueError("Expected node, got {}".format(type(sink_node)))
+        self.sink = sink_node
 
         self.plates = plates
 
