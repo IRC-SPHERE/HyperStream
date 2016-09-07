@@ -62,6 +62,8 @@ class DatabaseChannel(BaseChannel):
     def get_stream_writer(self, stream):
         def writer(document_collection):
             # TODO: Does this check whether a stream_id/datetime pair already exists in the DB? (unique pairs?)
+            # TODO: Presumably this should be overridden by users' personal channels - allows for non-mongo outputs.
+            #   recommend: raise NotImplementedError
             for t, doc in document_collection:
                 instance = StreamInstanceModel(
                     stream_id=stream.stream_id,
