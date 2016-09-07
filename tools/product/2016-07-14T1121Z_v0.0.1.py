@@ -19,6 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.tool import Tool, check_input_stream_count
+from hyperstream.stream import StreamInstance
 
 
 class Product(Tool):
@@ -27,4 +28,4 @@ class Product(Tool):
         # TODO: should the loop below be: for (t, data1) in input_streams[0].window(interval)?
         for (t, data1) in input_streams[0]:
             (_, data2) = next(input_streams[1])
-            writer([(t, data1 * data2)])
+            yield StreamInstance(t, data1 * data2)

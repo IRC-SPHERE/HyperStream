@@ -81,7 +81,7 @@ class MemoryChannel(BaseChannel):
         return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream_ref.stream_id]
                        if timestamp in stream_ref.time_interval), key=lambda x: x.timestamp)
 
-    def get_results(self, stream_ref, input_streams=None, tool=None):
+    def get_results(self, stream_ref):
         """
         Calculates/receives the documents in the stream interval determined by the stream_ref
         :param stream_ref: The stream reference
@@ -90,10 +90,7 @@ class MemoryChannel(BaseChannel):
         """
         if not stream_ref.required_intervals.is_empty:
             for interval in stream_ref.required_intervals:
-                if tool is None:
-                    self.execute_tool(stream_ref, interval)
-                else:
-                    self.execute_tool3(tool, input_streams, interval, stream_ref.writer)
+                self.execute_tool(stream_ref, interval)
                     
                 # TODO: Incorrect time interval???
                 stream_ref.calculated_intervals += TimeIntervals([interval])

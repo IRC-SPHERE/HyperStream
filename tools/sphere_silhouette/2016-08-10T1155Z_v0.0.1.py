@@ -28,5 +28,8 @@ class SphereSilhouette(Tool):
         self.filters = filters
 
     @check_input_stream_count(0)
-    def _execute(self, input_streams, interval, writer):
-        writer(SphereDataWindow(interval).video.get_data(elements='silhouette', filters=self.filters))
+    def _execute(self, input_streams, interval):
+        raise NotImplementedError
+        
+        #TODO from niall: duplicate below with yield
+        # writer(SphereDataWindow(interval).video.get_data(elements='silhouette', filters=self.filters))

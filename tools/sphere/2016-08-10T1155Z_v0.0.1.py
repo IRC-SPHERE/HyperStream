@@ -20,15 +20,16 @@
 
 from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.channels.sphere_channel import SphereDataWindow
+from hyperstream.stream import StreamInstances
 
 
 class Sphere(Tool):
     def __init__(self, modality):
         super(Sphere, self).__init__(modality=modality)
         self.modality = modality
-
+    
     @check_input_stream_count(0)
-    def _execute(self, input_streams, interval, writer):
+    def _execute(self, input_streams, interval):
         window = SphereDataWindow(interval)
         source = window.modalities[self.modality]
-        writer(source.get_data())
+        yield StreamInstances('datetime', source.get_data())
