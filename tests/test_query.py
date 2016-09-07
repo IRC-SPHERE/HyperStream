@@ -69,12 +69,13 @@ class HyperStringTests(unittest.TestCase):
         ti = TimeInterval(t1, t1 + minute)
 
         elec = M.create_stream(stream_id=StreamId('electricity'))
+        env = S.create_stream(stream_id=StreamId('environmental_data'))
 
         env_tool = channels.get_tool2("sphere", dict(modality="environmental"))
         elec_tool = T[component].items()[-1].value(key='electricity-04063')
 
-        env_tool.execute(input_streams=None, interval=ti, writer=S[environmental].writer)
-        elec_tool.execute(input_streams=[S[environmental]], interval=ti, writer=elec.writer)
+        env_tool.execute(input_streams=None, interval=ti, writer=env.writer)
+        elec_tool.execute(input_streams=[env], interval=ti, writer=elec.writer)
 
         q1 = "\n".join("=".join(map(str, ee)) for ee in elec)
         
