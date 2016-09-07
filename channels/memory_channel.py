@@ -33,7 +33,7 @@ class MemoryChannel(BaseChannel):
         self.max_stream_id = 0
         self.data = defaultdict(list)
 
-    def create_stream(self, stream_id, tool_stream=None):
+    def create_stream(self, stream_id):  # , tool_stream=None):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
         identifier stream_id
@@ -43,19 +43,20 @@ class MemoryChannel(BaseChannel):
 
         # TODO: Want to be able to define the streams in the database
 
-        if tool_stream:
-            # TODO: Use tool versions - here we're just taking the latest one
-            tool_class = tool_stream.items()[-1].value
-            tool = tool_class(**tool_stream.kwargs)
-        else:
-            tool = None
+        # if tool_stream:
+        #     # TODO: Use tool versions - here we're just taking the latest one
+        #     tool_class = tool_stream.items()[-1].value
+        #     tool = tool_class(**tool_stream.kwargs)
+        # else:
+        #     tool = None
 
         stream = Stream(
             channel=self,
             stream_id=stream_id,
             calculated_intervals=TimeIntervals(),
             # tool=tool,
-            input_streams=tool_stream.input_streams if tool_stream else None
+            # input_streams=tool_stream.input_streams if tool_stream else None
+            input_streams=None
         )
 
         self.streams[stream_id] = stream
@@ -119,7 +120,7 @@ class ReadOnlyMemoryChannel(BaseChannel):
             self.update_streams(up_to_timestamp)
             self.update_state(up_to_timestamp)
 
-    def create_stream(self, stream_id, tool_stream=None):
+    def create_stream(self, stream_id):  # , tool_stream=None):
         raise RuntimeError("Read-only channel")
 
     def get_stream_writer(self, stream):
