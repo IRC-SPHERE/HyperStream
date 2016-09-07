@@ -22,7 +22,7 @@ from channel import ChannelManager
 from tool import Tool
 from client import Client
 from workflow import Workflow, WorkflowManager, Plate, PlateManager, Factor, Node
-from stream import StreamId, Stream, StreamView
+from stream import StreamId, Stream  # , StreamView
 from time_interval import TimeInterval, TimeIntervals, RelativeTimeInterval
 from online_engine import OnlineEngine
 from config import HyperStreamConfig

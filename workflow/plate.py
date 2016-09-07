@@ -27,7 +27,7 @@ import logging
 class Plate(Printable):
     def __init__(self, meta_data_id, values):
         self.meta_data_id = meta_data_id
-        self.values = values
+        self.values = [tuple(sorted(pv.items())) for pv in values]
 
 
 class PlateManager(Printable):
