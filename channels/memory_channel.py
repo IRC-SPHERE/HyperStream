@@ -58,25 +58,26 @@ class MemoryChannel(BaseChannel):
     def check_calculation_times(self):
         pass
     
-    def _get_data(self, stream):
-        """
-        Get the data generator. Sorts on timestamp
-        :param stream: The stream reference
-        :return: The data generator
-        """
-        # return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream.stream_id]
-        #                if timestamp in stream.time_interval), key=lambda x: x.timestamp)
-        # TODO: Put the check back in for the time interval
-        return sorted(self.data[stream.stream_id], key=lambda x: x.timestamp)
-    
+    # def _get_data(self, stream):
+    #     """
+    #     Get the data generator. Sorts on timestamp
+    #     :param stream: The stream reference
+    #     :return: The data generator
+    #     """
+    #     # return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream.stream_id]
+    #     #                if timestamp in stream.time_interval), key=lambda x: x.timestamp)
+    #     # TODO: Put the check back in for the time interval
+    #     return sorted(self.data[stream.stream_id], key=lambda x: x.timestamp)
+    #
     def get_results(self, stream):
         """
         Calculates/receives the documents in the stream interval determined by the stream
         :param stream: The stream reference
         :return:
         """
-        return self._get_data(stream)
-    
+        # return self._get_data(stream)
+        return sorted(self.data[stream.stream_id], key=lambda x: x.timestamp)
+
     def get_stream_writer(self, stream):
         def writer(document_collection):
             # TODO from niall: I added this type check to fix bug with the Apply tool. \
@@ -115,7 +116,7 @@ class ReadOnlyMemoryChannel(BaseChannel):
             self.update_streams(up_to_timestamp)
             self.update_state(up_to_timestamp)
     
-    def create_stream(self, stream_id):  # , tool_stream=None):
+    def create_stream(self, stream_id):
         raise RuntimeError("Read-only channel")
     
     def get_stream_writer(self, stream):
@@ -143,16 +144,16 @@ class ReadOnlyMemoryChannel(BaseChannel):
         self.up_to_timestamp = up_to_timestamp
     
     def get_results(self, stream):
-        # TODO: make this behave like the other channels
-        # start = time_interval.start
-        # end = time_interval.end
-        # if isinstance(start, timedelta) or isinstance(end, timedelta):
-        #     raise ValueError('Cannot calculate a relative stream')
-        # if end > self.up_to_timestamp:
-        #     raise ValueError(
-        #         'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
-        result = []
-        for (tool_info, data) in self.streams[stream.stream_id]:
-            if start < tool_info.timestamp <= end:
-                result.append(StreamInstance(tool_info.timestamp, data))
-        return sorted(result, key=lambda x: x.timestamp)
+        raise NotImplementedError
+        # # start = time_interval.start
+        # # end = time_interval.end
+        # # if isinstance(start, timedelta) or isinstance(end, timedelta):
+        # #     raise ValueError('Cannot calculate a relative stream')
+        # # if end > self.up_to_timestamp:
+        # #     raise ValueError(
+        # #         'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
+        # result = []
+        # for (tool_info, data) in self.streams[stream.stream_id]:
+        #     if start < tool_info.timestamp <= end:
+        #         result.append(StreamInstance(tool_info.timestamp, data))
+        # return sorted(result, key=lambda x: x.timestamp)
