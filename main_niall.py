@@ -42,8 +42,6 @@ if __name__ == '__main__':
     plates = PlateManager(hyperstream_config.meta_data).plates
     
     # Various constants
-    t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
-    t2 = t1 + timedelta(minutes=10)
     second = timedelta(seconds=1)
     minute = timedelta(minutes=1)
     hour = timedelta(hours=1)
@@ -55,71 +53,82 @@ if __name__ == '__main__':
     D = channels.mongo
     
     # A couple of parameters
-    relative_window = (-30 * second, timedelta(0))
-    interval = TimeInterval(t1, t2)
+    t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
+    interval = TimeInterval(t1, t1 + timedelta(minutes=10))
     
-    # Define sliding window stream
-    stream_memory_sliding_window = M.create_stream(StreamId('stream_id_memory_sliding_window'))
+    w = Workflow(
+        channels=channels,
+        plates=plates,
+        workflow_id="nt_test",
+        name="test",
+        owner="nt",
+        description="test")
     
-    stream_tool_sliding_window = ExplicitFactor(
-        tool=channels.get_tool2(
-            tool="sliding_window",
-            tool_parameters=dict(
-                first=MIN_DATE,
-                lower=timedelta(seconds=-30),
-                upper=timedelta(seconds=0),
-                increment=timedelta(seconds=10)
-            )
+    # Define the sliding window
+    n_sliding_window = w.create_node(stream_name="sliding_window", channel=M, plate_ids=None)
+    f_sliding_window = w.create_factor(
+        tool_name="sliding_window",
+        tool_parameters=dict(
+            first=MIN_DATE,
+            lower=timedelta(seconds=-30),
+            upper=timedelta(seconds=0),
+            increment=timedelta(seconds=10)
         ),
-        sources=None,
-        sink=stream_memory_sliding_window
+        source_nodes=None,
+        sink_node=n_sliding_window
     )
     
-    # Define the motion in kitchen tool
-    stream_sphere_environmental = S.create_stream(StreamId('stream_id_memory_environmental'))
-    stream_tool_sphere_environmental = ExplicitFactor(
-        tool=channels.get_tool2(
-            tool='sphere',
-            tool_parameters=dict(modality='environmental')
-        ),
-        sources=None,
-        sink=stream_sphere_environmental
+    # Define the environmental data
+    n_environmental_data = w.create_node(stream_name="environmental", channel=M, plate_ids=["H1"])
+    f_environmental_data = w.create_factor(
+        tool_name="sphere",
+        tool_parameters=dict(modality="environmental"),
+        source_nodes=None,
+        sink_node=n_environmental_data
     )
     
-    # Filter the motion in kitchen
-    stream_memory_motion = M.create_stream(StreamId('id_memory_m_kitchen'))
-    
-    tool_motion = ExplicitFactor(
-        tool=channels.get_tool2(
-            tool='component',
-            tool_parameters=dict(
-                key='motion-S1_K'
-            )
-        ),
-        sources=[
-            stream_sphere_environmental
-        ],
-        sink=stream_memory_motion
+    # Define the motion data
+    n_motion_data = w.create_node(stream_name="motion_data", channel=M, plate_ids=["H1"])
+    f_motion_data = w.create_factor(
+        tool_name="component",
+        tool_parameters=dict(key="motion-S1_K"),
+        source_nodes=[n_environmental_data],
+        sink_node=n_motion_data
     )
     
-    # Aggregate over the window
-    stream_memory_m_kitchen_mean = M.create_stream(StreamId('id_memory_m_kitchen_mean'))
-    
-    tool_sliding_apply = ExplicitFactor(
-        tool=channels.get_tool2(
-            tool='sliding_apply',
-            tool_parameters=dict(
-                func=online_average
-            )
-        ),
-        sources=[
-            stream_memory_sliding_window,
-            stream_memory_motion
-        ],
-        sink=stream_memory_m_kitchen_mean
+    # Take the mean of the motion stream over a sliding window
+    n_average_motion = w.create_node(stream_name="average_motion", channel=M, plate_ids=["H1"])
+    f_average_motion = w.create_factor(
+        tool_name="sliding_apply",
+        tool_parameters=dict(func=online_average),
+        source_nodes=[n_sliding_window, n_motion_data],
+        sink_node=n_average_motion
     )
     
-    tool_sliding_apply.execute(interval)
+    # Execute the factors
+    f_sliding_window.execute(interval)
+    ii = str(n_sliding_window.streams[None].values()[0])
+    assert ii == "(2016-04-28 20:00:00+00:00, 2016-04-28 20:00:30+00:00]"
     
-    print stream_memory_m_kitchen_mean.values()
-    print stream_memory_motion.values()
+    f_environmental_data.execute(interval)
+    env = n_environmental_data.streams[(('house', '1'),)].values()[0]
+    assert env == {u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None, 'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None, 'temperature': None}
+
+    
+    f_motion_data.execute(interval)
+    motion = list(n_motion_data.streams[(('house', '1'),)].values())[:10]
+    assert motion == [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]
+
+    
+    f_average_motion.execute(interval)
+    md = list(n_average_motion.streams[(('house', '1'),)].values())[:10]
+    assert md == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0]
+
+    
+    
+    # # Print the data
+    # for stream_name, stream in n_average_motion.streams.iteritems():
+    #     print stream_name, stream
+    #     for values in stream.values():
+    #         print "", values
+    #     print
