@@ -24,5 +24,8 @@ from hyperstream.channels.sphere_channel import SphereDataWindow
 
 class SphereBoundingBox(Tool):
     @check_input_stream_count(0)
-    def _execute(self, input_streams, interval, writer):
-        writer(SphereDataWindow(interval).video.get_data(elements='2Dbb'))
+    def _execute(self, input_streams, interval):
+        raise NotImplementedError
+        
+        #TODO from niall: duplicate below with yield
+        # writer(SphereDataWindow(interval).video.get_data(elements='2Dbb'))

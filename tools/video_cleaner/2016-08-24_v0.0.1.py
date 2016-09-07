@@ -23,5 +23,5 @@ from hyperstream.tool import Tool, check_input_stream_count
 
 class VideoCleaner(Tool):
     @check_input_stream_count(1)
-    def _execute(self, input_streams, interval, writer):
+    def _execute(self, input_streams, interval):
         raise NotImplementedError
