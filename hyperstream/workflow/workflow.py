@@ -98,7 +98,7 @@ class Workflow(Printable):
         
         return node
     
-    def create_streams(self, channel, stream_name, plate_ids, tool_stream=None):
+    def create_streams(self, channel, stream_name, plate_ids):  # , tool_stream=None):
         """
         Create a node in the graph, using the stream name and plate
         :param channel: the channel containing the stream
@@ -119,8 +119,8 @@ class Workflow(Printable):
                 
                 streams.append(
                     channel.create_stream(
-                        stream_id=stream_id,
-                        tool_stream=tool_stream
+                        stream_id=stream_id
+                        # tool_stream=tool_stream
                     )
                 )
         

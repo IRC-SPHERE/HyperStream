@@ -55,7 +55,7 @@ class DatabaseChannel(BaseChannel):
         #
         return self._get_data(stream)
 
-    def create_stream(self, stream_id, tool_stream=None):
+    def create_stream(self, stream_id):  # , tool_stream=None):
         # TODO: Functionality here
         raise NotImplementedError("Database streams currently need to be defined in the database")
 
