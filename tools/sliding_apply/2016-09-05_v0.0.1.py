@@ -37,15 +37,12 @@ class SlidingApply(Tool):
     @check_input_stream_count(2)
     def _execute(self, input_streams, interval):
         sliding_window = input_streams[0]
-        data_stream = input_streams[1]
-        
-        # TODO: should this be execute-d?
-        data = data_stream.execute(interval).iteritems()
+        data = iter(input_streams[1])
         
         window = []
         future = []
         
-        for time, rel_window in sliding_window.execute(interval).iteritems():
+        for time, rel_window in sliding_window:
             lower = rel_window.start
             upper = rel_window.end
             
