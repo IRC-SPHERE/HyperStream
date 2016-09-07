@@ -31,12 +31,14 @@ class Node(Printable):
         """
         Initialise the node
         :param node_id: The node id
-        :param streams: The streams
+        :param streams: The streams, organised as a nested dictionary with plate objects as keys at the top level,
+        and then plate values (tuple(sorted(plate_values.items())) as the keys at the next level
         :param plate_ids: The plate ids
         """
         self.node_id = node_id
         self.streams = streams
-        self.plate_ids = plate_ids
+        # TODO: Remove plate IDs
+        self.plate_ids = tuple(plate_ids) if plate_ids else tuple()
 
         """
         When defining streams, it will be useful to be able to query node objects
@@ -46,44 +48,10 @@ class Node(Printable):
 
         """
 
-    def window(self, time_interval):
-        """
-        Sets the time execute for all the streams
-        :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-        :type time_interval: Iterable, TimeInterval
-        :return: self (for chaining)
-        """
-        for stream in self.streams:
-            stream.window(time_interval)
-        return self
-
-    def relative_window(self, time_interval):
-        """
-        Sets the time execute for all the streams
-        :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-        :type time_interval: Iterable, TimeInterval
-        :return: self (for chaining)
-        """
-        for stream in self.streams:
-            stream.relative_window(time_interval)
-        return self
-
-    # def execute(self):
-    #     """
-    #     Execute all of the streams for this node
-    #     :return: self (for chaining)
-    #     """
-    #     for stream in self.streams:
-    #         # TODO: This is where the execution logic for the streams goes (e.g. add to Queuing system)
-    #         logging.info("Executing stream {}".format(stream.stream_id))
-    #         stream.execute()
-    #
-    #     return self
-
-    def __iter__(self):
-        return iter(self.streams)
+    # def __iter__(self):
+    #     return iter(self.streams)
 
     def intersection(self, meta):
+        # TODO: Why only streams[0] below?
         keys = self.streams[0].stream_id.meta_data.keys()
-
         return StreamId(self.node_id, dict(*zip((kk, meta[kk]) for kk in keys)))

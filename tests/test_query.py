@@ -20,7 +20,7 @@
 
 import unittest
 
-from hyperstream import TimeInterval, TimeIntervals, Workflow, StreamView, RelativeTimeInterval
+from hyperstream import TimeInterval, TimeIntervals, Workflow, RelativeTimeInterval  # , StreamView
 from hyperstream.itertools2 import online_average, count as online_count
 from hyperstream.utils import MIN_DATE
 from helpers import *
@@ -129,8 +129,34 @@ class HyperStringTests(unittest.TestCase):
     #     assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])
 
     def test_database_channel(self):
-        # TODO: some tests go here
-        pass
+        # Simple querying
+        ti = TimeInterval(t1, t1 + minute)
+
+        # Create stream that lives in the database
+        elec = D.create_stream(stream_id=StreamId('electricity_db'))
+
+        # Create stream whose source will be the above database stream
+        env = M.create_stream(stream_id=StreamId('env'))
+
+        env_tool = channels.get_tool2("sphere", dict(modality="environmental"))
+        elec_tool = T[component].items()[-1].value(key='electricity-04063')
+
+        env_tool.execute(input_streams=None, interval=ti, writer=env.writer)
+        elec_tool.execute(input_streams=[env], interval=ti, writer=elec.writer)
+
+        q1 = "\n".join("=".join(map(str, ee)) for ee in elec)
+
+        # print(q1)
+        # print(edl)
+
+        assert (q1 == '2016-04-28 20:00:00.159000+00:00=0.0\n'
+                      '2016-04-28 20:00:06.570000+00:00=0.0\n'
+                      '2016-04-28 20:00:12.732000+00:00=0.0\n'
+                      '2016-04-28 20:00:25.125000+00:00=0.0\n'
+                      '2016-04-28 20:00:31.405000+00:00=0.0\n'
+                      '2016-04-28 20:00:50.132000+00:00=0.0')
+
+        assert (elec.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     def test_simple_workflow(self):
         # Create a simple one step workflow for querying
@@ -149,13 +175,14 @@ class HyperStringTests(unittest.TestCase):
 
         # Create a factor to produce some data
         w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
-                        sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
+                        # sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
+                        source_nodes=None, sink_node=node)
 
         # Execute the workflow
         w.execute(time_interval)
 
         # Check the values
-        assert (node.streams[0].values()[:1] ==
+        assert (node.streams[('house', '1'), ].values()[:1] ==
                 [{u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
                   'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
                   'temperature': None}])
@@ -243,6 +270,11 @@ class HyperStringTests(unittest.TestCase):
         )
         
         assert(stream_memory_m_kitchen_mean.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+    def test_overlapping_plates(self):
+        # TODO: Create test that involves multiple overlapping plates
+        assert False
+
 
 if __name__ == '__main__':
     unittest.main()
