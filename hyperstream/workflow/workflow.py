@@ -154,9 +154,10 @@ class WorkflowManager(Printable):
                 )
                 
                 for n in workflow_definition.nodes:
-                    # TODO from niall: note, changed create_node to take only two arguments.
-                    #   rest: please think about whether we can always guarantee that node_id == n.stream_name
-                    workflow.create_node(n.stream_name, channels.get_channel(n.channel_id), n.plate_ids)
+                    workflow.create_node(
+                        stream_name=n.stream_name,
+                        channel=channels.get_channel(n.channel_id),
+                        plate_ids=n.plate_ids)
                 
                 # NOTE that we have to replicate the factor over the plate
                 # This is fairly simple in the case of

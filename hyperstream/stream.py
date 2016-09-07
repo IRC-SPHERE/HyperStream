@@ -102,6 +102,9 @@ class StreamId(Hashable):
                self.name == other.name and \
                sorted(self.meta_data) == sorted(other.meta_data)
 
+    def as_dict(self):
+        return dict(name=self.name, meta_data=dict(self.meta_data))
+
 
 class Stream(Hashable):
     """
@@ -112,10 +115,12 @@ class Stream(Hashable):
 
     def __init__(self, channel, stream_id, calculated_intervals):
         """
+        :param channel: The channel to which this stream belongs
+        :param stream_id: The unique identifier for this string
+        :param calculated_intervals: The time intervals in which this has been calculated
         :type channel: BaseChannel
         :type stream_id: StreamId
         :type calculated_intervals: TimeIntervals
-        :type tool: Stream, None
         """
         self.channel = channel
         if not isinstance(stream_id, StreamId):
