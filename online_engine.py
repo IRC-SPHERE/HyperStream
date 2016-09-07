@@ -19,8 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from channel import ChannelManager
-from plate import PlateManager
-from workflow import WorkflowManager
+from workflow import WorkflowManager, PlateManager
 from client import Client
 
 

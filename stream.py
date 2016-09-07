@@ -27,6 +27,18 @@ from collections import Iterable, namedtuple
 from datetime import datetime
 
 
+class StreamView(namedtuple("StreamView", "stream time_interval")):
+    """
+    Simple helper class for storing streams with time intervals (i.e. a "view" on a stream)
+    """
+    def __new__(cls, stream, time_interval=None):
+        if not isinstance(stream, Stream):
+            raise ValueError("stream must be Stream object")
+        if time_interval is not None and not isinstance(time_interval, TimeInterval):
+            raise ValueError("time_interval must be TimeInterval object")
+        return super(StreamView, cls).__new__(cls, stream, time_interval)
+
+
 class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
     """
     Simple helper class for storing data instances that's a bit neater than simple tuples
@@ -49,7 +61,6 @@ class StreamDict(TypedBiDict):
     Custom bi-directional dictionary where keys are StreamID objects and values are Stream objects.
     Raises ValueDuplicationError if the same Stream is added again
     """
-    
     def __init__(self, *args, **kwargs):
         super(StreamDict, self).__init__(StreamId, Stream, *args, **kwargs)
 
@@ -88,51 +99,37 @@ class Stream(Hashable):
     """
     _calculated_intervals = None
     defined = False
-    
-    def __init__(self, channel, stream_id, time_interval, calculated_intervals, modifier, tool, input_streams):
+
+    def __init__(self, channel, stream_id, calculated_intervals, input_streams):
         """
         :type channel: BaseChannel
         :type stream_id: StreamId
-        :type time_interval: TimeInterval, None
         :type calculated_intervals: TimeIntervals
-        :type modifier: Modifier, None
         :type tool: Stream, None
         """
         self.channel = channel
         if not isinstance(stream_id, StreamId):
             raise TypeError(str(type(stream_id)))
         self.stream_id = stream_id
-        self.time_interval = time_interval
-        self.modifier = modifier
         # self.get_results_func = get_results_func
         if not isinstance(calculated_intervals, TimeIntervals):
             raise TypeError(str(type(calculated_intervals)))
         self.calculated_intervals = calculated_intervals
-        self.kwargs = {}
-        self.tool = tool
+        # self.kwargs = {}
+        # self.tool = tool
         self.input_streams = input_streams
-        
+
         # Here we define the output type. When modifiers are applied, this changes
         # self.output_format = 'doc_gen'
     
     def __str__(self):
-        return "{}(stream_id={}, channel_id={}, tool={}, input_streams=[{}], interval={}, modifiers={})".format(
+        return "{}(stream_id={}, channel_id={}, input_streams=[{}])".format(
             self.__class__.__name__,
             self.stream_id,
             self.channel.channel_id,
-            self.tool.__class__.__name__ if self.tool else None,
-            ", ".join(map(lambda x: x.stream_id.name, self.input_streams)) if self.input_streams else None,
-            self.time_interval,
-            self.modifier)
-        # s = "Stream"
-        # s += "\n      CHANNEL_ID  : " + repr(self.channel.channel_id)
-        # s += "\n      STREAM_ID   : " + repr(self.stream_id)
-        # s += "\n      START       : " + repr(self.time_interval.start if self.time_interval else None)
-        # s += "\n      END         : " + repr(self.time_interval.end if self.time_interval else None)
-        # s += "\n      MODIFIERS   : " + repr(self.modifiers)
-        # s += "\n    "
-        # return s
-    
+            # self.tool.__class__.__name__ if self.tool else None,
+            ", ".join(map(lambda x: x.stream_id.name, self.input_streams)) if self.input_streams else None)
+
     def __repr__(self):
         return str(self)
     
@@ -152,52 +149,52 @@ class Stream(Hashable):
     @property
     def writer(self):
         return self.channel.get_stream_writer(self)
-    
-    def window(self, time_interval):
-        """
-        Sets the time window for this stream
-        :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-        :type time_interval: Iterable, TimeInterval
-        :return: self (for chaining)
-        """
-        if isinstance(time_interval, TimeInterval):
-            self.time_interval = time_interval
-        elif isinstance(time_interval, Iterable):
-            self.time_interval = parse_time_tuple(*time_interval)
-            if isinstance(self.time_interval, RelativeTimeInterval):
-                raise ValueError("Use relative_window to define relative time windows")
-        elif isinstance(time_interval, RelativeTimeInterval):
-            raise ValueError("Use relative_window to define relative time windows")
-        else:
-            raise ValueError
-        return self
-    
-    def relative_window(self, time_interval):
-        """
-        Sets the time window for this stream
-        :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-        :type time_interval: Iterable, TimeInterval
-        :return: self (for chaining)
-        """
-        if isinstance(time_interval, RelativeTimeInterval):
-            self.time_interval = time_interval
-        elif isinstance(time_interval, Iterable):
-            self.time_interval = parse_time_tuple(*time_interval)
-            if not isinstance(self.time_interval, RelativeTimeInterval):
-                raise ValueError("Use window to define absolute time windows")
-        elif isinstance(time_interval, RelativeTimeInterval):
-            raise ValueError("Use window to define absolute time windows")
-        else:
-            raise ValueError
-        return self
-    
-    @property
-    def required_intervals(self):
-        return TimeIntervals([self.time_interval]) - self.calculated_intervals
-    
-    def execute(self):
-        self.channel.get_results(self)
-    
+
+    # def window(self, time_interval):
+    #     """
+    #     Sets the time execute for this stream
+    #     :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
+    #     :type time_interval: Iterable, TimeInterval
+    #     :return: self (for chaining)
+    #     """
+    #     if isinstance(time_interval, TimeInterval):
+    #         self.time_interval = time_interval
+    #     elif isinstance(time_interval, Iterable):
+    #         self.time_interval = parse_time_tuple(*time_interval)
+    #         if isinstance(self.time_interval, RelativeTimeInterval):
+    #             raise ValueError("Use relative_window to define relative time windows")
+    #     elif isinstance(time_interval, RelativeTimeInterval):
+    #         raise ValueError("Use relative_window to define relative time windows")
+    #     else:
+    #         raise ValueError
+    #     return self
+    #
+    # def relative_window(self, time_interval):
+    #     """
+    #     Sets the time execute for this stream
+    #     :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
+    #     :type time_interval: Iterable, TimeInterval
+    #     :return: self (for chaining)
+    #     """
+    #     if isinstance(time_interval, RelativeTimeInterval):
+    #         self.time_interval = time_interval
+    #     elif isinstance(time_interval, Iterable):
+    #         self.time_interval = parse_time_tuple(*time_interval)
+    #         if not isinstance(self.time_interval, RelativeTimeInterval):
+    #             raise ValueError("Use execute to define absolute time windows")
+    #     elif isinstance(time_interval, RelativeTimeInterval):
+    #         raise ValueError("Use execute to define absolute time windows")
+    #     else:
+    #         raise ValueError
+    #     return self
+
+    # @property
+    # def required_intervals(self):
+    #     return TimeIntervals([self.time_interval]) - self.calculated_intervals
+
+    # def execute(self):
+    #     self.channel.get_results(self)
+
     def __iter__(self):
         for item in self.channel.get_results(self):
             yield item
@@ -220,9 +217,6 @@ class Stream(Hashable):
     
     # @check_output_format({'doc_gen'})
     def itertimestamps(self):
-        if self.modifier:
-            # TODO: This is designed to replace the Time() modifier
-            raise NotImplementedError
         return map(lambda x: x.timestamp, self.iteritems())
     
     # @check_output_format({'data_gen', 'doc_gen'})
@@ -299,35 +293,45 @@ class Stream(Hashable):
             yield StreamInstance(time, data2)
 
 
-class ToolStream(Stream):
-    def __init__(self, stream):
-        super(ToolStream, self).__init__(
-            channel=stream.channel,
-            stream_id=stream.stream_id,
-            time_interval=stream.time_interval,
-            calculated_intervals=stream.calculated_intervals,
-            modifier=stream.modifier,
-            tool=stream.tool,
-            input_streams=stream.input_streams)
-        self.output_stream = None
-        self.defined = False
-    
-    def define(self, input_streams=None, **kwargs):
-        """
-        Define the stream with the given input streams and keyword arguments
-        :param input_streams: The input streams
-        :param kwargs: keyword arguments
-        :return: self (for chaining)
-        """
-        if self.defined:
-            raise RuntimeError("Tool for stream {} already defined".format(self.stream_id))
-        
-        # Don't obliterate existing input_streams definition if there was one
-        if input_streams:
-            self.input_streams = input_streams
-        
-        # TODO: Possibly combine with existing kwargs ... defaults?
-        self.kwargs = kwargs
-        self.defined = True
-        return deepcopy(self)
-    
+# class ToolStream(Stream):
+#     def __init__(self, stream):
+#         super(ToolStream, self).__init__(
+#             channel=stream.channel,
+#             stream_id=stream.stream_id,
+#             calculated_intervals=stream.calculated_intervals,
+#             # tool=stream.tool,
+#             input_streams=stream.input_streams)
+#         self.defined = False
+#
+#     def define(self, input_streams=None):  # , **kwargs):
+#         """
+#         Define the stream with the given input streams and keyword arguments
+#         :param input_streams: The input streams
+#         :param kwargs: keyword arguments
+#         :return: self (for chaining)
+#         """
+#         if self.defined:
+#             raise RuntimeError("Tool for stream {} already defined".format(self.stream_id))
+#
+#         # Don't obliterate existing input_streams definition if there was one
+#         if input_streams:
+#             self.input_streams = input_streams
+#
+#         # TODO: Possibly combine with existing kwargs ... defaults?
+#         # self.kwargs = kwargs
+#         self.defined = True
+#         return deepcopy(self)
+
+    # @check_tool_defined
+    # def execute(self):
+    #     self.channel.get_results(self)
+    #
+    # @check_tool_defined
+    # def __iter__(self):
+    #     for item in self.channel.get_results(self):
+    #         yield item
+    #
+    # @check_output_format({'doc_gen'})
+    # @check_tool_defined
+    # def iteritems(self):
+    #     return iter(self)

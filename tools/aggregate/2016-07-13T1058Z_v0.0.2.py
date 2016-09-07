@@ -19,6 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream import TimeInterval, RelativeTimeInterval
+from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 from datetime import timedelta
 import logging
@@ -46,11 +47,11 @@ class Aggregate(Tool):
                     interval, input_streams[0].time_interval))
                 raise NotImplementedError
 
-        data = input_streams[0].window(interval).iteritems()
+        data = input_streams[0].execute(interval).iteritems()
 
         window = []
         future = []
-        for (t, _) in self.timer.window(interval).iteritems():
+        for (t, _) in self.timer.execute(interval).iteritems():
             while (len(window) > 0) and (window[0][0] <= t + rel_start):
                 window = window[1:]
             while (len(future) > 0) and (future[0][0] <= t + rel_end):
@@ -71,7 +72,7 @@ class Aggregate(Tool):
                 except StopIteration:
                     break
             # single-document case:
-            writer([(t, self.func(iter(window)))])
+            writer([StreamInstance(t, self.func(iter(window)))])
             # multi-document case:
-            # for x in func( (doc for doc in window) ):
-            #        writer([(t,x)])
+            # for x in func( (doc for doc in execute) ):
+            #        writer([StreamInstance(t,x)])
