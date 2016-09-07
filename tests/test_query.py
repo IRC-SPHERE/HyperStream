@@ -150,13 +150,13 @@ class HyperStringTests(unittest.TestCase):
         # Create a factor to produce some data
         w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
                         # sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
-                        sources=None, sink=node.streams[0])
+                        sources=None, sink=node)
 
         # Execute the workflow
         w.execute(time_interval)
 
         # Check the values
-        assert (node.streams[0].values()[:1] ==
+        assert (node.streams[('house', '1'), ].values()[:1] ==
                 [{u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
                   'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
                   'temperature': None}])
