@@ -19,6 +19,8 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from stream import StreamStatusModel, StreamDefinitionModel, StreamInstanceModel
-from workflow import WorkflowDefinitionModel, WorkflowStatusModel, PlateDefinitionModel, NodeDefinitionModel, \
-    FactorDefinitionModel
+from workflow import WorkflowDefinitionModel, WorkflowStatusModel
+from plate import PlateDefinitionModel
+from node import NodeDefinitionModel
+from factor import FactorDefinitionModel
 from time_range import TimeRangeModel
