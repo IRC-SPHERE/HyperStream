@@ -23,8 +23,6 @@ from mongoengine import Document, DateTimeField, StringField, DictField, Dynamic
 from time_range import TimeRangeModel
 
 
-# TODO: Many of these are SPHERE-specific and should be moved to outside the hyperstream
-
 class StreamIdField(EmbeddedDocument):
     name = StringField(required=True, min_length=1, max_length=512)
     meta_data = DictField(required=True)

@@ -23,8 +23,6 @@ from mongoengine import Document, StringField, EmbeddedDocument, EmbeddedDocumen
 from time_range import TimeRangeModel
 
 
-# TODO: These are SPHERE-sepcific and should be moved to outside hyperstream master.
-
 class ToolModel(EmbeddedDocument):
     name = StringField(required=True, min_length=1, max_length=512)
     version = StringField(required=True, min_length=1, max_length=512)
