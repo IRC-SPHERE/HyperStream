@@ -27,7 +27,7 @@ import logging
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
 
 from memory_channel import MemoryChannel
-from ..stream import StreamInstance, StreamInstances, Stream
+from ..stream import StreamInstance, Stream
 from ..time_interval import TimeIntervals, TimeInterval
 from ..utils import MIN_DATE, MAX_DATE
 
@@ -79,61 +79,61 @@ class SphereChannel(MemoryChannel):
             self.streams[stream_id].calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
         self.up_to_timestamp = up_to_timestamp
 
-    def execute_tool(self, stream, interval):
-        try:
-            stream.tool.execute(None, interval, stream.writer)
-        except AttributeError:
-            raise
+    # def execute_tool(self, stream, interval):
+    #     try:
+    #         stream.tool.execute(None, interval, stream.writer)
+    #     except AttributeError:
+    #         raise
 
-    def _get_data_not_used(self, stream, **kwargs):
-        """
-        Another version of _get_data, which directly uses SphereDataWindow, rather than executing the tool
-        :param stream: Stream reference
-        :param kwargs: Keyword arguments
-        :return: The data generator
-        """
-        # TODO: Perhaps this is sufficient, rather than requiring all of the SPHERE specific tools
-        window = SphereDataWindow(stream.time_interval)
-        if "modality" not in kwargs:
-            raise KeyError("modality not in tool_parameters")
-        if kwargs["modality"] not in window.modalities:
-            raise ValueError("unknown modality {}".format(kwargs["modality"]))
-        elements = kwargs["elements"] if "elements" in kwargs else None
-        return map(reformat, window.modalities[kwargs["modality"]].get_data(elements=elements))
+    # def _get_data_not_used(self, stream, **kwargs):
+    #     """
+    #     Another version of _get_data, which directly uses SphereDataWindow, rather than executing the tool
+    #     :param stream: Stream reference
+    #     :param kwargs: Keyword arguments
+    #     :return: The data generator
+    #     """
+    #     # TODO: Perhaps this is sufficient, rather than requiring all of the SPHERE specific tools
+    #     window = SphereDataWindow(stream.time_interval)
+    #     if "modality" not in kwargs:
+    #         raise KeyError("modality not in tool_parameters")
+    #     if kwargs["modality"] not in window.modalities:
+    #         raise ValueError("unknown modality {}".format(kwargs["modality"]))
+    #     elements = kwargs["elements"] if "elements" in kwargs else None
+    #     return map(reformat, window.modalities[kwargs["modality"]].get_data(elements=elements))
 
-    def _get_data(self, stream):
-        """
-        Gets the data. Assumes that it is already sorted by timestamp
-        :param stream: The stream reference
-        :return: The data generator
-        """
-        logging.debug((id(self), len(self.data)))
-        # return (d for d in self.data[stream_ref]
-        #         if d.timestamp in stream_ref.time_interval)
-        #for d in self.data[stream_ref.stream_id]:
-        #    if d.timestamp in stream_ref.time_interval:
-        #        yield d
-        return self.data[stream.stream_id]
+    # def _get_data(self, stream):
+    #     """
+    #     Gets the data. Assumes that it is already sorted by timestamp
+    #     :param stream: The stream reference
+    #     :return: The data generator
+    #     """
+    #     logging.debug((id(self), len(self.data)))
+    #     # return (d for d in self.data[stream_ref]
+    #     #         if d.timestamp in stream_ref.time_interval)
+    #     #for d in self.data[stream_ref.stream_id]:
+    #     #    if d.timestamp in stream_ref.time_interval:
+    #     #        yield d
+    #     return self.data[stream.stream_id]
     
-    def get_stream_writer(self, stream):
-        def writer(doc):
-            # TODO from niall: I think we are guaranteed that only StreamInstances will be StreamInstance-s
-            if isinstance(doc, StreamInstance):
-                self.data[stream.stream_id].append(doc)
-                
-            elif isinstance(doc, StreamInstances):
-                data = map(reformat, doc.items)
-                self.data[stream.stream_id].extend(data)
-                logging.debug((id(self), len(self.data)))
-                
-            else:
-                raise RuntimeError("Only StreamInstance or StreamInstances objects should be passed in here. \n"
-                                   "Received: {}".format(doc.__class__.__type__))
-        
-        return writer
+    # def get_stream_writer(self, stream):
+    #     def writer(doc):
+    #         # TODO from niall: I think we are guaranteed that only StreamInstances will be StreamInstance-s
+    #         if isinstance(doc, StreamInstance):
+    #             self.data[stream.stream_id].append(doc)
+    #
+    #         elif isinstance(doc, StreamInstances):
+    #             data = map(reformat, doc.items)
+    #             self.data[stream.stream_id].extend(data)
+    #             logging.debug((id(self), len(self.data)))
+    #
+    #         else:
+    #             raise RuntimeError("Only StreamInstance or StreamInstances objects should be passed in here. \n"
+    #                                "Received: {}".format(doc.__class__.__type__))
+    #
+    #     return writer
 
 
-def reformat(doc):
-    dt = doc['datetime']
-    del doc['datetime']
-    return StreamInstance(dt, doc)
+# def reformat(doc):
+#     dt = doc['datetime']
+#     del doc['datetime']
+#     return StreamInstance(dt, doc)

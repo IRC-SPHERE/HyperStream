@@ -50,11 +50,11 @@ class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
         return super(StreamInstance, cls).__new__(cls, timestamp, value)
 
 
-class StreamInstances(namedtuple("StreamInstance", "timestamp_key items")):
-    def __new__(cls, timestamp_key, items):
-        if not isinstance(timestamp_key, str):
-            raise ValueError
-        return super(StreamInstances, cls).__new__(cls, timestamp_key, items)
+# class StreamInstances(namedtuple("StreamInstance", "timestamp_key items")):
+#     def __new__(cls, timestamp_key, items):
+#         if not isinstance(timestamp_key, str):
+#             raise ValueError
+#         return super(StreamInstances, cls).__new__(cls, timestamp_key, items)
 
 class StreamDict(TypedBiDict):
     """
