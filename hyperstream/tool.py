@@ -121,5 +121,7 @@ class ExplicitFactor(Printable, Hashable):
     def propagate_computation(self, interval):
         if self.sources is not None:
             for source in self.sources:
+                assert isinstance(source.tool_reference, ExplicitFactor)
+                
                 logging.info("Propagating inference back to: {}".format(source))
                 source.tool_reference.execute(interval)
