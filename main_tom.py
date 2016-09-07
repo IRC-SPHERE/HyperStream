@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
     # Create a factor to produce some data
     factor = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
-                             sources=None, sink=node)
+                             source_nodes=None, sink_node=node)
     # sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
 
     # Execute the workflow
@@ -133,8 +133,8 @@ if __name__ == '__main__':
     f_timer = w.create_factor(
         tool_name="clock",
         tool_parameters=dict(stride=30 * second),
-        sources=None,
-        sink=n_clock
+        source_nodes=None,
+        sink_node=n_clock
         # sink=StreamView(n_clock.streams[0])
     )
 
@@ -147,16 +147,16 @@ if __name__ == '__main__':
     f_env = w.create_factor(
         tool_name="sphere",
         tool_parameters=dict(modality="environmental"),
-        sources=None,
-        sink=n_environ
+        source_nodes=None,
+        sink_node=n_environ
         # sink=StreamView(n_environ.streams[0])
     )
 
     f_motion = w.create_factor(
         tool_name="component",
         tool_parameters=dict(key="motion-S1_K"),
-        sources=[n_environ],
-        sink=n_motion_kitchen
+        source_nodes=[n_environ],
+        sink_node=n_motion_kitchen
         # sources=[StreamView(s) for s in n_environ.streams],
         # sink=StreamView(n_motion_kitchen.streams[0])
     )
@@ -164,8 +164,8 @@ if __name__ == '__main__':
     f_kitchen_motion = w.create_factor(
         tool_name="aggregate",
         tool_parameters=dict(func=online_count),
-        sources=[n_clock, n_motion_kitchen],
-        sink=n_motion_kitchen_count
+        source_nodes=[n_clock, n_motion_kitchen],
+        sink_node=n_motion_kitchen_count
         # sources=[StreamView(n_clock.streams[0]), StreamView(n_motion_kitchen.streams[0])],
         # sink=StreamView(n_motion_kitchen_count.streams[0])
     )
