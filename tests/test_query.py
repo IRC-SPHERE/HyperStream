@@ -20,7 +20,7 @@
 
 import unittest
 
-from hyperstream import TimeInterval, TimeIntervals, Workflow, StreamView, RelativeTimeInterval
+from hyperstream import TimeInterval, TimeIntervals, Workflow, RelativeTimeInterval  # , StreamView
 from hyperstream.itertools2 import online_average, count as online_count
 from hyperstream.utils import MIN_DATE
 from helpers import *
@@ -148,7 +148,8 @@ class HyperStringTests(unittest.TestCase):
 
         # Create a factor to produce some data
         w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
-                        sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
+                        # sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
+                        sources=None, sink=node.streams[0])
 
         # Execute the workflow
         w.execute(time_interval)
