@@ -18,53 +18,10 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from mongoengine import Document, StringField, EmbeddedDocument, EmbeddedDocumentListField, ListField, DateTimeField, \
-    BooleanField, DynamicField, DictField, EmbeddedDocumentField
+from mongoengine import Document, StringField, EmbeddedDocumentListField, DateTimeField
 from time_range import TimeRangeModel
-
-
-# TODO: These are SPHERE-sepcific and should be moved to outside hyperstream master.
-
-class ToolModel(EmbeddedDocument):
-    name = StringField(required=True, min_length=1, max_length=512)
-    version = StringField(required=True, min_length=1, max_length=512)
-    # TODO: strong typing
-    parameters = DictField()
-
-
-class PlateDefinitionModel(Document):
-    plate_id = StringField(required=True, min_length=1, max_length=512)
-    meta_data_id = StringField(required=True, min_length=1, max_length=512)
-    description = StringField(required=False, min_length=0, max_length=512, default="")
-    values = ListField(field=StringField(min_length=1, max_length=512))
-    complement = BooleanField(required=False, default=False)
-    parent_plate = StringField(required=False, min_length=1, max_length=512, default="")
-    
-    meta = {
-        'collection': 'plate_definitions',
-        'indexes': [{'fields': ['plate_id'], 'unique': True}],
-        'ordering': ['plate_id']
-    }
-
-
-class PlateModel(EmbeddedDocument):
-    meta_data_id = StringField(required=True, min_length=1, max_length=512)
-    # TODO: Really want to say either int or str but nothing else
-    values = ListField()  # field=IntField(min_value=0))
-    complement = BooleanField(default=False)
-
-
-class NodeDefinitionModel(EmbeddedDocument):
-    stream_name = StringField(required=True, min_length=1, max_length=512)
-    plate_ids = ListField(field=StringField(min_length=1, max_length=512))
-    channel_id = StringField(required=True, min_length=1, max_length=512)
-
-
-class FactorDefinitionModel(EmbeddedDocument):
-    # tool = StringField(required=True, min_length=1, max_length=512)
-    tool = EmbeddedDocumentField(document_type=ToolModel, required=True)
-    sources = ListField(field=StringField(min_length=1, max_length=512), required=False)
-    sink = StringField(min_length=1, max_length=512, required=False)
+from node import NodeDefinitionModel
+from factor import FactorDefinitionModel
 
 
 class WorkflowDefinitionModel(Document):
@@ -72,8 +29,6 @@ class WorkflowDefinitionModel(Document):
     name = StringField(required=True, min_length=1, max_length=512)
     description = StringField(required=True, min_length=1, max_length=4096)
     nodes = EmbeddedDocumentListField(document_type=NodeDefinitionModel, required=False)
-    # nodes_old = DynamicField(required=False)
-    # plates = MapField(field=EmbeddedDocumentListField(document_type=PlateDefinitionModel))
     factors = EmbeddedDocumentListField(document_type=FactorDefinitionModel, required=True)
     owner = StringField(required=False, min_length=1, max_length=512)
     
