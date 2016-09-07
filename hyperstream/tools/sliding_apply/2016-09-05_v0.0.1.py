@@ -22,6 +22,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from hyperstream import TimeInterval, RelativeTimeInterval
+from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 from datetime import timedelta
 import logging
@@ -34,7 +35,7 @@ class SlidingApply(Tool):
     
     # noinspection PyCompatibility
     @check_input_stream_count(2)
-    def _execute(self, input_streams, interval, writer):
+    def _execute(self, input_streams, interval):
         sliding_window = input_streams[0]
         data_stream = input_streams[1]
                 
@@ -43,7 +44,10 @@ class SlidingApply(Tool):
         window = []
         future = []
         
-        for lower, upper in sliding_window.window(interval).iteritems():
+        for time, rel_window in sliding_window.window(interval).iteritems():
+            lower = rel_window.start
+            upper = rel_window.end
+            
             # Prune the old data points from the window
             num_to_remove = 0
             for win_time, win_data in window:
@@ -88,4 +92,4 @@ class SlidingApply(Tool):
             # print '\t', self.func(window)
             # print
             
-            writer([(upper, self.func(iter(window)))])
+            yield StreamInstance(time, self.func(iter(window)))

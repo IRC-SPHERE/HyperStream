@@ -19,6 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream import TimeInterval, RelativeTimeInterval
+from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 from datetime import timedelta
 import logging
@@ -31,7 +32,7 @@ class Aggregate(Tool):
 
     # noinspection PyCompatibility
     @check_input_stream_count(2)
-    def _execute(self, input_streams, interval, writer):
+    def _execute(self, input_streams, interval):
 
         timer = input_streams[0]
         # TODO: Check that this is a timer stream
@@ -75,7 +76,7 @@ class Aggregate(Tool):
                 except StopIteration:
                     break
             # single-document case:
-            writer([(t, self.func(iter(window)))])
+            yield StreamInstance(t, self.func(iter(window)))
             # multi-document case:
             # for x in func( (doc for doc in window) ):
             #        writer([(t,x)])

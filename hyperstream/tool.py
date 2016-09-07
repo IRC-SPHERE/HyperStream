@@ -38,14 +38,20 @@ class Tool(Printable, Hashable):
     def name(self):
         return self.__class__.__module__
 
-    def _execute(self, input_streams, interval, writer):
+    def _execute(self, input_streams, interval):
         raise NotImplementedError
 
     def execute(self, input_streams, interval, writer):
         if not isinstance(interval, TimeInterval):
             raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
         logging.info('{} running from {} to {}'.format(self.__class__.__name__, str(interval.start), str(interval.end)))
-        self._execute(input_streams, interval, writer)
+        
+        try:
+            for stream_instance in self._execute(input_streams, interval):
+                writer(stream_instance)
+        except Exception as ex:
+            raise ex
+        
 
 
 def check_input_stream_count(expected_number_of_streams):
