@@ -115,12 +115,16 @@ class Stream(Hashable):
         if not isinstance(calculated_intervals, TimeIntervals):
             raise TypeError(str(type(calculated_intervals)))
         self.calculated_intervals = calculated_intervals
+        self.tool_reference = None
         # self.kwargs = {}
         # self.tool = tool
         self.input_streams = input_streams
 
         # Here we define the output type. When modifiers are applied, this changes
         # self.output_format = 'doc_gen'
+        
+    def set_tool_reference(self, tool_reference):
+        self.tool_reference = tool_reference
     
     def __str__(self):
         return "{}(stream_id={}, channel_id={}, input_streams=[{}])".format(
