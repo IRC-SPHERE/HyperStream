@@ -79,6 +79,8 @@ if __name__ == '__main__':
         interval=interval,
         writer=stream_memory_sliding_window.writer
     )
+
+    print str(stream_memory_sliding_window.values()[0])
     
     #
     #
@@ -100,6 +102,8 @@ if __name__ == '__main__':
         interval=interval,
         writer=stream_sphere_environmental.writer
     )
+
+    print stream_sphere_environmental.values()[0]
     
     #
     #
@@ -120,6 +124,8 @@ if __name__ == '__main__':
         interval=interval,
         writer=stream_memory_motion.writer
     )
+
+    print stream_memory_motion.values()
     
     #
     #
@@ -143,13 +149,5 @@ if __name__ == '__main__':
         interval=interval,
         writer=stream_memory_m_kitchen_mean.writer
     )
-    
-    #
-    #
-    #
-    #
-    # Print some data
-    # for kv in stream_memory_m_kitchen_mean:
-    #     print kv
     
     print stream_memory_m_kitchen_mean.values()
