@@ -55,12 +55,10 @@ class Factor(Printable):
     def execute(self, time_interval):
         # return self.tool.get_results(self)
 
-        sources = []
-        sink = None
-
         if self.plates:
             for plate in self.plates:
                 for pv in plate.values:
+                    sources = self.get_global_sources()
                     if self.sources:
                         for source in self.sources:
                             if pv in source.streams:
@@ -68,18 +66,19 @@ class Factor(Printable):
                             else:
                                 logging.warn("Plate {} with value {} not valid for source {}".format(plate, pv, source))
                     sink = self.sink.streams[pv]
+                    self.tool.execute(input_streams=sources, interval=time_interval, writer=sink.writer)
         else:
-            # The following is done below
             # sources = [source.streams[None] for source in self.sources] if self.sources else None
+            sources = self.get_global_sources()
             sink = self.sink.streams[None]
+            self.tool.execute(input_streams=sources, interval=time_interval, writer=sink.writer)
 
-        if not sink:
-            raise RuntimeError("Sink undefined")
-
+    def get_global_sources(self):
         # Also add streams that live outside of the plates
+        sources = []
         if self.sources:
             for source in self.sources:
                 if None in source.streams:
                     sources.append(source.streams[None])
+        return sources
 
-        self.tool.execute(input_streams=sources, interval=time_interval, writer=sink.writer)
