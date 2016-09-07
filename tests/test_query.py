@@ -249,5 +249,9 @@ class HyperStringTests(unittest.TestCase):
         # TODO: Create test that involves multiple overlapping plates
         assert False
 
+    def test_database_channel(self):
+        # TODO: Create test for database channel
+        assert False
+
 if __name__ == '__main__':
     unittest.main()
