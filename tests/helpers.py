@@ -49,6 +49,7 @@ workflows = WorkflowManager(channels=channels, plates=plates)
 M = online_engine.channels.memory
 S = online_engine.channels.sphere
 T = online_engine.channels.tools
+D = online_engine.channels.mongo
 
 
 # Some useful Stream IDs

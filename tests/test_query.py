@@ -129,8 +129,34 @@ class HyperStringTests(unittest.TestCase):
     #     assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])
 
     def test_database_channel(self):
-        # TODO: some tests go here
-        pass
+        # Simple querying
+        ti = TimeInterval(t1, t1 + minute)
+
+        # Create stream that lives in the database
+        elec = D.create_stream(stream_id=StreamId('electricity_db'))
+
+        # Create stream whose source will be the above database stream
+        env = M.create_stream(stream_id=StreamId('env'))
+
+        env_tool = channels.get_tool2("sphere", dict(modality="environmental"))
+        elec_tool = T[component].items()[-1].value(key='electricity-04063')
+
+        env_tool.execute(input_streams=None, interval=ti, writer=env.writer)
+        elec_tool.execute(input_streams=[env], interval=ti, writer=elec.writer)
+
+        q1 = "\n".join("=".join(map(str, ee)) for ee in elec)
+
+        # print(q1)
+        # print(edl)
+
+        assert (q1 == '2016-04-28 20:00:00.159000+00:00=0.0\n'
+                      '2016-04-28 20:00:06.570000+00:00=0.0\n'
+                      '2016-04-28 20:00:12.732000+00:00=0.0\n'
+                      '2016-04-28 20:00:25.125000+00:00=0.0\n'
+                      '2016-04-28 20:00:31.405000+00:00=0.0\n'
+                      '2016-04-28 20:00:50.132000+00:00=0.0')
+
+        assert (elec.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     def test_simple_workflow(self):
         # Create a simple one step workflow for querying
@@ -249,9 +275,6 @@ class HyperStringTests(unittest.TestCase):
         # TODO: Create test that involves multiple overlapping plates
         assert False
 
-    def test_database_channel(self):
-        # TODO: Create test for database channel
-        assert False
 
 if __name__ == '__main__':
     unittest.main()
