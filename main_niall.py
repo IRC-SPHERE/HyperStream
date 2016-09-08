@@ -41,11 +41,6 @@ if __name__ == '__main__':
     channels = ChannelManager(hyperstream_config.tool_path)
     plates = PlateManager(hyperstream_config.meta_data).plates
     
-    # Various constants
-    second = timedelta(seconds=1)
-    minute = timedelta(minutes=1)
-    hour = timedelta(hours=1)
-    
     # Various channels
     M = channels.memory
     S = channels.sphere
@@ -54,8 +49,9 @@ if __name__ == '__main__':
     
     # A couple of parameters
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
-    interval = TimeInterval(t1, t1 + timedelta(minutes=10))
+    interval = TimeInterval(t1, t1 + timedelta(minutes=2))
     
+    # Define the workflow
     w = Workflow(
         channels=channels,
         plates=plates,
@@ -88,47 +84,59 @@ if __name__ == '__main__':
     )
     
     # Define the motion data
-    n_motion_data = w.create_node(stream_name="motion_data", channel=M, plate_ids=["H1"])
-    f_motion_data = w.create_factor(
+    n_motion_k = w.create_node(stream_name="motion_k", channel=M, plate_ids=["H1"])
+    f_motion_k = w.create_factor(
         tool_name="component",
         tool_parameters=dict(key="motion-S1_K"),
         source_nodes=[n_environmental_data],
-        sink_node=n_motion_data
+        sink_node=n_motion_k
+    )
+    
+    # Define the motion data
+    n_motion_l = w.create_node(stream_name="motion_l", channel=M, plate_ids=["H1"])
+    f_motion_l = w.create_factor(
+        tool_name="component",
+        tool_parameters=dict(key="motion-S1_K"),
+        source_nodes=[n_environmental_data],
+        sink_node=n_motion_l
     )
     
     # Take the mean of the motion stream over a sliding window
-    n_average_motion = w.create_node(stream_name="average_motion", channel=M, plate_ids=["H1"])
-    f_average_motion = w.create_factor(
+    n_average_m_k = w.create_node(stream_name="average_m_k", channel=M, plate_ids=["H1"])
+    f_average_m_k = w.create_factor(
         tool_name="sliding_apply",
         tool_parameters=dict(func=online_average),
-        source_nodes=[n_sliding_window, n_motion_data],
-        sink_node=n_average_motion
+        source_nodes=[n_sliding_window, n_motion_k],
+        sink_node=n_average_m_k
     )
     
-    # Execute the factors
-    f_sliding_window.execute(interval)
-    ii = str(n_sliding_window.streams[None].values()[0])
-    assert ii == "(2016-04-28 20:00:00+00:00, 2016-04-28 20:00:30+00:00]"
+    # Take the mean of the motion stream over a sliding window
+    n_average_m_l = w.create_node(stream_name="average_m_l", channel=M, plate_ids=["H1"])
+    f_average_m_l = w.create_factor(
+        tool_name="sliding_apply",
+        tool_parameters=dict(func=online_average),
+        source_nodes=[n_sliding_window, n_motion_l],
+        sink_node=n_average_m_l
+    )
     
-    f_environmental_data.execute(interval)
-    env = n_environmental_data.streams[(('house', '1'),)].values()[0]
-    assert env == {u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None, 'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None, 'temperature': None}
-
+    n_prod = w.create_node(stream_name='prod', channel=M, plate_ids=["H1"])
+    f_prod = w.create_factor(
+        tool_name='product',
+        tool_parameters={},
+        source_nodes=[n_average_m_k, n_average_m_l],
+        sink_node=n_prod
+    )
     
-    f_motion_data.execute(interval)
-    motion = list(n_motion_data.streams[(('house', '1'),)].values())[:10]
-    assert motion == [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]
-
-    
-    f_average_motion.execute(interval)
-    md = list(n_average_motion.streams[(('house', '1'),)].values())[:10]
-    assert md == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0]
-
-    
-    
-    # # Print the data
-    # for stream_name, stream in n_average_motion.streams.iteritems():
-    #     print stream_name, stream
-    #     for values in stream.values():
-    #         print "", values
-    #     print
+    # Calculate data
+    w.execute(interval)
+    for stream_name, stream in n_average_m_k.streams.iteritems():
+        print stream_name, stream
+        for kv in stream.iteritems():
+            print "", kv
+        print
+        
+    for stream_name, stream in n_average_m_l.streams.iteritems():
+        print stream_name, stream
+        for kv in stream.iteritems():
+            print "", kv
+        print
