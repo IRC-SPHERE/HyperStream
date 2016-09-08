@@ -359,6 +359,81 @@ class HyperStringTests(unittest.TestCase):
         md = list(n_average_motion.streams[(('house', '1'),)].values())[:10]
         assert md == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0]
 
+    def test_workflow_chain(self):
+        # TODO: hyperstream needs it's own logger (can be a clone of this one)
+        sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
+    
+        hyperstream_config = HyperStreamConfig()
+    
+        # Define some managers
+        channels = ChannelManager(hyperstream_config.tool_path)
+        plates = PlateManager(hyperstream_config.meta_data).plates
+    
+        # Various channels
+        M = channels.memory
+        S = channels.sphere
+        T = channels.tools
+        D = channels.mongo
+    
+        # A couple of parameters
+        t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
+        interval = TimeInterval(t1, t1 + timedelta(minutes=10))
+    
+        w = Workflow(
+            channels=channels,
+            plates=plates,
+            workflow_id="nt_test",
+            name="test",
+            owner="nt",
+            description="test")
+    
+        # Define the sliding window
+        n_sliding_window = w.create_node(stream_name="sliding_window", channel=M, plate_ids=None)
+        f_sliding_window = w.create_factor(
+            tool_name="sliding_window",
+            tool_parameters=dict(
+                first=MIN_DATE,
+                lower=timedelta(seconds=-30),
+                upper=timedelta(seconds=0),
+                increment=timedelta(seconds=10)
+            ),
+            source_nodes=None,
+            sink_node=n_sliding_window
+        )
+    
+        # Define the environmental data
+        n_environmental_data = w.create_node(stream_name="environmental", channel=M, plate_ids=["H1"])
+        f_environmental_data = w.create_factor(
+            tool_name="sphere",
+            tool_parameters=dict(modality="environmental"),
+            source_nodes=None,
+            sink_node=n_environmental_data
+        )
+    
+        # Define the motion data
+        n_motion_data = w.create_node(stream_name="motion_data", channel=M, plate_ids=["H1"])
+        f_motion_data = w.create_factor(
+            tool_name="component",
+            tool_parameters=dict(key="motion-S1_K"),
+            source_nodes=[n_environmental_data],
+            sink_node=n_motion_data
+        )
+    
+        # Take the mean of the motion stream over a sliding window
+        n_average_motion = w.create_node(stream_name="average_motion", channel=M, plate_ids=["H1"])
+        f_average_motion = w.create_factor(
+            tool_name="sliding_apply",
+            tool_parameters=dict(func=online_average),
+            source_nodes=[n_sliding_window, n_motion_data],
+            sink_node=n_average_motion
+        )
+        
+        w.execute(interval)
+        md = list(n_average_motion.streams[(('house', '1'),)].values())[:10]
+        
+        # TODO: This test fails since the computations are not chained back to the source.
+        assert md == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0]
+
     def test_overlapping_plates(self):
         # TODO: Create test that involves multiple overlapping plates
         assert False
