@@ -101,13 +101,13 @@ class HyperStringTests(unittest.TestCase):
     #     M.create_stream(stream_id=average)
     #
     #     # Create the tools
-    #     clock_tool = channels.get_tool(clock, dict(first=MIN_DATE, stride=30*second))
-    #     motion_tool = channels.get_tool(component, dict(key='motion-S1_K'))
+    #     t_clock = channels.get_tool(clock, dict(first=MIN_DATE, stride=30*second))
+    #     t_motion = channels.get_tool(component, dict(key='motion-S1_K'))
     #     average_tool = channels.get_tool(aggregate, dict(func=lambda x: online_average(map(lambda xi: xi.value, x))))
     #
     #     # Execute the tools
-    #     clock_tool.execute(None, M[every30s], ti)
-    #     motion_tool.execute([S[environmental]], M[m_kitchen_30_s_window], ti)
+    #     t_clock.execute(None, M[every30s], ti)
+    #     t_motion.execute([S[environmental]], M[m_kitchen_30_s_window], ti)
     #     average_tool.execute([M[every30s], M[m_kitchen_30_s_window]], M[average], rel)
     #
     #     # mk_30s = M[m_kitchen_30_s_window].relative_window((-30 * second, 0))
@@ -120,8 +120,8 @@ class HyperStringTests(unittest.TestCase):
     #     ti = TimeInterval(t1, t1 + 5 * minute)
     #
     #     M.create_stream(stream_id=count)
-    #     counter = channels.get_tool(aggregate, dict(func=online_count))
-    #     counter.execute([M[every30s], M[m_kitchen_30_s_window]], M[count], ti)
+    #     t_count = channels.get_tool(aggregate, dict(func=online_count))
+    #     t_count.execute([M[every30s], M[m_kitchen_30_s_window]], M[count], ti)
     #
     #     # cc = M[count].execute((t1, t1 + 5 * minute)).values()
     #     cc = M[count].values()
@@ -175,7 +175,7 @@ class HyperStringTests(unittest.TestCase):
 
         # Create a factor to produce some data
         w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
-                        # sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
+                        # sources=None, sink=StreamView(stream=node.streams[0], relative_time_interval=relative_time_interval))
                         source_nodes=None, sink_node=node)
 
         # Execute the workflow

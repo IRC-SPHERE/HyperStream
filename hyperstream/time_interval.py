@@ -154,6 +154,11 @@ class TimeInterval(object):
     def __contains__(self, item):
         return self.start < item <= self.end
 
+    def __add__(self, other):
+        if not isinstance(other, RelativeTimeInterval):
+            raise ValueError("Can only add a relative time interval to a time interval")
+        return TimeInterval(self.start + other.start, self.end + other.end)
+
 
 class RelativeTimeInterval(TimeInterval):
     def __init__(self, start, end):
@@ -230,31 +235,31 @@ def parse_time_tuple(start, end):
         return TimeInterval(start=start_time, end=end_time)
 
 
-def compare_time_ranges(desired_ranges, computed_ranges):
-    # Check here whether we need to recompute anything
-    result_ranges = []
-    for desired in desired_ranges:
-        needs_full_computation = True
-        for computed in computed_ranges:
-            if desired.start < computed.start:
-                if desired.end < computed.start:
-                    # Completely outside range
-                    continue
-                else:
-                    result_ranges.append(TimeInterval(start=desired.start, end=computed.start))
-                    logging.debug("Time range partially computed {0}, new end time={1}".format(desired, computed.start))
-            else:
-                if desired.start > computed.end:
-                    # Completely outside range
-                    continue
-                if desired.end <= computed.end:
-                    needs_full_computation = False
-                    logging.debug("Time range fully computed {0}".format(desired))
-                else:
-                    result_ranges.append(TimeInterval(start=computed.end, end=desired.end))
-                    logging.debug("Time range partially computed {0}, new start time={1}".format(desired, computed.end))
-        if needs_full_computation:
-            logging.debug("Time range requires full computation {0}".format(desired))
-            result_ranges.append(desired)
-    return result_ranges
-
+# def compare_time_ranges(desired_ranges, calculated_intervals):
+#     # Check here whether we need to recompute anything
+#     result_ranges = []
+#     for desired in desired_ranges:
+#         needs_full_computation = True
+#         for computed in calculated_intervals:
+#             if desired.start < computed.start:
+#                 if desired.end < computed.start:
+#                     # Completely outside range
+#                     continue
+#                 else:
+#                     result_ranges.append(TimeInterval(start=desired.start, end=computed.start))
+#                     logging.debug("Time range partially computed {0}, new end time={1}".format(desired, computed.start))
+#             else:
+#                 if desired.start > computed.end:
+#                     # Completely outside range
+#                     continue
+#                 if desired.end <= computed.end:
+#                     needs_full_computation = False
+#                     logging.debug("Time range fully computed {0}".format(desired))
+#                 else:
+#                     result_ranges.append(TimeInterval(start=computed.end, end=desired.end))
+#                     logging.debug("Time range partially computed {0}, new start time={1}".format(desired, computed.end))
+#         if needs_full_computation:
+#             logging.debug("Time range requires full computation {0}".format(desired))
+#             result_ranges.append(desired)
+#     return result_ranges
+#

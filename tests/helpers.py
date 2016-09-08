@@ -68,5 +68,5 @@ component = StreamId('component')
 
 
 # Some tools
-# clock_tool = T[clock].define(stride=30 * second)
-# env_tool = T[sphere].define(modality='environmental')
+# t_clock = T[clock].define(stride=30 * second)
+# t_env = T[sphere].define(modality='environmental')
