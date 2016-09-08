@@ -26,12 +26,13 @@ class Component(Tool):
     """
     Simple tool that picks out a component of the data dict
     """
+    
     def __init__(self, key):
         super(Component, self).__init__(key=key)
         self.key = key
-
+    
     @check_input_stream_count(1)
     def _execute(self, input_streams, interval):
-        for time, data in input_streams[0]:
+        for time, data in input_streams[0]:  # TODO from niall: is this necessary again?
             if self.key in data:
                 yield StreamInstance(time, data[self.key])

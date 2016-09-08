@@ -50,6 +50,110 @@ if __name__ == '__main__':
     # A couple of parameters
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
     interval = TimeInterval(t1, t1 + timedelta(minutes=2))
+    relative_interval = RelativeTimeInterval(timedelta(seconds=-30), timedelta(seconds=0))
+    
+    from hyperstream.tool import ExplicitFactor
+    
+    # Define the clock
+    every_30_seconds = M.create_stream(StreamId('every30s'))
+    t_clock = ExplicitFactor(
+        tool=channels.get_tool(
+            tool='clock',
+            tool_parameters=dict(
+                first=MIN_DATE,
+                stride=timedelta(seconds=30)
+            )
+        ),
+        sources=None,
+        sink=every_30_seconds
+    )
+    t_clock.execute(interval=interval)
+    
+    # Environmental data
+    env_data = M.create_stream(StreamId('env_data'))
+    t_sphere = ExplicitFactor(
+        tool=channels.get_tool(
+            tool='sphere',
+            tool_parameters=dict(
+                modality='environmental'
+            )
+        ),
+        sources=None,
+        sink=env_data
+    )
+    
+    # motion in kitchen
+    m_kitchen = M.create_stream(StreamId('m_kitchen'))
+    t_env_kitchen = ExplicitFactor(
+        tool=channels.get_tool(
+            tool='component',
+            tool_parameters=dict(
+                key="motion-S1_K"
+            )
+        ),
+        sources=[
+            env_data
+        ],
+        sink=m_kitchen
+    )
+    
+    # moving window of motion
+    m_kitchen_avg = M.create_stream(StreamId('m_kitchen_avg'))
+    t_aggregate = ExplicitFactor(
+        tool=channels.get_tool(
+            tool='aggregate',
+            tool_parameters=dict(
+                func=online_average
+            )
+        ),
+        sources=[
+            every_30_seconds.relative_window(relative_interval),
+            m_kitchen
+        ],
+        sink=m_kitchen_avg
+    )
+    
+    # Windows
+    t_aggregate.execute(interval)
+    for kv in m_kitchen_avg.window(interval).iteritems():
+        print kv
+    
+    exit()
+    
+    M.create_stream(stream_id=average)
+    M.create_stream(stream_id=count)
+    
+    t_average = channels.get_tool(
+        tool=aggregate,
+        tool_parameters=dict(func=online_average)
+    )
+    t_count = channels.get_tool(
+        tool=aggregate,
+        tool_parameters=dict(func=online_count)
+    )
+    
+    t_average.execute(
+        interval=interval, sources=[
+            M[every30s].relative_window((-30 * second, timedelta(0))),
+            M[m_kitchen_30_s_window]],
+        sink=M[average])
+    
+    t_count.execute(
+        interval=ti,
+        sources=[
+            M[every30s].relative_window((-30 * second, timedelta(0))),
+            M[m_kitchen_30_s_window]],
+        sink=M[count])
+    
+    aa = M[average].window(ti).values()
+    print(aa)
+    assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    
+    cc = M[count].window(ti).values()
+    print(cc)
+    assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])
+    
+    exit()
     
     # Define the workflow
     w = Workflow(
