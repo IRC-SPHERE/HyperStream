@@ -51,7 +51,7 @@ class Factor(Printable):
         self.sink = sink_node
 
         self.plates = plates
-
+                
     def execute(self, time_interval):
         # return self.tool.get_results(self)
 
