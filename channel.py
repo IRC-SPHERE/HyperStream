@@ -20,10 +20,11 @@
 
 from utils import Printable, utcnow, MIN_DATE
 from errors import StreamNotFoundError, StreamAlreadyExistsError, ChannelNotFoundError, ToolNotFoundError
-from models import StreamDefinitionModel
+from models import StreamDefinitionModel, StreamStatusModel
 from stream import StreamId, Stream
 from time_interval import TimeIntervals
 
+from mongoengine import DoesNotExist
 import inspect
 import logging
 from collections import namedtuple
@@ -87,12 +88,27 @@ class ChannelManager(ChannelCollectionBase, Printable):
             if stream_id in channel.streams:
                 raise StreamAlreadyExistsError(stream_id)
 
-            stream = Stream(
-                channel=channel,
-                stream_id=stream_id,
-                calculated_intervals=TimeIntervals())
+            from channels import MemoryChannel, DatabaseChannel
+            if isinstance(channel, MemoryChannel):
+                channel.create_stream(stream_id)
+            elif isinstance(channel, DatabaseChannel):
+                calculated_intervals = None
+                try:
+                    status = StreamStatusModel.objects.get(__raw__=stream_id.as_raw())
+                    calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end), status.calculated_intervals))
+                except DoesNotExist as e:
+                    status = StreamStatusModel(
+                        stream_id=stream_id.as_dict(),
+                        calculated_intervals=[],
+                        last_accessed=utcnow(),
+                        last_updated=utcnow()
+                    )
+                    status.save()
 
-            channel.streams[stream_id] = stream
+                channel.streams[stream_id] = Stream(channel=channel, stream_id=stream_id,
+                                                    calculated_intervals=calculated_intervals)
+            else:
+                raise NotImplementedError
 
     def get_tool(self, tool, tool_parameters):
         # TODO: Use tool versions - here we just take the latest one

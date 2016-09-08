@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField, EmbeddedDocumentListField, \
-    EmbeddedDocument, EmbeddedDocumentField, ListField
+    EmbeddedDocument, EmbeddedDocumentField
 from time_range import TimeRangeModel
 
 
@@ -57,11 +57,15 @@ class StreamDefinitionModel(Document):
 
 
 class StreamStatusModel(Document):
-    stream_id = StringField(required=True, min_length=1, max_length=512)
-    stream_type = StringField(required=False, min_length=1, max_length=512)
+    """
+    Stream status model
+    Note that the calculated intervals is not required, since at first instantiation it is empty, so is equally
+    represented by None or an empty list
+    """
+    stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
     last_updated = DateTimeField(required=True)
     last_accessed = DateTimeField(required=False)
-    computed_ranges = EmbeddedDocumentListField(document_type=TimeRangeModel, required=True)
+    calculated_intervals = EmbeddedDocumentListField(document_type=TimeRangeModel, required=False)
     
     meta = {
         'collection': 'stream_status',
@@ -69,28 +73,28 @@ class StreamStatusModel(Document):
         'ordering': ['last_updated']
     }
     
-    def add_time_range(self, time_range):
-        if not isinstance(time_range, TimeRangeModel):
-            raise RuntimeError("Can only add TimeRangeModel objects")
-        
-        self.computed_ranges.append(time_range)
-        self.update_time_ranges()
-        return self.computed_ranges
-    
-    def update_time_ranges(self):
-        sorted_by_lower_bound = sorted(self.computed_ranges, key=lambda r: r.start)
-        merged = []
-        
-        for higher in sorted_by_lower_bound:
-            if not merged:
-                merged.append(higher)
-            else:
-                lower = merged[-1]
-                # test for intersection between lower and higher:
-                # we know via sorting that lower.start <= higher.start
-                if higher.start <= lower.end:
-                    upper_bound = max(lower.end, higher.end)
-                    merged[-1] = TimeRangeModel(start=lower.start, end=upper_bound)  # replace by merged interval
-                else:
-                    merged.append(higher)
-        self.computed_ranges = merged
+    # def add_time_range(self, time_range):
+    #     if not isinstance(time_range, TimeRangeModel):
+    #         raise RuntimeError("Can only add TimeRangeModel objects")
+    #
+    #     self.calculated_intervals.append(time_range)
+    #     self.update_time_ranges()
+    #     return self.calculated_intervals
+    #
+    # def update_time_ranges(self):
+    #     sorted_by_lower_bound = sorted(self.calculated_intervals, key=lambda r: r.start)
+    #     merged = []
+    #
+    #     for higher in sorted_by_lower_bound:
+    #         if not merged:
+    #             merged.append(higher)
+    #         else:
+    #             lower = merged[-1]
+    #             # test for intersection between lower and higher:
+    #             # we know via sorting that lower.start <= higher.start
+    #             if higher.start <= lower.end:
+    #                 upper_bound = max(lower.end, higher.end)
+    #                 merged[-1] = TimeRangeModel(start=lower.start, end=upper_bound)  # replace by merged interval
+    #             else:
+    #                 merged.append(higher)
+    #     self.calculated_intervals = merged

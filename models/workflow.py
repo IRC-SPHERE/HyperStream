@@ -45,10 +45,10 @@ class WorkflowStatusModel(Document):
     last_accessed = DateTimeField(required=False)
     
     # Time ranges requested for computation for this workflow
-    requested_ranges = EmbeddedDocumentListField(document_type=TimeRangeModel, required=True)
+    requested_intervals = EmbeddedDocumentListField(document_type=TimeRangeModel, required=True)
     
     # Actual ranges that have been computed. Note that this can be empty to begin with
-    computed_ranges = EmbeddedDocumentListField(document_type=TimeRangeModel, required=False)
+    calculated_intervals = EmbeddedDocumentListField(document_type=TimeRangeModel, required=False)
     
     meta = {
         'collection': 'workflow_status',
@@ -60,12 +60,12 @@ class WorkflowStatusModel(Document):
         if not isinstance(time_range, TimeRangeModel):
             raise RuntimeError("Can only add TimeRangeModel objects")
         
-        self.computed_ranges.append(time_range)
+        self.calculated_intervals.append(time_range)
         self.update_time_ranges()
-        return self.computed_ranges
+        return self.calculated_intervals
     
     def update_time_ranges(self):
-        sorted_by_lower_bound = sorted(self.computed_ranges, key=lambda r: r.start)
+        sorted_by_lower_bound = sorted(self.calculated_intervals, key=lambda r: r.start)
         merged = []
         
         for higher in sorted_by_lower_bound:
@@ -80,4 +80,4 @@ class WorkflowStatusModel(Document):
                     merged[-1] = TimeRangeModel(start=lower.start, end=upper_bound)  # replace by merged interval
                 else:
                     merged.append(higher)
-        self.computed_ranges = merged
+        self.calculated_intervals = merged

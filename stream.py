@@ -35,7 +35,7 @@ class StreamView(Printable):
         if not isinstance(stream, Stream):
             raise ValueError("stream must be Stream object")
         if not isinstance(time_interval, TimeInterval):
-            raise ValueError("time_interval must be TimeInterval object")
+            raise ValueError("relative_time_interval must be TimeInterval object")
         self.stream = stream
         self.time_interval = time_interval
 
@@ -116,7 +116,7 @@ class RelativeStreamView(Printable):
         if not isinstance(relative_time_interval, RelativeTimeInterval):
             raise ValueError("relative_time_interval must be RelativeTimeInterval object")
         self.stream = stream
-        self.time_interval = relative_time_interval
+        self.relative_time_interval = relative_time_interval
 
     def window(self, time_interval):
         return self.stream.window(time_interval + self.relative_time_interval)
@@ -182,6 +182,21 @@ class StreamId(Hashable):
     def as_dict(self):
         return dict(name=self.name, meta_data=dict(self.meta_data))
 
+    def as_raw(self):
+        """
+        Return a representation of this object that can be used with mongoengine Document.objects(__raw__=x)
+        Example:
+
+        >>> stream_id = StreamId(name='test', meta_data=((u'house', u'1'), (u'resident', u'1')))
+        >>> stream_id.as_raw()
+        {u'stream_id.meta_data.house': u'1', u'stream_id.meta_data.resident': u'1', 'stream_id.name': 'test'}
+
+        :return: The raw representation of this object.
+        """
+        d = dict(('stream_id.meta_data.' + k, v) for k, v in self.meta_data)
+        d['stream_id.name'] = self.name
+        return d
+
 
 class Stream(Hashable):
     """
@@ -190,7 +205,7 @@ class Stream(Hashable):
     _calculated_intervals = None
     defined = False
 
-    def __init__(self, channel, stream_id, calculated_intervals):
+    def __init__(self, channel, stream_id, calculated_intervals=None):
         """
         :param channel: The channel to which this stream belongs
         :param stream_id: The unique identifier for this string
@@ -204,9 +219,12 @@ class Stream(Hashable):
             raise TypeError(str(type(stream_id)))
         self.stream_id = stream_id
         # self.get_results_func = get_results_func
-        if not isinstance(calculated_intervals, TimeIntervals):
-            raise TypeError(str(type(calculated_intervals)))
-        self.calculated_intervals = calculated_intervals
+        if calculated_intervals:
+            if not isinstance(calculated_intervals, TimeIntervals):
+                raise TypeError(str(type(calculated_intervals)))
+            self.calculated_intervals = calculated_intervals
+        else:
+            self.calculated_intervals = TimeIntervals()
         self.tool_reference = None # needed to traverse the graph outside of workflows
 
         # Here we define the output type. When modifiers are applied, this changes
@@ -261,59 +279,59 @@ class Stream(Hashable):
                             .format(type(time_interval)))
         return StreamView(stream=self, time_interval=time_interval)
 
-    def relative_window(self, time_interval):
+    def relative_window(self, relative_time_interval):
         """
         Sets the time execute for this stream
-        :param time_interval: either a RelativeTimeInterval object or (start, end) tuple of type str or timedelta
-        :type time_interval: Iterable, RelativeTimeInterval
+        :param relative_time_interval: either a RelativeTimeInterval object or (start, end) tuple of str or timedelta
+        :type relative_time_interval: Iterable, RelativeTimeInterval
         :return: a relative stream view object
         """
-        if isinstance(time_interval, RelativeTimeInterval):
+        if isinstance(relative_time_interval, RelativeTimeInterval):
             pass
-        elif isinstance(time_interval, Iterable):
-            time_interval = parse_time_tuple(*time_interval)
-            if isinstance(time_interval, TimeInterval):
+        elif isinstance(relative_time_interval, Iterable):
+            relative_time_interval = parse_time_tuple(*relative_time_interval)
+            if not isinstance(relative_time_interval, RelativeTimeInterval):
                 raise NotImplementedError
-        elif isinstance(time_interval, TimeInterval):
+        elif isinstance(relative_time_interval, TimeInterval):
             raise NotImplementedError
         else:
             raise TypeError("Expected RelativeTimeInterval or (start, end) tuple of type str or timedelta, got {}"
-                            .format(type(time_interval)))
-        return RelativeStreamView(stream=self, relative_time_interval=time_interval)
+                            .format(type(relative_time_interval)))
+        return RelativeStreamView(stream=self, relative_time_interval=relative_time_interval)
 
-    # def window(self, time_interval):
+    # def window(self, relative_time_interval):
     #     """
     #     Sets the time execute for this stream
-    #     :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-    #     :type time_interval: Iterable, TimeInterval
+    #     :param relative_time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
+    #     :type relative_time_interval: Iterable, TimeInterval
     #     :return: self (for chaining)
     #     """
-    #     if isinstance(time_interval, TimeInterval):
-    #         self.time_interval = time_interval
-    #     elif isinstance(time_interval, Iterable):
-    #         self.time_interval = parse_time_tuple(*time_interval)
-    #         if isinstance(self.time_interval, RelativeTimeInterval):
+    #     if isinstance(relative_time_interval, TimeInterval):
+    #         self.relative_time_interval = relative_time_interval
+    #     elif isinstance(relative_time_interval, Iterable):
+    #         self.relative_time_interval = parse_time_tuple(*relative_time_interval)
+    #         if isinstance(self.relative_time_interval, RelativeTimeInterval):
     #             raise ValueError("Use relative_window to define relative time windows")
-    #     elif isinstance(time_interval, RelativeTimeInterval):
+    #     elif isinstance(relative_time_interval, RelativeTimeInterval):
     #         raise ValueError("Use relative_window to define relative time windows")
     #     else:
     #         raise ValueError
     #     return self
     #
-    # def relative_window(self, time_interval):
+    # def relative_window(self, relative_time_interval):
     #     """
     #     Sets the time execute for this stream
-    #     :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-    #     :type time_interval: Iterable, TimeInterval
+    #     :param relative_time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
+    #     :type relative_time_interval: Iterable, TimeInterval
     #     :return: self (for chaining)
     #     """
-    #     if isinstance(time_interval, RelativeTimeInterval):
-    #         self.time_interval = time_interval
-    #     elif isinstance(time_interval, Iterable):
-    #         self.time_interval = parse_time_tuple(*time_interval)
-    #         if not isinstance(self.time_interval, RelativeTimeInterval):
+    #     if isinstance(relative_time_interval, RelativeTimeInterval):
+    #         self.relative_time_interval = relative_time_interval
+    #     elif isinstance(relative_time_interval, Iterable):
+    #         self.relative_time_interval = parse_time_tuple(*relative_time_interval)
+    #         if not isinstance(self.relative_time_interval, RelativeTimeInterval):
     #             raise ValueError("Use execute to define absolute time windows")
-    #     elif isinstance(time_interval, RelativeTimeInterval):
+    #     elif isinstance(relative_time_interval, RelativeTimeInterval):
     #         raise ValueError("Use execute to define absolute time windows")
     #     else:
     #         raise ValueError
@@ -321,7 +339,7 @@ class Stream(Hashable):
 
     # @property
     # def required_intervals(self):
-    #     return TimeIntervals([self.time_interval]) - self.calculated_intervals
+    #     return TimeIntervals([self.relative_time_interval]) - self.calculated_intervals
 
     # def execute(self):
     #     self.channel.get_results(self)

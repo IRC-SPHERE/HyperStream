@@ -46,7 +46,7 @@ class BaseChannel(Printable):
     #     """
     #     raise NotImplementedError
     #     # return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream.items()
-    #     #                if timestamp in stream.time_interval), key=lambda x: x.timestamp)
+    #     #                if timestamp in stream.relative_time_interval), key=lambda x: x.timestamp)
 
     def execute_tool(self, stream, interval):
         """

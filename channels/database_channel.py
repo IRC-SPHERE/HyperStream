@@ -62,7 +62,7 @@ class DatabaseChannel(BaseChannel):
         """
         # TODO: Need to check if the timestamp is in range too!
         raise Exception("Need to check if the timestamp is in range")
-        for instance in StreamInstanceModel.objects(stream_id=stream.stream_id.as_dict()):
+        for instance in StreamInstanceModel.objects(__raw__=stream.stream_id.as_raw()):
             yield StreamInstance(timestamp=instance.datetime, value=instance.value)
 
     def create_stream(self, stream_id):
