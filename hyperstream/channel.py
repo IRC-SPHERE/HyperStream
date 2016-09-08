@@ -97,6 +97,7 @@ class ChannelManager(ChannelCollectionBase, Printable):
                     status = StreamStatusModel.objects.get(__raw__=stream_id.as_raw())
                     calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end), status.calculated_intervals))
                 except DoesNotExist as e:
+                    logging.debug(e)
                     status = StreamStatusModel(
                         stream_id=stream_id.as_dict(),
                         calculated_intervals=[],
@@ -111,6 +112,12 @@ class ChannelManager(ChannelCollectionBase, Printable):
                 raise NotImplementedError
 
     def get_tool(self, tool, tool_parameters):
+        """
+        Gets the tool object from the tool channel, and instantiates it using the tool parameters
+        :param tool: The name or stream id for the tool in the tool channel
+        :param tool_parameters: The parameters for the tool
+        :return: The instantiated tool object
+        """
         # TODO: Use tool versions - here we just take the latest one
         if isinstance(tool, (str, unicode)):
             tool_id = StreamId(tool)
