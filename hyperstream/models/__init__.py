@@ -23,4 +23,4 @@ from workflow import WorkflowDefinitionModel, WorkflowStatusModel
 from plate import PlateDefinitionModel
 from node import NodeDefinitionModel
 from factor import FactorDefinitionModel
-from time_range import TimeRangeModel
+from time_interval import TimeIntervalModel
