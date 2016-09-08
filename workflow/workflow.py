@@ -52,6 +52,7 @@ class Workflow(Printable):
         self.description = description
         self.owner = owner
         self.nodes = {}
+        self.execution_order = []
         self.factor_collections = defaultdict(list)
         
         logging.info("New workflow created with id {}".format(workflow_id))
@@ -62,8 +63,10 @@ class Workflow(Printable):
         :return:
         """
         # TODO: Currently expects the factors to be declared sequentially
-        for factor_collection in self.factor_collections.values()[::-1]:
-            for factor in factor_collection:
+        for factor_name in self.execution_order:
+            for factor in self.factor_collections[factor_name]:
+        # for factor_collection in self.factor_collections.values()[::-1]:
+        #     for factor in factor_collection:
                 logging.debug("Executing factor {}".format(factor))
                 factor.execute(time_interval)
             
@@ -80,7 +83,7 @@ class Workflow(Printable):
         if plate_ids:
             for plate_id in plate_ids:
                 plate = self.plates[plate_id]
-                streams[plate] = {}
+                # streams[plate] = {}
 
                 # Currently allowing multiple plates here
 
@@ -130,6 +133,8 @@ class Workflow(Printable):
 
         factor = Factor(tool=tool, source_nodes=source_nodes, sink_node=sink_node, plates=plates)
         self.factor_collections[tool_name].append(factor)
+        self.execution_order.append(tool_name)
+        
         return factor
 
 
