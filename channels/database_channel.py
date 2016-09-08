@@ -17,6 +17,9 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+Database channel module.
+"""
 from base_channel import BaseChannel
 from ..models import StreamInstanceModel, StreamIdField
 from ..time_interval import TimeIntervals
@@ -28,22 +31,47 @@ from mongoengine import NotUniqueError
 
 
 class DatabaseChannel(BaseChannel):
+    """
+    Database Channel. Data stored and retrieved in mongodb using mongoengine.
+    """
     def __init__(self, channel_id):
+        """
+        Initialise this channel
+        :param channel_id: The channel identifier
+        """
         super(DatabaseChannel, self).__init__(channel_id=channel_id, can_calc=True, can_create=False)
-        self.update_streams(utcnow())
+        # self.update_streams(utcnow())
 
     def update_streams(self, up_to_timestamp):
-        intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
-        for stream in self.streams:
-            stream.calculated_intervals = intervals
-        self.up_to_timestamp = up_to_timestamp
+        """
+        Update the streams
+        :param up_to_timestamp:
+        :return:
+        """
+        raise NotImplementedError
+        # intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
+        # for stream in self.streams:
+        #     stream.calculated_intervals = intervals
+        # self.up_to_timestamp = up_to_timestamp
 
     def get_results(self, stream):
+        """
+        Get the results for a given stream
+        :param stream: The stream object
+        :return: A generator over stream instances
+        """
         # TODO: Need to check if the timestamp is in range too!
+        raise Exception("Need to check if the timestamp is in range")
         for instance in StreamInstanceModel.objects(stream_id=stream.stream_id.as_dict()):
             yield StreamInstance(timestamp=instance.datetime, value=instance.value)
 
     def create_stream(self, stream_id):
+        """
+        Create the stream
+        :param stream_id: The stream identifier
+        :return: None
+        :raises: NotImplementedError
+        """
         raise NotImplementedError("Database streams currently need to be defined in the database")
 
     def get_stream_writer(self, stream):
@@ -66,5 +94,6 @@ class DatabaseChannel(BaseChannel):
                 except NotUniqueError as e:
                     # TODO: Fix this ... computed intervals not being stored!
                     pass
+                    # raise e
                     # logging.warn(e)
         return writer
