@@ -91,7 +91,7 @@ if __name__ == '__main__':
     w.execute(time_interval)
 
     # Check the values
-    assert (node.streams[('house', '1'), ].values()[:1] ==
+    assert (node.streams[('house', '1'), ].window(time_interval).values()[:1] ==
             [{u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
               'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
               'temperature': None}])
@@ -170,17 +170,10 @@ if __name__ == '__main__':
         # sink=StreamView(n_motion_kitchen_count.streams[0])
     )
 
-    # Execute the factors
-    if False:
-        f_env.execute(TimeInterval(t1, t1 + 5 * minute))
-        f_motion.execute(TimeInterval(t1, t1 + 5 * minute))
-        f_kitchen_motion.execute(TimeInterval(t1, t1 + 5 * minute))
+    ti = TimeInterval(t1, t1 + 5 * minute)
+    w.execute(ti)
 
-        # print(f_kitchen_motion.sink.window((t1, t1 + 5 * minute)).values())
-
-    w.execute(TimeInterval(t1, t1 + 5 * minute))
-
-    print(n_motion_kitchen_count.streams[('house', '1'), ].values())
+    print(n_motion_kitchen_count.streams[('house', '1'), ].window(ti).values())
 
     exit()
 

@@ -107,21 +107,21 @@ if __name__ == '__main__':
     
     # Execute the factors
     f_sliding_window.execute(interval)
-    ii = str(n_sliding_window.streams[None].values()[0])
+    ii = str(n_sliding_window.streams[None].window(interval).values()[0])
     assert ii == "(2016-04-28 20:00:00+00:00, 2016-04-28 20:00:30+00:00]"
     
     f_environmental_data.execute(interval)
-    env = n_environmental_data.streams[(('house', '1'),)].values()[0]
+    env = n_environmental_data.streams[(('house', '1'),)].window(interval).values()[0]
     assert env == {u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None, 'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None, 'temperature': None}
 
     
     f_motion_data.execute(interval)
-    motion = list(n_motion_data.streams[(('house', '1'),)].values())[:10]
+    motion = list(n_motion_data.streams[(('house', '1'),)].window(interval).values())[:10]
     assert motion == [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]
 
     
     f_average_motion.execute(interval)
-    md = list(n_average_motion.streams[(('house', '1'),)].values())[:10]
+    md = list(n_average_motion.streams[(('house', '1'),)].window(interval).values())[:10]
     assert md == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0]
 
     
