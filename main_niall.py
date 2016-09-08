@@ -41,11 +41,6 @@ if __name__ == '__main__':
     channels = ChannelManager(hyperstream_config.tool_path)
     plates = PlateManager(hyperstream_config.meta_data).plates
     
-    # Various constants
-    second = timedelta(seconds=1)
-    minute = timedelta(minutes=1)
-    hour = timedelta(hours=1)
-    
     # Various channels
     M = channels.memory
     S = channels.sphere
@@ -54,8 +49,9 @@ if __name__ == '__main__':
     
     # A couple of parameters
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
-    interval = TimeInterval(t1, t1 + timedelta(minutes=10))
+    interval = TimeInterval(t1, t1 + timedelta(minutes=2))
     
+    # Define the workflow
     w = Workflow(
         channels=channels,
         plates=plates,
@@ -106,29 +102,10 @@ if __name__ == '__main__':
     )
     
     # Execute the factors
-    f_sliding_window.execute(interval)
-    ii = str(n_sliding_window.streams[None].window(interval).values()[0])
-    assert ii == "(2016-04-28 20:00:00+00:00, 2016-04-28 20:00:30+00:00]"
+    w.execute(interval)
     
-    f_environmental_data.execute(interval)
-    env = n_environmental_data.streams[(('house', '1'),)].window(interval).values()[0]
-    assert env == {u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None, 'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None, 'temperature': None}
-
-    
-    f_motion_data.execute(interval)
-    motion = list(n_motion_data.streams[(('house', '1'),)].window(interval).values())[:10]
-    assert motion == [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]
-
-    
-    f_average_motion.execute(interval)
-    md = list(n_average_motion.streams[(('house', '1'),)].window(interval).values())[:10]
-    assert md == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0]
-
-    
-    
-    # # Print the data
-    # for stream_name, stream in n_average_motion.streams.iteritems():
-    #     print stream_name, stream
-    #     for values in stream.values():
-    #         print "", values
-    #     print
+    for stream_name, stream in n_average_motion.streams.iteritems():
+        print stream_name, stream
+        for kv in stream.window(interval):
+            print "", kv
+        print
