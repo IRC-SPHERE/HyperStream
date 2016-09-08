@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
-from time_interval import TimeInterval
+from time_interval import TimeInterval, TimeIntervals
 from utils import Printable, Hashable
 
 
@@ -47,13 +47,29 @@ class Tool(Printable, Hashable):
     def _execute(self, input_streams, interval):
         raise NotImplementedError
     
-    def execute(self, input_streams, interval, writer):
+    def execute(self, sources, sink, interval):
         if not isinstance(interval, TimeInterval):
             raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
         logging.info(self.message(interval))
-        
-        for stream_instance in self._execute(input_streams, interval):
-            writer(stream_instance)
+
+        if interval.end > sink.channel.up_to_timestamp:
+            raise ValueError(
+                'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
+
+        required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
+        if not required_intervals.is_empty:
+            for interval in required_intervals:
+                source_views = [source.window(interval) for source in sources] if sources else None
+                for stream_instance in self._execute(source_views, interval):
+                    sink.writer(stream_instance)
+                sink.calculated_intervals += TimeIntervals([interval])
+
+            required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
+            if not required_intervals.is_empty:
+                raise RuntimeError('Tool execution did not cover the specified time interval.')
+
+        # for stream_instance in self._execute(sources, interval):
+        #     sink.writer(stream_instance)
 
 
 def check_input_stream_count(expected_number_of_streams):
