@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
 
 from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client, \
     TimeInterval  # , StreamView
-from hyperstream.utils import UTC
+from hyperstream.utils import UTC, MIN_DATE
 from hyperstream.itertools2 import online_average, count as online_count
 from sphere_connector_package.sphere_connector import SphereLogger
 
@@ -60,8 +60,8 @@ if __name__ == '__main__':
     motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
     env_kitchen_30_s_window = StreamId('env_kitchen_30_s_window')
     m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
-    average = StreamId('averager', meta_data={'house': '1'})
-    count = StreamId('counter')
+    average = StreamId('average')  # , meta_data={'house': '1'})
+    count = StreamId('count')
     # sum_ = StreamId('sum')
     sphere = StreamId('sphere')
     component = StreamId('component')
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     # Create a factor to produce some data
     factor = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
                              source_nodes=None, sink_node=node)
-    # sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
+    # sources=None, sink=StreamView(stream=node.streams[0], relative_time_interval=relative_time_interval))
 
     # Execute the workflow
     w.execute(time_interval)
@@ -96,6 +96,7 @@ if __name__ == '__main__':
               'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
               'temperature': None}])
 
+    #############################################################
     # More complex workflow
     w = Workflow(
         channels=channels,
@@ -105,22 +106,6 @@ if __name__ == '__main__':
         owner="TD",
         description="Another test of creating workflows")
 
-    # Try to recreate the following:
-    if False:
-        clock_tool = T[clock].define(stride=30 * second)
-        M.create_stream(stream_id=every30s, tool_stream=clock_tool)
-        env_tool = T[sphere].define(modality='environmental')
-        S.create_stream(stream_id=env_kitchen_30_s_window, tool_stream=env_tool)
-
-        motion_tool = T[component].define(input_streams=[S[env_kitchen_30_s_window]], key='motion-S1_K')
-        M.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=motion_tool)
-
-        s = M[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))
-        counter = T[aggregate].define(input_streams=[M[every30s], s], func=online_count)
-        M.create_stream(stream_id=count, tool_stream=counter)
-        print(M[count].window((t1, t1 + 5 * minute)).values())
-
-    #############################################################
     houses = w.plates["H1"]
 
     # Create the nodes using pre-existing streams in the database
@@ -132,7 +117,7 @@ if __name__ == '__main__':
     # Create the clock factor
     f_timer = w.create_factor(
         tool_name="clock",
-        tool_parameters=dict(stride=30 * second),
+        tool_parameters=dict(first=MIN_DATE, stride=30 * second),
         source_nodes=None,
         sink_node=n_clock
         # sink=StreamView(n_clock.streams[0])
@@ -175,40 +160,49 @@ if __name__ == '__main__':
 
     print(n_motion_kitchen_count.streams[('house', '1'), ].window(ti).values())
 
-    exit()
+    # exit()
 
+    #############################################################
     # Simple querying
-    env = S[environmental].execute((t1, t1 + minute))
+    ti = TimeInterval(t1, t1 + minute)
+    env = S[environmental]
     eid = StreamId('electricity')
-    elec_tool = T[component].define(input_streams=[env], key='electricity-04063')
-    M.create_stream(stream_id=eid, tool_stream=elec_tool)
+    elec_tool = channels.get_tool(tool=component, tool_parameters=dict(key='electricity-04063'))
+    elec = M.create_stream(stream_id=eid)
 
-    el = M[eid].execute((t1, t1 + minute))
+    elec_tool.execute(interval=ti, sources=[env], sink=elec)
+
+    el = M[eid].window(ti)
 
     q1 = "\n".join("=".join(map(str, ee)) for ee in el)
 
     print(q1)
     print(el.values())
 
-    clock_tool = T[clock].define(stride=30 * second)
-    env_tool = T[sphere].define(modality='environmental')
+    t_clock = channels.get_tool(tool=clock, tool_parameters=dict(first=MIN_DATE, stride=30 * second))
+    t_env = channels.get_tool(tool=sphere, tool_parameters=dict(modality='environmental'))
 
     # Windowed querying
-    M.create_stream(stream_id=every30s, tool_stream=clock_tool)
+    M.create_stream(stream_id=every30s)
+
+    ti = TimeInterval(t1, t2)
+    t_clock.execute(interval=ti, sources=None, sink=M[every30s])
 
     print("\n----------")
     print("M[every30s]")
-    print("\n".join(map(str, M[every30s].execute((t1, t2)))))
+    print("\n".join(map(str, M[every30s].window(ti))))
     print("----------")
     print("")
 
-    M[every30s] = M.create_stream(stream_id=every30s, tool_stream=clock_tool)
-    motion_tool = T[component].define(input_streams=[S[environmental]], key='motion-S1_K')
-    M.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=motion_tool)
+    M.clear_stream(every30s)
+    t_motion = channels.get_tool(tool=component, tool_parameters=dict(key='motion-S1_K'))
+    M.create_stream(stream_id=m_kitchen_30_s_window)
+
+    t_motion.execute(interval=ti, sources=[S[environmental]], sink=M[m_kitchen_30_s_window])
 
     print("\n------------------------")
     print("S[m_kitchen_30_s_window]")
-    print("\n".join(map(str, M[m_kitchen_30_s_window].execute((t1, t2)))))
+    print("\n".join(map(str, M[m_kitchen_30_s_window].window(ti))))
     print("------------------------")
     print("")
 
@@ -220,33 +214,32 @@ if __name__ == '__main__':
     # Since define is only used for this purpose, there shouldn't be a problem?
     # Hence it seems reasonable to simply use copy.deepcopy when returning the stream object
 
-    averager = T[aggregate].define(
-        input_streams=[
-            M[every30s],
-            S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
-        func=online_average
-    )
+    t_average = channels.get_tool(tool=aggregate, tool_parameters=dict(func=online_average))
+    t_count = channels.get_tool(tool=aggregate, tool_parameters=dict(func=online_count))
 
-    print(id(averager))
+    # Streams to hold the data
+    M.create_stream(stream_id=average)
+    M.create_stream(stream_id=count)
 
-    counter = T[aggregate].define(
-        input_streams=[
-            M[every30s],
-            S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
-        func=online_count
-    )
+    t_clock.execute(interval=ti, sources=None, sink=M[every30s])
 
-    print(id(counter))
+    t_average.execute(
+        interval=ti, sources=[
+            M[every30s].relative_window((-30 * second, timedelta(0))),
+            M[m_kitchen_30_s_window]],
+        sink=M[average])
 
-    M.create_stream(stream_id=average, tool_stream=averager)
-    M.create_stream(stream_id=count, tool_stream=counter)
+    t_count.execute(
+        interval=ti,
+        sources=[
+            M[every30s].relative_window((-30 * second, timedelta(0))),
+            M[m_kitchen_30_s_window]],
+        sink=M[count])
 
-    stream = M[average].execute((t1, t2))
-    aa = stream.values()
+    aa = M[average].window(ti).values()
     print(aa)
     assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
-    stream = M[count].execute((t1, t1 + 5 * minute))
-    cc = stream.values()
+    cc = M[count].window(ti).values()
     print(cc)
     assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])

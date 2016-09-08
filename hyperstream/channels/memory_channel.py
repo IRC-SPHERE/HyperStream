@@ -20,55 +20,51 @@
 
 from base_channel import BaseChannel
 from ..stream import Stream, StreamInstance
-from datetime import timedelta
 from ..time_interval import TimeIntervals
 from ..utils import MIN_DATE
+from ..errors import StreamNotFoundError, StreamAlreadyExistsError
+
 import logging
-from collections import defaultdict
 
 
 class MemoryChannel(BaseChannel):
     def __init__(self, channel_id):
         super(MemoryChannel, self).__init__(channel_id=channel_id, can_calc=True, can_create=True)
         self.max_stream_id = 0
-        self.data = defaultdict(list)
+        self.data = dict()
     
-    def create_stream(self, stream_id):  # , tool_stream=None):
+    def create_stream(self, stream_id):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
         identifier stream_id
         """
         if stream_id in self.streams:
-            raise ValueError("Stream with id '{}' already exists".format(stream_id))
+            raise StreamAlreadyExistsError("Stream with id '{}' already exists".format(stream_id))
         
         # TODO: Want to be able to define the streams in the database
-
-        stream = Stream(
-            channel=self,
-            stream_id=stream_id,
-            calculated_intervals=TimeIntervals()
-        )
+        stream = Stream(channel=self, stream_id=stream_id)
         
         self.streams[stream_id] = stream
+        self.data[stream_id] = []
         return stream
-    
+
+    def clear_stream(self, stream_id):
+        if stream_id not in self.streams:
+            raise StreamNotFoundError(stream_id)
+        self.data[stream_id] = []
+
+    def delete_stream(self, stream_id):
+        if stream_id not in self.streams:
+            raise StreamNotFoundError(stream_id)
+        del self.streams[stream_id]
+        del self.data[stream_id]
+
     def update_streams(self, up_to_timestamp):
         raise NotImplementedError
     
     def check_calculation_times(self):
         pass
-    
-    # def _get_data(self, stream):
-    #     """
-    #     Get the data generator. Sorts on timestamp
-    #     :param stream: The stream reference
-    #     :return: The data generator
-    #     """
-    #     # return sorted((StreamInstance(timestamp, data) for (timestamp, data) in self.data[stream.stream_id]
-    #     #                if timestamp in stream.time_interval), key=lambda x: x.timestamp)
-    #     # TODO: Put the check back in for the time interval
-    #     return sorted(self.data[stream.stream_id], key=lambda x: x.timestamp)
-    #
+
     def get_results(self, stream):
         """
         Calculates/receives the documents in the stream interval determined by the stream
@@ -82,14 +78,16 @@ class MemoryChannel(BaseChannel):
         def writer(document_collection):
             # TODO from niall: I added this type check to fix bug with the Apply tool. \
             #   please verify that it does not interfere with other code
+            if stream.stream_id not in self.data:
+                raise RuntimeError("Data slot does not exist for {}, perhaps create_stream was not used?"
+                                   .format(stream))
             if isinstance(document_collection, StreamInstance):
                 self.data[stream.stream_id].append(document_collection)
             elif isinstance(document_collection, list):
                 self.data[stream.stream_id].extend(document_collection)
             else:
-                raise RuntimeError('Stream writer given unallowed data type. '
-                                   'Allowed types: {StreamInstance, list<StreamInstance>}. '
-                                   'Inputted type: {}. '.format(type(document_collection).__class__.__name__))
+                raise ValueError('Expected: [StreamInstance, list<StreamInstance>], got {}. '
+                                 .format(type(document_collection)))
         
         return writer
 
@@ -145,8 +143,8 @@ class ReadOnlyMemoryChannel(BaseChannel):
     
     def get_results(self, stream):
         raise NotImplementedError
-        # # start = time_interval.start
-        # # end = time_interval.end
+        # # start = relative_time_interval.start
+        # # end = relative_time_interval.end
         # # if isinstance(start, timedelta) or isinstance(end, timedelta):
         # #     raise ValueError('Cannot calculate a relative stream')
         # # if end > self.up_to_timestamp:

@@ -88,21 +88,7 @@ class FileChannel(ReadOnlyMemoryChannel):
                 continue
             
             stream_id = StreamId(name=name)
-            
-            # # OLD CODE - leave for reference/debugging
-            # self.streams[stream_id] = []
-            # for tool_info in self.file_filter(sorted(file_names)):
-            #     if tool_info.timestamp <= up_to_timestamp:
-            #         # This is the original version
-            #         self.streams[stream_id].append((tool_info, self.data_loader(stream_id.name, tool_info)))
-
-            stream = Stream(
-                channel=self,
-                stream_id=stream_id,
-                calculated_intervals=TimeIntervals(),
-                # input_streams=None
-            )
-
+            stream = Stream(channel=self, stream_id=stream_id)
             self.streams[stream_id] = stream
 
     def data_loader(self, short_path, file_info):
@@ -110,7 +96,7 @@ class FileChannel(ReadOnlyMemoryChannel):
     
     def get_results(self, stream):
         # TODO: Make this behave like the other channels
-        # if time_interval.end > self.up_to_timestamp:
+        # if relative_time_interval.end > self.up_to_timestamp:
         #     raise ValueError(
         #         'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
         
