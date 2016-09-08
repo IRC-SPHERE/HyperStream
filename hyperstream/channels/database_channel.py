@@ -93,7 +93,7 @@ class DatabaseChannel(BaseChannel):
                     instance.save()
                 except NotUniqueError as e:
                     # TODO: Fix this ... computed intervals not being stored!
-                    pass
-                    # raise e
+                    # pass
+                    raise e
                     # logging.warn(e)
         return writer

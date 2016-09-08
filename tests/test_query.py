@@ -156,7 +156,7 @@ class HyperStringTests(unittest.TestCase):
                       '2016-04-28 20:00:31.405000+00:00=0.0\n'
                       '2016-04-28 20:00:50.132000+00:00=0.0')
 
-        assert (elec.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        assert (elec.window(ti).values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     def test_simple_workflow(self):
         # Create a simple one step workflow for querying
@@ -263,7 +263,7 @@ class HyperStringTests(unittest.TestCase):
                 func=online_average
             )
         )
-        
+
         tool_sliding_apply.execute(
             sources=[
                 stream_memory_sliding_window,
