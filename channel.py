@@ -130,10 +130,14 @@ class ChannelManager(ChannelCollectionBase, Printable):
         tool_class = tool_stream_view.last().value
 
         # Check that the number of arguments is correct for this tool
-        expected = len(inspect.getargspec(tool_class.__init__)[0])
-        if expected != len(tool_parameters) + 1:
-            raise ValueError("Tool {} takes {} arguments ({} given)".format(
-                tool_class.__name__, expected, len(tool_parameters) + 1))
+        arg_spec = inspect.getargspec(tool_class.__init__)
+        max_expected = len(arg_spec[0])
+        min_expected = max_expected - len(arg_spec.defaults)
+        if not (min_expected <= len(tool_parameters) + 1 <= max_expected):
+            message = "Tool {} takes a between {} and {} arguments ({} given)".format(
+                tool_class.__name__, min_expected, max_expected, len(tool_parameters) + 1)
+            # logging.warn(message)
+            raise ValueError(message)
 
         # Instantiate tool
         tool = tool_class(**tool_parameters)
