@@ -18,7 +18,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from utils import Printable, utcnow
+from utils import Printable, utcnow, MIN_DATE
 from errors import StreamNotFoundError, StreamAlreadyExistsError, ChannelNotFoundError, ToolNotFoundError
 from models import StreamDefinitionModel
 from stream import StreamId, Stream
@@ -48,8 +48,7 @@ class ChannelManager(ChannelCollectionBase, Printable):
                                                   tools=ToolChannel("tools", tool_path, up_to_timestamp=utcnow()),
                                                   sphere=SphereChannel("sphere"),
                                                   memory=MemoryChannel("memory"),
-                                                  mongo=DatabaseChannel("mongo")
-                                                  )
+                                                  mongo=DatabaseChannel("mongo"))
 
         self.update_channels()
         return self
@@ -91,85 +90,11 @@ class ChannelManager(ChannelCollectionBase, Printable):
             stream = Stream(
                 channel=channel,
                 stream_id=stream_id,
-                calculated_intervals=TimeIntervals()
-            )
+                calculated_intervals=TimeIntervals())
 
             channel.streams[stream_id] = stream
 
-        # Would like to just loop over the objects, but because some streams depend on other streams, we will have to
-        # loop through multiple times until they're all processed
-        # stream_objects = set(StreamDefinitionModel.objects())
-        # # undefined = set()
-        #
-        # while stream_objects:
-        #     logging.debug("{} stream objects to process".format(len(stream_objects)))
-        #
-        #     copy = stream_objects.copy()
-        #     for s in copy:
-        #         stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
-        #         channel = self.get_channel(s.channel_id)
-        #
-        #         # logging.debug("Getting input streams for {}".format(stream_id))
-        #         # input_streams = []
-        #         # before = len(undefined)
-        #         # for input_stream in s.input_streams:
-        #         #     input_stream_id = StreamId(name=input_stream.name, meta_data=input_stream.meta_data)
-        #         #     if input_stream_id in channel:
-        #         #         input_streams.append(channel.streams[input_stream_id])
-        #         #     else:
-        #         #         undefined.add(input_stream_id)
-        #         #
-        #         # if len(undefined) > before:
-        #         #     continue
-        #
-        #         if stream_id in channel.streams:
-        #             raise StreamAlreadyExistsError(stream_id)
-        #
-        #         # TODO: Create a Factor here?
-        #         # tool = self.get_tool(s.tool_name, s.tool_parameters, input_streams)
-        #
-        #         stream = Stream(
-        #             channel=channel,
-        #             stream_id=stream_id,
-        #             # tool=tool,
-        #             calculated_intervals=TimeIntervals()
-        #         )
-        #
-        #         channel.streams[stream_id] = stream
-        #
-        #         # stream_objects.remove(s)
-        #         # if s in undefined:
-        #         #     undefined.remove(s)
-        #     # if len(stream_objects) > 0 and len(stream_objects) == len(copy):
-        #     #     raise StreamNotFoundError("{} stream objects still remain".format(len(stream_objects)))
-
-    def get_tool(self, tool_name, tool_parameters, input_streams):
-        # TODO: Use tool versions - here we just take the latest one
-        tool_stream = self.tools[StreamId(tool_name)]
-        tool_class = tool_stream.items()[-1].value
-
-        # Check that the number of arguments is correct for this tool
-        expected = len(inspect.getargspec(tool_class.__init__)[0])
-        if expected != len(tool_parameters) + 1:
-            raise ValueError("Tool {} takes {} arguments ({} given)".format(
-                tool_class.__name__, expected, len(tool_parameters) + 1))
-
-        # Instantiate tool
-        tool = tool_class(**tool_parameters)
-        if not tool:
-            raise ToolNotFoundError
-
-        # Input streams should be stream objects
-        for stream in input_streams:
-            if not(isinstance(input_streams, Stream)):
-                raise ValueError("Stream expected ({} given)".format(type(stream)))
-
-        # Make sure that the tool stream is defined
-        # tool_stream.define(input_streams=input_streams, **tool_parameters)
-
-        return tool
-
-    def get_tool2(self, tool, tool_parameters):
+    def get_tool(self, tool, tool_parameters):
         # TODO: Use tool versions - here we just take the latest one
         if isinstance(tool, (str, unicode)):
             tool_id = StreamId(tool)
@@ -178,8 +103,8 @@ class ChannelManager(ChannelCollectionBase, Printable):
         else:
             raise TypeError(tool)
 
-        tool_stream = self.tools[tool_id]
-        tool_class = tool_stream.items()[-1].value
+        tool_stream_view = self.tools[tool_id].window((MIN_DATE, utcnow()))
+        tool_class = tool_stream_view.last().value
 
         # Check that the number of arguments is correct for this tool
         expected = len(inspect.getargspec(tool_class.__init__)[0])

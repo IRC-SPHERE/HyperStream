@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream import Stream
-from hyperstream.utils import MIN_DATE
+from hyperstream.utils import MIN_DATE, utcnow
 # from hyperstream.modifiers import *
 import unittest
 from helpers import *
@@ -35,5 +35,5 @@ class TestToolChannel(unittest.TestCase):
         sphere_silhouette_stream = T.streams[sphere_silhouette]
         assert(sphere_silhouette_stream.channel.can_create == False)
 
-        agg_stream = T[aggregate]
-        assert(len(agg_stream.items()) > 1)
+        agg_stream_view = T[aggregate].window((MIN_DATE, utcnow()))
+        assert(len(agg_stream_view.items()) > 1)

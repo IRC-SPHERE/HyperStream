@@ -84,59 +84,28 @@ if __name__ == '__main__':
     )
     
     # Define the motion data
-    n_motion_k = w.create_node(stream_name="motion_k", channel=M, plate_ids=["H1"])
-    f_motion_k = w.create_factor(
+    n_motion_data = w.create_node(stream_name="motion_data", channel=M, plate_ids=["H1"])
+    f_motion_data = w.create_factor(
         tool_name="component",
         tool_parameters=dict(key="motion-S1_K"),
         source_nodes=[n_environmental_data],
-        sink_node=n_motion_k
-    )
-    
-    # Define the motion data
-    n_motion_l = w.create_node(stream_name="motion_l", channel=M, plate_ids=["H1"])
-    f_motion_l = w.create_factor(
-        tool_name="component",
-        tool_parameters=dict(key="motion-S1_K"),
-        source_nodes=[n_environmental_data],
-        sink_node=n_motion_l
+        sink_node=n_motion_data
     )
     
     # Take the mean of the motion stream over a sliding window
-    n_average_m_k = w.create_node(stream_name="average_m_k", channel=M, plate_ids=["H1"])
-    f_average_m_k = w.create_factor(
+    n_average_motion = w.create_node(stream_name="average_motion", channel=M, plate_ids=["H1"])
+    f_average_motion = w.create_factor(
         tool_name="sliding_apply",
         tool_parameters=dict(func=online_average),
-        source_nodes=[n_sliding_window, n_motion_k],
-        sink_node=n_average_m_k
+        source_nodes=[n_sliding_window, n_motion_data],
+        sink_node=n_average_motion
     )
     
-    # Take the mean of the motion stream over a sliding window
-    n_average_m_l = w.create_node(stream_name="average_m_l", channel=M, plate_ids=["H1"])
-    f_average_m_l = w.create_factor(
-        tool_name="sliding_apply",
-        tool_parameters=dict(func=online_average),
-        source_nodes=[n_sliding_window, n_motion_l],
-        sink_node=n_average_m_l
-    )
-    
-    n_prod = w.create_node(stream_name='prod', channel=M, plate_ids=["H1"])
-    f_prod = w.create_factor(
-        tool_name='product',
-        tool_parameters={},
-        source_nodes=[n_average_m_k, n_average_m_l],
-        sink_node=n_prod
-    )
-    
-    # Calculate data
+    # Execute the factors
     w.execute(interval)
-    for stream_name, stream in n_average_m_k.streams.iteritems():
+    
+    for stream_name, stream in n_average_motion.streams.iteritems():
         print stream_name, stream
-        for kv in stream.iteritems():
-            print "", kv
-        print
-        
-    for stream_name, stream in n_average_m_l.streams.iteritems():
-        print stream_name, stream
-        for kv in stream.iteritems():
+        for kv in stream.window(interval):
             print "", kv
         print

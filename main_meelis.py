@@ -105,21 +105,6 @@ if __name__ == '__main__':
         owner="TD",
         description="Another test of creating workflows")
 
-    # Try to recreate the following:
-    if False:
-        clock_tool = T[clock].define(stride=30 * second)
-        M.create_stream(stream_id=every30s, tool_stream=clock_tool)
-        env_tool = T[sphere].define(modality='environmental')
-        S.create_stream(stream_id=env_kitchen_30_s_window, tool_stream=env_tool)
-
-        motion_tool = T[component].define(input_streams=[S[env_kitchen_30_s_window]], key='motion-S1_K')
-        M.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=motion_tool)
-
-        s = M[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))
-        counter = T[aggregate].define(input_streams=[M[every30s], s], func=online_count)
-        M.create_stream(stream_id=count, tool_stream=counter)
-        print(M[count].window((t1, t1 + 5 * minute)).values())
-
     #############################################################
     houses = w.plates["H1"]
 
@@ -129,27 +114,19 @@ if __name__ == '__main__':
     n_motion_kitchen = w.create_node(stream_name="m_kitchen_30_s_window", channel=M, plate_ids=["H1"])
     n_motion_kitchen_count = w.create_node(stream_name="motion_kitchen_count", channel=M, plate_ids=["H1"])
 
-    # Create the clock factor
+    # Create the factors
     f_timer = w.create_factor(
         tool_name="clock",
         tool_parameters=dict(stride=30 * second),
         source_nodes=None,
         sink_node=n_clock
-        # sink=StreamView(n_clock.streams[0])
     )
 
-    # TODO: Something along the following lines
-    # with w.for_each(houses.values) as house:
-    #     pass
-
-    # for house in houses.values:
-        # for house in [[]]:
     f_env = w.create_factor(
         tool_name="sphere",
         tool_parameters=dict(modality="environmental"),
         source_nodes=None,
         sink_node=n_environ
-        # sink=StreamView(n_environ.streams[0])
     )
 
     f_motion = w.create_factor(
@@ -157,8 +134,6 @@ if __name__ == '__main__':
         tool_parameters=dict(key="motion-S1_K"),
         source_nodes=[n_environ],
         sink_node=n_motion_kitchen
-        # sources=[StreamView(s) for s in n_environ.streams],
-        # sink=StreamView(n_motion_kitchen.streams[0])
     )
 
     f_kitchen_motion = w.create_factor(
@@ -166,87 +141,9 @@ if __name__ == '__main__':
         tool_parameters=dict(func=online_count),
         source_nodes=[n_clock, n_motion_kitchen],
         sink_node=n_motion_kitchen_count
-        # sources=[StreamView(n_clock.streams[0]), StreamView(n_motion_kitchen.streams[0])],
-        # sink=StreamView(n_motion_kitchen_count.streams[0])
     )
 
     ti = TimeInterval(t1, t1 + 5 * minute)
     w.execute(ti)
 
     print(n_motion_kitchen_count.streams[('house', '1'), ].window(ti).values())
-
-    exit()
-
-    # Simple querying
-    env = S[environmental].execute((t1, t1 + minute))
-    eid = StreamId('electricity')
-    elec_tool = T[component].define(input_streams=[env], key='electricity-04063')
-    M.create_stream(stream_id=eid, tool_stream=elec_tool)
-
-    el = M[eid].execute((t1, t1 + minute))
-
-    q1 = "\n".join("=".join(map(str, ee)) for ee in el)
-
-    print(q1)
-    print(el.values())
-
-    clock_tool = T[clock].define(stride=30 * second)
-    env_tool = T[sphere].define(modality='environmental')
-
-    # Windowed querying
-    M.create_stream(stream_id=every30s, tool_stream=clock_tool)
-
-    print("\n----------")
-    print("M[every30s]")
-    print("\n".join(map(str, M[every30s].execute((t1, t2)))))
-    print("----------")
-    print("")
-
-    M[every30s] = M.create_stream(stream_id=every30s, tool_stream=clock_tool)
-    motion_tool = T[component].define(input_streams=[S[environmental]], key='motion-S1_K')
-    M.create_stream(stream_id=m_kitchen_30_s_window, tool_stream=motion_tool)
-
-    print("\n------------------------")
-    print("S[m_kitchen_30_s_window]")
-    print("\n".join(map(str, M[m_kitchen_30_s_window].execute((t1, t2)))))
-    print("------------------------")
-    print("")
-
-    # Want to be able to reuse the same aggregate tool, but with different parameters (in this case func)
-    # Since define() just returns back the object, we have an issue that a new object isn't being created
-    # Note that in fact T[aggregate] is returning a stream, and the items() function of the stream just returns a
-    # single element, which is the tool class, pre-built with its kwargs
-    # So we basically want to have a new stream being created by define, rather than the same one getting reused.
-    # Since define is only used for this purpose, there shouldn't be a problem?
-    # Hence it seems reasonable to simply use copy.deepcopy when returning the stream object
-
-    averager = T[aggregate].define(
-        input_streams=[
-            M[every30s],
-            S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
-        func=online_average
-    )
-
-    print(id(averager))
-
-    counter = T[aggregate].define(
-        input_streams=[
-            M[every30s],
-            S[m_kitchen_30_s_window].relative_window((-30 * second, timedelta(0)))],
-        func=online_count
-    )
-
-    print(id(counter))
-
-    M.create_stream(stream_id=average, tool_stream=averager)
-    M.create_stream(stream_id=count, tool_stream=counter)
-
-    stream = M[average].execute((t1, t2))
-    aa = stream.values()
-    print(aa)
-    assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-
-    stream = M[count].execute((t1, t1 + 5 * minute))
-    cc = stream.values()
-    print(cc)
-    assert (cc == [3, 4, 4, 3, 3, 3, 3, 3, 3, 3])

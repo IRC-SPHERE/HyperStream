@@ -30,25 +30,22 @@ class StreamIdField(EmbeddedDocument):
 
 class StreamInstanceModel(Document):
     stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
-    stream_type = StringField(required=True, min_length=1, max_length=512)
+    stream_type = StringField(required=False, min_length=1, max_length=512)
     datetime = DateTimeField(required=True)
-    tool_version = StringField(required=True, min_length=1, max_length=512)
+    # tool_version = StringField(required=True, min_length=1, max_length=512)
     value = DynamicField(required=True)
     
     meta = {
         'collection': 'streams',
-        'indexes': [{'fields': ['stream_id'], 'unique': False}],
+        'indexes': [{'fields': ['stream_id', 'datetime'], 'unique': True}],
         'ordering': ['datetime']
     }
 
 
 class StreamDefinitionModel(Document):
     stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
-    stream_type = StringField(required=True, min_length=1, max_length=512)
+    stream_type = StringField(required=False, min_length=1, max_length=512)
     channel_id = StringField(required=True, min_length=1, max_length=512)
-    # tool_name = StringField(required=True, min_length=1, max_length=512)
-    # tool_version = StringField(required=True, min_length=1, max_length=512)
-    # tool_parameters = DictField()
     # input_streams = EmbeddedDocumentListField(required=False, document_type=StreamIdField)
     parameters = DictField()
     sandbox = StringField()
@@ -61,7 +58,7 @@ class StreamDefinitionModel(Document):
 
 class StreamStatusModel(Document):
     stream_id = StringField(required=True, min_length=1, max_length=512)
-    stream_type = StringField(required=True, min_length=1, max_length=512)
+    stream_type = StringField(required=False, min_length=1, max_length=512)
     last_updated = DateTimeField(required=True)
     last_accessed = DateTimeField(required=False)
     computed_ranges = EmbeddedDocumentListField(document_type=TimeRangeModel, required=True)

@@ -99,7 +99,7 @@ class FileChannel(ReadOnlyMemoryChannel):
             stream = Stream(
                 channel=self,
                 stream_id=stream_id,
-                calculated_intervals=TimeIntervals()
+                calculated_intervals=TimeIntervals(),
                 # input_streams=None
             )
 
