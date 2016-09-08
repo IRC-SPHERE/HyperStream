@@ -45,10 +45,6 @@ class TimeIntervals(Printable):  # example object: (t1,t2] U (t3,t4] U ...
     def is_empty(self):
         return len(self.intervals) == 0
     
-    @property
-    def is_not_empty(self):
-        return len(self.intervals) > 0
-    
     def split(self, points):
         if len(points) == 0:
             return

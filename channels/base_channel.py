@@ -38,14 +38,15 @@ class BaseChannel(Printable):
         """
         raise NotImplementedError
 
-    def _get_data(self, stream):
-        """
-        Default way of getting data from streams. Can be overridden for special stream types
-        :param stream: The stream reference
-        :return: The data generator
-        """
-        return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream.items()
-                       if timestamp in stream.time_interval), key=lambda x: x.timestamp)
+    # def _get_data(self, stream):
+    #     """
+    #     Default way of getting data from streams. Can be overridden for special stream types
+    #     :param stream: The stream reference
+    #     :return: The data generator
+    #     """
+    #     raise NotImplementedError
+    #     # return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream.items()
+    #     #                if timestamp in stream.time_interval), key=lambda x: x.timestamp)
 
     def execute_tool(self, stream, interval):
         """
@@ -61,13 +62,13 @@ class BaseChannel(Printable):
         required_intervals = TimeIntervals([interval]) - stream.calculated_intervals
         if not required_intervals.is_empty:
             for interval in required_intervals:
-                stream.tool.execute(stream.input_streams, interval, stream.writer)
+                stream.tool.execute(stream.input_streams, stream, interval)
                 stream.calculated_intervals += TimeIntervals([interval])
 
-            if stream.required_intervals.is_not_empty:
+            if not stream.required_intervals.is_empty:
                 raise RuntimeError('Tool execution did not cover the specified time interval.')
 
-        # stream.tool.execute(stream.input_streams, interval, stream.writer)
+        # stream.tool.execute(stream.input_streams, stream, interval)
 
     def get_results(self, stream):
         """
@@ -82,7 +83,6 @@ class BaseChannel(Printable):
         """
         Helper function to get a stream or create one if it's not already defined
         :param stream_id: The stream id
-        :param tool_stream: The tool stream
         :return: The stream object
         """
         if stream_id in self.streams:
