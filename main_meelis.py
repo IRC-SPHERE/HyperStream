@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
 
 from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client, \
     TimeInterval  # , StreamView
-from hyperstream.utils import UTC
+from hyperstream.utils import UTC, MIN_DATE
 from hyperstream.itertools2 import online_average, count as online_count
 from sphere_connector_package.sphere_connector import SphereLogger
 
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     # Create the factors
     f_timer = w.create_factor(
         tool_name="clock",
-        tool_parameters=dict(stride=30 * second),
+        tool_parameters=dict(first=MIN_DATE, stride=30 * second),
         source_nodes=None,
         sink_node=n_clock
     )
