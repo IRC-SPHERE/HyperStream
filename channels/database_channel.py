@@ -21,9 +21,7 @@
 Database channel module.
 """
 from base_channel import BaseChannel
-from ..models import StreamInstanceModel, StreamIdField
-from ..time_interval import TimeIntervals
-from ..utils import MIN_DATE, utcnow
+from ..models import StreamInstanceModel
 from ..stream import StreamInstance
 
 import logging
@@ -54,15 +52,16 @@ class DatabaseChannel(BaseChannel):
         #     stream.calculated_intervals = intervals
         # self.up_to_timestamp = up_to_timestamp
 
-    def get_results(self, stream):
+    def get_results(self, stream, time_interval):
         """
         Get the results for a given stream
+        :param time_interval: The time interval
         :param stream: The stream object
         :return: A generator over stream instances
         """
-        # TODO: Need to check if the timestamp is in range too!
-        raise Exception("Need to check if the timestamp is in range")
-        for instance in StreamInstanceModel.objects(__raw__=stream.stream_id.as_raw()):
+        query = stream.stream_id.as_raw()
+        query['datetime'] = {'$gt': time_interval.start, '$lte': time_interval.end}
+        for instance in StreamInstanceModel.objects(__raw__=query):
             yield StreamInstance(timestamp=instance.datetime, value=instance.value)
 
     def create_stream(self, stream_id):

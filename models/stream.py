@@ -20,7 +20,7 @@
 
 from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField, EmbeddedDocumentListField, \
     EmbeddedDocument, EmbeddedDocumentField
-from time_range import TimeRangeModel
+from time_interval import TimeIntervalModel
 
 
 class StreamIdField(EmbeddedDocument):
@@ -65,36 +65,10 @@ class StreamStatusModel(Document):
     stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
     last_updated = DateTimeField(required=True)
     last_accessed = DateTimeField(required=False)
-    calculated_intervals = EmbeddedDocumentListField(document_type=TimeRangeModel, required=False)
+    calculated_intervals = EmbeddedDocumentListField(document_type=TimeIntervalModel, required=False)
     
     meta = {
         'collection': 'stream_status',
         'indexes': [{'fields': ['stream_id']}],
         'ordering': ['last_updated']
     }
-    
-    # def add_time_range(self, time_range):
-    #     if not isinstance(time_range, TimeRangeModel):
-    #         raise RuntimeError("Can only add TimeRangeModel objects")
-    #
-    #     self.calculated_intervals.append(time_range)
-    #     self.update_time_ranges()
-    #     return self.calculated_intervals
-    #
-    # def update_time_ranges(self):
-    #     sorted_by_lower_bound = sorted(self.calculated_intervals, key=lambda r: r.start)
-    #     merged = []
-    #
-    #     for higher in sorted_by_lower_bound:
-    #         if not merged:
-    #             merged.append(higher)
-    #         else:
-    #             lower = merged[-1]
-    #             # test for intersection between lower and higher:
-    #             # we know via sorting that lower.start <= higher.start
-    #             if higher.start <= lower.end:
-    #                 upper_bound = max(lower.end, higher.end)
-    #                 merged[-1] = TimeRangeModel(start=lower.start, end=upper_bound)  # replace by merged interval
-    #             else:
-    #                 merged.append(higher)
-    #     self.calculated_intervals = merged
