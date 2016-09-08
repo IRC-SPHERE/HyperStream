@@ -70,7 +70,7 @@ class BaseChannel(Printable):
 
         # stream.tool.execute(stream.input_streams, stream, interval)
 
-    def get_results(self, stream):
+    def get_results(self, stream, time_interval):
         """
         Must be overridden by deriving classes.
         1. Calculates/receives the documents in the stream for the time interval given

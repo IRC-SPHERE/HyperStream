@@ -21,7 +21,7 @@
 from utils import Printable, utcnow, MIN_DATE
 from errors import StreamNotFoundError, StreamAlreadyExistsError, ChannelNotFoundError, ToolNotFoundError
 from models import StreamDefinitionModel, StreamStatusModel
-from stream import StreamId, Stream
+from stream import StreamId, DatabaseStream
 from time_interval import TimeIntervals
 
 from mongoengine import DoesNotExist
@@ -98,16 +98,16 @@ class ChannelManager(ChannelCollectionBase, Printable):
                     calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end), status.calculated_intervals))
                 except DoesNotExist as e:
                     logging.debug(e)
-                    status = StreamStatusModel(
-                        stream_id=stream_id.as_dict(),
-                        calculated_intervals=[],
-                        last_accessed=utcnow(),
-                        last_updated=utcnow()
-                    )
-                    status.save()
+                    # status = StreamStatusModel(
+                    #     stream_id=stream_id.as_dict(),
+                    #     calculated_intervals=[],
+                    #     last_accessed=utcnow(),
+                    #     last_updated=utcnow()
+                    # )
+                    # status.save()
 
-                channel.streams[stream_id] = Stream(channel=channel, stream_id=stream_id,
-                                                    calculated_intervals=calculated_intervals)
+                channel.streams[stream_id] = DatabaseStream(channel=channel, stream_id=stream_id,
+                                                            calculated_intervals=calculated_intervals)
             else:
                 raise NotImplementedError
 
