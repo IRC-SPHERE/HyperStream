@@ -109,6 +109,19 @@ class StreamView(Printable):
             yield StreamInstance(time, data2)
 
 
+class RelativeStreamView(Printable):
+    def __init__(self, stream, relative_time_interval):
+        if not isinstance(stream, Stream):
+            raise ValueError("stream must be Stream object")
+        if not isinstance(relative_time_interval, RelativeTimeInterval):
+            raise ValueError("relative_time_interval must be RelativeTimeInterval object")
+        self.stream = stream
+        self.time_interval = relative_time_interval
+
+    def window(self, time_interval):
+        return self.stream.window(time_interval + self.relative_time_interval)
+
+
 class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
     """
     Simple helper class for storing data instances that's a bit neater than simple tuples
@@ -247,6 +260,26 @@ class Stream(Hashable):
             raise TypeError("Expected TimeInterval or (start, end) tuple of type str or datetime, got {}"
                             .format(type(time_interval)))
         return StreamView(stream=self, time_interval=time_interval)
+
+    def relative_window(self, time_interval):
+        """
+        Sets the time execute for this stream
+        :param time_interval: either a RelativeTimeInterval object or (start, end) tuple of type str or timedelta
+        :type time_interval: Iterable, RelativeTimeInterval
+        :return: a relative stream view object
+        """
+        if isinstance(time_interval, RelativeTimeInterval):
+            pass
+        elif isinstance(time_interval, Iterable):
+            time_interval = parse_time_tuple(*time_interval)
+            if isinstance(time_interval, TimeInterval):
+                raise NotImplementedError
+        elif isinstance(time_interval, TimeInterval):
+            raise NotImplementedError
+        else:
+            raise TypeError("Expected RelativeTimeInterval or (start, end) tuple of type str or timedelta, got {}"
+                            .format(type(time_interval)))
+        return RelativeStreamView(stream=self, relative_time_interval=time_interval)
 
     # def window(self, time_interval):
     #     """
