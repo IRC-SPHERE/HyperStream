@@ -19,24 +19,94 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from time_interval import TimeIntervals, parse_time_tuple, RelativeTimeInterval, TimeInterval
-from utils import Hashable, TypedBiDict, check_output_format, check_tool_defined
+from utils import Hashable, TypedBiDict, Printable, check_output_format, check_tool_defined
 
 import logging
 # from copy import deepcopy
-from collections import Iterable, namedtuple
+from collections import Iterable, namedtuple, deque
 from datetime import datetime
 
-#
-# class StreamView(namedtuple("StreamView", "stream time_interval")):
-#     """
-#     Simple helper class for storing streams with time intervals (i.e. a "view" on a stream)
-#     """
-#     def __new__(cls, stream, time_interval=None):
-#         if not isinstance(stream, Stream):
-#             raise ValueError("stream must be Stream object")
-#         if time_interval is not None and not isinstance(time_interval, TimeInterval):
-#             raise ValueError("time_interval must be TimeInterval object")
-#         return super(StreamView, cls).__new__(cls, stream, time_interval)
+
+class StreamView(Printable):
+    """
+    Simple helper class for storing streams with a time interval (i.e. a "view" on a stream)
+    """
+    def __init__(self, stream, time_interval):
+        if not isinstance(stream, Stream):
+            raise ValueError("stream must be Stream object")
+        if not isinstance(time_interval, TimeInterval):
+            raise ValueError("time_interval must be TimeInterval object")
+        self.stream = stream
+        self.time_interval = time_interval
+
+    def __iter__(self):
+        for item in self.stream.channel.get_results(self.stream):
+            yield item
+
+    def items(self):
+        """
+        Return all results as a list
+        :return:
+        """
+        return list(self.iteritems())
+
+    def iteritems(self):
+        return iter(self)
+
+    def timestamps(self):
+        return list(self.itertimestamps())
+
+    def itertimestamps(self):
+        return map(lambda x: x.timestamp, self.iteritems())
+
+    def values(self):
+        return list(self.itervalues())
+
+    def itervalues(self):
+        return map(lambda x: x.value, self.iteritems())
+
+    def last(self, default=None):
+        item = default
+        for item in self:
+            pass
+        return item
+
+    def first(self, default=None):
+        for el in self:
+            return el
+        return default
+
+    def head(self, n):
+        i = 0
+        for d in self.iteritems():
+            i += 1
+            if i > n:
+                break
+            yield d
+
+    def tail(self, n):
+        return iter(deque(self, maxlen=n))
+
+    def component(self, key):
+        # TODO: is this needed now we have a Component() tool?
+        for (time, data) in self.iteritems():
+            if key in data:
+                yield StreamInstance(time, data[key])
+
+    def component_filter(self, key, values):
+        # TODO: is this needed now we have a ComponentFilter() tool?
+        for (time, data) in self.iteritems():
+            if key in data and data[key] in values:
+                yield StreamInstance(time, data)
+
+    def delete_nones(self):
+        # TODO: Test this against ComponentFilter(key, values=[None], complement=true)
+        for (time, data) in self.iteritems():
+            data2 = {}
+            for (key, value) in data.items():
+                if value is not None:
+                    data2[key] = value
+            yield StreamInstance(time, data2)
 
 
 class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
@@ -49,12 +119,6 @@ class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
             raise ValueError("Timestamp must be datetime.datetime")
         return super(StreamInstance, cls).__new__(cls, timestamp, value)
 
-
-# class StreamInstances(namedtuple("StreamInstance", "timestamp_key items")):
-#     def __new__(cls, timestamp_key, items):
-#         if not isinstance(timestamp_key, str):
-#             raise ValueError
-#         return super(StreamInstances, cls).__new__(cls, timestamp_key, items)
 
 class StreamDict(TypedBiDict):
     """
@@ -164,6 +228,26 @@ class Stream(Hashable):
     def writer(self):
         return self.channel.get_stream_writer(self)
 
+    def window(self, time_interval):
+        """
+        Gets a view on this stream for the time interval given
+        :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
+        :type time_interval: Iterable, TimeInterval
+        :return: a stream view object
+        """
+        if isinstance(time_interval, TimeInterval):
+            pass
+        elif isinstance(time_interval, Iterable):
+            time_interval = parse_time_tuple(*time_interval)
+            if isinstance(time_interval, RelativeTimeInterval):
+                raise NotImplementedError
+        elif isinstance(time_interval, RelativeTimeInterval):
+            raise NotImplementedError
+        else:
+            raise TypeError("Expected TimeInterval or (start, end) tuple of type str or datetime, got {}"
+                            .format(type(time_interval)))
+        return StreamView(stream=self, time_interval=time_interval)
+
     # def window(self, time_interval):
     #     """
     #     Sets the time execute for this stream
@@ -208,100 +292,3 @@ class Stream(Hashable):
 
     # def execute(self):
     #     self.channel.get_results(self)
-
-    def __iter__(self):
-        for item in self.channel.get_results(self):
-            yield item
-    
-    # @check_output_format({'doc_gen'})
-    def items(self):
-        """
-        Return all results as a list
-        :return:
-        """
-        return list(self.iteritems())
-    
-    # @check_output_format({'doc_gen'})
-    def iteritems(self):
-        return iter(self)
-    
-    # @check_output_format({'doc_gen'})
-    def timestamps(self):
-        return list(self.itertimestamps())
-    
-    # @check_output_format({'doc_gen'})
-    def itertimestamps(self):
-        return map(lambda x: x.timestamp, self.iteritems())
-    
-    # @check_output_format({'data_gen', 'doc_gen'})
-    def values(self):
-        # if self.output_format == 'doc_gen':
-        return list(self.itervalues())
-        # else:
-        #     return self.items()
-    
-    # @check_output_format({'data_gen', 'doc_gen'})
-    def itervalues(self):
-        # if self.output_format == 'doc_gen':
-        return map(lambda x: x.value, self.iteritems())
-        # else:
-        #     return self.iteritems()
-    
-    # @check_output_format({'doc_gen'})
-    def last(self):
-        # TODO: This is designed to replace the Last() modifier
-        # TODO: Can this be done without list()?
-        return self.items()[-1]
-    
-    # @check_output_format({'doc_gen'})
-    def first(self, default=None, key=None):
-        # TODO: This is designed to replace the Last() modifier
-        if key is None:
-            for el in self.iteritems():
-                if el:
-                    return el
-        else:
-            for el in self.iteritems():
-                if key(el):
-                    return el
-        return default
-    
-    # @check_output_format({'doc_gen'})
-    def head(self, n):
-        # TODO: this is designed to replace the Head() modifier
-        i = 0
-        for d in self.iteritems():
-            i += 1
-            if i > n:
-                break
-            yield d
-    
-    # @check_output_format({'doc_gen'})
-    def tail(self, n):
-        # TODO: This is designed to replace the Tail() modifier
-        # TODO: Can this be done without list()?
-        return list(self.iteritems())[-n:]
-    
-    # @check_output_format({'doc_gen'})
-    def component(self, key):
-        # TODO: is this needed now we have a Component() tool?
-        for (time, data) in self.iteritems():
-            if key in data:
-                yield StreamInstance(time, data[key])
-    
-    # @check_output_format({'doc_gen'})
-    def component_filter(self, key, values):
-        # TODO: is this needed now we have a ComponentFilter() tool?
-        for (time, data) in self.iteritems():
-            if key in data and data[key] in values:
-                yield StreamInstance(time, data)
-    
-    # @check_output_format({'doc_gen'})
-    def delete_nones(self):
-        # TODO: Test this against ComponentFilter(key, values=[None], complement=true)
-        for (time, data) in self.iteritems():
-            data2 = {}
-            for (key, value) in data.items():
-                if value is not None:
-                    data2[key] = value
-            yield StreamInstance(time, data2)

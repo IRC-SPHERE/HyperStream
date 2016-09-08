@@ -22,7 +22,7 @@ import unittest
 
 from hyperstream import TimeInterval, TimeIntervals, Workflow, RelativeTimeInterval  # , StreamView
 from hyperstream.itertools2 import online_average
-from hyperstream.utils import MIN_DATE
+from hyperstream.utils import MIN_DATE, utcnow
 from helpers import *
 
 
@@ -71,13 +71,13 @@ class HyperStringTests(unittest.TestCase):
         elec = M[StreamId('electricity')]
         env = S.create_stream(stream_id=StreamId('environmental_data'))
 
-        env_tool = channels.get_tool2("sphere", dict(modality="environmental"))
-        elec_tool = T[component].items()[-1].value(key='electricity-04063')
+        env_tool = channels.get_tool("sphere", dict(modality="environmental"))
+        elec_tool = T[component].window((MIN_DATE, utcnow())).last().value(key='electricity-04063')
 
         env_tool.execute(sources=None, sink=env, interval=ti)
         elec_tool.execute(sources=[env], sink=elec, interval=ti)
 
-        q1 = "\n".join("=".join(map(str, ee)) for ee in elec)
+        q1 = "\n".join("=".join(map(str, ee)) for ee in elec.window(ti))
         
         print(q1)
         # print(edl)
@@ -89,7 +89,7 @@ class HyperStringTests(unittest.TestCase):
                       '2016-04-28 20:00:31.405000+00:00=0.0\n'
                       '2016-04-28 20:00:50.132000+00:00=0.0')
 
-        assert (elec.values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        assert (elec.window(ti).values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     # def test_windowed_querying_average(self):
     #     ti = TimeInterval(t1, t1 + 5 * minute)
@@ -101,9 +101,9 @@ class HyperStringTests(unittest.TestCase):
     #     M.create_stream(stream_id=average)
     #
     #     # Create the tools
-    #     clock_tool = channels.get_tool2(clock, dict(first=MIN_DATE, stride=30*second))
-    #     motion_tool = channels.get_tool2(component, dict(key='motion-S1_K'))
-    #     average_tool = channels.get_tool2(aggregate, dict(func=lambda x: online_average(map(lambda xi: xi.value, x))))
+    #     clock_tool = channels.get_tool(clock, dict(first=MIN_DATE, stride=30*second))
+    #     motion_tool = channels.get_tool(component, dict(key='motion-S1_K'))
+    #     average_tool = channels.get_tool(aggregate, dict(func=lambda x: online_average(map(lambda xi: xi.value, x))))
     #
     #     # Execute the tools
     #     clock_tool.execute(None, M[every30s], ti)
@@ -120,7 +120,7 @@ class HyperStringTests(unittest.TestCase):
     #     ti = TimeInterval(t1, t1 + 5 * minute)
     #
     #     M.create_stream(stream_id=count)
-    #     counter = channels.get_tool2(aggregate, dict(func=online_count))
+    #     counter = channels.get_tool(aggregate, dict(func=online_count))
     #     counter.execute([M[every30s], M[m_kitchen_30_s_window]], M[count], ti)
     #
     #     # cc = M[count].execute((t1, t1 + 5 * minute)).values()
@@ -138,8 +138,8 @@ class HyperStringTests(unittest.TestCase):
         # Create stream whose source will be the above database stream
         elec = M.create_stream(StreamId('electricity'))
 
-        env_tool = channels.get_tool2("sphere", dict(modality="environmental"))
-        elec_tool = T[component].items()[-1].value(key='electricity-04063')
+        env_tool = channels.get_tool("sphere", dict(modality="environmental"))
+        elec_tool = T[component].window((MIN_DATE, utcnow())).last().value(key='electricity-04063')
 
         env_tool.execute(sources=None, sink=env, interval=ti)
         elec_tool.execute(sources=[env], sink=elec, interval=ti)
@@ -182,10 +182,10 @@ class HyperStringTests(unittest.TestCase):
         w.execute(time_interval)
 
         # Check the values
-        assert (node.streams[('house', '1'), ].values()[:1] ==
-                [{u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
-                  'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
-                  'temperature': None}])
+        assert (node.streams[('house', '1'), ].window(time_interval).first().value ==
+                {u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
+                'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
+                 'temperature': None})
 
     def test_chained_query(self):
         interval = TimeInterval(t1, t1 + 5 * minute)
@@ -193,7 +193,7 @@ class HyperStringTests(unittest.TestCase):
         # Define sliding window stream
         stream_memory_sliding_window = M.create_stream(StreamId('stream_id_memory_sliding_window'))
         
-        stream_tool_sliding_window = channels.get_tool2(
+        stream_tool_sliding_window = channels.get_tool(
             tool="sliding_window",
             tool_parameters=dict(
                 first=MIN_DATE,
@@ -209,13 +209,14 @@ class HyperStringTests(unittest.TestCase):
             interval=interval
         )
         
-        assert str(stream_memory_sliding_window.values()[0]) == '(2016-04-28 20:00:00+00:00, 2016-04-28 20:00:30+00:00]'
+        assert str(stream_memory_sliding_window.window(interval).first().value) == \
+            '(2016-04-28 20:00:00+00:00, 2016-04-28 20:00:30+00:00]'
         
         # Define the motion in kitchen tool
         
         stream_sphere_environmental = S.create_stream(StreamId('stream_id_memory_environmental'))
         
-        stream_tool_sphere_environmental = channels.get_tool2(
+        stream_tool_sphere_environmental = channels.get_tool(
             tool='sphere',
             tool_parameters=dict(
                 modality='environmental'
@@ -228,7 +229,7 @@ class HyperStringTests(unittest.TestCase):
             interval=interval
         )
         
-        assert stream_sphere_environmental.values()[0] == {
+        assert stream_sphere_environmental.window(interval).first().value == {
             u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
             'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
             'temperature': None}
@@ -236,7 +237,7 @@ class HyperStringTests(unittest.TestCase):
         # Filter the motion in kitchen
         stream_memory_motion = M.create_stream(StreamId('id_memory_m_kitchen'))
         
-        tool_motion = channels.get_tool2(
+        tool_motion = channels.get_tool(
             tool='component',
             tool_parameters=dict(
                 key='motion-S1_K'
@@ -249,14 +250,14 @@ class HyperStringTests(unittest.TestCase):
             interval=interval
         )
         
-        assert stream_memory_motion.values() == [
+        assert stream_memory_motion.window(interval).values() == [
             0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         # Aggregate over the window
         stream_memory_m_kitchen_mean = M.create_stream(StreamId('id_memory_m_kitchen_mean'))
         
-        tool_sliding_apply = channels.get_tool2(
+        tool_sliding_apply = channels.get_tool(
             tool='sliding_apply',
             tool_parameters=dict(
                 func=online_average
@@ -272,7 +273,7 @@ class HyperStringTests(unittest.TestCase):
             interval=interval
         )
         
-        assert(stream_memory_m_kitchen_mean.values() == [
+        assert(stream_memory_m_kitchen_mean.window(interval).values() == [
             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0, 0.0, 0.0, 0.0,
             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
@@ -347,21 +348,21 @@ class HyperStringTests(unittest.TestCase):
     
         # Execute the factors
         f_sliding_window.execute(interval)
-        ii = str(n_sliding_window.streams[None].values()[0])
+        ii = str(n_sliding_window.streams[None].window(interval).first().value)
         assert ii == "(2016-04-28 20:00:00+00:00, 2016-04-28 20:00:30+00:00]"
     
         f_environmental_data.execute(interval)
-        env = n_environmental_data.streams[(('house', '1'),)].values()[0]
+        env = n_environmental_data.streams[(('house', '1'),)].window(interval).first().value
         assert env == {u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
                        'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None,
                        'hot-water': None, 'temperature': None}
     
         f_motion_data.execute(interval)
-        motion = list(n_motion_data.streams[(('house', '1'),)].values())[:10]
+        motion = n_motion_data.streams[(('house', '1'),)].window(interval).values()[:10]
         assert motion == [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]
     
         f_average_motion.execute(interval)
-        md = list(n_average_motion.streams[(('house', '1'),)].values())[:10]
+        md = n_average_motion.streams[(('house', '1'),)].window(interval).values()[:10]
         assert md == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0]
 
     def test_overlapping_plates(self):

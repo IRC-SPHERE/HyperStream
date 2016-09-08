@@ -59,7 +59,8 @@ class Tool(Printable, Hashable):
         required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
         if not required_intervals.is_empty:
             for interval in required_intervals:
-                for stream_instance in self._execute(sources, interval):
+                source_views = [source.window(interval) for source in sources] if sources else None
+                for stream_instance in self._execute(source_views, interval):
                     sink.writer(stream_instance)
                 sink.calculated_intervals += TimeIntervals([interval])
 

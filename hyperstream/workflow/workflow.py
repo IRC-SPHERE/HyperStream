@@ -18,15 +18,15 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from ..utils import Printable, FrozenKeyDict
+from ..utils import Printable, FrozenKeyDict, MIN_DATE, utcnow
 from node import Node
 from factor import Factor
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
 from ..stream import StreamId  # , StreamView
 from ..errors import StreamNotFoundError, IncompatiblePlatesError
+
 import logging
 from collections import defaultdict
-
 import itertools
 
 
@@ -102,9 +102,17 @@ class Workflow(Printable):
         return node
     
     def create_factor(self, tool_name, tool_parameters, source_nodes, sink_node):
-        tool_stream = self.channels.tools[StreamId(tool_name)]
-        tool_class = tool_stream.items()[-1].value
-        tool = tool_class(**tool_parameters)
+        """
+        Creates a factor. Instantiates a single tool for all of the plates, and connects the source and sink nodes with
+        that tool.
+        :param tool_name: The name of the tool to use
+        :param tool_parameters: The parameters for the tool. Note that these are currently fixed over a plate. For
+        parameters that vary over a plate, an extra input stream should be used
+        :param source_nodes: The source nodes
+        :param sink_node: The sink node
+        :return: The factor object
+        """
+        tool = self.channels.get_tool(tool=tool_name, tool_parameters=tool_parameters)
 
         if sink_node.plate_ids:
             if source_nodes:
@@ -127,14 +135,14 @@ class Workflow(Printable):
 
 class WorkflowManager(Printable):
     """
-    Workflow manager
+    Workflow manager. Responsible for reading and writing workflows to the database, and can execute all of the
+    workflows
     """
-    
     def __init__(self, channels, plates):
         """
-
-        :param channels:
-        :param plates:
+        Initialise the workflow object
+        :param channels: The channel manager
+        :param plates: All defined plates
         """
         self.channels = channels
         self.plates = plates
@@ -178,8 +186,9 @@ class WorkflowManager(Printable):
                     
                     # TODO: Here we need to get the subgraph of the plate tree so that we can build our for loops later
                     # TODO: One for loop for each level of nesting
-                    # TODO: populate input streams
-                    tool = channels.get_tool(f.tool.name, f.tool.parameters, input_streams=[])
+                    tool = channels.get_tool(
+                        tool=f.tool.name,
+                        tool_parameters=f.tool.parameters)
                     workflow.create_factor(tool, source_nodes, sink_node)
                 
                 self.add_workflow(workflow, False)
