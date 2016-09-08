@@ -41,7 +41,6 @@ class WorkflowDefinitionModel(Document):
 
 class WorkflowStatusModel(Document):
     stream_id = StringField(required=True, min_length=1, max_length=512)
-    stream_type = StringField(required=True, min_length=1, max_length=512)
     last_updated = DateTimeField(required=True)
     last_accessed = DateTimeField(required=False)
     
