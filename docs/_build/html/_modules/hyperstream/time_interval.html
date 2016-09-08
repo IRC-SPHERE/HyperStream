@@ -69,7 +69,11 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 
 
-<div class="viewcode-block" id="TimeIntervals"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.time_interval.TimeIntervals">[docs]</a><span class="k">class</span> <span class="nc">TimeIntervals</span><span class="p">(</span><span class="n">Printable</span><span class="p">):</span>  <span class="c1"># example object: (t1,t2] U (t3,t4] U ...</span>
+<div class="viewcode-block" id="TimeIntervals"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.time_interval.TimeIntervals">[docs]</a><span class="k">class</span> <span class="nc">TimeIntervals</span><span class="p">(</span><span class="n">Printable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Container class for time intervals, that manages splitting and joining</span>
+<span class="sd">    Example object: (t1,t2] U (t3,t4] U ...</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intervals</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">intervals</span><span class="p">:</span>
@@ -88,10 +92,6 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">is_not_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
     
 <div class="viewcode-block" id="TimeIntervals.split"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.time_interval.TimeIntervals.split">[docs]</a>    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -149,6 +149,10 @@
 
 
 <div class="viewcode-block" id="TimeInterval"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.time_interval.TimeInterval">[docs]</a><span class="k">class</span> <span class="nc">TimeInterval</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Time interval object.</span>
+<span class="sd">    Thin wrapper around a (start, end) tuple of datetime objects that provides some validation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_start</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_end</span> <span class="o">=</span> <span class="kc">None</span>
     
@@ -200,10 +204,19 @@
         <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">item</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">item</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span>
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">RelativeTimeInterval</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can only add a relative time interval to a time interval&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">TimeInterval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">end</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="RelativeTimeInterval"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.time_interval.RelativeTimeInterval">[docs]</a><span class="k">class</span> <span class="nc">RelativeTimeInterval</span><span class="p">(</span><span class="n">TimeInterval</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Relative time interval object.</span>
+<span class="sd">    Thin wrapper around a (start, end) tuple of timedelta objects that provides some validation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">start_time</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">start</span><span class="p">)</span>
@@ -276,36 +289,6 @@
         <span class="k">return</span> <span class="n">RelativeTimeInterval</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end_time</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">TimeInterval</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end_time</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="compare_time_ranges"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.time_interval.compare_time_ranges">[docs]</a><span class="k">def</span> <span class="nf">compare_time_ranges</span><span class="p">(</span><span class="n">desired_ranges</span><span class="p">,</span> <span class="n">computed_ranges</span><span class="p">):</span>
-    <span class="c1"># Check here whether we need to recompute anything</span>
-    <span class="n">result_ranges</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">desired</span> <span class="ow">in</span> <span class="n">desired_ranges</span><span class="p">:</span>
-        <span class="n">needs_full_computation</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">for</span> <span class="n">computed</span> <span class="ow">in</span> <span class="n">computed_ranges</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">desired</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">computed</span><span class="o">.</span><span class="n">start</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">desired</span><span class="o">.</span><span class="n">end</span> <span class="o">&lt;</span> <span class="n">computed</span><span class="o">.</span><span class="n">start</span><span class="p">:</span>
-                    <span class="c1"># Completely outside range</span>
-                    <span class="k">continue</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">result_ranges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TimeInterval</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">desired</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">computed</span><span class="o">.</span><span class="n">start</span><span class="p">))</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Time range partially computed </span><span class="si">{0}</span><span class="s2">, new end time=</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">desired</span><span class="p">,</span> <span class="n">computed</span><span class="o">.</span><span class="n">start</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">desired</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="n">computed</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
-                    <span class="c1"># Completely outside range</span>
-                    <span class="k">continue</span>
-                <span class="k">if</span> <span class="n">desired</span><span class="o">.</span><span class="n">end</span> <span class="o">&lt;=</span> <span class="n">computed</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
-                    <span class="n">needs_full_computation</span> <span class="o">=</span> <span class="kc">False</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Time range fully computed </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">desired</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">result_ranges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TimeInterval</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">computed</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">desired</span><span class="o">.</span><span class="n">end</span><span class="p">))</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Time range partially computed </span><span class="si">{0}</span><span class="s2">, new start time=</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">desired</span><span class="p">,</span> <span class="n">computed</span><span class="o">.</span><span class="n">end</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">needs_full_computation</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Time range requires full computation </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">desired</span><span class="p">))</span>
-            <span class="n">result_ranges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desired</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">result_ranges</span></div>
-
 </pre></div>
 
           </div>

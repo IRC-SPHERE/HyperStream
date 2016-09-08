@@ -42,98 +42,103 @@
           <div class="body" role="main">
             
   <h1>Source code for hyperstream.channels.database_channel</h1><div class="highlight"><pre>
-<span></span><span class="c1"># The MIT License (MIT) # Copyright (c) 2014-2017 University of Bristol #  # Permission is hereby granted, free of charge, to any person obtaining a copy # of this software and associated documentation files (the &quot;Software&quot;), to deal # in the Software without restriction, including without limitation the rights # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell # copies of the Software, and to permit persons to whom the Software is # furnished to do so, subject to the following conditions: #  # The above copyright notice and this permission notice shall be included in all # copies or substantial portions of the Software. #  # THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. # IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE # OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span></span><span class="c1"># The MIT License (MIT)</span>
+<span class="c1">#  Copyright (c) 2014-2017 University of Bristol</span>
+<span class="c1">#</span>
+<span class="c1">#  Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1">#  of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1">#  in the Software without restriction, including without limitation the rights</span>
+<span class="c1">#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1">#  copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1">#  furnished to do so, subject to the following conditions:</span>
+<span class="c1">#  # The above copyright notice and this permission notice shall be included in all</span>
+<span class="c1">#  copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1">#  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,</span>
+<span class="c1">#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span>
+<span class="c1">#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.</span>
+<span class="c1">#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,</span>
+<span class="c1">#  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR</span>
+<span class="c1">#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE</span>
+<span class="c1">#  OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Database channel module.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">base_channel</span> <span class="k">import</span> <span class="n">BaseChannel</span>
 <span class="kn">from</span> <span class="nn">..models</span> <span class="k">import</span> <span class="n">StreamInstanceModel</span>
 <span class="kn">from</span> <span class="nn">..stream</span> <span class="k">import</span> <span class="n">StreamInstance</span>
-<span class="kn">from</span> <span class="nn">..time_interval</span> <span class="k">import</span> <span class="n">TimeIntervals</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">MIN_DATE</span><span class="p">,</span> <span class="n">utcnow</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">mongoengine</span> <span class="k">import</span> <span class="n">NotUniqueError</span>
 
 
 <div class="viewcode-block" id="DatabaseChannel"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel">[docs]</a><span class="k">class</span> <span class="nc">DatabaseChannel</span><span class="p">(</span><span class="n">BaseChannel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Database Channel. Data stored and retrieved in mongodb using mongoengine.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise this channel</span>
+<span class="sd">        :param channel_id: The channel identifier</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DatabaseChannel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">can_calc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">can_create</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_streams</span><span class="p">(</span><span class="n">utcnow</span><span class="p">())</span>
+        <span class="c1"># self.update_streams(utcnow())</span>
 
 <div class="viewcode-block" id="DatabaseChannel.update_streams"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel.update_streams">[docs]</a>    <span class="k">def</span> <span class="nf">update_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">up_to_timestamp</span><span class="p">):</span>
-        <span class="n">intervals</span> <span class="o">=</span> <span class="n">TimeIntervals</span><span class="p">([(</span><span class="n">MIN_DATE</span><span class="p">,</span> <span class="n">up_to_timestamp</span><span class="p">)])</span>
-        <span class="k">for</span> <span class="n">stream_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span><span class="o">.</span><span class="n">calculated_intervals</span> <span class="o">=</span> <span class="n">intervals</span></div>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the streams</span>
+<span class="sd">        :param up_to_timestamp:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+        <span class="c1"># intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])</span>
+        <span class="c1"># for stream in self.streams:</span>
+        <span class="c1">#     stream.calculated_intervals = intervals</span>
+        <span class="c1"># self.up_to_timestamp = up_to_timestamp</span>
 
-    <span class="k">def</span> <span class="nf">_get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_ref</span><span class="p">):</span>
-        <span class="c1"># TODO: Get the data from the database. Should the responsibility be here or in Stream.Items()?</span>
-        <span class="k">return</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">StreamInstance</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="ow">in</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-                       <span class="k">if</span> <span class="n">timestamp</span> <span class="ow">in</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">absolute_interval</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)</span>
+<div class="viewcode-block" id="DatabaseChannel.get_results"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the results for a given stream</span>
+<span class="sd">        :param time_interval: The time interval</span>
+<span class="sd">        :param stream: The stream object</span>
+<span class="sd">        :return: A generator over stream instances</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">as_raw</span><span class="p">()</span>
+        <span class="n">query</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;$gt&#39;</span><span class="p">:</span> <span class="n">time_interval</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="s1">&#39;$lte&#39;</span><span class="p">:</span> <span class="n">time_interval</span><span class="o">.</span><span class="n">end</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">StreamInstanceModel</span><span class="o">.</span><span class="n">objects</span><span class="p">(</span><span class="n">__raw__</span><span class="o">=</span><span class="n">query</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">StreamInstance</span><span class="p">(</span><span class="n">timestamp</span><span class="o">=</span><span class="n">instance</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">instance</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DatabaseChannel.get_results"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_ref</span><span class="p">):</span>
-        <span class="c1"># TODO: This is identical to MemoryChannel - can they share a base instantiation (BaseChannel)??</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">required_intervals</span><span class="o">.</span><span class="n">is_empty</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">interval</span> <span class="ow">in</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">required_intervals</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">execute_tool</span><span class="p">(</span><span class="n">stream_ref</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
-                <span class="n">stream_ref</span><span class="o">.</span><span class="n">calculated_intervals</span> <span class="o">+=</span> <span class="n">TimeIntervals</span><span class="p">([</span><span class="n">interval</span><span class="p">])</span>
-
-            <span class="k">if</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">required_times</span><span class="o">.</span><span class="n">is_not_empty</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Tool execution did not cover the specified interval.&#39;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">modifier</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_data</span><span class="p">(</span><span class="n">stream_ref</span><span class="p">)))</span></div>
-
-        <span class="c1"># abs_end, abs_start = self.get_absolute_start_end(stream_ref)</span>
-        <span class="c1">#</span>
-        <span class="c1"># done_calc_times = stream_ref.calculated_intervals</span>
-        <span class="c1"># need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times</span>
-        <span class="c1">#</span>
-        <span class="c1"># self.do_calculations(stream_ref, abs_start, abs_end, need_to_calc_times)</span>
-        <span class="c1">#</span>
-        <span class="c1"># result = []</span>
-        <span class="c1"># for (timestamp, data) in stream_ref.items():</span>
-        <span class="c1">#     if abs_start &lt; timestamp &lt;= abs_end:</span>
-        <span class="c1">#         result.append((timestamp, data))</span>
-        <span class="c1">#</span>
-        <span class="c1"># result.sort(key=lambda x: x[0])</span>
-        <span class="c1">#</span>
-        <span class="c1"># # make a generator out from result and then apply the modifiers</span>
-        <span class="c1"># result = stream_ref.modifiers(iter(result))  # (x for x in result))</span>
-        <span class="c1"># return result</span>
-    
-    <span class="c1"># def do_calculations(self, stream_ref, abs_start, abs_end, need_to_calc_times):</span>
-    <span class="c1">#     if need_to_calc_times.is_empty:</span>
-    <span class="c1">#         return</span>
-    <span class="c1">#</span>
-    <span class="c1">#     tool = stream_ref.tool</span>
-    <span class="c1">#</span>
-    <span class="c1">#     for (start2, end2) in need_to_calc_times.value:</span>
-    <span class="c1">#         kwargs2 = self.get_params(stream_ref.kwargs, start2, end2)</span>
-    <span class="c1">#</span>
-    <span class="c1">#         # Here we&#39;re actually executing the tool</span>
-    <span class="c1">#         tool(stream_ref, start2, end2, stream_ref.writer, **kwargs2)</span>
-    <span class="c1">#</span>
-    <span class="c1">#         stream_ref.calculated_intervals += TimeIntervals([(start2, end2)])</span>
-    <span class="c1">#</span>
-    <span class="c1">#     done_calc_times = stream_ref.calculated_intervals</span>
-    <span class="c1">#     need_to_calc_times = TimeIntervals([(abs_start, abs_end)]) - done_calc_times</span>
-    <span class="c1">#     logging.debug(done_calc_times)</span>
-    <span class="c1">#     logging.debug(need_to_calc_times)</span>
-    <span class="c1">#</span>
-    <span class="c1">#     if need_to_calc_times.is_not_empty:</span>
-    <span class="c1">#         raise ValueError(&#39;Tool execution did not cover the specified interval.&#39;)</span>
-
-<div class="viewcode-block" id="DatabaseChannel.create_stream"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel.create_stream">[docs]</a>    <span class="k">def</span> <span class="nf">create_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">,</span> <span class="n">tool_stream</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="c1"># TODO: Functionality here</span>
+<div class="viewcode-block" id="DatabaseChannel.create_stream"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel.create_stream">[docs]</a>    <span class="k">def</span> <span class="nf">create_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create the stream</span>
+<span class="sd">        :param stream_id: The stream identifier</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :raises: NotImplementedError</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Database streams currently need to be defined in the database&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DatabaseChannel.get_stream_writer"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel.get_stream_writer">[docs]</a>    <span class="k">def</span> <span class="nf">get_stream_writer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_ref</span><span class="p">):</span>
+<div class="viewcode-block" id="DatabaseChannel.get_stream_writer"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel.get_stream_writer">[docs]</a>    <span class="k">def</span> <span class="nf">get_stream_writer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the database channel writer</span>
+<span class="sd">        The mongoengine model checks whether a stream_id/datetime pair already exists in the DB (unique pairs)</span>
+<span class="sd">        :param stream: The stream</span>
+<span class="sd">        :return: The stream writer function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">def</span> <span class="nf">writer</span><span class="p">(</span><span class="n">document_collection</span><span class="p">):</span>
-            <span class="c1"># TODO: Does this check whether a stream_id/datetime pair already exists in the DB? (unique pairs?)</span>
+            <span class="c1"># TODO: Presumably this should be overridden by users&#39; personal channels - allows for non-mongo outputs.</span>
             <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">document_collection</span><span class="p">:</span>
                 <span class="n">instance</span> <span class="o">=</span> <span class="n">StreamInstanceModel</span><span class="p">(</span>
-                    <span class="n">stream_id</span><span class="o">=</span><span class="n">stream_ref</span><span class="o">.</span><span class="n">stream_id</span><span class="p">,</span>
-                    <span class="n">stream_type</span><span class="o">=</span><span class="n">stream_ref</span><span class="o">.</span><span class="n">stream_type</span><span class="p">,</span>
+                    <span class="n">stream_id</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
                     <span class="n">datetime</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
-                    <span class="n">metadata</span><span class="o">=</span><span class="n">stream_ref</span><span class="o">.</span><span class="n">tool</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
-                    <span class="n">version</span><span class="o">=</span><span class="n">stream_ref</span><span class="o">.</span><span class="n">tool</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
-                    <span class="n">value</span><span class="o">=</span><span class="n">doc</span>
-                <span class="p">)</span>
-                <span class="n">instance</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                    <span class="n">value</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">instance</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                <span class="k">except</span> <span class="n">NotUniqueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="c1"># TODO: Fix this ... computed intervals not being stored!</span>
+                    <span class="c1"># pass</span>
+                    <span class="k">raise</span> <span class="n">e</span>
+                    <span class="c1"># logging.warn(e)</span>
         <span class="k">return</span> <span class="n">writer</span></div></div>
 </pre></div>
 

@@ -62,14 +62,15 @@
 <span class="c1">#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE</span>
 <span class="c1">#  OR OTHER DEALINGS IN THE SOFTWARE.</span>
 
+<span class="c1"># TODO: the sphere channel should come out of hyperstream</span>
+
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Iterable</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">from</span> <span class="nn">sphere_connector_package.sphere_connector</span> <span class="k">import</span> <span class="n">SphereConnector</span><span class="p">,</span> <span class="n">DataWindow</span>
 
 <span class="kn">from</span> <span class="nn">memory_channel</span> <span class="k">import</span> <span class="n">MemoryChannel</span>
-<span class="kn">from</span> <span class="nn">..stream</span> <span class="k">import</span> <span class="n">StreamInstance</span>
 <span class="kn">from</span> <span class="nn">..time_interval</span> <span class="k">import</span> <span class="n">TimeIntervals</span><span class="p">,</span> <span class="n">TimeInterval</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">MIN_DATE</span><span class="p">,</span> <span class="n">MAX_DATE</span>
 
@@ -102,66 +103,21 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">up_to_timestamp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SphereChannel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
-
+        
         <span class="k">if</span> <span class="n">up_to_timestamp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># TODO: maybe should be utcnow, but then we&#39;d have to keep updating it?</span>
             <span class="n">up_to_timestamp</span> <span class="o">=</span> <span class="n">MAX_DATE</span>  <span class="c1"># utcnow()</span>
-
+        
         <span class="k">if</span> <span class="n">up_to_timestamp</span> <span class="o">&gt;</span> <span class="n">MIN_DATE</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">update_streams</span><span class="p">(</span><span class="n">up_to_timestamp</span><span class="p">)</span>
-
-        <span class="c1"># from collections import defaultdict</span>
-        <span class="c1"># self.visited = defaultdict(lambda: False)</span>
-
+    
 <div class="viewcode-block" id="SphereChannel.update_streams"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.sphere_channel.SphereChannel.update_streams">[docs]</a>    <span class="k">def</span> <span class="nf">update_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">up_to_timestamp</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Call this function to report to the system that the SPHERE MongoDB is fully populated until up_to_timestamp</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">stream_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span><span class="o">.</span><span class="n">calculated_intervals</span> <span class="o">=</span> <span class="n">TimeIntervals</span><span class="p">([(</span><span class="n">MIN_DATE</span><span class="p">,</span> <span class="n">up_to_timestamp</span><span class="p">)])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">up_to_timestamp</span> <span class="o">=</span> <span class="n">up_to_timestamp</span></div>
-
-<div class="viewcode-block" id="SphereChannel.execute_tool"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.sphere_channel.SphereChannel.execute_tool">[docs]</a>    <span class="k">def</span> <span class="nf">execute_tool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_ref</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">stream_ref</span><span class="o">.</span><span class="n">tool</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">writer</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-            <span class="k">raise</span></div>
-
-    <span class="k">def</span> <span class="nf">_get_data_not_used</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_ref</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Another version of _get_data, which directly uses SphereDataWindow, rather than executing the tool</span>
-<span class="sd">        :param stream_ref: Stream reference</span>
-<span class="sd">        :param kwargs: Keyword arguments</span>
-<span class="sd">        :return: The data generator</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># TODO: Perhaps this is sufficient, rather than requiring all of the SPHERE specific tools</span>
-        <span class="n">window</span> <span class="o">=</span> <span class="n">SphereDataWindow</span><span class="p">(</span><span class="n">stream_ref</span><span class="o">.</span><span class="n">absolute_interval</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s2">&quot;modality&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;modality not in tool_parameters&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;modality&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">window</span><span class="o">.</span><span class="n">modalities</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unknown modality </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;modality&quot;</span><span class="p">]))</span>
-        <span class="n">elements</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;elements&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;elements&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="n">reformat</span><span class="p">,</span> <span class="n">window</span><span class="o">.</span><span class="n">modalities</span><span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;modality&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">elements</span><span class="o">=</span><span class="n">elements</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">_get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_ref</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Gets the data. Assumes that it is already sorted by timestamp</span>
-<span class="sd">        :param stream_ref: The stream reference</span>
-<span class="sd">        :return: The data generator</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">StreamInstance</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">stream_ref</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">timestamp</span> <span class="ow">in</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">absolute_interval</span><span class="p">)</span>
-
-<div class="viewcode-block" id="SphereChannel.get_stream_writer"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.sphere_channel.SphereChannel.get_stream_writer">[docs]</a>    <span class="k">def</span> <span class="nf">get_stream_writer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_ref</span><span class="p">):</span>
-        <span class="k">def</span> <span class="nf">writer</span><span class="p">(</span><span class="n">document_collection</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">stream_ref</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">reformat</span><span class="p">,</span> <span class="n">document_collection</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">writer</span></div></div>
-
-
-<div class="viewcode-block" id="reformat"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.sphere_channel.reformat">[docs]</a><span class="k">def</span> <span class="nf">reformat</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
-    <span class="n">dt</span> <span class="o">=</span> <span class="n">doc</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span>
-    <span class="k">del</span> <span class="n">doc</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">dt</span><span class="p">,</span> <span class="n">doc</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">up_to_timestamp</span> <span class="o">=</span> <span class="n">up_to_timestamp</span></div></div>
 </pre></div>
 
           </div>

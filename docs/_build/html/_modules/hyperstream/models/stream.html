@@ -63,8 +63,8 @@
 <span class="c1">#  OR OTHER DEALINGS IN THE SOFTWARE.</span>
 
 <span class="kn">from</span> <span class="nn">mongoengine</span> <span class="k">import</span> <span class="n">Document</span><span class="p">,</span> <span class="n">DateTimeField</span><span class="p">,</span> <span class="n">StringField</span><span class="p">,</span> <span class="n">DictField</span><span class="p">,</span> <span class="n">DynamicField</span><span class="p">,</span> <span class="n">EmbeddedDocumentListField</span><span class="p">,</span> \
-    <span class="n">EmbeddedDocument</span><span class="p">,</span> <span class="n">EmbeddedDocumentField</span><span class="p">,</span> <span class="n">ListField</span>
-<span class="kn">from</span> <span class="nn">time_range</span> <span class="k">import</span> <span class="n">TimeRangeModel</span>
+    <span class="n">EmbeddedDocument</span><span class="p">,</span> <span class="n">EmbeddedDocumentField</span>
+<span class="kn">from</span> <span class="nn">time_interval</span> <span class="k">import</span> <span class="n">TimeIntervalModel</span>
 
 
 <div class="viewcode-block" id="StreamIdField"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.stream.StreamIdField">[docs]</a><span class="k">class</span> <span class="nc">StreamIdField</span><span class="p">(</span><span class="n">EmbeddedDocument</span><span class="p">):</span>
@@ -74,78 +74,48 @@
 
 <div class="viewcode-block" id="StreamInstanceModel"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.stream.StreamInstanceModel">[docs]</a><span class="k">class</span> <span class="nc">StreamInstanceModel</span><span class="p">(</span><span class="n">Document</span><span class="p">):</span>
     <span class="n">stream_id</span> <span class="o">=</span> <span class="n">EmbeddedDocumentField</span><span class="p">(</span><span class="n">document_type</span><span class="o">=</span><span class="n">StreamIdField</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">stream_type</span> <span class="o">=</span> <span class="n">StringField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+    <span class="n">stream_type</span> <span class="o">=</span> <span class="n">StringField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
     <span class="n">datetime</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">tool_version</span> <span class="o">=</span> <span class="n">StringField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+    <span class="c1"># tool_version = StringField(required=True, min_length=1, max_length=512)</span>
     <span class="n">value</span> <span class="o">=</span> <span class="n">DynamicField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
+    
     <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;collection&#39;</span><span class="p">:</span> <span class="s1">&#39;streams&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;indexes&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;stream_id&#39;</span><span class="p">],</span> <span class="s1">&#39;unique&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}],</span>
+        <span class="s1">&#39;indexes&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;stream_id&#39;</span><span class="p">,</span> <span class="s1">&#39;datetime&#39;</span><span class="p">],</span> <span class="s1">&#39;unique&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}],</span>
         <span class="s1">&#39;ordering&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span>
     <span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="StreamDefinitionModel"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.stream.StreamDefinitionModel">[docs]</a><span class="k">class</span> <span class="nc">StreamDefinitionModel</span><span class="p">(</span><span class="n">Document</span><span class="p">):</span>
     <span class="n">stream_id</span> <span class="o">=</span> <span class="n">EmbeddedDocumentField</span><span class="p">(</span><span class="n">document_type</span><span class="o">=</span><span class="n">StreamIdField</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">stream_type</span> <span class="o">=</span> <span class="n">StringField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+    <span class="n">stream_type</span> <span class="o">=</span> <span class="n">StringField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
     <span class="n">channel_id</span> <span class="o">=</span> <span class="n">StringField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
-    <span class="n">last_updated</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">tool_name</span> <span class="o">=</span> <span class="n">StringField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
-    <span class="n">tool_version</span> <span class="o">=</span> <span class="n">StringField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
-    <span class="c1"># TODO: strong typing</span>
-    <span class="n">tool_parameters</span> <span class="o">=</span> <span class="n">DictField</span><span class="p">()</span>
-
-    <span class="n">input_streams</span> <span class="o">=</span> <span class="n">EmbeddedDocumentListField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="n">StreamIdField</span><span class="p">)</span>
-    <span class="c1"># TODO: remove?</span>
+    <span class="c1"># input_streams = EmbeddedDocumentListField(required=False, document_type=StreamIdField)</span>
     <span class="n">parameters</span> <span class="o">=</span> <span class="n">DictField</span><span class="p">()</span>
     <span class="n">sandbox</span> <span class="o">=</span> <span class="n">StringField</span><span class="p">()</span>
-
+    
     <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;collection&#39;</span><span class="p">:</span> <span class="s1">&#39;stream_definitions&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;indexes&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;stream_id&#39;</span><span class="p">,</span> <span class="s1">&#39;tool_version&#39;</span><span class="p">]}],</span>
-        <span class="s1">&#39;ordering&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;last_updated&#39;</span><span class="p">]</span>
+        <span class="s1">&#39;indexes&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;stream_id&#39;</span><span class="p">]}],</span>
     <span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="StreamStatusModel"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.stream.StreamStatusModel">[docs]</a><span class="k">class</span> <span class="nc">StreamStatusModel</span><span class="p">(</span><span class="n">Document</span><span class="p">):</span>
-    <span class="n">stream_id</span> <span class="o">=</span> <span class="n">StringField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
-    <span class="n">stream_type</span> <span class="o">=</span> <span class="n">StringField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stream status model</span>
+<span class="sd">    Note that the calculated intervals is not required, since at first instantiation it is empty, so is equally</span>
+<span class="sd">    represented by None or an empty list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">stream_id</span> <span class="o">=</span> <span class="n">EmbeddedDocumentField</span><span class="p">(</span><span class="n">document_type</span><span class="o">=</span><span class="n">StreamIdField</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">last_updated</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">last_accessed</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">computed_ranges</span> <span class="o">=</span> <span class="n">EmbeddedDocumentListField</span><span class="p">(</span><span class="n">document_type</span><span class="o">=</span><span class="n">TimeRangeModel</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
+    <span class="n">calculated_intervals</span> <span class="o">=</span> <span class="n">EmbeddedDocumentListField</span><span class="p">(</span><span class="n">document_type</span><span class="o">=</span><span class="n">TimeIntervalModel</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    
     <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;collection&#39;</span><span class="p">:</span> <span class="s1">&#39;stream_status&#39;</span><span class="p">,</span>
         <span class="s1">&#39;indexes&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;stream_id&#39;</span><span class="p">]}],</span>
         <span class="s1">&#39;ordering&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;last_updated&#39;</span><span class="p">]</span>
-    <span class="p">}</span>
-
-<div class="viewcode-block" id="StreamStatusModel.add_time_range"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.stream.StreamStatusModel.add_time_range">[docs]</a>    <span class="k">def</span> <span class="nf">add_time_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_range</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time_range</span><span class="p">,</span> <span class="n">TimeRangeModel</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Can only add TimeRangeModel objects&quot;</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">computed_ranges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time_range</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_time_ranges</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">computed_ranges</span></div>
-
-<div class="viewcode-block" id="StreamStatusModel.update_time_ranges"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.stream.StreamStatusModel.update_time_ranges">[docs]</a>    <span class="k">def</span> <span class="nf">update_time_ranges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">sorted_by_lower_bound</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">computed_ranges</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
-        <span class="n">merged</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="k">for</span> <span class="n">higher</span> <span class="ow">in</span> <span class="n">sorted_by_lower_bound</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">merged</span><span class="p">:</span>
-                <span class="n">merged</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">higher</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">lower</span> <span class="o">=</span> <span class="n">merged</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                <span class="c1"># test for intersection between lower and higher:</span>
-                <span class="c1"># we know via sorting that lower.start &lt;= higher.start</span>
-                <span class="k">if</span> <span class="n">higher</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;=</span> <span class="n">lower</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
-                    <span class="n">upper_bound</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lower</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">higher</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
-                    <span class="n">merged</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">TimeRangeModel</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">lower</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>  <span class="c1"># replace by merged interval</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">merged</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">higher</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">computed_ranges</span> <span class="o">=</span> <span class="n">merged</span></div></div>
+    <span class="p">}</span></div>
 </pre></div>
 
           </div>
