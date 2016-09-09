@@ -25,7 +25,7 @@ from time_interval import TimeIntervalModel
 
 class StreamIdField(EmbeddedDocument):
     name = StringField(required=True, min_length=1, max_length=512)
-    meta_data = DictField(required=True)
+    meta_data = DictField(required=False)
 
 
 class StreamInstanceModel(Document):

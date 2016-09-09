@@ -181,7 +181,7 @@ class StreamId(Hashable):
                sorted(self.meta_data) == sorted(other.meta_data)
 
     def as_dict(self):
-        return dict(name=self.name, meta_data=dict(self.meta_data))
+        return dict(name=self.name, meta_data=dict(self.meta_data) if self.meta_data else {})
 
     def as_raw(self):
         """
