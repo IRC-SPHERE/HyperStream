@@ -21,21 +21,21 @@
 from mongoengine import EmbeddedDocument, DateTimeField, EmbeddedDocumentListField
 
 
-class TimeRangeModel(EmbeddedDocument):
+class TimeIntervalModel(EmbeddedDocument):
     start = DateTimeField(required=True)
     end = DateTimeField(required=True)
 
 
 class TimeRangeListModel(EmbeddedDocumentListField):
-    def add_time_range(self, time_range):
-        if not isinstance(time_range, TimeRangeModel):
-            raise RuntimeError("Can only add TimeRangeModel objects")
+    def add_time_interval(self, time_interval):
+        if not isinstance(time_interval, TimeIntervalModel):
+            raise RuntimeError("Can only add TimeIntervalModel objects")
 
-        self._data.append(time_range)
-        self.update_time_ranges()
+        self._data.append(time_interval)
+        self.update_time_intervals()
         return self._data
 
-    def update_time_ranges(self):
+    def update_time_intervals(self):
         sorted_by_lower_bound = sorted(self.value, key=lambda r: r.start)
         merged = []
 
@@ -48,7 +48,7 @@ class TimeRangeListModel(EmbeddedDocumentListField):
                 # we know via sorting that lower.start <= higher.start
                 if higher.start <= lower.end:
                     upper_bound = max(lower.end, higher.end)
-                    merged[-1] = TimeRangeModel(start=lower.start, end=upper_bound)  # replace by merged interval
+                    merged[-1] = TimeIntervalModel(start=lower.start, end=upper_bound)  # replace by merged interval
                 else:
                     merged.append(higher)
         self.value = merged

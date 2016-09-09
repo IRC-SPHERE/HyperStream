@@ -63,7 +63,7 @@
 <span class="c1">#  OR OTHER DEALINGS IN THE SOFTWARE.</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">time_interval</span> <span class="k">import</span> <span class="n">TimeInterval</span>
+<span class="kn">from</span> <span class="nn">time_interval</span> <span class="k">import</span> <span class="n">TimeInterval</span><span class="p">,</span> <span class="n">TimeIntervals</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="k">import</span> <span class="n">Printable</span><span class="p">,</span> <span class="n">Hashable</span>
 
 
@@ -73,23 +73,47 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Defining a </span><span class="si">{}</span><span class="s1"> tool with parameters </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Defining a </span><span class="si">{}</span><span class="s1"> tool&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>
-
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">sources</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sink</span> <span class="o">=</span> <span class="kc">None</span>
+    
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="c1"># TODO: requires a unit test</span>
         <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Tool</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">hash</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
+    
+<div class="viewcode-block" id="Tool.message"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.tool.Tool.message">[docs]</a>    <span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> running from </span><span class="si">{}</span><span class="s1"> to </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">interval</span><span class="o">.</span><span class="n">start</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">interval</span><span class="o">.</span><span class="n">end</span><span class="p">))</span></div>
+    
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__module__</span>
-
-    <span class="k">def</span> <span class="nf">_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_streams</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">writer</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_streams</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-
-<div class="viewcode-block" id="Tool.execute"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.tool.Tool.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_streams</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">writer</span><span class="p">):</span>
+    
+<div class="viewcode-block" id="Tool.execute"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.tool.Tool.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">interval</span><span class="p">,</span> <span class="n">TimeInterval</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Expected TimeInterval, got </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">interval</span><span class="p">)))</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> running from </span><span class="si">{}</span><span class="s1"> to </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">interval</span><span class="o">.</span><span class="n">start</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">interval</span><span class="o">.</span><span class="n">end</span><span class="p">)))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="n">input_streams</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">writer</span><span class="p">)</span></div></div>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">interval</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">interval</span><span class="o">.</span><span class="n">end</span> <span class="o">&gt;</span> <span class="n">sink</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">up_to_timestamp</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;The stream is not available after &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">up_to_timestamp</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; and cannot be calculated&#39;</span><span class="p">)</span>
+
+        <span class="n">required_intervals</span> <span class="o">=</span> <span class="n">TimeIntervals</span><span class="p">([</span><span class="n">interval</span><span class="p">])</span> <span class="o">-</span> <span class="n">sink</span><span class="o">.</span><span class="n">calculated_intervals</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">required_intervals</span><span class="o">.</span><span class="n">is_empty</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">interval</span> <span class="ow">in</span> <span class="n">required_intervals</span><span class="p">:</span>
+                <span class="n">source_views</span> <span class="o">=</span> <span class="p">[</span><span class="n">source</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">]</span> <span class="k">if</span> <span class="n">sources</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="n">stream_instance</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="n">source_views</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
+                    <span class="n">sink</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">stream_instance</span><span class="p">)</span>
+                <span class="n">sink</span><span class="o">.</span><span class="n">calculated_intervals</span> <span class="o">+=</span> <span class="n">TimeIntervals</span><span class="p">([</span><span class="n">interval</span><span class="p">])</span>
+
+            <span class="n">required_intervals</span> <span class="o">=</span> <span class="n">TimeIntervals</span><span class="p">([</span><span class="n">interval</span><span class="p">])</span> <span class="o">-</span> <span class="n">sink</span><span class="o">.</span><span class="n">calculated_intervals</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">required_intervals</span><span class="o">.</span><span class="n">is_empty</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Tool execution did not cover the specified time interval.&#39;</span><span class="p">)</span></div></div>
+
+        <span class="c1"># for stream_instance in self._execute(sources, interval):</span>
+        <span class="c1">#     sink.writer(stream_instance)</span>
 
 
 <div class="viewcode-block" id="check_input_stream_count"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.tool.check_input_stream_count">[docs]</a><span class="k">def</span> <span class="nf">check_input_stream_count</span><span class="p">(</span><span class="n">expected_number_of_streams</span><span class="p">):</span>
@@ -98,6 +122,7 @@
 <span class="sd">    :param expected_number_of_streams: The expected number of streams</span>
 <span class="sd">    :return: the decorator</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    
     <span class="k">def</span> <span class="nf">stream_count_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="bp">self</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -111,8 +136,40 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> tool takes </span><span class="si">{}</span><span class="s2"> stream(s) as input (</span><span class="si">{}</span><span class="s2"> given)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">expected_number_of_streams</span><span class="p">,</span> <span class="n">given_number_of_streams</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
         <span class="k">return</span> <span class="n">func_wrapper</span>
+    
     <span class="k">return</span> <span class="n">stream_count_decorator</span></div>
+
+
+<div class="viewcode-block" id="ExplicitFactor"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.tool.ExplicitFactor">[docs]</a><span class="k">class</span> <span class="nc">ExplicitFactor</span><span class="p">(</span><span class="n">Printable</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tool</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">sink</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sources</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Sources should be a list of streams&quot;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">tool</span> <span class="o">=</span> <span class="n">tool</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sources</span> <span class="o">=</span> <span class="n">sources</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sink</span> <span class="o">=</span> <span class="n">sink</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">set_tool_reference</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="ExplicitFactor.execute"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.tool.ExplicitFactor.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">interval</span><span class="p">,</span> <span class="n">TimeInterval</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Expected TimeInterval, got </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">interval</span><span class="p">)))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">propagate_computation</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span>
+        
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executing code for stream: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">stream_instance</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tool</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">stream_instance</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="ExplicitFactor.propagate_computation"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.tool.ExplicitFactor.propagate_computation">[docs]</a>    <span class="k">def</span> <span class="nf">propagate_computation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">tool_reference</span><span class="p">,</span> <span class="n">ExplicitFactor</span><span class="p">)</span>
+                
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Propagating inference back to: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
+                <span class="n">source</span><span class="o">.</span><span class="n">tool_reference</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span></div></div>
 </pre></div>
 
           </div>

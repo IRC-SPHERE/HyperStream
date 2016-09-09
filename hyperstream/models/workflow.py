@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from mongoengine import Document, StringField, EmbeddedDocumentListField, DateTimeField
-from time_range import TimeRangeModel
+from time_interval import TimeIntervalModel
 from node import NodeDefinitionModel
 from factor import FactorDefinitionModel
 
@@ -45,10 +45,10 @@ class WorkflowStatusModel(Document):
     last_accessed = DateTimeField(required=False)
     
     # Time ranges requested for computation for this workflow
-    requested_intervals = EmbeddedDocumentListField(document_type=TimeRangeModel, required=True)
+    requested_intervals = EmbeddedDocumentListField(document_type=TimeIntervalModel, required=True)
     
     # Actual ranges that have been computed. Note that this can be empty to begin with
-    calculated_intervals = EmbeddedDocumentListField(document_type=TimeRangeModel, required=False)
+    calculated_intervals = EmbeddedDocumentListField(document_type=TimeIntervalModel, required=False)
     
     meta = {
         'collection': 'workflow_status',
@@ -56,15 +56,15 @@ class WorkflowStatusModel(Document):
         'ordering': ['start']
     }
     
-    def add_time_range(self, time_range):
-        if not isinstance(time_range, TimeRangeModel):
-            raise RuntimeError("Can only add TimeRangeModel objects")
+    def add_time_interval(self, time_interval):
+        if not isinstance(time_interval, TimeIntervalModel):
+            raise RuntimeError("Can only add TimeIntervalModel objects")
         
-        self.calculated_intervals.append(time_range)
-        self.update_time_ranges()
+        self.calculated_intervals.append(time_interval)
+        self.update_time_intervals()
         return self.calculated_intervals
     
-    def update_time_ranges(self):
+    def update_time_intervals(self):
         sorted_by_lower_bound = sorted(self.calculated_intervals, key=lambda r: r.start)
         merged = []
         
@@ -77,7 +77,7 @@ class WorkflowStatusModel(Document):
                 # we know via sorting that lower.start <= higher.start
                 if higher.start <= lower.end:
                     upper_bound = max(lower.end, higher.end)
-                    merged[-1] = TimeRangeModel(start=lower.start, end=upper_bound)  # replace by merged interval
+                    merged[-1] = TimeIntervalModel(start=lower.start, end=upper_bound)  # replace by merged interval
                 else:
                     merged.append(higher)
         self.calculated_intervals = merged

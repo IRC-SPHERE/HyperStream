@@ -365,7 +365,7 @@ class HyperStringTests(unittest.TestCase):
         md = n_average_motion.streams[(('house', '1'),)].window(interval).values()[:10]
         assert md == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0]
 
-    def test_workflow_chain(self):
+    def test_workflow_chain2(self):
         # TODO: hyperstream needs it's own logger (can be a clone of this one)
         sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
     

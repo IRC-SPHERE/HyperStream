@@ -62,12 +62,13 @@
 <span class="c1">#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE</span>
 <span class="c1">#  OR OTHER DEALINGS IN THE SOFTWARE.</span>
 
-<span class="kn">from</span> <span class="nn">utils</span> <span class="k">import</span> <span class="n">Printable</span><span class="p">,</span> <span class="n">utcnow</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="k">import</span> <span class="n">Printable</span><span class="p">,</span> <span class="n">utcnow</span><span class="p">,</span> <span class="n">MIN_DATE</span>
 <span class="kn">from</span> <span class="nn">errors</span> <span class="k">import</span> <span class="n">StreamNotFoundError</span><span class="p">,</span> <span class="n">StreamAlreadyExistsError</span><span class="p">,</span> <span class="n">ChannelNotFoundError</span><span class="p">,</span> <span class="n">ToolNotFoundError</span>
-<span class="kn">from</span> <span class="nn">models</span> <span class="k">import</span> <span class="n">StreamDefinitionModel</span>
-<span class="kn">from</span> <span class="nn">stream</span> <span class="k">import</span> <span class="n">StreamId</span><span class="p">,</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">models</span> <span class="k">import</span> <span class="n">StreamDefinitionModel</span><span class="p">,</span> <span class="n">StreamStatusModel</span>
+<span class="kn">from</span> <span class="nn">stream</span> <span class="k">import</span> <span class="n">StreamId</span><span class="p">,</span> <span class="n">DatabaseStream</span>
 <span class="kn">from</span> <span class="nn">time_interval</span> <span class="k">import</span> <span class="n">TimeIntervals</span>
 
+<span class="kn">from</span> <span class="nn">mongoengine</span> <span class="k">import</span> <span class="n">DoesNotExist</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
@@ -92,8 +93,7 @@
                                                   <span class="n">tools</span><span class="o">=</span><span class="n">ToolChannel</span><span class="p">(</span><span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="n">tool_path</span><span class="p">,</span> <span class="n">up_to_timestamp</span><span class="o">=</span><span class="n">utcnow</span><span class="p">()),</span>
                                                   <span class="n">sphere</span><span class="o">=</span><span class="n">SphereChannel</span><span class="p">(</span><span class="s2">&quot;sphere&quot;</span><span class="p">),</span>
                                                   <span class="n">memory</span><span class="o">=</span><span class="n">MemoryChannel</span><span class="p">(</span><span class="s2">&quot;memory&quot;</span><span class="p">),</span>
-                                                  <span class="n">mongo</span><span class="o">=</span><span class="n">DatabaseChannel</span><span class="p">(</span><span class="s2">&quot;mongo&quot;</span><span class="p">)</span>
-                                                  <span class="p">)</span>
+                                                  <span class="n">mongo</span><span class="o">=</span><span class="n">DatabaseChannel</span><span class="p">(</span><span class="s2">&quot;mongo&quot;</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">update_channels</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span>
@@ -125,82 +125,43 @@
 <span class="sd">        Pulls out all of the stream definitions from the database, and populates the channels with stream references</span>
 <span class="sd">        :return: None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">StreamDefinitionModel</span><span class="o">.</span><span class="n">objects</span><span class="p">():</span>
+            <span class="n">stream_id</span> <span class="o">=</span> <span class="n">StreamId</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">meta_data</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">meta_data</span><span class="p">)</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">channel_id</span><span class="p">)</span>
 
-        <span class="c1"># Would like to just loop over the objects, but because some streams depend on other streams, we will have to</span>
-        <span class="c1"># loop through multiple times until they&#39;re all processed</span>
-        <span class="n">stream_objects</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">StreamDefinitionModel</span><span class="o">.</span><span class="n">objects</span><span class="p">())</span>
-        <span class="n">undefined</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">stream_id</span> <span class="ow">in</span> <span class="n">channel</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">StreamAlreadyExistsError</span><span class="p">(</span><span class="n">stream_id</span><span class="p">)</span>
 
-        <span class="k">while</span> <span class="n">stream_objects</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> stream objects to process&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">stream_objects</span><span class="p">)))</span>
+            <span class="kn">from</span> <span class="nn">channels</span> <span class="k">import</span> <span class="n">MemoryChannel</span><span class="p">,</span> <span class="n">DatabaseChannel</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">MemoryChannel</span><span class="p">):</span>
+                <span class="n">channel</span><span class="o">.</span><span class="n">create_stream</span><span class="p">(</span><span class="n">stream_id</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">DatabaseChannel</span><span class="p">):</span>
+                <span class="n">calculated_intervals</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">status</span> <span class="o">=</span> <span class="n">StreamStatusModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">__raw__</span><span class="o">=</span><span class="n">stream_id</span><span class="o">.</span><span class="n">as_raw</span><span class="p">())</span>
+                    <span class="n">calculated_intervals</span> <span class="o">=</span> <span class="n">TimeIntervals</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">end</span><span class="p">),</span> <span class="n">status</span><span class="o">.</span><span class="n">calculated_intervals</span><span class="p">))</span>
+                <span class="k">except</span> <span class="n">DoesNotExist</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="c1"># status = StreamStatusModel(</span>
+                    <span class="c1">#     stream_id=stream_id.as_dict(),</span>
+                    <span class="c1">#     calculated_intervals=[],</span>
+                    <span class="c1">#     last_accessed=utcnow(),</span>
+                    <span class="c1">#     last_updated=utcnow()</span>
+                    <span class="c1"># )</span>
+                    <span class="c1"># status.save()</span>
 
-            <span class="n">copy</span> <span class="o">=</span> <span class="n">stream_objects</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">copy</span><span class="p">:</span>
-                <span class="n">stream_id</span> <span class="o">=</span> <span class="n">StreamId</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">meta_data</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">meta_data</span><span class="p">)</span>
-                <span class="n">channel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">channel_id</span><span class="p">)</span>
+                <span class="n">channel</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">DatabaseStream</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span> <span class="n">stream_id</span><span class="o">=</span><span class="n">stream_id</span><span class="p">,</span>
+                                                            <span class="n">calculated_intervals</span><span class="o">=</span><span class="n">calculated_intervals</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Getting input streams for </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stream_id</span><span class="p">))</span>
-                <span class="n">input_streams</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="n">before</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">undefined</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">input_stream</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">input_streams</span><span class="p">:</span>
-                    <span class="n">input_stream_id</span> <span class="o">=</span> <span class="n">StreamId</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">input_stream</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">meta_data</span><span class="o">=</span><span class="n">input_stream</span><span class="o">.</span><span class="n">meta_data</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">input_stream_id</span> <span class="ow">in</span> <span class="n">channel</span><span class="p">:</span>
-                        <span class="n">input_streams</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">input_stream_id</span><span class="p">])</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">undefined</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">input_stream_id</span><span class="p">)</span>
-
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">undefined</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">before</span><span class="p">:</span>
-                    <span class="k">continue</span>
-
-                <span class="k">if</span> <span class="n">stream_id</span> <span class="ow">in</span> <span class="n">channel</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">StreamAlreadyExistsError</span><span class="p">(</span><span class="n">stream_id</span><span class="p">)</span>
-
-                <span class="c1"># TODO: Create a Factor here?</span>
-                <span class="n">tool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tool</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">tool_name</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">tool_parameters</span><span class="p">,</span> <span class="n">input_streams</span><span class="p">)</span>
-
-                <span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span>
-                    <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span>
-                    <span class="n">stream_id</span><span class="o">=</span><span class="n">stream_id</span><span class="p">,</span>
-                    <span class="c1"># tool=tool,</span>
-                    <span class="n">calculated_intervals</span><span class="o">=</span><span class="n">TimeIntervals</span><span class="p">(),</span>
-                    <span class="n">input_streams</span><span class="o">=</span><span class="n">input_streams</span>
-                <span class="p">)</span>
-
-                <span class="n">channel</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">stream</span>
-
-                <span class="n">stream_objects</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">undefined</span><span class="p">:</span>
-                    <span class="n">undefined</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stream_objects</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">stream_objects</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">copy</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">StreamNotFoundError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> stream objects still remain&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">stream_objects</span><span class="p">)))</span></div>
-
-<div class="viewcode-block" id="ChannelManager.get_tool"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.channel.ChannelManager.get_tool">[docs]</a>    <span class="k">def</span> <span class="nf">get_tool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">,</span> <span class="n">tool_parameters</span><span class="p">,</span> <span class="n">input_streams</span><span class="p">):</span>
-        <span class="c1"># TODO: Use tool versions - here we just take the latest one</span>
-        <span class="n">tool_stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">StreamId</span><span class="p">(</span><span class="n">tool_name</span><span class="p">)]</span>
-        <span class="n">tool_class</span> <span class="o">=</span> <span class="n">tool_stream</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
-
-        <span class="c1"># Check that the number of arguments is correct for this tool</span>
-        <span class="n">expected</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">tool_class</span><span class="o">.</span><span class="n">__init__</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">expected</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tool_parameters</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Tool </span><span class="si">{}</span><span class="s2"> takes </span><span class="si">{}</span><span class="s2"> arguments (</span><span class="si">{}</span><span class="s2"> given)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">tool_class</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">expected</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">tool_parameters</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-
-        <span class="c1"># Instantiate tool</span>
-        <span class="n">tool</span> <span class="o">=</span> <span class="n">tool_class</span><span class="p">(</span><span class="o">**</span><span class="n">tool_parameters</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">tool</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ToolNotFoundError</span>
-
-        <span class="c1"># Input streams should be stream objects</span>
-        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">input_streams</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">input_streams</span><span class="p">,</span> <span class="n">Stream</span><span class="p">)):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Stream expected (</span><span class="si">{}</span><span class="s2"> given)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">stream</span><span class="p">)))</span>
-
-        <span class="c1"># Make sure that the tool stream is defined</span>
-        <span class="c1"># tool_stream.define(input_streams=input_streams, **tool_parameters)</span>
-
-        <span class="k">return</span> <span class="n">tool</span></div>
-
-<div class="viewcode-block" id="ChannelManager.get_tool2"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.channel.ChannelManager.get_tool2">[docs]</a>    <span class="k">def</span> <span class="nf">get_tool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tool</span><span class="p">,</span> <span class="n">tool_parameters</span><span class="p">):</span>
+<div class="viewcode-block" id="ChannelManager.get_tool"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.channel.ChannelManager.get_tool">[docs]</a>    <span class="k">def</span> <span class="nf">get_tool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tool</span><span class="p">,</span> <span class="n">tool_parameters</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the tool object from the tool channel, and instantiates it using the tool parameters</span>
+<span class="sd">        :param tool: The name or stream id for the tool in the tool channel</span>
+<span class="sd">        :param tool_parameters: The parameters for the tool</span>
+<span class="sd">        :return: The instantiated tool object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: Use tool versions - here we just take the latest one</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tool</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">unicode</span><span class="p">)):</span>
             <span class="n">tool_id</span> <span class="o">=</span> <span class="n">StreamId</span><span class="p">(</span><span class="n">tool</span><span class="p">)</span>
@@ -209,8 +170,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">tool</span><span class="p">)</span>
 
-        <span class="n">tool_stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">tool_id</span><span class="p">]</span>
-        <span class="n">tool_class</span> <span class="o">=</span> <span class="n">tool_stream</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">tool_stream_view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">tool_id</span><span class="p">]</span><span class="o">.</span><span class="n">window</span><span class="p">((</span><span class="n">MIN_DATE</span><span class="p">,</span> <span class="n">utcnow</span><span class="p">()))</span>
+        <span class="n">tool_class</span> <span class="o">=</span> <span class="n">tool_stream_view</span><span class="o">.</span><span class="n">last</span><span class="p">()</span><span class="o">.</span><span class="n">value</span>
 
         <span class="c1"># Check that the number of arguments is correct for this tool</span>
         <span class="n">expected</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">tool_class</span><span class="o">.</span><span class="n">__init__</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
