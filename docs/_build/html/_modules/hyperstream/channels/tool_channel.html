@@ -63,28 +63,20 @@
 <span class="c1">#  OR OTHER DEALINGS IN THE SOFTWARE.</span>
 
 <span class="kn">from</span> <span class="nn">module_channel</span> <span class="k">import</span> <span class="n">ModuleChannel</span>
-<span class="kn">from</span> <span class="nn">..stream</span> <span class="k">import</span> <span class="n">StreamInstance</span><span class="p">,</span> <span class="n">ToolStream</span>
+<span class="kn">from</span> <span class="nn">..stream</span> <span class="k">import</span> <span class="n">StreamInstance</span>
 
 
 <div class="viewcode-block" id="ToolChannel"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.tool_channel.ToolChannel">[docs]</a><span class="k">class</span> <span class="nc">ToolChannel</span><span class="p">(</span><span class="n">ModuleChannel</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Special case of the file/module channel to load the tools to execute other streams</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="ToolChannel.get_results"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.tool_channel.ToolChannel.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_ref</span><span class="p">):</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ToolChannel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_results</span><span class="p">(</span><span class="n">stream_ref</span><span class="p">)</span>
+<div class="viewcode-block" id="ToolChannel.get_results"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.tool_channel.ToolChannel.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">):</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ToolChannel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_results</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">timestamp</span><span class="p">,</span> <span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">module_importer</span><span class="p">)</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
             <span class="n">module</span> <span class="o">=</span> <span class="n">module_importer</span><span class="p">()</span>
-            <span class="n">class_name</span> <span class="o">=</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">title</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">class_name</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">title</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
             <span class="n">tool_class</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">class_name</span><span class="p">)</span>
-            <span class="k">yield</span> <span class="n">StreamInstance</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">tool_class</span><span class="p">)</span></div>
-
-    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ToolStream</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ToolChannel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">ToolStream</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">ToolChannel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="n">item</span><span class="p">))</span></div>
+            <span class="k">yield</span> <span class="n">StreamInstance</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">tool_class</span><span class="p">)</span></div></div>
 </pre></div>
 
           </div>

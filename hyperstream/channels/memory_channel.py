@@ -65,14 +65,15 @@ class MemoryChannel(BaseChannel):
     def check_calculation_times(self):
         pass
 
-    def get_results(self, stream):
+    def get_results(self, stream, time_interval):
         """
         Calculates/receives the documents in the stream interval determined by the stream
         :param stream: The stream reference
-        :return:
+        :param time_interval: The time interval
+        :return: The sorted data items
         """
-        # return self._get_data(stream)
-        return sorted(self.data[stream.stream_id], key=lambda x: x.timestamp)
+        return sorted((d for d in self.data[stream.stream_id] if d.timestamp in time_interval),
+                      key=lambda d: d.timestamp)
 
     def get_stream_writer(self, stream):
         def writer(document_collection):
@@ -141,7 +142,7 @@ class ReadOnlyMemoryChannel(BaseChannel):
             stream.calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
         self.up_to_timestamp = up_to_timestamp
     
-    def get_results(self, stream):
+    def get_results(self, stream, time_interval):
         raise NotImplementedError
         # # start = relative_time_interval.start
         # # end = relative_time_interval.end

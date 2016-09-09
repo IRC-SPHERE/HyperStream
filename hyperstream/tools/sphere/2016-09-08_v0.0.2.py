@@ -18,18 +18,27 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from module_channel import ModuleChannel
-from ..stream import StreamInstance
+from hyperstream.tool import Tool, check_input_stream_count
+from hyperstream.channels.sphere_channel import SphereDataWindow
+from hyperstream.stream import StreamInstance
 
 
-class ToolChannel(ModuleChannel):
-    """
-    Special case of the file/module channel to load the tools to execute other streams
-    """
-    def get_results(self, stream, time_interval):
-        results = super(ToolChannel, self).get_results(stream, time_interval)
-        for timestamp, (version, module_importer) in results:
-            module = module_importer()
-            class_name = stream.stream_id.name.title().replace("_", "")
-            tool_class = getattr(module, class_name)
-            yield StreamInstance(timestamp, tool_class)
+def reformat(doc):
+    dt = doc['datetime']
+    del doc['datetime']
+    
+    return StreamInstance(dt, doc)
+
+
+class Sphere(Tool):
+    def __init__(self, modality, elements=None, filters=None):
+        super(Sphere, self).__init__(modality=modality, elements=elements, filters=filters)
+        self.modality = modality
+        self.elements = elements
+        self.filters = filters
+    
+    @check_input_stream_count(0)
+    def _execute(self, input_streams, interval):
+        window = SphereDataWindow(interval)
+        source = window.modalities[self.modality]
+        yield map(reformat, source.get_data(self.elements, self.filters))

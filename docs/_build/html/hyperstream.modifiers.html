@@ -48,146 +48,14 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-hyperstream.modifiers.modifier">
-<span id="hyperstream-modifiers-modifier-module"></span><h2>hyperstream.modifiers.modifier module<a class="headerlink" href="#module-hyperstream.modifiers.modifier" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="hyperstream.modifiers.modifier.ComposedModifier">
-<em class="property">class </em><code class="descclassname">hyperstream.modifiers.modifier.</code><code class="descname">ComposedModifier</code><span class="sig-paren">(</span><em>modifier_1</em>, <em>modifier_2</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.modifier.ComposedModifier" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.modifiers.modifier.Modifier" title="hyperstream.modifiers.modifier.Modifier"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.modifiers.modifier.Modifier</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.modifiers.modifier.ComposedModifier.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.modifier.ComposedModifier.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.modifiers.modifier.Modifier">
-<em class="property">class </em><code class="descclassname">hyperstream.modifiers.modifier.</code><code class="descname">Modifier</code><a class="headerlink" href="#hyperstream.modifiers.modifier.Modifier" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.modifiers.modifier.Modifier.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.modifier.Modifier.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="hyperstream-modifiers-modifier-module">
+<h2>hyperstream.modifiers.modifier module<a class="headerlink" href="#hyperstream-modifiers-modifier-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-hyperstream.modifiers.simple_modifiers">
-<span id="hyperstream-modifiers-simple-modifiers-module"></span><h2>hyperstream.modifiers.simple_modifiers module<a class="headerlink" href="#module-hyperstream.modifiers.simple_modifiers" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="hyperstream.modifiers.simple_modifiers.Component">
-<em class="property">class </em><code class="descclassname">hyperstream.modifiers.simple_modifiers.</code><code class="descname">Component</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.Component" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.modifiers.modifier.Modifier" title="hyperstream.modifiers.modifier.Modifier"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.modifiers.modifier.Modifier</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.modifiers.simple_modifiers.Component.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>doc_gen</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.Component.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.modifiers.simple_modifiers.ComponentFilter">
-<em class="property">class </em><code class="descclassname">hyperstream.modifiers.simple_modifiers.</code><code class="descname">ComponentFilter</code><span class="sig-paren">(</span><em>key</em>, <em>values</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.ComponentFilter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.modifiers.modifier.Modifier" title="hyperstream.modifiers.modifier.Modifier"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.modifiers.modifier.Modifier</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.modifiers.simple_modifiers.ComponentFilter.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>doc_gen</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.ComponentFilter.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.modifiers.simple_modifiers.DeleteNones">
-<em class="property">class </em><code class="descclassname">hyperstream.modifiers.simple_modifiers.</code><code class="descname">DeleteNones</code><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.DeleteNones" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.modifiers.modifier.Modifier" title="hyperstream.modifiers.modifier.Modifier"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.modifiers.modifier.Modifier</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.modifiers.simple_modifiers.DeleteNones.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>doc_gen</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.DeleteNones.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.modifiers.simple_modifiers.First">
-<em class="property">class </em><code class="descclassname">hyperstream.modifiers.simple_modifiers.</code><code class="descname">First</code><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.First" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.modifiers.modifier.Modifier" title="hyperstream.modifiers.modifier.Modifier"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.modifiers.modifier.Modifier</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.modifiers.simple_modifiers.First.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.First.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.modifiers.simple_modifiers.Head">
-<em class="property">class </em><code class="descclassname">hyperstream.modifiers.simple_modifiers.</code><code class="descname">Head</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.Head" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.modifiers.modifier.Modifier" title="hyperstream.modifiers.modifier.Modifier"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.modifiers.modifier.Modifier</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.modifiers.simple_modifiers.Head.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.Head.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.modifiers.simple_modifiers.IData">
-<em class="property">class </em><code class="descclassname">hyperstream.modifiers.simple_modifiers.</code><code class="descname">IData</code><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.IData" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.modifiers.modifier.Modifier" title="hyperstream.modifiers.modifier.Modifier"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.modifiers.modifier.Modifier</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.modifiers.simple_modifiers.IData.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>doc</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.IData.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.modifiers.simple_modifiers.ITime">
-<em class="property">class </em><code class="descclassname">hyperstream.modifiers.simple_modifiers.</code><code class="descname">ITime</code><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.ITime" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.modifiers.modifier.Modifier" title="hyperstream.modifiers.modifier.Modifier"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.modifiers.modifier.Modifier</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.modifiers.simple_modifiers.ITime.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>doc</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.ITime.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.modifiers.simple_modifiers.Last">
-<em class="property">class </em><code class="descclassname">hyperstream.modifiers.simple_modifiers.</code><code class="descname">Last</code><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.Last" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.modifiers.modifier.Modifier" title="hyperstream.modifiers.modifier.Modifier"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.modifiers.modifier.Modifier</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.modifiers.simple_modifiers.Last.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.Last.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.modifiers.simple_modifiers.Tail">
-<em class="property">class </em><code class="descclassname">hyperstream.modifiers.simple_modifiers.</code><code class="descname">Tail</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.Tail" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.modifiers.modifier.Modifier" title="hyperstream.modifiers.modifier.Modifier"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.modifiers.modifier.Modifier</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.modifiers.simple_modifiers.Tail.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.Tail.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.modifiers.simple_modifiers.Time">
-<em class="property">class </em><code class="descclassname">hyperstream.modifiers.simple_modifiers.</code><code class="descname">Time</code><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.Time" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.modifiers.modifier.Modifier" title="hyperstream.modifiers.modifier.Modifier"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.modifiers.modifier.Modifier</span></code></a></p>
-<dl class="method">
-<dt id="hyperstream.modifiers.simple_modifiers.Time.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>doc_gen</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.modifiers.simple_modifiers.Time.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="hyperstream-modifiers-simple-modifiers-module">
+<h2>hyperstream.modifiers.simple_modifiers module<a class="headerlink" href="#hyperstream-modifiers-simple-modifiers-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-hyperstream.modifiers">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-hyperstream.modifiers" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -201,9 +69,9 @@
   <ul>
 <li><a class="reference internal" href="#">hyperstream.modifiers package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-hyperstream.modifiers.modifier">hyperstream.modifiers.modifier module</a></li>
-<li><a class="reference internal" href="#module-hyperstream.modifiers.simple_modifiers">hyperstream.modifiers.simple_modifiers module</a></li>
-<li><a class="reference internal" href="#module-hyperstream.modifiers">Module contents</a></li>
+<li><a class="reference internal" href="#hyperstream-modifiers-modifier-module">hyperstream.modifiers.modifier module</a></li>
+<li><a class="reference internal" href="#hyperstream-modifiers-simple-modifiers-module">hyperstream.modifiers.simple_modifiers module</a></li>
+<li><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>

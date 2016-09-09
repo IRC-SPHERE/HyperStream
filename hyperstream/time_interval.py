@@ -25,7 +25,11 @@ from dateutil.parser import parse
 import logging
 
 
-class TimeIntervals(Printable):  # example object: (t1,t2] U (t3,t4] U ...
+class TimeIntervals(Printable):
+    """
+    Container class for time intervals, that manages splitting and joining
+    Example object: (t1,t2] U (t3,t4] U ...
+    """
     def __init__(self, intervals=None):
         self.intervals = []
         if intervals:
@@ -101,6 +105,10 @@ class TimeIntervals(Printable):  # example object: (t1,t2] U (t3,t4] U ...
 
 
 class TimeInterval(object):
+    """
+    Time interval object.
+    Thin wrapper around a (start, end) tuple of datetime objects that provides some validation
+    """
     _start = None
     _end = None
     
@@ -161,6 +169,10 @@ class TimeInterval(object):
 
 
 class RelativeTimeInterval(TimeInterval):
+    """
+    Relative time interval object.
+    Thin wrapper around a (start, end) tuple of timedelta objects that provides some validation
+    """
     def __init__(self, start, end):
         if isinstance(start, int):
             start_time = timedelta(seconds=start)
@@ -233,33 +245,3 @@ def parse_time_tuple(start, end):
         return RelativeTimeInterval(start=start_time, end=end_time)
     else:
         return TimeInterval(start=start_time, end=end_time)
-
-
-# def compare_time_ranges(desired_ranges, calculated_intervals):
-#     # Check here whether we need to recompute anything
-#     result_ranges = []
-#     for desired in desired_ranges:
-#         needs_full_computation = True
-#         for computed in calculated_intervals:
-#             if desired.start < computed.start:
-#                 if desired.end < computed.start:
-#                     # Completely outside range
-#                     continue
-#                 else:
-#                     result_ranges.append(TimeInterval(start=desired.start, end=computed.start))
-#                     logging.debug("Time range partially computed {0}, new end time={1}".format(desired, computed.start))
-#             else:
-#                 if desired.start > computed.end:
-#                     # Completely outside range
-#                     continue
-#                 if desired.end <= computed.end:
-#                     needs_full_computation = False
-#                     logging.debug("Time range fully computed {0}".format(desired))
-#                 else:
-#                     result_ranges.append(TimeInterval(start=computed.end, end=desired.end))
-#                     logging.debug("Time range partially computed {0}, new start time={1}".format(desired, computed.end))
-#         if needs_full_computation:
-#             logging.debug("Time range requires full computation {0}".format(desired))
-#             result_ranges.append(desired)
-#     return result_ranges
-#

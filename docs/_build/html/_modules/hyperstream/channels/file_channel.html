@@ -132,49 +132,29 @@
                 <span class="k">continue</span>
             
             <span class="n">stream_id</span> <span class="o">=</span> <span class="n">StreamId</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
-            
-            <span class="c1"># # OLD CODE - leave for reference/debugging</span>
-            <span class="c1"># self.streams[stream_id] = []</span>
-            <span class="c1"># for tool_info in self.file_filter(sorted(file_names)):</span>
-            <span class="c1">#     if tool_info.timestamp &lt;= up_to_timestamp:</span>
-            <span class="c1">#         # This is the original version</span>
-            <span class="c1">#         self.streams[stream_id].append((tool_info, self.data_loader(stream_id.name, tool_info)))</span>
+            <span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_id</span><span class="o">=</span><span class="n">stream_id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">stream</span></div>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span>
-                <span class="n">channel</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
-                <span class="n">stream_id</span><span class="o">=</span><span class="n">stream_id</span><span class="p">,</span>
-                <span class="n">time_interval</span><span class="o">=</span><span class="n">TimeInterval</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">MIN_DATE</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">up_to_timestamp</span><span class="p">),</span>
-                <span class="n">calculated_intervals</span><span class="o">=</span><span class="n">TimeIntervals</span><span class="p">(),</span>
-                <span class="n">modifier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Last() + IData(),</span>
-                <span class="n">tool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                <span class="n">input_streams</span><span class="o">=</span><span class="kc">None</span>
-            <span class="p">)</span></div>
-    
 <div class="viewcode-block" id="FileChannel.data_loader"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.file_channel.FileChannel.data_loader">[docs]</a>    <span class="k">def</span> <span class="nf">data_loader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">short_path</span><span class="p">,</span> <span class="n">file_info</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
     
-<div class="viewcode-block" id="FileChannel.get_results"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.file_channel.FileChannel.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_ref</span><span class="p">):</span>
+<div class="viewcode-block" id="FileChannel.get_results"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.file_channel.FileChannel.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">):</span>
         <span class="c1"># TODO: Make this behave like the other channels</span>
-        <span class="k">if</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">time_interval</span><span class="o">.</span><span class="n">end</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">up_to_timestamp</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s1">&#39;The stream is not available after &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">up_to_timestamp</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; and cannot be calculated&#39;</span><span class="p">)</span>
+        <span class="c1"># if relative_time_interval.end &gt; self.up_to_timestamp:</span>
+        <span class="c1">#     raise ValueError(</span>
+        <span class="c1">#         &#39;The stream is not available after &#39; + str(self.up_to_timestamp) + &#39; and cannot be calculated&#39;)</span>
         
         <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">module_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">module_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         
         <span class="k">for</span> <span class="n">file_info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_filter</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">module_path</span><span class="p">))):</span>
-            <span class="k">if</span> <span class="n">file_info</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">up_to_timestamp</span><span class="p">:</span>
-                <span class="c1"># result.append((file_info, self.data_loader(stream_ref.stream_id.name, file_info)))</span>
+            <span class="k">if</span> <span class="n">file_info</span><span class="o">.</span><span class="n">timestamp</span> <span class="ow">in</span> <span class="n">time_interval</span> <span class="ow">and</span> <span class="n">file_info</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">up_to_timestamp</span><span class="p">:</span>
                 <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">StreamInstance</span><span class="p">(</span>
                     <span class="n">timestamp</span><span class="o">=</span><span class="n">file_info</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span>
-                    <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_loader</span><span class="p">(</span><span class="n">stream_ref</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">file_info</span><span class="p">)</span>
+                    <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_loader</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">file_info</span><span class="p">)</span>
                 <span class="p">))</span>
         
         <span class="n">result</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">modifier</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">stream_ref</span><span class="o">.</span><span class="n">modifier</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
-        
         <span class="k">return</span> <span class="n">result</span></div></div>
 
 </pre></div>
