@@ -56,7 +56,7 @@ class SlidingWindow(Tool):
         self.increment = increment
     
     @check_input_stream_count(0)
-    def _execute(self, input_streams, interval):
+    def _execute(self, sources, alignment_stream, interval):
         if interval.start < self.first:
             interval.start = self.first
 

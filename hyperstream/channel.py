@@ -24,7 +24,7 @@ from models import StreamDefinitionModel, StreamStatusModel
 from stream import StreamId, DatabaseStream
 from time_interval import TimeIntervals
 
-from mongoengine import DoesNotExist
+from mongoengine import DoesNotExist, MultipleObjectsReturned
 import inspect
 import logging
 from collections import namedtuple
@@ -98,16 +98,20 @@ class ChannelManager(ChannelCollectionBase, Printable):
                     calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end), status.calculated_intervals))
                 except DoesNotExist as e:
                     logging.debug(e)
-                    # status = StreamStatusModel(
-                    #     stream_id=stream_id.as_dict(),
-                    #     calculated_intervals=[],
-                    #     last_accessed=utcnow(),
-                    #     last_updated=utcnow()
-                    # )
-                    # status.save()
+                    status = StreamStatusModel(
+                        stream_id=stream_id.as_dict(),
+                        calculated_intervals=[],
+                        last_accessed=utcnow(),
+                        last_updated=utcnow())
+                    status.save()
+                except MultipleObjectsReturned as e:
+                    raise e
 
-                channel.streams[stream_id] = DatabaseStream(channel=channel, stream_id=stream_id,
-                                                            calculated_intervals=calculated_intervals)
+                channel.streams[stream_id] = DatabaseStream(
+                    channel=channel,
+                    stream_id=stream_id,
+                    calculated_intervals=calculated_intervals,
+                    sandbox=s.sandbox)
             else:
                 raise NotImplementedError
 
@@ -132,7 +136,10 @@ class ChannelManager(ChannelCollectionBase, Printable):
         # Check that the number of arguments is correct for this tool
         arg_spec = inspect.getargspec(tool_class.__init__)
         max_expected = len(arg_spec[0])
-        min_expected = max_expected - len(arg_spec.defaults)
+        if arg_spec.defaults:
+            min_expected = max_expected - len(arg_spec.defaults)
+        else:
+            min_expected = max_expected
         if not (min_expected <= len(tool_parameters) + 1 <= max_expected):
             message = "Tool {} takes a between {} and {} arguments ({} given)".format(
                 tool_class.__name__, min_expected, max_expected, len(tool_parameters) + 1)

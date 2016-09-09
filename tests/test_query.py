@@ -74,8 +74,8 @@ class HyperStringTests(unittest.TestCase):
         env_tool = channels.get_tool("sphere", dict(modality="environmental"))
         elec_tool = T[component].window((MIN_DATE, utcnow())).last().value(key='electricity-04063')
 
-        env_tool.execute(sources=None, sink=env, interval=ti)
-        elec_tool.execute(sources=[env], sink=elec, interval=ti)
+        env_tool.execute(sources=None, sink=env, alignment_stream=None, interval=ti)
+        elec_tool.execute(sources=[env], sink=elec, alignment_stream=None, interval=ti)
 
         q1 = "\n".join("=".join(map(str, ee)) for ee in elec.window(ti))
         
@@ -141,8 +141,8 @@ class HyperStringTests(unittest.TestCase):
         env_tool = channels.get_tool("sphere", dict(modality="environmental"))
         elec_tool = T[component].window((MIN_DATE, utcnow())).last().value(key='electricity-04063')
 
-        env_tool.execute(sources=None, sink=env, interval=ti)
-        elec_tool.execute(sources=[env], sink=elec, interval=ti)
+        env_tool.execute(sources=None, sink=env, alignment_stream=None, interval=ti)
+        elec_tool.execute(sources=[env], sink=elec, alignment_stream=None, interval=ti)
 
         q1 = "\n".join("=".join(map(str, ee)) for ee in elec.window(ti))
 
@@ -174,18 +174,15 @@ class HyperStringTests(unittest.TestCase):
         node = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1"])  # .window((t1, t1 + 1 * minute))
 
         # Create a factor to produce some data
-        w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
-                        # sources=None, sink=StreamView(stream=node.streams[0], relative_time_interval=relative_time_interval))
-                        source_nodes=None, sink_node=node)
+        w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"), source_nodes=None,
+                        sink_node=node, alignment_node=None)
 
         # Execute the workflow
         w.execute(time_interval)
 
         # Check the values
         assert (node.streams[('house', '1'), ].window(time_interval).first().value ==
-                {u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
-                'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
-                 'temperature': None})
+                {u'electricity-04063': 0.0, 'uid': u'04063'})
 
     def test_chained_query(self):
         interval = TimeInterval(t1, t1 + 5 * minute)
@@ -206,6 +203,7 @@ class HyperStringTests(unittest.TestCase):
         stream_tool_sliding_window.execute(
             sources=None,
             sink=stream_memory_sliding_window,
+            alignment_stream=None,
             interval=interval
         )
         
@@ -226,13 +224,12 @@ class HyperStringTests(unittest.TestCase):
         stream_tool_sphere_environmental.execute(
             sources=None,
             sink=stream_sphere_environmental,
+            alignment_stream=None,
             interval=interval
         )
         
         assert stream_sphere_environmental.window(interval).first().value == {
-            u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
-            'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None, 'hot-water': None,
-            'temperature': None}
+            u'electricity-04063': 0.0, 'uid': u'04063'}
 
         # Filter the motion in kitchen
         stream_memory_motion = M.create_stream(StreamId('id_memory_m_kitchen'))
@@ -247,6 +244,7 @@ class HyperStringTests(unittest.TestCase):
         tool_motion.execute(
             sources=[stream_sphere_environmental],
             sink=stream_memory_motion,
+            alignment_stream=None,
             interval=interval
         )
         
@@ -270,6 +268,7 @@ class HyperStringTests(unittest.TestCase):
                 stream_memory_motion
             ],
             sink=stream_memory_m_kitchen_mean,
+            alignment_stream=None,
             interval=interval
         )
         
@@ -278,23 +277,6 @@ class HyperStringTests(unittest.TestCase):
             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     def test_workflow_chain(self):
-        # TODO: hyperstream needs it's own logger (can be a clone of this one)
-        sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
-    
-        hyperstream_config = HyperStreamConfig()
-    
-        # Define some managers
-        channels = ChannelManager(hyperstream_config.tool_path)
-        plates = PlateManager(hyperstream_config.meta_data).plates
-    
-        # Various channels
-        M = channels.memory
-        S = channels.sphere
-        T = channels.tools
-        D = channels.mongo
-    
-        # A couple of parameters
-        t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
         interval = TimeInterval(t1, t1 + timedelta(minutes=10))
     
         w = Workflow(
@@ -307,44 +289,29 @@ class HyperStringTests(unittest.TestCase):
     
         # Define the sliding window
         n_sliding_window = w.create_node(stream_name="sliding_window", channel=M, plate_ids=None)
-        f_sliding_window = w.create_factor(
-            tool_name="sliding_window",
-            tool_parameters=dict(
-                first=MIN_DATE,
-                lower=timedelta(seconds=-30),
-                upper=timedelta(seconds=0),
-                increment=timedelta(seconds=10)
-            ),
-            source_nodes=None,
-            sink_node=n_sliding_window
-        )
+        f_sliding_window = w.create_factor(tool_name="sliding_window", tool_parameters=dict(
+            first=MIN_DATE,
+            lower=timedelta(seconds=-30),
+            upper=timedelta(seconds=0),
+            increment=timedelta(seconds=10)
+        ), source_nodes=None, sink_node=n_sliding_window, alignment_node=None)
     
         # Define the environmental data
         n_environmental_data = w.create_node(stream_name="environmental", channel=M, plate_ids=["H1"])
-        f_environmental_data = w.create_factor(
-            tool_name="sphere",
-            tool_parameters=dict(modality="environmental"),
-            source_nodes=None,
-            sink_node=n_environmental_data
-        )
+        f_environmental_data = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
+                                               source_nodes=None, sink_node=n_environmental_data, alignment_node=None)
     
         # Define the motion data
         n_motion_data = w.create_node(stream_name="motion_data", channel=M, plate_ids=["H1"])
-        f_motion_data = w.create_factor(
-            tool_name="component",
-            tool_parameters=dict(key="motion-S1_K"),
-            source_nodes=[n_environmental_data],
-            sink_node=n_motion_data
-        )
+        f_motion_data = w.create_factor(tool_name="component", tool_parameters=dict(key="motion-S1_K"),
+                                        source_nodes=[n_environmental_data], sink_node=n_motion_data,
+                                        alignment_node=None)
     
         # Take the mean of the motion stream over a sliding window
         n_average_motion = w.create_node(stream_name="average_motion", channel=M, plate_ids=["H1"])
-        f_average_motion = w.create_factor(
-            tool_name="sliding_apply",
-            tool_parameters=dict(func=online_average),
-            source_nodes=[n_sliding_window, n_motion_data],
-            sink_node=n_average_motion
-        )
+        f_average_motion = w.create_factor(tool_name="sliding_apply", tool_parameters=dict(func=online_average),
+                                           source_nodes=[n_sliding_window, n_motion_data], sink_node=n_average_motion,
+                                           alignment_node=None)
     
         # Execute the factors
         f_sliding_window.execute(interval)
@@ -353,9 +320,7 @@ class HyperStringTests(unittest.TestCase):
     
         f_environmental_data.execute(interval)
         env = n_environmental_data.streams[(('house', '1'),)].window(interval).first().value
-        assert env == {u'electricity-04063': 0.0, 'noise': None, 'door': None, 'uid': u'04063', 'electricity': None,
-                       'light': None, 'motion': None, 'dust': None, 'cold-water': None, 'humidity': None,
-                       'hot-water': None, 'temperature': None}
+        assert env == {u'electricity-04063': 0.0, 'uid': u'04063'}
     
         f_motion_data.execute(interval)
         motion = n_motion_data.streams[(('house', '1'),)].window(interval).values()[:10]
@@ -395,44 +360,29 @@ class HyperStringTests(unittest.TestCase):
     
         # Define the sliding window
         n_sliding_window = w.create_node(stream_name="sliding_window", channel=M, plate_ids=None)
-        f_sliding_window = w.create_factor(
-            tool_name="sliding_window",
-            tool_parameters=dict(
-                first=MIN_DATE,
-                lower=timedelta(seconds=-30),
-                upper=timedelta(seconds=0),
-                increment=timedelta(seconds=10)
-            ),
-            source_nodes=None,
-            sink_node=n_sliding_window
-        )
+        f_sliding_window = w.create_factor(tool_name="sliding_window", tool_parameters=dict(
+            first=MIN_DATE,
+            lower=timedelta(seconds=-30),
+            upper=timedelta(seconds=0),
+            increment=timedelta(seconds=10)
+        ), source_nodes=None, sink_node=n_sliding_window, alignment_node=None)
     
         # Define the environmental data
         n_environmental_data = w.create_node(stream_name="environmental", channel=M, plate_ids=["H1"])
-        f_environmental_data = w.create_factor(
-            tool_name="sphere",
-            tool_parameters=dict(modality="environmental"),
-            source_nodes=None,
-            sink_node=n_environmental_data
-        )
+        f_environmental_data = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
+                                               source_nodes=None, sink_node=n_environmental_data, alignment_node=None)
     
         # Define the motion data
         n_motion_data = w.create_node(stream_name="motion_data", channel=M, plate_ids=["H1"])
-        f_motion_data = w.create_factor(
-            tool_name="component",
-            tool_parameters=dict(key="motion-S1_K"),
-            source_nodes=[n_environmental_data],
-            sink_node=n_motion_data
-        )
+        f_motion_data = w.create_factor(tool_name="component", tool_parameters=dict(key="motion-S1_K"),
+                                        source_nodes=[n_environmental_data], sink_node=n_motion_data,
+                                        alignment_node=None)
     
         # Take the mean of the motion stream over a sliding window
         n_average_motion = w.create_node(stream_name="average_motion", channel=M, plate_ids=["H1"])
-        f_average_motion = w.create_factor(
-            tool_name="sliding_apply",
-            tool_parameters=dict(func=online_average),
-            source_nodes=[n_sliding_window, n_motion_data],
-            sink_node=n_average_motion
-        )
+        f_average_motion = w.create_factor(tool_name="sliding_apply", tool_parameters=dict(func=online_average),
+                                           source_nodes=[n_sliding_window, n_motion_data], sink_node=n_average_motion,
+                                           alignment_node=None)
         
         w.execute(interval)
 
