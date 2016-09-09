@@ -18,24 +18,21 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream import TimeInterval, RelativeTimeInterval
-from hyperstream.stream import StreamInstance, RelativeStreamView
+from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
-from datetime import timedelta
-import logging
 
 
 class Aggregate(Tool):
     def __init__(self, func):
         super(Aggregate, self).__init__(func=func)
         self.func = func
+        raise NotImplementedError("This tool is deprecated - please use RelativeWindow")
 
     # noinspection PyCompatibility
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
         data_stream = sources[0]
-        assert isinstance(data_stream, RelativeStreamView)
-
+        
         rel_start = data_stream.relative_time_interval.start
         rel_end = data_stream.relative_time_interval.end
 
