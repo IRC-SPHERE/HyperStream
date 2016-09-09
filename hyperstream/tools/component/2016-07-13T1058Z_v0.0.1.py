@@ -31,7 +31,7 @@ class Component(Tool):
         self.key = key
 
     @check_input_stream_count(1)
-    def _execute(self, input_streams, interval):
-        for time, data in input_streams[0]:
+    def _execute(self, sources, alignment_stream, interval):
+        for time, data in sources[0]:
             if self.key in data:
                 yield StreamInstance(time, data[self.key])
