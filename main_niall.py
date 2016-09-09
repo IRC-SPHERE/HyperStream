@@ -75,7 +75,8 @@ if __name__ == '__main__':
     window_id = StreamId('sid_window_environmental_niall')
     # D.create_stream(window_id )
     windowed_environmental = D[window_id]
-    t_relative_environmental_data = channels.get_tool('relative_window', dict(values_only=True))
+    t_relative_environmental_data = channels.get_tool(
+        'relative_window', dict(relative_start=-30, relative_end=0, values_only=True))
     
     # #
     # m_averaged = StreamId('averaged_motion')
@@ -98,7 +99,7 @@ if __name__ == '__main__':
     t_relative_environmental_data.execute(
         alignment_stream=M[sid_every_second],
         sources=[
-            D[environmental].relative_window(relative_interval)
+            D[environmental]
         ],
         sink=windowed_environmental,
         interval=ti
