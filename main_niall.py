@@ -28,6 +28,8 @@ from hyperstream.itertools2 import online_average, count as online_count, any_se
 from sphere_connector_package.sphere_connector import SphereLogger
 from hyperstream.tool import ExplicitFactor
 
+from hyperstream import TimeInterval, RelativeTimeInterval
+
 from hyperstream.utils.time_utils import MIN_DATE
 
 if __name__ == '__main__':
@@ -50,6 +52,53 @@ if __name__ == '__main__':
     # A couple of parameters
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
     interval = TimeInterval(t1, t1 + timedelta(minutes=2))
+    
+    minute = timedelta(minutes=1)
+    second = timedelta(seconds=1)
+    
+    every30s = StreamId('every30s')
+    m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
+    environmental = StreamId('environmental', meta_data={'house': '1'})
+    
+    ti = TimeInterval(t1, t1 + timedelta(minutes=2))
+    rel = RelativeTimeInterval(-30 * second, 0)
+    
+    # Create some memory streams
+    M.create_stream(stream_id=every30s)
+    M.create_stream(stream_id=m_kitchen_30_s_window)
+    M.create_stream(environmental)
+    
+    # Create the tools
+    t_clock = channels.get_tool('clock', dict(first=MIN_DATE, stride=30 * second))
+    t_environmental = channels.get_tool('sphere',
+                                        dict(modality='environmental',
+                                             filters={'uid': {'$regex': r'S\d+_K'}}))
+    
+    # Execute the tools
+    t_clock.execute(
+        alignment_stream=None,
+        sources=None,
+        sink=M[every30s],
+        interval=ti)
+    
+    t_environmental.execute(
+        alignment_stream=None,
+        sources=None,
+        sink=M[environmental],
+        interval=ti)
+    
+    # t_motion.execute(
+    #     alignment_stream=M[every30s],
+    #     sources=[
+    #         S[environmental]
+    #     ],
+    #     sink=M[m_kitchen_30_s_window],
+    #     interval=ti)
+    
+    for kv in M[environmental].window(ti):
+        print kv
+    
+    exit()
     
     # Define the workflow
     w = Workflow(
