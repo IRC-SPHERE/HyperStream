@@ -26,14 +26,15 @@ import logging
 
 class Factor(Printable):
     """
+    A factor in the graph. This defines the element of computation: the tool along with the source and sink nodes.
     """
-
-    def __init__(self, tool, source_nodes, sink_node, plates):
+    def __init__(self, tool, source_nodes, sink_node, alignment_node, plates):
         """
         Initialise this factor
         :param tool: The tool
         :param source_nodes: The source nodes
         :param sink_node: The sink node
+        :param alignment_node: The node (possibly a clock node) that the output node will have data aligned to
         :param plates: The plates over which this factor is defined
         :type tool: Tool
         :type sink_node: Node
@@ -51,10 +52,15 @@ class Factor(Printable):
         self.sink = sink_node
 
         self.plates = plates
-                
-    def execute(self, time_interval):
-        # return self.tool.get_results(self)
 
+        if alignment_node and not isinstance(alignment_node, Node):
+            raise ValueError("Expected node, got {}".format(type(alignment_node)))
+        if alignment_node and alignment_node.plate_ids:
+            # TODO: Need to implement alignment nodes that live inside plates
+            raise NotImplementedError("Currently only alignment nodes outside of plates are supported")
+        self.alignment_node = alignment_node
+
+    def execute(self, time_interval):
         if self.plates:
             for plate in self.plates:
                 for pv in plate.values:
@@ -66,12 +72,14 @@ class Factor(Printable):
                             else:
                                 logging.warn("Plate {} with value {} not valid for source {}".format(plate, pv, source))
                     sink = self.sink.streams[pv]
-                    self.tool.execute(sources=sources, sink=sink, interval=time_interval)
+                    self.tool.execute(sources=sources, sink=sink, interval=time_interval,
+                                      alignment_stream=self.get_alignment_stream(None, None))
         else:
             # sources = [source.streams[None] for source in self.sources] if self.sources else None
             sources = self.get_global_sources()
             sink = self.sink.streams[None]
-            self.tool.execute(sources=sources, sink=sink, interval=time_interval)
+            self.tool.execute(sources=sources, sink=sink, interval=time_interval, alignment_stream=
+                              self.get_alignment_stream(None, None))
 
     def get_global_sources(self):
         # Also add streams that live outside of the plates
@@ -82,3 +90,10 @@ class Factor(Printable):
                     sources.append(source.streams[None])
         return sources
 
+    def get_alignment_stream(self, plate=None, plate_value=None):
+        if not self.alignment_node:
+            return None
+        if plate is not None or plate_value is not None:
+            # TODO: Need to implement alignment nodes that live inside plates
+            raise NotImplementedError("Currently only alignment nodes outside of plates are supported")
+        return self.alignment_node.streams[plate][plate_value]

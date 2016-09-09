@@ -24,7 +24,7 @@ from hyperstream.channels.sphere_channel import SphereDataWindow
 
 class SphereBoundingBox(Tool):
     @check_input_stream_count(0)
-    def _execute(self, input_streams, interval):
+    def _execute(self, sources, alignment_stream, interval):
         raise NotImplementedError
         
         #TODO from niall: duplicate below with yield

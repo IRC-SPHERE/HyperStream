@@ -62,44 +62,28 @@ if __name__ == '__main__':
     
     # Define the sliding window
     n_sliding_window = w.create_node(stream_name="sliding_window", channel=M, plate_ids=None)
-    f_sliding_window = w.create_factor(
-        tool_name="sliding_window",
-        tool_parameters=dict(
-            first=MIN_DATE,
-            lower=timedelta(seconds=-30),
-            upper=timedelta(seconds=0),
-            increment=timedelta(seconds=10)
-        ),
-        source_nodes=None,
-        sink_node=n_sliding_window
-    )
+    f_sliding_window = w.create_factor(tool_name="sliding_window", tool_parameters=dict(
+        first=MIN_DATE,
+        lower=timedelta(seconds=-30),
+        upper=timedelta(seconds=0),
+        increment=timedelta(seconds=10)
+    ), source_nodes=None, sink_node=n_sliding_window, alignment_node=None)
     
     # Define the environmental data
     n_environmental_data = w.create_node(stream_name="environmental", channel=M, plate_ids=["H1"])
-    f_environmental_data = w.create_factor(
-        tool_name="sphere",
-        tool_parameters=dict(modality="environmental"),
-        source_nodes=None,
-        sink_node=n_environmental_data
-    )
+    f_environmental_data = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
+                                           source_nodes=None, sink_node=n_environmental_data, alignment_node=None)
     
     # Define the motion data
     n_motion_data = w.create_node(stream_name="motion_data", channel=M, plate_ids=["H1"])
-    f_motion_data = w.create_factor(
-        tool_name="component",
-        tool_parameters=dict(key="motion-S1_K"),
-        source_nodes=[n_environmental_data],
-        sink_node=n_motion_data
-    )
+    f_motion_data = w.create_factor(tool_name="component", tool_parameters=dict(key="motion-S1_K"),
+                                    source_nodes=[n_environmental_data], sink_node=n_motion_data, alignment_node=None)
     
     # Take the mean of the motion stream over a sliding window
     n_average_motion = w.create_node(stream_name="average_motion", channel=M, plate_ids=["H1"])
-    f_average_motion = w.create_factor(
-        tool_name="sliding_apply",
-        tool_parameters=dict(func=online_average),
-        source_nodes=[n_sliding_window, n_motion_data],
-        sink_node=n_average_motion
-    )
+    f_average_motion = w.create_factor(tool_name="sliding_apply", tool_parameters=dict(func=online_average),
+                                       source_nodes=[n_sliding_window, n_motion_data], sink_node=n_average_motion,
+                                       alignment_node=None)
     
     # Execute the factors
     w.execute(interval)

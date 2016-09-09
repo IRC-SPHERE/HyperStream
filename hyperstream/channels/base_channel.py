@@ -18,12 +18,17 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from ..stream import StreamInstance, StreamDict
+from ..stream import StreamDict
 from ..time_interval import TimeIntervals
-from ..utils import Printable, MIN_DATE, MAX_DATE
+from ..utils import Printable, MAX_DATE
+
+import logging
 
 
 class BaseChannel(Printable):
+    """
+    Abstract base class for channels
+    """
     def __init__(self, channel_id, can_calc=False, can_create=False, calc_agent=None):
         self.channel_id = channel_id
         self.streams = StreamDict()
@@ -37,16 +42,6 @@ class BaseChannel(Printable):
         Deriving classes must override this function
         """
         raise NotImplementedError
-
-    # def _get_data(self, stream):
-    #     """
-    #     Default way of getting data from streams. Can be overridden for special stream types
-    #     :param stream: The stream reference
-    #     :return: The data generator
-    #     """
-    #     raise NotImplementedError
-    #     # return sorted((StreamInstance(timestamp, data) for (timestamp, data) in stream.items()
-    #     #                if timestamp in stream.relative_time_interval), key=lambda x: x.timestamp)
 
     def execute_tool(self, stream, interval):
         """
@@ -68,8 +63,6 @@ class BaseChannel(Printable):
             if not stream.required_intervals.is_empty:
                 raise RuntimeError('Tool execution did not cover the specified time interval.')
 
-        # stream.tool.execute(stream.input_streams, stream, interval)
-
     def get_results(self, stream, time_interval):
         """
         Must be overridden by deriving classes.
@@ -86,14 +79,14 @@ class BaseChannel(Printable):
         :return: The stream object
         """
         if stream_id in self.streams:
-            print("found {}".format(stream_id))
+            logging.debug("found {}".format(stream_id))
             return self.streams[stream_id]
         else:
             # Try to create the stream
-            print("creating {}".format(stream_id))
+            logging.debug("creating {}".format(stream_id))
             return self.create_stream(stream_id=stream_id)
 
-    def create_stream(self, stream_id):
+    def create_stream(self, stream_id, sandbox=None):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
         identifier stream_id
@@ -118,9 +111,6 @@ class BaseChannel(Printable):
     def __str__(self):
         s = self.__class__.__name__ + ' with ID: ' + str(self.channel_id)
         s += ' and containing {} streams:'.format(len(self.streams))
-        # for stream_id in self.streams:
-        #     calculated_ranges = repr(self.streams[stream_id].calculated_intervals) \
-        #         if stream_id in self.calculated_intervals else "Error - stream not found"
         for stream in self.streams:
             calculated_ranges = repr(stream.calculated_intervals)
             s += '\nSTREAM ID: ' + str(stream.stream_id)
@@ -137,9 +127,3 @@ class BaseChannel(Printable):
 
     def __contains__(self, item):
         return item in self.streams
-        # TODO: More elegant way of doing this
-        # try:
-        #     var = self[item]
-        #     return True
-        # except KeyError:
-        #     return False

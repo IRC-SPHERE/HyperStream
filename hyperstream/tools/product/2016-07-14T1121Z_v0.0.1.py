@@ -24,11 +24,11 @@ from hyperstream.stream import StreamInstance
 
 class Product(Tool):
     @check_input_stream_count(2)
-    def _execute(self, input_streams, interval):
-        s1 = next(input_streams[1])
+    def _execute(self, sources, alignment_stream, interval):
+        s1 = next(sources[1])
         
-        # TODO: should the loop below be: for (t, data1) in input_streams[0].execute(interval)?
-        for (t, data1) in input_streams[0]:
+        # TODO: should the loop below be: for (t, data1) in sources[0].execute(interval)?
+        for (t, data1) in sources[0]:
             (_, data2) = next(s1)
             # TODO: type checking key/value pairs?
             yield StreamInstance(t, data1 * data2)

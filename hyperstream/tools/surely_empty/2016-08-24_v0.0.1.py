@@ -27,13 +27,13 @@ class SurelyEmpty(Tool):
         self.threshold = threshold
 
     @check_input_stream_count(1)
-    def _execute(self, input_streams, interval):
+    def _execute(self, sources, alignment_stream, interval):
         raise NotImplementedError
         
         #TODO from niall: duplicate below with yield
         
         # # Convert the location probability vector to an empty room vector using the threshold given
         # # noinspection PyCompatibility
-        # for (timestamp, value) in self.input_streams[0].iteritems():
+        # for (timestamp, value) in self.sources[0].iteritems():
         #     yield(timestamp, [x for x in value if x > self.threshold])
 

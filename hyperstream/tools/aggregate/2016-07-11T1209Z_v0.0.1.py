@@ -28,7 +28,7 @@ class Aggregate(Tool):
         self.func = func
 
     @check_input_stream_count(1)
-    def _execute(self, input_streams, interval, writer):
+    def _execute(self, sources, alignment_stream, interval):
         for (t, _) in self.timer():
             writer([StreamInstance(t, 'pool')])
             raise NotImplementedError

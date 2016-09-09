@@ -34,20 +34,20 @@ class Aggregate(Tool):
 
     # noinspection PyCompatibility
     @check_input_stream_count(1)
-    def _execute(self, input_streams, interval, writer):
+    def _execute(self, sources, alignment_stream, interval):
         rel_start = timedelta(0)
         rel_end = timedelta(0)
-        if isinstance(input_streams[0].time_interval, RelativeTimeInterval):
-            rel_start = input_streams[0].time_interval.start
-            rel_end = input_streams[0].time_interval.end
-        elif isinstance(input_streams[0].time_interval, TimeInterval):
-            if interval != input_streams[0].time_interval:
+        if isinstance(sources[0].time_interval, RelativeTimeInterval):
+            rel_start = sources[0].time_interval.start
+            rel_end = sources[0].time_interval.end
+        elif isinstance(sources[0].time_interval, TimeInterval):
+            if interval != sources[0].time_interval:
                 # TODO: What if stream and input stream have different absolute intervals?
-                logging.error("interval {} != input_streams[0].time_interval {}".format(
-                    interval, input_streams[0].time_interval))
+                logging.error("interval {} != sources[0].time_interval {}".format(
+                    interval, sources[0].time_interval))
                 raise NotImplementedError
 
-        data = input_streams[0].execute(interval).iteritems()
+        data = sources[0].execute(interval).iteritems()
 
         window = []
         future = []

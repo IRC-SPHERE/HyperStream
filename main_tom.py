@@ -22,10 +22,24 @@ import logging
 from datetime import datetime, timedelta
 
 from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client, \
-    TimeInterval  # , StreamView
-from hyperstream.utils import UTC, MIN_DATE
-from hyperstream.itertools2 import online_average, count as online_count
+    TimeInterval
+from hyperstream.utils import UTC
+
 from sphere_connector_package.sphere_connector import SphereLogger
+
+
+motion_sensors = {
+    "bedroom 1": "motion-S1_B1",
+    "study": "motion-S1_B0",
+    "bedroom 2": "motion-S1_B2",
+    "bathroom": "motion-S1_BR",
+    "hallway": "motion-S1_H",
+    "kitchen": "motion-S1_K",
+    "lounge": "motion-S1_L",
+    "stairs": "motion-S1_S",
+    "toilet": "motion-S1_WC"
+}
+
 
 if __name__ == '__main__':
     # TODO: hyperstream needs it's own logger (can be a clone of this one)
@@ -88,14 +102,19 @@ if __name__ == '__main__':
 
     # PIR sensor plate
 
-    # Stream to get all environmental data
-    node = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1"])
-    factor = w.create_factor(tool_name="sphere",
-                             tool_parameters=dict(modality="environmental", elements=("motion", )),
-                             source_nodes=None,
-                             sink_node=node)
+    # Stream to get motion sensor data
+    n_pir = w.create_node(stream_name="environmental_db", channel=D, plate_ids=["H1"])
+    f_pir = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental", elements=("motion",)),
+                            source_nodes=None, sink_node=n_pir, alignment_node=None)
+
+    # Stream to get RSSI data
+    n_rss = w.create_node(stream_name="wearable", channel=S, plate_ids=["H1"])
+    f_rss = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements=("rss",)),
+                            source_nodes=None, sink_node=n_rss, alignment_node=None)
 
     # Execute the workflow
     w.execute(time_interval)
 
-    print(node.streams[('house', '1'), ].window(time_interval).values()[0:5])
+    print(n_pir.streams[('house', '1'), ].window(time_interval).values()[0:5])
+    print(n_rss.streams[('house', '1'), ].window(time_interval).values()[0:5])
+
