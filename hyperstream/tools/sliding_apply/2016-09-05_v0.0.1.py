@@ -35,9 +35,9 @@ class SlidingApply(Tool):
     
     # noinspection PyCompatibility
     @check_input_stream_count(2)
-    def _execute(self, input_streams, interval):
-        sliding_window = input_streams[0]
-        data = iter(input_streams[1])
+    def _execute(self, sources, alignment_stream, interval):
+        sliding_window = sources[0]
+        data = iter(sources[1])
         
         window = []
         future = []

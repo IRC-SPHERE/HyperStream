@@ -24,25 +24,28 @@ from ..time_interval import TimeIntervals
 from ..utils import MIN_DATE
 from ..errors import StreamNotFoundError, StreamAlreadyExistsError
 
-import logging
-
 
 class MemoryChannel(BaseChannel):
+    """
+    Channel whose data lives in memory
+    """
     def __init__(self, channel_id):
         super(MemoryChannel, self).__init__(channel_id=channel_id, can_calc=True, can_create=True)
         self.max_stream_id = 0
         self.data = dict()
     
-    def create_stream(self, stream_id):
+    def create_stream(self, stream_id, sandbox=None):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
         identifier stream_id
         """
         if stream_id in self.streams:
             raise StreamAlreadyExistsError("Stream with id '{}' already exists".format(stream_id))
-        
-        # TODO: Want to be able to define the streams in the database
-        stream = Stream(channel=self, stream_id=stream_id)
+
+        if sandbox is not None:
+            raise ValueError("Cannot use sandboxes with memory streams")
+
+        stream = Stream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=None)
         
         self.streams[stream_id] = stream
         self.data[stream_id] = []
@@ -115,7 +118,7 @@ class ReadOnlyMemoryChannel(BaseChannel):
             self.update_streams(up_to_timestamp)
             self.update_state(up_to_timestamp)
     
-    def create_stream(self, stream_id):
+    def create_stream(self, stream_id, sandbox=None):
         raise RuntimeError("Read-only channel")
     
     def get_stream_writer(self, stream):
