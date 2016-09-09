@@ -88,7 +88,7 @@ class FileChannel(ReadOnlyMemoryChannel):
                 continue
             
             stream_id = StreamId(name=name)
-            stream = Stream(channel=self, stream_id=stream_id)
+            stream = Stream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=None)
             self.streams[stream_id] = stream
 
     def data_loader(self, short_path, file_info):
