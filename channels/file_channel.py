@@ -94,7 +94,7 @@ class FileChannel(ReadOnlyMemoryChannel):
     def data_loader(self, short_path, file_info):
         raise NotImplementedError
     
-    def get_results(self, stream):
+    def get_results(self, stream, time_interval):
         # TODO: Make this behave like the other channels
         # if relative_time_interval.end > self.up_to_timestamp:
         #     raise ValueError(
@@ -104,7 +104,7 @@ class FileChannel(ReadOnlyMemoryChannel):
         module_path = os.path.join(self.path, stream.stream_id.name)
         
         for file_info in self.file_filter(sorted(os.listdir(module_path))):
-            if file_info.timestamp <= self.up_to_timestamp:
+            if file_info.timestamp in time_interval and file_info.timestamp <= self.up_to_timestamp:
                 result.append(StreamInstance(
                     timestamp=file_info.timestamp,
                     value=self.data_loader(stream.stream_id.name, file_info)

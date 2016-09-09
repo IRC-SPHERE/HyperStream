@@ -20,6 +20,7 @@
 
 from time_interval import TimeIntervals, parse_time_tuple, RelativeTimeInterval, TimeInterval
 from utils import Hashable, TypedBiDict, Printable, check_output_format, check_tool_defined
+from models import StreamStatusModel, TimeIntervalModel
 
 import logging
 # from copy import deepcopy
@@ -40,7 +41,7 @@ class StreamView(Printable):
         self.time_interval = time_interval
 
     def __iter__(self):
-        for item in self.stream.channel.get_results(self.stream):
+        for item in self.stream.channel.get_results(self.stream, self.time_interval):
             yield item
 
     def items(self):
@@ -225,12 +226,12 @@ class Stream(Hashable):
             self.calculated_intervals = calculated_intervals
         else:
             self.calculated_intervals = TimeIntervals()
-        self.tool_reference = None # needed to traverse the graph outside of workflows
+        self.tool_reference = None  # needed to traverse the graph outside of workflows
 
         # Here we define the output type. When modifiers are applied, this changes
         # self.output_format = 'doc_gen'
         
-    def set_tool_reference(self, tool_reference): # needed to traverse the graph outside of workflows
+    def set_tool_reference(self, tool_reference):  # needed to traverse the graph outside of workflows
         self.tool_reference = tool_reference
     
     def __str__(self):
@@ -299,47 +300,19 @@ class Stream(Hashable):
                             .format(type(relative_time_interval)))
         return RelativeStreamView(stream=self, relative_time_interval=relative_time_interval)
 
-    # def window(self, relative_time_interval):
-    #     """
-    #     Sets the time execute for this stream
-    #     :param relative_time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-    #     :type relative_time_interval: Iterable, TimeInterval
-    #     :return: self (for chaining)
-    #     """
-    #     if isinstance(relative_time_interval, TimeInterval):
-    #         self.relative_time_interval = relative_time_interval
-    #     elif isinstance(relative_time_interval, Iterable):
-    #         self.relative_time_interval = parse_time_tuple(*relative_time_interval)
-    #         if isinstance(self.relative_time_interval, RelativeTimeInterval):
-    #             raise ValueError("Use relative_window to define relative time windows")
-    #     elif isinstance(relative_time_interval, RelativeTimeInterval):
-    #         raise ValueError("Use relative_window to define relative time windows")
-    #     else:
-    #         raise ValueError
-    #     return self
-    #
-    # def relative_window(self, relative_time_interval):
-    #     """
-    #     Sets the time execute for this stream
-    #     :param relative_time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
-    #     :type relative_time_interval: Iterable, TimeInterval
-    #     :return: self (for chaining)
-    #     """
-    #     if isinstance(relative_time_interval, RelativeTimeInterval):
-    #         self.relative_time_interval = relative_time_interval
-    #     elif isinstance(relative_time_interval, Iterable):
-    #         self.relative_time_interval = parse_time_tuple(*relative_time_interval)
-    #         if not isinstance(self.relative_time_interval, RelativeTimeInterval):
-    #             raise ValueError("Use execute to define absolute time windows")
-    #     elif isinstance(relative_time_interval, RelativeTimeInterval):
-    #         raise ValueError("Use execute to define absolute time windows")
-    #     else:
-    #         raise ValueError
-    #     return self
 
-    # @property
-    # def required_intervals(self):
-    #     return TimeIntervals([self.relative_time_interval]) - self.calculated_intervals
+class DatabaseStream(Stream):
+    """
+    Simple subclass that overrides the calculated intervals property
+    """
+    @property
+    def calculated_intervals(self):
+        status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
+        calculated_intervals = TimeIntervals(map(lambda x: TimeInterval(x.start, x.end), status.calculated_intervals))
+        return calculated_intervals
 
-    # def execute(self):
-    #     self.channel.get_results(self)
+    @calculated_intervals.setter
+    def calculated_intervals(self, intervals):
+        status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
+        status.calculated_intervals = tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
+        status.save()
