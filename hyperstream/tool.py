@@ -58,11 +58,11 @@ class Tool(Printable, Hashable):
 
         required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
         if not required_intervals.is_empty:
-            for iter_interval in required_intervals:
-                source_views = [source.window(iter_interval) for source in sources] if sources else None
-                for stream_instance in self._execute(source_views, iter_interval):
+            for interval in required_intervals:
+                source_views = [source.window(interval) for source in sources] if sources else None
+                for stream_instance in self._execute(source_views, interval):
                     sink.writer(stream_instance)
-                sink.calculated_intervals += TimeIntervals([iter_interval])
+                sink.calculated_intervals += TimeIntervals([interval])
 
             required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
             if not required_intervals.is_empty:
@@ -121,21 +121,8 @@ class ExplicitFactor(Printable, Hashable):
     
     def propagate_computation(self, interval):
         if self.sources is not None:
-            from stream import RelativeStreamView
-            
             for source in self.sources:
-                # assert isinstance(source.tool_reference, ExplicitFactor)
+                assert isinstance(source.tool_reference, ExplicitFactor)
+                
                 logging.info("Propagating inference back to: {}".format(source))
-
-                try:
-                    if isinstance(source, RelativeStreamView):
-                        print "old: {}".format(interval)
-                        print "new: {}".format(interval + source.relative_time_interval)
-                        print
-                        
-                        source.stream.tool_reference.execute(interval + source.relative_time_interval)
-                    
-                    else:
-                        source.tool_reference.execute(interval)
-                except Exception as ex:
-                    raise ex
+                source.tool_reference.execute(interval)
