@@ -19,8 +19,8 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from time_interval import TimeIntervals, parse_time_tuple, RelativeTimeInterval, TimeInterval
-from utils import Hashable, TypedBiDict, Printable, check_output_format, check_tool_defined
-from models import StreamStatusModel, TimeIntervalModel
+from utils import Hashable, TypedBiDict, Printable, utcnow
+from models import StreamStatusModel, TimeIntervalModel, StreamDefinitionModel
 
 import logging
 # from copy import deepcopy
@@ -206,14 +206,16 @@ class Stream(Hashable):
     _calculated_intervals = None
     defined = False
 
-    def __init__(self, channel, stream_id, calculated_intervals=None):
+    def __init__(self, channel, stream_id, calculated_intervals, sandbox):
         """
         :param channel: The channel to which this stream belongs
         :param stream_id: The unique identifier for this string
         :param calculated_intervals: The time intervals in which this has been calculated
+        :param sandbox: The sandbox in which this stream lives
         :type channel: BaseChannel
         :type stream_id: StreamId
-        :type calculated_intervals: TimeIntervals
+        :type calculated_intervals: TimeIntervals, None
+        :type sandbox: str, unicode, None
         """
         self.channel = channel
         if not isinstance(stream_id, StreamId):
@@ -227,6 +229,7 @@ class Stream(Hashable):
         else:
             self.calculated_intervals = TimeIntervals()
         self.tool_reference = None  # needed to traverse the graph outside of workflows
+        self.sandbox = sandbox
 
         # Here we define the output type. When modifiers are applied, this changes
         # self.output_format = 'doc_gen'
@@ -305,6 +308,22 @@ class DatabaseStream(Stream):
     """
     Simple subclass that overrides the calculated intervals property
     """
+    def __init__(self, channel, stream_id, calculated_intervals, sandbox):
+        super(DatabaseStream, self).__init__(
+            channel=channel, stream_id=stream_id, calculated_intervals=calculated_intervals, sandbox=sandbox)
+
+    def save_definition(self):
+        """
+        Saves the stream definition to the database. This assumes that the definition doesn't already exist, and will
+        raise an exception if it does.
+        :return: None
+        """
+        stream_definition = StreamDefinitionModel(
+            stream_id=self.stream_id.as_dict(),
+            channel_id=self.channel.channel_id,
+            sandbox=self.sandbox)
+        stream_definition.save()
+
     @property
     def calculated_intervals(self):
         status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
@@ -313,6 +332,26 @@ class DatabaseStream(Stream):
 
     @calculated_intervals.setter
     def calculated_intervals(self, intervals):
-        status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
-        status.calculated_intervals = tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
-        status.save()
+        """
+        Updates the calculated intervals in the database. Performs an upsert
+        :param intervals: The calculated intervals
+        :return: None
+        """
+        # status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
+        # status.calculated_intervals = tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
+        #
+        # status = StreamStatusModel(
+        #     stream_id=self.stream_id.as_dict(),
+        #     last_updated=utcnow(),
+        #     # last_accessed=utcnow(),
+        #     calculated_intervals=tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
+        # )
+        #
+        # status.save()
+
+        StreamStatusModel.objects(__raw__=self.stream_id.as_raw()).modify(
+            upsert=True,
+            set__stream_id=self.stream_id.as_dict(),
+            set__last_updated=utcnow(),
+            set__calculated_intervals=tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
+        )
