@@ -52,51 +52,63 @@ if __name__ == '__main__':
     # A couple of parameters
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
     interval = TimeInterval(t1, t1 + timedelta(minutes=2))
+    relative_interval = RelativeTimeInterval(-30, 0)
     
     minute = timedelta(minutes=1)
     second = timedelta(seconds=1)
     
-    every30s = StreamId('every30s')
-    m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
-    environmental = StreamId('environmental', meta_data={'house': '1'})
+    sid_every_second = StreamId('every30s')
+    environmental = StreamId('environmental_niall', meta_data={'house': '1'})
     
     ti = TimeInterval(t1, t1 + timedelta(minutes=2))
     rel = RelativeTimeInterval(-30 * second, 0)
     
-    # Create some memory streams
-    M.create_stream(stream_id=every30s)
-    M.create_stream(stream_id=m_kitchen_30_s_window)
-    M.create_stream(environmental)
+    # Create the synch tool
+    M.create_stream(stream_id=sid_every_second)
+    t_clock = channels.get_tool('clock', dict(first=MIN_DATE, stride=1 * second))
+
+    # Get data from database
+    # D.create_stream(environmental)
+    t_environmental = channels.get_tool('sphere', dict(modality='environmental', filters={'uid': {'$regex': r'S\d+_K'}}))
     
-    # Create the tools
-    t_clock = channels.get_tool('clock', dict(first=MIN_DATE, stride=30 * second))
-    t_environmental = channels.get_tool('sphere',
-                                        dict(modality='environmental',
-                                             filters={'uid': {'$regex': r'S\d+_K'}}))
+    # Apply relative window
+    window_id = StreamId('sid_window_environmental_niall')
+    # D.create_stream(window_id )
+    windowed_environmental = D[window_id]
+    t_relative_environmental_data = channels.get_tool('relative_window', dict(values_only=True))
+    
+    # #
+    # m_averaged = StreamId('averaged_motion')
+    # M.create_stream(m_averaged)
+    # t_average = channels.get_tool('aggregate', dict(func=online_average))
     
     # Execute the tools
     t_clock.execute(
         alignment_stream=None,
         sources=None,
-        sink=M[every30s],
+        sink=M[sid_every_second],
         interval=ti)
     
     t_environmental.execute(
         alignment_stream=None,
         sources=None,
-        sink=M[environmental],
+        sink=D[environmental],
         interval=ti)
     
-    # t_motion.execute(
-    #     alignment_stream=M[every30s],
-    #     sources=[
-    #         S[environmental]
-    #     ],
-    #     sink=M[m_kitchen_30_s_window],
-    #     interval=ti)
+    t_relative_environmental_data.execute(
+        alignment_stream=M[sid_every_second],
+        sources=[
+            D[environmental].relative_window(relative_interval)
+        ],
+        sink=windowed_environmental,
+        interval=ti
+    )
     
-    for kv in M[environmental].window(ti):
-        print kv
+    for time, values in windowed_environmental.window(ti):
+        print time
+        for value in values:
+            print '\t', value
+        print
     
     exit()
     
