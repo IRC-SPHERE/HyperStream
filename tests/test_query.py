@@ -91,30 +91,42 @@ class HyperStringTests(unittest.TestCase):
 
         assert (elec.window(ti).values() == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
-    # def test_windowed_querying_average(self):
-    #     ti = TimeInterval(t1, t1 + 5 * minute)
-    #     rel = RelativeTimeInterval(-30 * second, 0)
-    #
-    #     # Create some memory streams
-    #     M.create_stream(stream_id=every30s)
-    #     M.create_stream(stream_id=m_kitchen_30_s_window)
-    #     M.create_stream(stream_id=average)
-    #
-    #     # Create the tools
-    #     t_clock = channels.get_tool(clock, dict(first=MIN_DATE, stride=30*second))
-    #     t_motion = channels.get_tool(component, dict(key='motion-S1_K'))
-    #     average_tool = channels.get_tool(aggregate, dict(func=lambda x: online_average(map(lambda xi: xi.value, x))))
-    #
-    #     # Execute the tools
-    #     t_clock.execute(None, M[every30s], ti)
-    #     t_motion.execute([S[environmental]], M[m_kitchen_30_s_window], ti)
-    #     average_tool.execute([M[every30s], M[m_kitchen_30_s_window]], M[average], rel)
-    #
-    #     # mk_30s = M[m_kitchen_30_s_window].relative_window((-30 * second, 0))
-    #     # aa = M[average].execute((t1, t1 + 5 * minute)).values()
-    #     aa = M[average].values()
-    #     logging.info(aa)
-    #     assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    def test_alignment_window_querying_average(self):
+        ti = TimeInterval(t1, t1 + 5 * minute)
+        rel = RelativeTimeInterval(-30 * second, 0)
+
+        # Create some memory streams
+        M.create_stream(stream_id=every30s)
+        M.create_stream(stream_id=m_kitchen_30_s_window)
+        M.create_stream(stream_id=average)
+
+        # Create the tools
+        t_clock = channels.get_tool(clock, dict(first=MIN_DATE, stride=30*second))
+        t_motion = channels.get_tool(component, dict(key='motion-S1_K'))
+
+        # Execute the tools
+        t_clock.execute(
+            alignment_stream=None,
+            sources=None,
+            sink=M[every30s],
+            interval=ti)
+        t_motion.execute(
+            alignment_stream=M[clock],
+            sources=[
+                S[environmental]
+            ],
+            sink=M[m_kitchen_30_s_window],
+            interval=ti)
+        
+        import logging
+        for kv in M[m_kitchen_30_s_window].window(ti):
+            logging.info(kv)
+
+        # mk_30s = M[m_kitchen_30_s_window].relative_window((-30 * second, 0))
+        # aa = M[average].execute((t1, t1 + 5 * minute)).values()
+        aa = M[average].values()
+        logging.info(aa)
+        assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
     # def test_windowed_querying_count(self):
     #     ti = TimeInterval(t1, t1 + 5 * minute)

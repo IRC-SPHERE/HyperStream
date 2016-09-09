@@ -43,8 +43,8 @@ docs = environmental.get_data(
     elements=None,
     # filters={'uid': {'$regex': r'S\d+_K'}},
     # filters={'uid': {'$eq': 'S1_K'}},
-    # filters={'uid': {'$in': ['S1_K', 'S2_K']}},
-    filters={'uid': '03727'},
+    filters={'uid': {'$in': ['S1_K', 'S2_K']}},
+    # filters={'uid': '03727'},
     rename_keys=False
 )
 
