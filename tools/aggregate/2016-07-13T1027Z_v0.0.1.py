@@ -29,9 +29,9 @@ class Aggregate(Tool):
         self.func = func
 
     @check_input_stream_count(1)
-    def _execute(self, input_streams, interval, writer):
-        rel_start = input_streams[0].start
-        rel_end = input_streams[0].end
+    def _execute(self, sources, alignment_stream, interval):
+        rel_start = sources[0].start
+        rel_end = sources[0].end
         window = []
         future = []
         for (t, _) in self.timer:

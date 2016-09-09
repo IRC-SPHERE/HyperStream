@@ -104,10 +104,11 @@ class Workflow(Printable):
         
         return node
     
-    def create_factor(self, tool_name, tool_parameters, source_nodes, sink_node):
+    def create_factor(self, tool_name, tool_parameters, source_nodes, sink_node, alignment_node):
         """
         Creates a factor. Instantiates a single tool for all of the plates, and connects the source and sink nodes with
         that tool.
+        :param alignment_node:
         :param tool_name: The name of the tool to use
         :param tool_parameters: The parameters for the tool. Note that these are currently fixed over a plate. For
         parameters that vary over a plate, an extra input stream should be used
@@ -131,7 +132,9 @@ class Workflow(Printable):
         else:
             plates = None
 
-        factor = Factor(tool=tool, source_nodes=source_nodes, sink_node=sink_node, plates=plates)
+        factor = Factor(tool=tool, source_nodes=source_nodes,
+                        sink_node=sink_node, alignment_node=alignment_node,
+                        plates=plates)
         self.factor_collections[tool_name].append(factor)
         self.execution_order.append(tool_name)
         
@@ -194,7 +197,7 @@ class WorkflowManager(Printable):
                     tool = channels.get_tool(
                         tool=f.tool.name,
                         tool_parameters=f.tool.parameters)
-                    workflow.create_factor(tool, source_nodes, sink_node)
+                    workflow.create_factor(tool, source_nodes, sink_node, None)
                 
                 self.add_workflow(workflow, False)
             except StreamNotFoundError as e:
