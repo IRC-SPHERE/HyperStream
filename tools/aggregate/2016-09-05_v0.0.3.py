@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream import TimeInterval, RelativeTimeInterval
-from hyperstream.stream import StreamInstance, RelativeStreamView
+from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 from datetime import timedelta
 import logging
@@ -29,22 +29,18 @@ class Aggregate(Tool):
     def __init__(self, func):
         super(Aggregate, self).__init__(func=func)
         self.func = func
-    
+
     # noinspection PyCompatibility
     @check_input_stream_count(2)
     def _execute(self, input_streams, interval):
-        assert isinstance(input_streams[0], RelativeStreamView)
-        
-        timer = input_streams[0].window(interval)
+
+        timer = input_streams[0]
         # TODO: Check that this is a timer stream
-        
-        data_stream = input_streams[1].window(interval)
-        
-        # rel_start = timedelta(0)
-        # rel_end = timedelta(0)
-        rel_start = input_streams[0].relative_time_interval.start
-        rel_end = input_streams[0].relative_time_interval.end
-        
+
+        data_stream = input_streams[1]
+
+        rel_start = timedelta(0)
+        rel_end = timedelta(0)
         # if isinstance(data_stream.time_interval, RelativeTimeInterval):
         #     rel_start = data_stream.time_interval.start
         #     rel_end = data_stream.time_interval.end
@@ -54,10 +50,10 @@ class Aggregate(Tool):
         #         logging.error("interval {} != input_streams[0].time_interval {}".format(
         #             interval, data_stream.time_interval))
         #         raise NotImplementedError
-        
+
         # data = data_stream.window(interval).iteritems()
         data = iter(data_stream)
-        
+
         window = []
         future = []
         # for (t, _) in timer.window(interval).iteritems():
