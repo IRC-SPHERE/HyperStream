@@ -90,8 +90,8 @@ class DatabaseChannel(BaseChannel):
         """
 
         def writer(document_collection):
-            # TODO: Presumably this should be overridden by users' personal channels - allows for non-mongo outputs.
-            for t, doc in document_collection:
+            if isinstance(document_collection, StreamInstance):
+                t, doc = document_collection
                 instance = StreamInstanceModel(
                     stream_id=stream.stream_id.as_dict(),
                     datetime=t,
@@ -103,4 +103,19 @@ class DatabaseChannel(BaseChannel):
                     # pass
                     raise e
                     # logging.warn(e)
+                
+            else:
+            # TODO: Presumably this should be overridden by users' personal channels - allows for non-mongo outputs.
+                for t, doc in document_collection:
+                    instance = StreamInstanceModel(
+                        stream_id=stream.stream_id.as_dict(),
+                        datetime=t,
+                        value=doc)
+                    try:
+                        instance.save()
+                    except NotUniqueError as e:
+                        # TODO: Should now be fixed
+                        # pass
+                        raise e
+                        # logging.warn(e)
         return writer
