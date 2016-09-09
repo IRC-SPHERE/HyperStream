@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField, EmbeddedDocumentListField, \
-    EmbeddedDocument, EmbeddedDocumentField
+    EmbeddedDocument, EmbeddedDocumentField, IntField
 from time_interval import TimeIntervalModel
 
 
@@ -37,7 +37,10 @@ class StreamInstanceModel(Document):
     
     meta = {
         'collection': 'streams',
-        'indexes': [{'fields': ['stream_id', 'datetime'], 'unique': True}],
+        'indexes': [
+            {'fields': ['stream_id']},
+            {'fields': ['stream_id', 'datetime'], 'unique': True}
+        ],
         'ordering': ['datetime']
     }
 
@@ -46,13 +49,11 @@ class StreamDefinitionModel(Document):
     stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
     stream_type = StringField(required=False, min_length=1, max_length=512)
     channel_id = StringField(required=True, min_length=1, max_length=512)
-    # input_streams = EmbeddedDocumentListField(required=False, document_type=StreamIdField)
-    parameters = DictField()
     sandbox = StringField()
     
     meta = {
         'collection': 'stream_definitions',
-        'indexes': [{'fields': ['stream_id']}],
+        'indexes': [{'fields': ['stream_id'], 'unique': True}],
     }
 
 
@@ -69,6 +70,6 @@ class StreamStatusModel(Document):
     
     meta = {
         'collection': 'stream_status',
-        'indexes': [{'fields': ['stream_id']}],
+        'indexes': [{'fields': ['stream_id'], 'unique': True}],
         'ordering': ['last_updated']
     }

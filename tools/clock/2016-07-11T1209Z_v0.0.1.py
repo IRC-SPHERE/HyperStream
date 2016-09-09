@@ -43,7 +43,7 @@ class Clock(Tool):
             self.__class__.__name__, str(interval.start), str(interval.end), str(self.stride))
 
     @check_input_stream_count(0)
-    def _execute(self, input_streams, interval):
+    def _execute(self, sources, alignment_stream, interval):
         if interval.start < self.first:
             interval.start = self.first
         n_strides = int((interval.start - self.first).total_seconds() // self.stride.total_seconds())

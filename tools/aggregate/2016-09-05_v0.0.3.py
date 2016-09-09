@@ -32,12 +32,12 @@ class Aggregate(Tool):
 
     # noinspection PyCompatibility
     @check_input_stream_count(2)
-    def _execute(self, input_streams, interval):
+    def _execute(self, sources, alignment_stream, interval):
 
-        timer = input_streams[0]
+        timer = sources[0]
         # TODO: Check that this is a timer stream
 
-        data_stream = input_streams[1]
+        data_stream = sources[1]
 
         rel_start = timedelta(0)
         rel_end = timedelta(0)
@@ -47,7 +47,7 @@ class Aggregate(Tool):
         # elif isinstance(data_stream.time_interval, TimeInterval):
         #     if interval != data_stream.time_interval:
         #         # TODO: What if stream and input stream have different absolute intervals?
-        #         logging.error("interval {} != input_streams[0].time_interval {}".format(
+        #         logging.error("interval {} != sources[0].time_interval {}".format(
         #             interval, data_stream.time_interval))
         #         raise NotImplementedError
 

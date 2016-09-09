@@ -38,7 +38,7 @@ class Sphere(Tool):
         self.filters = filters
     
     @check_input_stream_count(0)
-    def _execute(self, input_streams, interval):
+    def _execute(self, sources, alignment_stream, interval):
         window = SphereDataWindow(interval)
         source = window.modalities[self.modality]
         yield map(reformat, source.get_data(self.elements, self.filters))

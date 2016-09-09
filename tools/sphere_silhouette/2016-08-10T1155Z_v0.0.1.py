@@ -28,7 +28,7 @@ class SphereSilhouette(Tool):
         self.filters = filters
 
     @check_input_stream_count(0)
-    def _execute(self, input_streams, interval):
+    def _execute(self, sources, alignment_stream, interval):
         raise NotImplementedError
         
         #TODO from niall: duplicate below with yield

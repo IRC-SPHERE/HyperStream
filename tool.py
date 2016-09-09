@@ -44,23 +44,24 @@ class Tool(Printable, Hashable):
     def name(self):
         return self.__class__.__module__
     
-    def _execute(self, input_streams, interval):
+    def _execute(self, sources, alignment_stream, interval):
         raise NotImplementedError
     
-    def execute(self, sources, sink, interval):
+    def execute(self, sources, sink, alignment_stream, interval):
         if not isinstance(interval, TimeInterval):
             raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
         logging.info(self.message(interval))
 
         if interval.end > sink.channel.up_to_timestamp:
             raise ValueError(
-                'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
+                'The stream is not available after {} and cannot be calculated'.format(self.up_to_timestamp))
 
         required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
         if not required_intervals.is_empty:
             for interval in required_intervals:
                 source_views = [source.window(interval) for source in sources] if sources else None
-                for stream_instance in self._execute(source_views, interval):
+                for stream_instance in self._execute(
+                        sources=source_views, alignment_stream=alignment_stream, interval=interval):
                     sink.writer(stream_instance)
                 sink.calculated_intervals += TimeIntervals([interval])
 
@@ -82,12 +83,12 @@ def check_input_stream_count(expected_number_of_streams):
     def stream_count_decorator(func):
         def func_wrapper(*args, **kwargs):
             self = args[0]
-            input_streams = kwargs['time_interval'] if 'time_interval' in kwargs else args[1]
+            sources = kwargs['sources'] if 'sources' in kwargs else args[1]
             if expected_number_of_streams == 0:
-                if input_streams:
+                if sources:
                     raise ValueError("No input streams expected")
             else:
-                given_number_of_streams = len(input_streams) if input_streams else 0
+                given_number_of_streams = len(sources) if sources else 0
                 if given_number_of_streams != expected_number_of_streams:
                     raise ValueError("{} tool takes {} stream(s) as input ({} given)".format(
                         self.__class__.__name__, expected_number_of_streams, given_number_of_streams))
@@ -116,7 +117,7 @@ class ExplicitFactor(Printable, Hashable):
         self.propagate_computation(interval)
         
         logging.info("Executing code for stream: {}".format(self.sink))
-        for stream_instance in self.tool._execute(self.sources, interval):
+        for stream_instance in self.tool._execute(self.sources, None, interval):
             self.sink.writer(stream_instance)
     
     def propagate_computation(self, interval):
