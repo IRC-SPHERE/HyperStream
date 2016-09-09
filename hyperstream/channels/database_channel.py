@@ -22,7 +22,8 @@ Database channel module.
 """
 from base_channel import BaseChannel
 from ..models import StreamInstanceModel
-from ..stream import StreamInstance
+from ..stream import StreamInstance, DatabaseStream
+from ..errors import StreamAlreadyExistsError
 
 import logging
 from mongoengine import NotUniqueError
@@ -64,14 +65,21 @@ class DatabaseChannel(BaseChannel):
         for instance in StreamInstanceModel.objects(__raw__=query):
             yield StreamInstance(timestamp=instance.datetime, value=instance.value)
 
-    def create_stream(self, stream_id):
+    def create_stream(self, stream_id, sandbox=None):
         """
         Create the stream
         :param stream_id: The stream identifier
+        :param sandbox: The sandbox for this stream
         :return: None
         :raises: NotImplementedError
         """
-        raise NotImplementedError("Database streams currently need to be defined in the database")
+        if stream_id in self.streams:
+            raise StreamAlreadyExistsError("Stream with id '{}' already exists".format(stream_id))
+
+        stream = DatabaseStream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=sandbox)
+        stream.save_definition()
+        self.streams[stream_id] = stream
+        return stream
 
     def get_stream_writer(self, stream):
         """
@@ -91,7 +99,7 @@ class DatabaseChannel(BaseChannel):
                 try:
                     instance.save()
                 except NotUniqueError as e:
-                    # TODO: Fix this ... computed intervals not being stored!
+                    # TODO: Should now be fixed
                     # pass
                     raise e
                     # logging.warn(e)

@@ -83,8 +83,8 @@ if __name__ == '__main__':
     node = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1"])  # .window((t1, t1 + 1 * minute))
 
     # Create a factor to produce some data
-    factor = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
-                             source_nodes=None, sink_node=node)
+    factor = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"), source_nodes=None,
+                             sink_node=node, alignment_node=None)
     # sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
 
     # Execute the workflow
@@ -115,33 +115,18 @@ if __name__ == '__main__':
     n_motion_kitchen_count = w.create_node(stream_name="motion_kitchen_count", channel=M, plate_ids=["H1"])
 
     # Create the factors
-    f_timer = w.create_factor(
-        tool_name="clock",
-        tool_parameters=dict(first=MIN_DATE, stride=30 * second),
-        source_nodes=None,
-        sink_node=n_clock
-    )
+    f_timer = w.create_factor(tool_name="clock", tool_parameters=dict(first=MIN_DATE, stride=30 * second),
+                              source_nodes=None, sink_node=n_clock, alignment_node=None)
 
-    f_env = w.create_factor(
-        tool_name="sphere",
-        tool_parameters=dict(modality="environmental"),
-        source_nodes=None,
-        sink_node=n_environ
-    )
+    f_env = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"), source_nodes=None,
+                            sink_node=n_environ, alignment_node=None)
 
-    f_motion = w.create_factor(
-        tool_name="component",
-        tool_parameters=dict(key="motion-S1_K"),
-        source_nodes=[n_environ],
-        sink_node=n_motion_kitchen
-    )
+    f_motion = w.create_factor(tool_name="component", tool_parameters=dict(key="motion-S1_K"), source_nodes=[n_environ],
+                               sink_node=n_motion_kitchen, alignment_node=None)
 
-    f_kitchen_motion = w.create_factor(
-        tool_name="aggregate",
-        tool_parameters=dict(func=online_count),
-        source_nodes=[n_clock, n_motion_kitchen],
-        sink_node=n_motion_kitchen_count
-    )
+    f_kitchen_motion = w.create_factor(tool_name="aggregate", tool_parameters=dict(func=online_count),
+                                       source_nodes=[n_clock, n_motion_kitchen], sink_node=n_motion_kitchen_count,
+                                       alignment_node=None)
 
     ti = TimeInterval(t1, t1 + 5 * minute)
     w.execute(ti)
