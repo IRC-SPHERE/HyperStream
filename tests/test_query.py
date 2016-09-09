@@ -99,6 +99,7 @@ class HyperStringTests(unittest.TestCase):
         M.create_stream(stream_id=every30s)
         M.create_stream(stream_id=m_kitchen_30_s_window)
         M.create_stream(stream_id=average)
+        M.create_stream(stream_id=clock)
 
         # Create the tools
         t_clock = channels.get_tool(clock, dict(first=MIN_DATE, stride=30*second))
@@ -124,7 +125,7 @@ class HyperStringTests(unittest.TestCase):
 
         # mk_30s = M[m_kitchen_30_s_window].relative_window((-30 * second, 0))
         # aa = M[average].execute((t1, t1 + 5 * minute)).values()
-        aa = M[average].values()
+        aa = M[average].window(ti).values()
         logging.info(aa)
         assert (aa == [0.0, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     
