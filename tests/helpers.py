@@ -18,11 +18,17 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream import HyperStreamConfig, OnlineEngine, UTC, StreamId, ChannelManager, WorkflowManager, PlateManager
+from hyperstream import HyperStreamConfig, OnlineEngine, UTC, StreamId, ChannelManager, WorkflowManager, PlateManager, \
+    Client
 
 from sphere_connector_package.sphere_connector import SphereConnector, SphereLogger
 from datetime import datetime, timedelta
 import logging
+
+import os
+
+
+os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
 
 
 # Various constants
@@ -39,17 +45,18 @@ zero = timedelta(0)
 sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.CRITICAL)
 sphere_connector = SphereConnector(include_mongo=True, include_redcap=False, sphere_logger=sphere_logger)
 hyperstream_config = HyperStreamConfig()
-online_engine = OnlineEngine(hyperstream_config)
+# online_engine = OnlineEngine(hyperstream_config)
 
+client = Client(hyperstream_config.mongo)
 channels = ChannelManager(hyperstream_config.tool_path)
 plates = PlateManager(hyperstream_config.meta_data).plates
 workflows = WorkflowManager(channels=channels, plates=plates)
 
 # Various channels
-M = online_engine.channels.memory
-S = online_engine.channels.sphere
-T = online_engine.channels.tools
-D = online_engine.channels.mongo
+M = channels.memory
+S = channels.sphere
+T = channels.tools
+D = channels.mongo
 
 
 # Some useful Stream IDs

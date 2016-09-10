@@ -18,7 +18,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from channel import ChannelManager
+from channel_manager import ChannelManager
 from tool import Tool
 from client import Client
 from workflow import Workflow, WorkflowManager, Plate, PlateManager, Factor, Node
