@@ -100,3 +100,4 @@ ENV/
 
 # Rope project settings
 .ropeproject
+hyperstream_config.json
