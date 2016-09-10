@@ -19,27 +19,25 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.tool import Tool, check_input_stream_count
+from collections import defaultdict
 from hyperstream.channels.sphere_channel import SphereDataWindow
 from hyperstream.stream import StreamInstance
 
 
-def reformat(doc):
-    dt = doc['datetime']
-    del doc['datetime']
-    
-    return StreamInstance(dt, doc)
 
-
-class Sphere(Tool):
-    def __init__(self, modality, elements=None, filters=None, rename_keys=False):
-        super(Sphere, self).__init__(modality=modality, elements=elements, filters=filters, rename_keys=rename_keys)
-        self.modality = modality
-        self.elements = elements
-        self.filters = filters
-        self.rename_keys = rename_keys
+class RelativeApply(Tool):
+    def __init__(self, func):
+        super(RelativeApply, self).__init__(func=func)
+        self.func = func
     
-    @check_input_stream_count(0)
+    @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
-        window = SphereDataWindow(interval)
-        source = window.modalities[self.modality]
-        yield map(reformat, source.get_data(self.elements, self.filters, self.rename_keys))
+        for tt, rows in sources[0].window(interval):
+            vals = defaultdict(list)
+            
+            for row in rows:
+                for kk, vv in row.value.iteritems():
+                    if isinstance(vv, (int, float)):
+                        vals[kk].append(vv)
+                    
+            yield StreamInstance(tt, {kk: self.func(vv) for kk, vv in vals.iteritems()})
