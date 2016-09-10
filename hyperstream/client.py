@@ -71,7 +71,7 @@ class Client(object):
             d['authentication_source'] = d['authentication_database']
             del d['authentication_database']
 
-        self.session = connect(**d)
+        self.session = connect(alias="hyperstream", **d)
 
     def get_config_value(self, key, default=None):
         return get_value_safe(self.server_config, key, default)
