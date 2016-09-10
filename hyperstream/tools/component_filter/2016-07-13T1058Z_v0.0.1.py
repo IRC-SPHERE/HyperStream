@@ -36,10 +36,12 @@ class ComponentFilter(Tool):
 
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
-        for time, data in sources[0]:
+        if alignment_stream:
+            raise NotImplementedError
+        for time, data in sources[0].window(interval):
             if self.complement:
                 if data[self.key] not in self.values:
                     yield StreamInstance(time, data)
             else:
-                if data[self.key] in self.values:
+                if self.key in data and data[self.key] in self.values:
                     yield StreamInstance(time, data)

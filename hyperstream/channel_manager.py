@@ -119,13 +119,7 @@ class ChannelManager(ChannelCollectionBase, Printable):
                 else:
                     raise NotImplementedError
 
-    def get_tool(self, tool, tool_parameters):
-        """
-        Gets the tool object from the tool channel, and instantiates it using the tool parameters
-        :param tool: The name or stream id for the tool in the tool channel
-        :param tool_parameters: The parameters for the tool
-        :return: The instantiated tool object
-        """
+    def get_tool_class(self, tool):
         # TODO: Use tool versions - here we just take the latest one
         if isinstance(tool, (str, unicode)):
             tool_id = StreamId(tool)
@@ -135,7 +129,16 @@ class ChannelManager(ChannelCollectionBase, Printable):
             raise TypeError(tool)
 
         tool_stream_view = self.tools[tool_id].window((MIN_DATE, utcnow()))
-        tool_class = tool_stream_view.last().value
+        return tool_stream_view.last().value
+
+    def get_tool(self, tool, tool_parameters):
+        """
+        Gets the tool object from the tool channel, and instantiates it using the tool parameters
+        :param tool: The name or stream id for the tool in the tool channel
+        :param tool_parameters: The parameters for the tool
+        :return: The instantiated tool object
+        """
+        tool_class = self.get_tool_class(tool)
 
         # Check that the number of arguments is correct for this tool
         arg_spec = inspect.getargspec(tool_class.__init__)

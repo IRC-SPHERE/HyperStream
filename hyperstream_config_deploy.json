@@ -1,7 +1,7 @@
 {
     "mongo": {
         "host": "localhost",
-        "port": 27018,
+        "port": 27017,
         "tz_aware": true,
         "username": "dbuser",
         "password": "rYYr7QEeD5",
