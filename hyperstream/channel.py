@@ -25,6 +25,7 @@ from stream import StreamId, DatabaseStream
 from time_interval import TimeIntervals
 
 from mongoengine import DoesNotExist, MultipleObjectsReturned
+from mongoengine.context_managers import switch_db
 import inspect
 import logging
 from collections import namedtuple
@@ -81,39 +82,42 @@ class ChannelManager(ChannelCollectionBase, Printable):
         Pulls out all of the stream definitions from the database, and populates the channels with stream references
         :return: None
         """
-        for s in StreamDefinitionModel.objects():
-            stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
-            channel = self.get_channel(s.channel_id)
+        with switch_db(StreamDefinitionModel, 'hyperstream'):
+            for s in StreamDefinitionModel.objects():
+                stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
+                channel = self.get_channel(s.channel_id)
 
-            if stream_id in channel.streams:
-                raise StreamAlreadyExistsError(stream_id)
+                if stream_id in channel.streams:
+                    raise StreamAlreadyExistsError(stream_id)
 
-            from channels import MemoryChannel, DatabaseChannel
-            if isinstance(channel, MemoryChannel):
-                channel.create_stream(stream_id)
-            elif isinstance(channel, DatabaseChannel):
-                calculated_intervals = None
-                try:
-                    status = StreamStatusModel.objects.get(__raw__=stream_id.as_raw())
-                    calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end), status.calculated_intervals))
-                except DoesNotExist as e:
-                    logging.debug(e)
-                    status = StreamStatusModel(
-                        stream_id=stream_id.as_dict(),
-                        calculated_intervals=[],
-                        last_accessed=utcnow(),
-                        last_updated=utcnow())
-                    status.save()
-                except MultipleObjectsReturned as e:
-                    raise e
+                from channels import MemoryChannel, DatabaseChannel
+                if isinstance(channel, MemoryChannel):
+                    channel.create_stream(stream_id)
+                elif isinstance(channel, DatabaseChannel):
+                    calculated_intervals = None
+                    with switch_db(StreamStatusModel, 'hyperstream'):
+                        try:
+                            status = StreamStatusModel.objects.get(__raw__=stream_id.as_raw())
+                            calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end),
+                                                                     status.calculated_intervals))
+                        except DoesNotExist as e:
+                            logging.debug(e)
+                            status = StreamStatusModel(
+                                stream_id=stream_id.as_dict(),
+                                calculated_intervals=[],
+                                last_accessed=utcnow(),
+                                last_updated=utcnow())
+                            status.save()
+                        except MultipleObjectsReturned as e:
+                            raise e
 
-                channel.streams[stream_id] = DatabaseStream(
-                    channel=channel,
-                    stream_id=stream_id,
-                    calculated_intervals=calculated_intervals,
-                    sandbox=s.sandbox)
-            else:
-                raise NotImplementedError
+                    channel.streams[stream_id] = DatabaseStream(
+                        channel=channel,
+                        stream_id=stream_id,
+                        calculated_intervals=calculated_intervals,
+                        sandbox=s.sandbox)
+                else:
+                    raise NotImplementedError
 
     def get_tool(self, tool, tool_parameters):
         """

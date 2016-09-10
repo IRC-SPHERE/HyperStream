@@ -26,6 +26,7 @@ import logging
 # from copy import deepcopy
 from collections import Iterable, namedtuple, deque
 from datetime import datetime
+from mongoengine.context_managers import switch_db
 
 
 class StreamView(Printable):
@@ -285,17 +286,19 @@ class DatabaseStream(Stream):
         raise an exception if it does.
         :return: None
         """
-        stream_definition = StreamDefinitionModel(
-            stream_id=self.stream_id.as_dict(),
-            channel_id=self.channel.channel_id,
-            sandbox=self.sandbox)
-        stream_definition.save()
+        with switch_db(StreamDefinitionModel, 'hyperstream'):
+            stream_definition = StreamDefinitionModel(
+                stream_id=self.stream_id.as_dict(),
+                channel_id=self.channel.channel_id,
+                sandbox=self.sandbox)
+            stream_definition.save()
 
     @property
     def calculated_intervals(self):
-        status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
-        calculated_intervals = TimeIntervals(map(lambda x: TimeInterval(x.start, x.end), status.calculated_intervals))
-        return calculated_intervals
+        with switch_db(StreamStatusModel, 'hyperstream'):
+            status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
+            calculated_intervals = TimeIntervals(map(lambda x: TimeInterval(x.start, x.end), status.calculated_intervals))
+            return calculated_intervals
 
     @calculated_intervals.setter
     def calculated_intervals(self, intervals):
@@ -304,21 +307,10 @@ class DatabaseStream(Stream):
         :param intervals: The calculated intervals
         :return: None
         """
-        # status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
-        # status.calculated_intervals = tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
-        #
-        # status = StreamStatusModel(
-        #     stream_id=self.stream_id.as_dict(),
-        #     last_updated=utcnow(),
-        #     # last_accessed=utcnow(),
-        #     calculated_intervals=tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
-        # )
-        #
-        # status.save()
-
-        StreamStatusModel.objects(__raw__=self.stream_id.as_raw()).modify(
-            upsert=True,
-            set__stream_id=self.stream_id.as_dict(),
-            set__last_updated=utcnow(),
-            set__calculated_intervals=tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
-        )
+        with switch_db(StreamStatusModel, 'hyperstream'):
+            StreamStatusModel.objects(__raw__=self.stream_id.as_raw()).modify(
+                upsert=True,
+                set__stream_id=self.stream_id.as_dict(),
+                set__last_updated=utcnow(),
+                set__calculated_intervals=tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
+            )

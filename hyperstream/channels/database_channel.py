@@ -27,6 +27,7 @@ from ..errors import StreamAlreadyExistsError
 
 import logging
 from mongoengine import NotUniqueError
+from mongoengine.context_managers import switch_db
 
 
 class DatabaseChannel(BaseChannel):
@@ -62,8 +63,9 @@ class DatabaseChannel(BaseChannel):
         """
         query = stream.stream_id.as_raw()
         query['datetime'] = {'$gt': time_interval.start, '$lte': time_interval.end}
-        for instance in StreamInstanceModel.objects(__raw__=query):
-            yield StreamInstance(timestamp=instance.datetime, value=instance.value)
+        with switch_db(StreamInstanceModel, 'hyperstream'):
+            for instance in StreamInstanceModel.objects(__raw__=query):
+                yield StreamInstance(timestamp=instance.datetime, value=instance.value)
 
     def create_stream(self, stream_id, sandbox=None):
         """
@@ -90,23 +92,9 @@ class DatabaseChannel(BaseChannel):
         """
 
         def writer(document_collection):
-            if isinstance(document_collection, StreamInstance):
-                t, doc = document_collection
-                instance = StreamInstanceModel(
-                    stream_id=stream.stream_id.as_dict(),
-                    datetime=t,
-                    value=doc)
-                try:
-                    instance.save()
-                except NotUniqueError as e:
-                    # TODO: Should now be fixed
-                    # pass
-                    raise e
-                    # logging.warn(e)
-                
-            else:
-            # TODO: Presumably this should be overridden by users' personal channels - allows for non-mongo outputs.
-                for t, doc in document_collection:
+            with switch_db(StreamInstanceModel, 'hyperstream'):
+                if isinstance(document_collection, StreamInstance):
+                    t, doc = document_collection
                     instance = StreamInstanceModel(
                         stream_id=stream.stream_id.as_dict(),
                         datetime=t,
@@ -118,4 +106,19 @@ class DatabaseChannel(BaseChannel):
                         # pass
                         raise e
                         # logging.warn(e)
-        return writer
+
+                else:
+                # TODO: Presumably this should be overridden by users' personal channels - allows for non-mongo outputs.
+                    for t, doc in document_collection:
+                        instance = StreamInstanceModel(
+                            stream_id=stream.stream_id.as_dict(),
+                            datetime=t,
+                            value=doc)
+                        try:
+                            instance.save()
+                        except NotUniqueError as e:
+                            # TODO: Should now be fixed
+                            # pass
+                            raise e
+                            # logging.warn(e)
+            return writer
