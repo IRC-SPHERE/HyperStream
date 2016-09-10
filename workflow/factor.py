@@ -96,4 +96,4 @@ class Factor(Printable):
         if plate is not None or plate_value is not None:
             # TODO: Need to implement alignment nodes that live inside plates
             raise NotImplementedError("Currently only alignment nodes outside of plates are supported")
-        return self.alignment_node.streams[plate][plate_value]
+        return self.alignment_node.streams[plate]

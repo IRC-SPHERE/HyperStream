@@ -36,6 +36,11 @@ class Clock(Tool):
         super(Clock, self).__init__(first=first, stride=stride)
         # TODO: type checking
         self.first = first
+        
+        if isinstance(stride, float):
+            stride = timedelta(seconds=stride)
+            
+        assert isinstance(stride, timedelta)
         self.stride = stride
 
     def message(self, interval):
