@@ -25,13 +25,13 @@ from hyperstream import TimeInterval
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.utils import MIN_DATE
-from hyperstream.time_interval import RelativeTimeInterval
 from datetime import timedelta
 import logging
 
 
 class SlidingWindow(Tool):
-    def __init__(self, first=MIN_DATE, lower=timedelta(seconds=-1), upper=timedelta(seconds=0), increment=timedelta(seconds=1)):
+    def __init__(self, first=MIN_DATE, lower=timedelta(seconds=-1), upper=timedelta(seconds=0),
+                 increment=timedelta(seconds=1)):
         """
         Simple clock ticker tool
         :param first: Start of the clock

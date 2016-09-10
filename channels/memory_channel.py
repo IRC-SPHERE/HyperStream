@@ -117,7 +117,7 @@ class ReadOnlyMemoryChannel(BaseChannel):
         if up_to_timestamp > MIN_DATE:
             self.update_streams(up_to_timestamp)
             self.update_state(up_to_timestamp)
-    
+
     def create_stream(self, stream_id, sandbox=None):
         raise RuntimeError("Read-only channel")
     
