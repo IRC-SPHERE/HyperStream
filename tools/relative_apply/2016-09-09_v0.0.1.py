@@ -36,8 +36,8 @@ class RelativeApply(Tool):
             vals = defaultdict(list)
             
             for row in rows:
-                for kk, vv in row.value.iteritems():
+                for kk, vv in iter(row.value):
                     if isinstance(vv, (int, float)):
                         vals[kk].append(vv)
                     
-            yield StreamInstance(tt, {kk: self.func(vv) for kk, vv in vals.iteritems()})
+            yield StreamInstance(tt, {kk: self.func(vv) for kk, vv in iter(vals)})

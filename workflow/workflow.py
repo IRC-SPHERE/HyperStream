@@ -54,7 +54,7 @@ class Workflow(Printable):
         self.nodes = {}
         self.execution_order = []
         self.factor_collections = defaultdict(list)
-        
+
         logging.info("New workflow created with id {}".format(workflow_id))
     
     def execute(self, time_interval):
