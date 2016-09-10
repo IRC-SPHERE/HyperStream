@@ -22,6 +22,7 @@ from ..utils import Printable, MetaDataTree
 from ..models import PlateDefinitionModel
 
 import logging
+from mongoengine.context_managers import switch_db
 
 
 class Plate(Printable):
@@ -44,52 +45,53 @@ class PlateManager(Printable):
         logging.info(self.global_plate_definitions)
 
         # Plate definitions (arrays of streams)
-        for p in PlateDefinitionModel.objects:
-            if not p.values and not p.complement:
-                raise ValueError("Empty values in plate definition and complement=False")
+        with switch_db(PlateDefinitionModel, db_alias="hyperstream"):
+            for p in PlateDefinitionModel.objects:
+                if not p.values and not p.complement:
+                    raise ValueError("Empty values in plate definition and complement=False")
 
-            """
-            Want to get meta-data dictionaries for all plate combinations
-            e.g.
+                """
+                Want to get meta-data dictionaries for all plate combinations
+                e.g.
 
-            H plate, want
+                H plate, want
 
-            {'H': [
-              {'house': '1'},
-              {'house': '2'}
-            ]}
+                {'H': [
+                  {'house': '1'},
+                  {'house': '2'}
+                ]}
 
-            H1 plate, want
+                H1 plate, want
 
-            {'H1': [{'house': '1'}]}
+                {'H1': [{'house': '1'}]}
 
-            H.R plate, want
+                H.R plate, want
 
-            {'H.R': [
-              {'house': '1', 'resident': '1'},
-              {'house': '1': 'resident': '2'},
-              {'house': '2': 'resident': '1'}
-            }
-            """
+                {'H.R': [
+                  {'house': '1', 'resident': '1'},
+                  {'house': '1': 'resident': '2'},
+                  {'house': '2': 'resident': '1'}
+                }
+                """
 
-            if p.plate_id in (u'H1', u'H1.kitchen', u'H1_str'):
-                logging.debug(p.plate_id)
+                if p.plate_id in (u'H1', u'H1.kitchen', u'H1_str'):
+                    logging.debug(p.plate_id)
 
-            values = []
-            for n in self.global_plate_definitions.all_nodes():
-                if n.tag == p.meta_data_id:
-                    if not p.values or n.data in p.values:
-                        if p.parent_plate:
-                            # This plate has parent plates, so we need to get parent data for the node
-                            values.insert(0, self.get_parent_data(self.global_plate_definitions, n, {n.tag: n.data}))
-                        else:
-                            values.insert(0, {n.tag: n.data})
-                    # else:
-                    #     logging.warn('Invalid plate value "{}" for node id "{}"'.format(n.data, n.identifier))
-            if not values:
-                raise ValueError("Plate values for {} empty".format(p.plate_id))
+                values = []
+                for n in self.global_plate_definitions.all_nodes():
+                    if n.tag == p.meta_data_id:
+                        if not p.values or n.data in p.values:
+                            if p.parent_plate:
+                                # This plate has parent plates, so we need to get parent data for the node
+                                values.insert(0, self.get_parent_data(self.global_plate_definitions, n, {n.tag: n.data}))
+                            else:
+                                values.insert(0, {n.tag: n.data})
+                                # else:
+                                #     logging.warn('Invalid plate value "{}" for node id "{}"'.format(n.data, n.identifier))
+                if not values:
+                    raise ValueError("Plate values for {} empty".format(p.plate_id))
 
-            self.plates[p.plate_id] = Plate(meta_data_id=p.meta_data_id, values=values)
+                self.plates[p.plate_id] = Plate(meta_data_id=p.meta_data_id, values=values)
 
     @staticmethod
     def get_parent_data(tree, node, d):
