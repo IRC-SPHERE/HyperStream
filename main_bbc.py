@@ -20,6 +20,7 @@
 
 import logging
 from datetime import datetime, timedelta
+import numpy as np
 
 from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client, \
     TimeInterval  # , StreamView
@@ -85,36 +86,47 @@ if __name__ == '__main__':
 
     # Perform sliding window aggregation on each of the environmental streams
     environmental_aggregators = {
-      'humid':'mean',
-      'dust':'mean',
-      'noise':'mean',
-      'temp':'mean',
-      'pir':'max',
-      'coldwater':'integrate',
-      'hotwater':'integrate',
-      'electricity_tv':'max',
-      'electricity_total':'max',
+      'humid': 'mean',
+      'dust': 'mean',
+      'noise': 'mean',
+      'temp': 'mean',
+      'pir': 'max',
+      'coldwater': 'integrate',
+      'hotwater': 'integrate',
+      'electricity_tv': 'max',
+      'electricity_total': 'max',
     }
 
     n_environmental_rw = w.create_node(stream_name='environmental_rw', channel=M, plate_ids=['H1.L'])
-    factor = w.create_factor(tool_name="relative_window",
-                             tool_parameters=dict(relative_start=-10, relative_end=0),
-                             source_nodes=[n_environmental],
-                             alignment_node=None,
-                             sink_node=n_environmental_rw)
+    w.create_factor(tool_name="relative_window",
+                    tool_parameters=dict(relative_start=-10, relative_end=0),
+                    source_nodes=[n_environmental],
+                    alignment_node=None,
+                    sink_node=n_environmental_rw)
 
     n_environmental_10s = w.create_node(stream_name="environmental_10s", channel=M, plate_ids=["H1.L"])
-    factor = w.create_factor(tool_name="relative_apply",
-                             tool_parameters=dict(agg_functions=environmental_aggregators),
-                             source_nodes=[n_environmental_rw],
-                             alignment_node=n_clock_10s,
-                             sink_node=n_environmental_10s)
+    w.create_factor(tool_name="relative_apply",
+                    tool_parameters=dict(func=environmental_aggregators),
+                    source_nodes=[n_environmental_rw],
+                    alignment_node=n_clock_10s,
+                    sink_node=n_environmental_10s)
+
+    # Create relative window over the humidity
+    n_humid_10s = w.create_node(stream_name="humid_10s", channel=M, plate_ids=["H1.L"])
+    w.create_factor(tool_name="relative_window",
+                    tool_parameters=dict(relative_start=-10.001, relative_end=0),
+                    source_nodes=[n_environmental_10s],
+                    alignment_node=None,
+                    sink_node=n_humid_10s)
+
+    # TODO: why does this difference need an alignment node?
 
     # Calculate humidity differences for each of the humidity sensors
     n_humid_diff_10s = w.create_node(stream_name="humid_diff_10s", channel=M, plate_ids=["H1.L"])
-    factor = w.create_factor(tool_name="difference", tool_parameters=dict(),
-                             source_nodes=[n_environmental_10s.rel_window(-10.001,0)],
-                             alignment_node=n_clock_10s, sink_node=n_humid_diff_10s)
+    w.create_factor(tool_name="apply", tool_parameters=dict(func=lambda x: np.diff(x)),
+                    source_nodes=[n_humid_10s],
+                    alignment_node=n_clock_10s,
+                    sink_node=n_humid_diff_10s)
 
     # Perform sliding window aggregation on the RSSI stream
     rssi_aggregators = {
@@ -170,8 +182,6 @@ if __name__ == '__main__':
 # dts$a_shower = 1*((dts$inactive>=0.2) & (dts$bathroom_humdiff>=10) & (dts$electot>=0.2))
 # dts$a_bathe = 1*((dts$inactive>=0.2) & (dts$bathroom_humdiff>=10) & (dts$electot<0.2))
 # dts$a_mealprep = 1*((dts$room=="Kitchen") & (dts$kitchen_water>=1) & (dts$electot>=0.2))
-
-
 
     # Execute the workflow
     w.execute(time_interval)
