@@ -42,7 +42,9 @@ if __name__ == '__main__':
 
     # Various constants
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
-    t2 = datetime(2016, 4, 29, 12, 0, 0, 0, UTC)
+    # TODO: Shorted time interval for now
+    # t2 = datetime(2016, 4, 29, 12, 0, 0, 0, UTC)
+    t2 = datetime(2016, 4, 28, 20, 1, 0, 0, UTC)
     second = timedelta(seconds=1)
     minute = timedelta(minutes=1)
     hour = timedelta(hours=1)
@@ -65,24 +67,25 @@ if __name__ == '__main__':
     time_interval = TimeInterval(t1, t2)
 
     # Get environmental streams from the database
-    n_environmental = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1.L"])
+    # TODO: TD Changed the plate from H1.L to H1 for now
+    n_environmental = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1"])
     factor = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
-                             source_nodes=None, alignment_node=None, sink_node=n_environmental)
+                             source_nodes=None, alignment_node=None, sink_node=n_environmental).execute(time_interval)
 
     # Get wearable streams from the database
     n_wearable = w.create_node(stream_name="wearable", channel=S, plate_ids=["H1"])
     factor = w.create_factor(tool_name="sphere", alignment_node=None, tool_parameters=dict(modality="wearable"),
-                             source_nodes=None, sink_node=n_wearable)
+                             source_nodes=None, sink_node=n_wearable).execute(time_interval)
 
     # Get RSSI stream from the database
     n_rssi = w.create_node(stream_name="rssi", channel=S, plate_ids=["H1"])
-    factor = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="rssi"),
-                             source_nodes=None, alignment_node=None, sink_node=n_rssi)
+    factor = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements={"rssi"}),
+                             source_nodes=None, alignment_node=None, sink_node=n_rssi).execute(time_interval)
 
     # Get the clock ticks every 10s to perform sliding window averaging
     n_clock_10s = w.create_node(stream_name="clock_10s", channel=M, plate_ids=None)
     factor = w.create_factor(tool_name="clock", tool_parameters=dict(stride=10*second),
-                             source_nodes=None, alignment_node=None, sink_node=n_clock_10s)
+                             source_nodes=None, alignment_node=None, sink_node=n_clock_10s).execute(time_interval)
 
     # Perform sliding window aggregation on each of the environmental streams
     environmental_aggregators = {
@@ -97,36 +100,40 @@ if __name__ == '__main__':
       'electricity_total': 'max',
     }
 
-    n_environmental_rw = w.create_node(stream_name='environmental_rw', channel=M, plate_ids=['H1.L'])
+    # TODO: TD Changed the plate from H1.L to H1 for now
+    n_environmental_rw = w.create_node(stream_name='environmental_rw', channel=M, plate_ids=['H1'])
     w.create_factor(tool_name="relative_window",
                     tool_parameters=dict(relative_start=-10, relative_end=0),
                     source_nodes=[n_environmental],
-                    alignment_node=None,
-                    sink_node=n_environmental_rw)
+                    alignment_node=n_clock_10s,
+                    sink_node=n_environmental_rw).execute(time_interval)
 
-    n_environmental_10s = w.create_node(stream_name="environmental_10s", channel=M, plate_ids=["H1.L"])
+    # TODO: TD Changed the plate from H1.L to H1 for now
+    n_environmental_10s = w.create_node(stream_name="environmental_10s", channel=M, plate_ids=["H1"])
     w.create_factor(tool_name="relative_apply",
                     tool_parameters=dict(func=environmental_aggregators),
                     source_nodes=[n_environmental_rw],
-                    alignment_node=n_clock_10s,
-                    sink_node=n_environmental_10s)
+                    alignment_node=None,
+                    sink_node=n_environmental_10s).execute(time_interval)
 
     # Create relative window over the humidity
-    n_humid_10s = w.create_node(stream_name="humid_10s", channel=M, plate_ids=["H1.L"])
+    # TODO: TD Changed the plate from H1.L to H1 for now
+    n_humid_10s = w.create_node(stream_name="humid_10s", channel=M, plate_ids=["H1"])
     w.create_factor(tool_name="relative_window",
                     tool_parameters=dict(relative_start=-10.001, relative_end=0),
                     source_nodes=[n_environmental_10s],
-                    alignment_node=None,
-                    sink_node=n_humid_10s)
+                    alignment_node=n_clock_10s,
+                    sink_node=n_humid_10s).execute(time_interval)
 
     # TODO: why does this difference need an alignment node?
 
     # Calculate humidity differences for each of the humidity sensors
-    n_humid_diff_10s = w.create_node(stream_name="humid_diff_10s", channel=M, plate_ids=["H1.L"])
-    w.create_factor(tool_name="apply", tool_parameters=dict(func=lambda x: np.diff(x)),
+    # TODO: TD Changed the plate from H1.L to H1 for now
+    n_humid_diff_10s = w.create_node(stream_name="humid_diff_10s", channel=M, plate_ids=["H1"])
+    w.create_factor(tool_name="relative_apply", tool_parameters=dict(func=lambda x: np.diff(x)),
                     source_nodes=[n_humid_10s],
                     alignment_node=n_clock_10s,
-                    sink_node=n_humid_diff_10s)
+                    sink_node=n_humid_diff_10s).execute(time_interval)
 
     # Perform sliding window aggregation on the RSSI stream
     rssi_aggregators = {
@@ -135,46 +142,48 @@ if __name__ == '__main__':
         'hallway': 'mean',
     }
 
+    raise Exception("TD: Executing up to here")
+
     n_rssi_10s = w.create_node(stream_name="rssi_10s", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool_name="sliding_window_aggregator",
                              tool_parameters=dict(agg_functions=rssi_aggregators),
                              source_nodes=[n_rssi.rel_window(-10,0)],
-                             alignment_node=n_clock_10s, sink_node=n_rssi_10s)
+                             alignment_node=n_clock_10s, sink_node=n_rssi_10s).execute(time_interval)
 
     # Perform localisation based on the RSSI stream
     n_localisation_10s = w.create_node(stream_name="localisation_10s", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool_name="localiser", tool_parameters=dict(),
-                             source_nodes=[n_rssi_10s], alignment_node=n_clock_10s, sink_node=n_localisation_10s)
+                             source_nodes=[n_rssi_10s], alignment_node=n_clock_10s, sink_node=n_localisation_10s).execute(time_interval)
 
     # Perform Van Hees inactivity prediction based on the wearable stream
     n_van_hees_10s = w.create_node(stream_name="van_hees_10s", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool_name="van_hees_algorithm", tool_parameters=dict(),
                              source_nodes=[n_wearable.rel_window(-10,0)],
                              alignment_node=n_clock_10s,
-                             sink_node=n_van_hees_10s)  # rel_window might have some other size
+                             sink_node=n_van_hees_10s).execute(time_interval)  # rel_window might have some other size
 
     # Apply rules to predict activities
     n_activities_10s = w.create_node(stream_name="activities_10s", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool_name="activity_recogniser", tool_parameters=dict(),
                              source_nodes=[n_localisation_10s,n_environmental_10s,n_humid_diff_10s,n_van_hees_10s],
-                             alignment_node=n_clock_10s, sink_node=n_activities_10s)
+                             alignment_node=n_clock_10s, sink_node=n_activities_10s).execute(time_interval)
 
     # Get the clock ticks every 5m to perform sliding window averaging
     n_clock_5m = w.create_node(stream_name="clock_5m", channel=M, plate_ids=[])
     factor = w.create_factor(tool_name="clock", tool_parameters=dict(stride=5*minute),
-                             source_nodes=None, alignment_node=None, sink_node=n_clock_5m)
+                             source_nodes=None, alignment_node=None, sink_node=n_clock_5m).execute(time_interval)
 
     # Aggregate activity predictions within 5min periods
     n_activities_5m = w.create_node(stream_name="activities_5m", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool_name="sliding_window_aggregator", tool_parameters=dict(agg_functions='mode'),
                              source_nodes=[n_activities_10s.rel_window(-5*60,0)], alignment_node=n_clock_5m,
-                             sink_node=n_activities_5m)
+                             sink_node=n_activities_5m).execute(time_interval)
 
     # Produce a summary
     n_bbc_summary = w.create_node(stream_name="bbc_summary", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool_name="bbc_summariser", tool_parameters=dict(),
                              source_nodes=[n_activities_5m.abs_window(t1,t2)],
-                             alignment_node=None, sink_node=n_bbc_summary)
+                             alignment_node=None, sink_node=n_bbc_summary).execute(time_interval)
 
 # dts$a_watchtv = 1*((dts$room=="Living.Room") & (dts$electv>=0.2))
 # dts$a_work = 1*((dts$room=="Living.Room") & (dts$electv<0.5) & (dts$mins>=30))
