@@ -24,7 +24,6 @@ from hyperstream.channels.sphere_channel import SphereDataWindow
 from hyperstream.stream import StreamInstance
 
 
-
 class RelativeApply(Tool):
     def __init__(self, func):
         super(RelativeApply, self).__init__(func=func)
@@ -36,8 +35,16 @@ class RelativeApply(Tool):
             vals = defaultdict(list)
             
             for row in rows:
-                for kk, vv in row.value.iteritems():
-                    if isinstance(vv, (int, float)):
-                        vals[kk].append(vv)
+                try:
+                    for kk, vv in iter(row.value):
+                        if isinstance(vv, (int, float)):
+                            vals[kk].append(vv)
+                except AttributeError:
+                    # This is not iterable, try to apply directly here
+                    if isinstance(row, (int, float)):
+                        vals[None].append(row)
 
-            yield StreamInstance(tt, {kk: self.func(vv) for kk, vv in vals.iteritems()})
+            if len(vals) == 1 and None in vals:
+                yield StreamInstance(tt, self.func(iter(vals[None])))
+            else:
+                yield StreamInstance(tt, {kk: self.func(vv) for kk, vv in iter(vals)})

@@ -36,8 +36,6 @@ class ComponentFilter(Tool):
 
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
-        if alignment_stream:
-            raise NotImplementedError
         for time, data in sources[0].window(interval):
             if self.complement:
                 if data[self.key] not in self.values:
