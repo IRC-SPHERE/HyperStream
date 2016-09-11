@@ -57,20 +57,24 @@ class Tool(Printable, Hashable):
                 'The stream is not available after {} and cannot be calculated'.format(self.up_to_timestamp))
 
         required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
+
         if not required_intervals.is_empty:
+            produced_data = False
+
             for interval in required_intervals:
-                source_views = [source for source in sources] if sources else None
                 for stream_instance in self._execute(
-                        sources=source_views, alignment_stream=alignment_stream, interval=interval):
+                        sources=sources, alignment_stream=alignment_stream, interval=interval):
                     sink.writer(stream_instance)
+                    produced_data = True
                 sink.calculated_intervals += TimeIntervals([interval])
 
             required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
             if not required_intervals.is_empty:
-                raise RuntimeError('Tool execution did not cover the specified time interval.')
+                raise RuntimeError('Tool execution did not cover the time interval {}.'.format(required_intervals))
 
-        # for stream_instance in self._execute(sources, interval):
-        #     sink.writer(stream_instance)
+            if not produced_data:
+                # TODO: Change this to logging.warn once debugging is finished
+                raise RuntimeError("Tool did not produce any data for time interval {}".format(required_intervals))
 
 
 def check_input_stream_count(expected_number_of_streams):

@@ -35,8 +35,8 @@ class SlidingWindow(Tool):
         """
         Simple clock ticker tool
         :param first: Start of the clock
-        :param width: The width of the sliding execute
-        :param increment: The increment of the sliding execute
+        :param lower: The lower end of the sliding execute
+        :param upper: The upper end of the sliding execute
         """
         super(SlidingWindow, self).__init__(
             first=first,
@@ -45,11 +45,13 @@ class SlidingWindow(Tool):
             increment=increment
         )
 
-        assert(upper > lower)
-        assert(isinstance(lower, timedelta))
-        assert(isinstance(upper, timedelta))
-        assert(isinstance(increment, timedelta))
-        
+        if upper <= lower:
+            raise ValueError("upper should be strictly greater than lower")
+
+        lower = get_timedelta(lower)
+        upper = get_timedelta(upper)
+        increment = get_timedelta(increment)
+
         self.first = first
         self.lower = upper
         self.width = upper - lower
@@ -70,3 +72,12 @@ class SlidingWindow(Tool):
 
             lower += self.increment
             upper += self.increment
+
+
+def get_timedelta(value):
+    if isinstance(value, int):
+        return timedelta(seconds=value)
+    elif isinstance(value, timedelta):
+        return value
+    else:
+        raise ValueError("Expected int or timedelta, got {}".format(type(value)))

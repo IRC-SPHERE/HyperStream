@@ -63,10 +63,10 @@ class Workflow(Printable):
         :return:
         """
         # TODO: Currently expects the factors to be declared sequentially
-        for factor_name in self.execution_order:
-            for factor in self.factor_collections[factor_name]:
         # for factor_collection in self.factor_collections.values()[::-1]:
         #     for factor in factor_collection:
+        for factor_name in self.execution_order:
+            for factor in self.factor_collections[factor_name]:
                 logging.debug("Executing factor {}".format(factor))
                 factor.execute(time_interval)
             
