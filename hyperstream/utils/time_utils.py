@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class UTC(pytz.UTC):
@@ -33,3 +33,12 @@ MAX_DATE = datetime.max.replace(tzinfo=UTC)
 
 def utcnow():
     return datetime.utcnow().replace(tzinfo=UTC)
+
+
+def get_timedelta(value):
+    if isinstance(value, (int, float)):
+        return timedelta(seconds=value)
+    elif isinstance(value, timedelta):
+        return value
+    else:
+        raise ValueError("Expected int or timedelta, got {}".format(type(value)))
