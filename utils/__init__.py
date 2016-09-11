@@ -19,5 +19,5 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from utils import MetaDataTree, Hashable, Printable, TypedBiDict, FrozenKeyDict
-from time_utils import UTC, MIN_DATE, MAX_DATE, utcnow
+from time_utils import UTC, MIN_DATE, MAX_DATE, utcnow, get_timedelta
 from decorators import timeit, check_output_format, check_tool_defined
