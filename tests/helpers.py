@@ -66,12 +66,15 @@ aggregate = StreamId('aggregate')
 every30s = StreamId('every30s')
 motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
 env_kitchen_30_s_window = StreamId('env_kitchen_30_s_window')
+kitchen = StreamId("kitchen")
+kitchen_motion = StreamId('kitchen_motion')
 m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
 average = StreamId('average')
 count = StreamId('count')
 sphere_silhouette = StreamId('sphere_silhouette')
 sphere = StreamId('sphere')
 component = StreamId('component')
+component_filter = StreamId('component_filter')
 
 
 # Some tools
