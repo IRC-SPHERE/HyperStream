@@ -18,7 +18,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from utils import MIN_DATE, utcnow, UTC, Printable
+from utils import MIN_DATE, utcnow, UTC, Printable, get_timedelta
 
 from datetime import date, datetime, timedelta
 from dateutil.parser import parse
@@ -125,7 +125,11 @@ class TimeInterval(object):
         
         if self._end is not None and val >= self._end:
             raise ValueError("start should be < end")
-    
+
+    @property
+    def width(self):
+        return self.end - self.start
+
     @property
     def start(self):
         return self._start
@@ -174,25 +178,16 @@ class RelativeTimeInterval(TimeInterval):
     Thin wrapper around a (start, end) tuple of timedelta objects that provides some validation
     """
     def __init__(self, start, end):
-        if isinstance(start, int):
-            start_time = timedelta(seconds=start)
-        elif isinstance(start, timedelta):
-            start_time = start
-        else:
-            raise ValueError(start)
+        start = get_timedelta(start)
+        end = get_timedelta(end)
 
-        if isinstance(end, int):
-            # TODO: add check for future (positive values) and ensure that start < end
-            end_time = timedelta(seconds=end)
-        elif isinstance(end, timedelta):
-            end_time = end
-        else:
-            raise ValueError(end)
+        if start >= end:
+            raise ValueError("start should be strictly less than  end")
 
-        if start_time >= end_time:
-            raise ValueError("start should be < end")
+        if end > timedelta(0):
+            raise ValueError("relative time intervals in the future are not supported")
 
-        super(RelativeTimeInterval, self).__init__(start_time, end_time)
+        super(RelativeTimeInterval, self).__init__(start, end)
         
     def validate_types(self, val):
         if not isinstance(val, timedelta):
