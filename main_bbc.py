@@ -72,8 +72,8 @@ if __name__ == '__main__':
     # Get environmental streams from the database
     # TODO: TD Changed the plate from H1.L to H1 for now
     n_environmental = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1"])
-    factor = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
-                             source_nodes=None, alignment_node=None, sink_node=n_environmental).execute(time_interval)
+    w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"),
+                    source_nodes=None, alignment_node=None, sink_node=n_environmental).execute(time_interval)
 
     print("Environmental")
     for k, v in n_environmental.streams[key].window(time_interval).head(10):
@@ -81,8 +81,8 @@ if __name__ == '__main__':
 
     # Get wearable streams from the database
     n_wearable = w.create_node(stream_name="wearable", channel=S, plate_ids=["H1"])
-    factor = w.create_factor(tool_name="sphere", alignment_node=None, tool_parameters=dict(modality="wearable"),
-                             source_nodes=None, sink_node=n_wearable).execute(time_interval)
+    w.create_factor(tool_name="sphere", alignment_node=None, tool_parameters=dict(modality="wearable"),
+                    source_nodes=None, sink_node=n_wearable).execute(time_interval)
 
     print("Wearable")
     for k, v in n_wearable.streams[key].window(time_interval).head(10):
@@ -90,8 +90,8 @@ if __name__ == '__main__':
 
     # Get RSSI stream from the database
     n_rssi = w.create_node(stream_name="rssi", channel=S, plate_ids=["H1"])
-    factor = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements={"rss"}),
-                             source_nodes=None, alignment_node=None, sink_node=n_rssi).execute(time_interval)
+    w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements={"rss"}),
+                    source_nodes=None, alignment_node=None, sink_node=n_rssi).execute(time_interval)
 
     print("RSSI")
     for k, v in n_rssi.streams[key].window(time_interval).head(10):
@@ -99,8 +99,8 @@ if __name__ == '__main__':
 
     # Get the clock ticks every 10s to perform sliding window averaging
     n_clock_10s = w.create_node(stream_name="clock_10s", channel=M, plate_ids=None)
-    factor = w.create_factor(tool_name="clock", tool_parameters=dict(stride=10*second),
-                             source_nodes=None, alignment_node=None, sink_node=n_clock_10s).execute(time_interval)
+    w.create_factor(tool_name="clock", tool_parameters=dict(stride=10*second),
+                    source_nodes=None, alignment_node=None, sink_node=n_clock_10s).execute(time_interval)
 
     print("Clock 10s")
     for k, v in n_clock_10s.streams[None].window(time_interval).head(10):
@@ -172,7 +172,10 @@ if __name__ == '__main__':
     # TODO: why does this difference need an alignment node?
 
     def func(x):
-        return np.diff(x)
+        x = list(x)
+        if not x:
+            return None
+        return np.diff(x) if len(x) > 1 else None
 
     # Calculate humidity differences for each of the humidity sensors
     # TODO: TD Changed the plate from H1.L to H1 for now
@@ -203,9 +206,12 @@ if __name__ == '__main__':
     for k, v in n_rssi_10s.streams[key].window(time_interval).head(10):
         print("{}, {}".format(k, v))
 
+    def func2(x):
+        return np.mean(x)
+
     n_rssi_10s_mean = w.create_node(stream_name="rssi_10s_mean", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool_name="relative_apply",
-                             tool_parameters=dict(func=lambda x: np.mean(x)),
+                             tool_parameters=dict(func=func2),
                              source_nodes=[n_rssi_10s],
                              alignment_node=None, sink_node=n_rssi_10s_mean).execute(time_interval)
 
