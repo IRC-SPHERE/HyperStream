@@ -57,7 +57,9 @@ class RelativeApply2(Tool):
             # else:
             for kk, vv in values.iteritems():
                 try:
-                    v = {kk: self.func(kk, vv)}
-                    yield StreamInstance(tt, v)
+                    result = self.func(kk, vv)
+                    if result is not None:
+                        v = {kk: result}
+                        yield StreamInstance(tt, v)
                 except KeyError:
                     pass
