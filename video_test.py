@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     for element in ["2Dbb", "silhouette"]:
         for dw in windows:
-            data = dw.video.get_data(elements={element}, filters={'bt': {'$mod': [10, 0]}})
+            data = dw.video.get_data(elements={element}, filters={'bt': {'$mod': [10, 0]}}, rename_keys=False)
             print("")
             print(data[0].keys())
             print(data[0]['video-' + element])
