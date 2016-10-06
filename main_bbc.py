@@ -29,6 +29,12 @@ from hyperstream.utils import UTC, MIN_DATE
 from hyperstream.itertools2 import online_average, count as online_count
 from sphere_connector_package.sphere_connector import SphereLogger
 
+
+def print_head(node, plate_value, interval, n=10):
+    for k, v in node.streams[plate_value].window(interval).head(n):
+        print("{}, {}".format(k, v))
+
+
 if __name__ == '__main__':
     # TODO: hyperstream needs it's own logger (can be a clone of this one)
     sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
@@ -76,8 +82,7 @@ if __name__ == '__main__':
                     source_nodes=None, alignment_node=None, sink_node=n_environmental).execute(time_interval)
 
     print("Environmental")
-    for k, v in n_environmental.streams[key].window(time_interval).head(10):
-        print("{}, {}".format(k, v))
+    print_head(n_environmental, key, time_interval)
 
     # Get wearable streams from the database
     n_wearable = w.create_node(stream_name="wearable", channel=S, plate_ids=["H1"])
@@ -85,8 +90,7 @@ if __name__ == '__main__':
                     source_nodes=None, sink_node=n_wearable).execute(time_interval)
 
     print("Wearable")
-    for k, v in n_wearable.streams[key].window(time_interval).head(10):
-        print("{}, {}".format(k, v))
+    print_head(n_wearable, key, time_interval)
 
     # Get RSSI stream from the database
     n_rssi = w.create_node(stream_name="rssi", channel=S, plate_ids=["H1"])
@@ -94,8 +98,7 @@ if __name__ == '__main__':
                     source_nodes=None, alignment_node=None, sink_node=n_rssi).execute(time_interval)
 
     print("RSSI")
-    for k, v in n_rssi.streams[key].window(time_interval).head(10):
-        print("{}, {}".format(k, v))
+    print_head(n_rssi, key, time_interval)
 
     # Get the clock ticks every 10s to perform sliding window averaging
     n_clock_10s = w.create_node(stream_name="clock_10s", channel=M, plate_ids=None)
@@ -103,8 +106,7 @@ if __name__ == '__main__':
                     source_nodes=None, alignment_node=None, sink_node=n_clock_10s).execute(time_interval)
 
     print("Clock 10s")
-    for k, v in n_clock_10s.streams[None].window(time_interval).head(10):
-        print("{}, {}".format(k, v))
+    print_head(n_clock_10s, None, time_interval)
 
     # Perform sliding window aggregation on each of the environmental streams
     environmental_aggregators = {
@@ -128,8 +130,7 @@ if __name__ == '__main__':
                     sink_node=n_environmental_rw).execute(time_interval)
 
     print("Environmental relative window")
-    for k, v in n_environmental_rw.streams[key].window(time_interval).head(10):
-        print("{}, {}".format(k, v))
+    print_head(n_environmental_rw, key, time_interval)
 
     # TODO: TD Changed the plate from H1.L to H1 for now
     n_environmental_10s = w.create_node(stream_name="environmental_10s", channel=M, plate_ids=["H1"])
@@ -140,8 +141,7 @@ if __name__ == '__main__':
                     sink_node=n_environmental_10s).execute(time_interval)
 
     print("Environmental 10s aggregates")
-    for k, v in n_environmental_10s.streams[key].window(time_interval).head(10):
-        print("{}, {}".format(k, v))
+    print_head(n_environmental_10s, key, time_interval)
 
     # Get humidity component
     # TODO: TD Changed the plate from H1.L to H1 for now
@@ -153,8 +153,7 @@ if __name__ == '__main__':
                     sink_node=n_humid).execute(time_interval)
 
     print("Humidity")
-    for k, v in n_humid.streams[key].window(time_interval).head(10):
-        print("{}, {}".format(k, v))
+    print_head(n_humid, key, time_interval)
 
     # Create relative window over the humidity
     # TODO: TD Changed the plate from H1.L to H1 for now
@@ -166,8 +165,7 @@ if __name__ == '__main__':
                     sink_node=n_humid_10s).execute(time_interval)
 
     print("Humidity 10s aggregate")
-    for k, v in n_humid_10s.streams[key].window(time_interval).head(10):
-        print("{}, {}".format(k, v))
+    print_head(n_humid_10s, key, time_interval)
 
     # TODO: why does this difference need an alignment node?
 
@@ -186,8 +184,7 @@ if __name__ == '__main__':
                     sink_node=n_humid_diff_10s).execute(time_interval)
 
     print("Humidity differences")
-    for k, v in n_humid_diff_10s.streams[key].window(time_interval).head(10):
-        print("{}, {}".format(k, v))
+    print_head(n_humid_diff_10s, key, time_interval)
 
     # Perform sliding window aggregation on the RSSI stream
     rssi_aggregators = {
@@ -196,18 +193,27 @@ if __name__ == '__main__':
         'hallway': 'mean',
     }
 
+    # TODO: Needs to be separted into plates
+    n_rssi_vals = w.create_node(stream_name="rssi_vals", channel=M, plate_ids=["H1"])
+    factor = w.create_factor(tool_name="component",
+                             tool_parameters=dict(key="wearable-rss"),
+                             source_nodes=[n_rssi],
+                             alignment_node=None, sink_node=n_rssi_vals).execute(time_interval)
+
+    print("RSSI values only")
+    print_head(n_rssi_vals, key, time_interval)
+
     n_rssi_10s = w.create_node(stream_name="rssi_10s", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool_name="relative_window",
                              tool_parameters=dict(relative_start=-10, relative_end=0),
-                             source_nodes=[n_rssi],
+                             source_nodes=[n_rssi_vals],
                              alignment_node=n_clock_10s, sink_node=n_rssi_10s).execute(time_interval)
 
     print("RSSI relative window")
-    for k, v in n_rssi_10s.streams[key].window(time_interval).head(10):
-        print("{}, {}".format(k, v))
+    print_head(n_rssi_10s, key, time_interval)
 
     def func2(x):
-        return np.mean(x)
+        return np.mean(np.array(list(x), dtype=float))
 
     n_rssi_10s_mean = w.create_node(stream_name="rssi_10s_mean", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool_name="relative_apply",
@@ -216,8 +222,7 @@ if __name__ == '__main__':
                              alignment_node=None, sink_node=n_rssi_10s_mean).execute(time_interval)
 
     print("RSSI 10s average")
-    for k, v in n_rssi_10s_mean.streams[key].window(time_interval).head(10):
-        print("{}, {}".format(k, v))
+    print_head(n_rssi_10s_mean, key, time_interval)
 
     raise Exception("TD: Executing up to here")
 
