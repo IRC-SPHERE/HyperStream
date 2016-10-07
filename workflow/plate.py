@@ -26,7 +26,8 @@ from mongoengine.context_managers import switch_db
 
 
 class Plate(Printable):
-    def __init__(self, meta_data_id, values):
+    def __init__(self, plate_id, meta_data_id, values):
+        self.plate_id = plate_id
         self.meta_data_id = meta_data_id
         self.values = [tuple(sorted(pv.items())) for pv in values]
 
@@ -74,8 +75,11 @@ class PlateManager(Printable):
                 }
                 """
 
-                if p.plate_id in (u'H1', u'H1.kitchen', u'H1_str'):
-                    logging.debug(p.plate_id)
+                # if p.plate_id in (u'H1', u'H1.kitchen', u'H1_str'):
+                #     logging.debug(p.plate_id)
+
+                if p.plate_id == u"H1.L":
+                    pass
 
                 values = []
                 for n in self.global_plate_definitions.all_nodes():
@@ -83,15 +87,37 @@ class PlateManager(Printable):
                         if not p.values or n.data in p.values:
                             if p.parent_plate:
                                 # This plate has parent plates, so we need to get parent data for the node
+                                parent_plate_value = self.get_parent_plate_value(self.global_plate_definitions, n)
+                                if tuple(parent_plate_value) not in self.plates[p.parent_plate].values:
+                                    continue
                                 values.insert(0, self.get_parent_data(self.global_plate_definitions, n, {n.tag: n.data}))
                             else:
                                 values.insert(0, {n.tag: n.data})
-                                # else:
-                                #     logging.warn('Invalid plate value "{}" for node id "{}"'.format(n.data, n.identifier))
                 if not values:
                     raise ValueError("Plate values for {} empty".format(p.plate_id))
 
-                self.plates[p.plate_id] = Plate(meta_data_id=p.meta_data_id, values=values)
+                self.plates[p.plate_id] = Plate(plate_id=p.plate_id, meta_data_id=p.meta_data_id, values=values)
+                logging.debug(self.plates[p.plate_id])
+
+    def get_parent_plate_value(self, tree, node, value=None):
+        """
+        Recurse up the tree getting parent plate values
+        :param tree: The tree
+        :param node: The current node
+        :param value: The initial plate value
+        :return: The plate value as a list of tuples
+        """
+        if value is None:
+            value = []
+        parent = tree.parent(node.identifier)
+        if parent.is_root():
+            # value.append((parent.tag, parent.identifier))
+            return value
+        value = self.get_parent_plate_value(tree, parent, value)
+        if "." in parent.identifier:
+            pass
+        value.append((parent.tag, parent.data))
+        return value
 
     @staticmethod
     def get_parent_data(tree, node, d):
