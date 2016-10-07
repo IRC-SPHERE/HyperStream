@@ -20,7 +20,7 @@
 
 from ..utils import Printable, FrozenKeyDict, MIN_DATE, utcnow
 from node import Node
-from factor import Factor
+from factor import Factor, MultiOutputFactor
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
 from ..stream import StreamId  # , StreamView
 from ..errors import StreamNotFoundError, IncompatiblePlatesError
@@ -138,6 +138,51 @@ class Workflow(Printable):
         self.factor_collections[tool_name].append(factor)
         self.execution_order.append(tool_name)
         
+        return factor
+
+    def create_multi_output_factor(self, tool_name, tool_parameters, source_node, sink_node):
+        """
+        Creates a multi-output factor.
+        This takes a single node, applies a MultiOutputTool to create multiple nodes on a new plate
+        Instantiates a single tool for all of the input plate values,
+        and connects the source and sink nodes with that tool.
+        :param tool_name: The name of the tool to use
+        :param tool_parameters: The parameters for the tool. Note that these are currently fixed over a plate. For
+        parameters that vary over a plate, an extra input stream should be used
+        :param source_node: The source node
+        :param sink_node: The sink node
+        :return: The factor object
+        """
+        tool = self.channels.get_tool(tool=tool_name, tool_parameters=tool_parameters)
+
+        # Check that the input_plate are compatible - note this is the opposite way round to a normal factor
+        output_plates = [self.plates[plate_id] for plate_id in sink_node.plate_ids]
+
+        if len(output_plates) > 1:
+            raise NotImplementedError
+
+        # TODO: Make sure input plate is a parent of the output plate
+        # if source_node.plate_ids:
+        #     for p in source_node.plate_ids:
+        #         if p not in set(sink_plates):
+        #             raise IncompatiblePlatesError("{} not in sink node plate".format(p))
+        #     for p in sink_plates:
+        #         if p not in set(source_node.plate_ids):
+        #             raise IncompatiblePlatesError("{} not in source node plate".format(p))
+        #     input_plate = [self.plates[plate_id] for plate_id in source_node.plate_ids]
+        # else:
+        #     input_plate = None
+
+        input_plates = [self.plates[plate_id] for plate_id in source_node.plate_ids]
+
+        if len(input_plates) > 1:
+            raise NotImplementedError
+
+        factor = MultiOutputFactor(tool=tool, source_node=source_node, sink_node=sink_node,
+                                   input_plate=input_plates[0], output_plate=output_plates[0])
+        self.factor_collections[tool_name].append(factor)
+        self.execution_order.append(tool_name)
+
         return factor
 
 

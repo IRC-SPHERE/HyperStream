@@ -77,6 +77,80 @@ class Tool(Printable, Hashable):
                 raise RuntimeError("Tool did not produce any data for time interval {}".format(required_intervals))
 
 
+class MultiOutputTool(Printable, Hashable):
+    """
+    Special type of tool that outputs multiple streams on a new plate rather than a single stream.
+    There are in this case multiple sinks rather than a single sink, and a single source rather than multiple sources.
+    Note that no alignment stream is required here.
+    Also note that we don't subclass Tool due to different calling signatures
+    """
+    def __init__(self, **kwargs):
+        if kwargs:
+            logging.debug('Defining a {} tool with parameters {}'.format(self.__class__.__name__, kwargs))
+        else:
+            logging.debug('Defining a {} tool'.format(self.__class__.__name__))
+
+        self.sources = None
+        self.sink = None
+
+    def __eq__(self, other):
+        return isinstance(other, Tool) and hash(self) == hash(other)
+
+    def message(self, interval):
+        return '{} running from {} to {}'.format(self.__class__.__name__, str(interval.start), str(interval.end))
+
+    @property
+    def name(self):
+        return self.__class__.__module__
+
+    def _execute(self, source, sinks, interval, output_plate):
+        raise NotImplementedError
+
+    def execute(self, source, sinks, interval, input_plate_value, output_plate):
+        if not isinstance(interval, TimeInterval):
+            raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
+        logging.info(self.message(interval))
+
+        calculated_intervals = None
+
+        for sink in sinks:
+            if interval.end > sink.channel.up_to_timestamp:
+                raise ValueError(
+                    'The stream is not available after {} and cannot be calculated'.format(self.up_to_timestamp))
+            if calculated_intervals is None:
+                calculated_intervals = sink.calculated_intervals
+                continue
+            if sink.calculated_intervals != calculated_intervals:
+                # TODO: What we actually want to do here is find any parts of the sinks that haven't been calculated,
+                # and recompute all of the sinks for that time period. This would only happen if computation of one of
+                # the sinks failed for some reason. For now we will just assume that all sinks have been computed the
+                # same amount, and we will raise an exception if this is not the case
+                raise RuntimeError("Partially executed sinks not yet supported")
+
+        required_intervals = TimeIntervals([interval]) - calculated_intervals
+
+        if not required_intervals.is_empty:
+            produced_data = False
+
+            for interval in required_intervals:
+                for item in self._execute(source=source, sinks=sinks, interval=interval, output_plate=output_plate):
+                    # Join the output meta data with the parent plate meta data
+                    meta_data = input_plate_value + (item.meta_data,)
+                    sink = next(s for s in sinks if s.stream_id.meta_data == meta_data)
+                    sink.writer(item.stream_instance)
+                    produced_data = True
+
+            for sink in sinks:
+                sink.calculated_intervals += TimeIntervals([interval])
+                required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
+                if not required_intervals.is_empty:
+                    raise RuntimeError('Tool execution did not cover the time interval {}.'.format(required_intervals))
+
+            if not produced_data:
+                # TODO: Change this to logging.warn once debugging is finished
+                raise RuntimeError("Tool did not produce any data for time interval {}".format(required_intervals))
+
+
 def check_input_stream_count(expected_number_of_streams):
     """
     Decorator for Tool._execute that checks the number of input streams

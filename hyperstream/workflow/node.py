@@ -55,3 +55,11 @@ class Node(Printable):
         # TODO: Why only streams[0] below?
         keys = self.streams[0].stream_id.meta_data.keys()
         return StreamId(self.node_id, dict(*zip((kk, meta[kk]) for kk in keys)))
+
+    def print_head(self, plate_value, interval, n=10):
+        data = False
+        for k, v in self.streams[plate_value].window(interval).head(n):
+            data = True
+            print("{}, {}".format(k, v))
+        if not data:
+            print("No data")
