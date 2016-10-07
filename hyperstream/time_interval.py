@@ -100,6 +100,9 @@ class TimeIntervals(Printable):
     def __eq__(self, other):
         return isinstance(other, TimeIntervals) and all(z[0] == z[1] for z in zip(self.intervals, other.intervals))
 
+    def __ne__(self, other):
+        return not self == other
+
     def __iter__(self):
         return iter(self.intervals)
 

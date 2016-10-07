@@ -147,14 +147,15 @@ class ChannelManager(ChannelCollectionBase, Printable):
             min_expected = max_expected - len(arg_spec.defaults)
         else:
             min_expected = max_expected
-        if not (min_expected <= len(tool_parameters) + 1 <= max_expected):
+        num_parameters = len(tool_parameters) if tool_parameters is not None else 0
+        if not (min_expected <= num_parameters + 1 <= max_expected):
             message = "Tool {} takes a between {} and {} arguments ({} given)".format(
-                tool_class.__name__, min_expected, max_expected, len(tool_parameters) + 1)
+                tool_class.__name__, min_expected, max_expected, num_parameters + 1)
             # logging.warn(message)
             raise ValueError(message)
 
         # Instantiate tool
-        tool = tool_class(**tool_parameters)
+        tool = tool_class(**tool_parameters) if tool_parameters is not None else tool_class()
         if not tool:
             raise ToolNotFoundError
 

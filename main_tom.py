@@ -55,10 +55,12 @@ if __name__ == '__main__':
 
     # Various constants
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
-    t2 = t1 + timedelta(minutes=5)
+    # TODO: Shorted time interval for now
+    # t2 = datetime(2016, 4, 29, 12, 0, 0, 0, UTC)
     second = timedelta(seconds=1)
     minute = timedelta(minutes=1)
     hour = timedelta(hours=1)
+    t2 = t1 + minute
 
     # Various channels
     M = channels.memory
@@ -97,8 +99,45 @@ if __name__ == '__main__':
 
     # House 1 plate
     h1 = w.plates["H1"]
+    key = h1.values[0]
 
-    # Access point location plate
+    # Location plate
+    # Here we used the splitter tool over the RSS data to generate the plate
+    n_rss_flat = w.create_node(stream_name="wearable", channel=S, plate_ids=["H1"])
+    w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements=("rss",)),
+                    source_nodes=None, sink_node=n_rss_flat, alignment_node=None).execute(time_interval)
+
+    n_rss_flat.print_head(key, time_interval)
+
+    # Mapping from access point to location.
+    mapping = ("aid", {
+        "b827eb26dbd6": "hallway",
+        "b827eb643ba7": "lounge",
+        "b827eb0654a9": "study",
+        "b827eb48a755": "kitchen",
+        "b827eb645a8e": "kitchen",
+        "b827eb62fe45": "hallway",
+        "b827eb036271": "lounge",
+        "b827ebfd0967": "bedroom 1",
+        "b827ebcb1413": "bedroom 1",
+        "b827eb3f1106": "bedroom 2",
+
+        # TODO: Ones for which I don't yet know the location
+        "b827ebea7bc4": "toilet",
+        "b827eb94cbd1": "toilet",
+        "b827eb524fec": "toilet"
+    })
+
+    n_rss = w.create_node(stream_name="wearable", channel=S, plate_ids=["H1.L"])
+    w.create_multi_output_factor(tool_name="splitter", tool_parameters=dict(mapping=mapping),
+                                 source_node=n_rss_flat, sink_node=n_rss).execute(time_interval)
+
+    # w.execute(time_interval)
+    for loc in w.plates["H1.L"].values:
+        print(loc)
+        n_rss.print_head(loc, time_interval)
+        print("")
+    exit(0)
 
     # PIR sensor plate
 
