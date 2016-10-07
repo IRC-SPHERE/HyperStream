@@ -20,7 +20,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 from ..utils import Printable
 from node import Node
-from ..tool import Tool
+from ..tool import Tool, MultiOutputTool
 import logging
 
 
@@ -40,7 +40,7 @@ class Factor(Printable):
         :type sink_node: Node
         """
         if not isinstance(tool, Tool):
-            raise ValueError("Expected node, got {}".format(type(tool)))
+            raise ValueError("Expected tool, got {}".format(type(tool)))
         self.tool = tool
         if source_nodes:
             for source in source_nodes:
@@ -89,6 +89,77 @@ class Factor(Printable):
                 if None in source.streams:
                     sources.append(source.streams[None])
         return sources
+
+    def get_alignment_stream(self, plate=None, plate_value=None):
+        if not self.alignment_node:
+            return None
+        if plate is not None or plate_value is not None:
+            # TODO: Need to implement alignment nodes that live inside plates
+            raise NotImplementedError("Currently only alignment nodes outside of plates are supported")
+        return self.alignment_node.streams[plate]
+
+
+class MultiOutputFactor(Printable):
+    """
+    A multi-output factor in the graph.
+    As with a factor, this links source nodes to sink nodes. However in this case the source node is being split onto
+    multiple plates.
+    Note there is no concept of an alignment node here.
+    """
+    def __init__(self, tool, source_node, sink_node, input_plate, output_plate):
+        """
+        Initialise this factor
+        :param tool: The tool
+        :param source_node: The source node
+        :param sink_node: The sink nodes
+        :param input_plate: The plates over which this factor is defined
+        :param output_plate: The new plate which will be created
+        :type tool: Tool
+        :type sink_node: Node
+        """
+        if not isinstance(tool, MultiOutputTool):
+            raise ValueError("Expected tool, got {}".format(type(tool)))
+        self.tool = tool
+
+        if not isinstance(source_node, Node):
+            raise ValueError("Expected node, got {}".format(type(source_node)))
+        self.source = source_node
+
+        if not isinstance(sink_node, Node):
+            raise ValueError("Expected node, got {}".format(type(sink_node)))
+        self.sink = sink_node
+
+        # TODO: The input plate should be a parent of the output plate
+        self.input_plate = input_plate
+        self.output_plate = output_plate
+
+    def execute(self, time_interval):
+        # if self.input_plate:
+        #     if len(self.input_plate.values) > 1:
+        #         # TODO: dealing with more than one plate value not yet supported
+        #         raise NotImplementedError
+        #     output_plate_values = [v for opv in self.output_plate.values for v in opv
+        #                            if v not in self.input_plate.values[0]]
+        # else:
+        #     output_plate_values = self.output_plate.values
+
+        # TODO: Check that this output plate value is valid
+        sinks = [self.sink.streams[opv] for opv in self.output_plate.values]
+
+        if self.input_plate:
+            for ipv in self.input_plate.values:
+                if ipv in self.source.streams:
+                    source = self.source.streams[ipv]
+                else:
+                    logging.warn("Plate {} with value {} not valid for source {}".format(
+                        self.input_plate, ipv, self.source))
+                    continue
+                self.tool.execute(source=source, sinks=sinks, interval=time_interval,
+                                  input_plate_value=ipv, output_plate=self.output_plate)
+        else:
+            sources = self.source.streams[None]
+            self.tool.execute(source=sources, sinks=sinks, interval=time_interval,
+                              input_plate_value=None, output_plate=self.output_plate)
 
     def get_alignment_stream(self, plate=None, plate_value=None):
         if not self.alignment_node:

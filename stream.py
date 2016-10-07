@@ -122,6 +122,18 @@ class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
         return super(StreamInstance, cls).__new__(cls, timestamp, value)
 
 
+class StreamMetaInstance(namedtuple("StreamMetaInstance", "stream_instance meta_data")):
+    """
+    StreamInstance that also contains meta data
+    """
+    def __new__(cls, stream_instance, meta_data):
+        if isinstance(stream_instance, (list, tuple)):
+            stream_instance = StreamInstance(*stream_instance)
+        if not isinstance(stream_instance, StreamInstance):
+            raise ValueError("Not a stream instance object")
+        return super(StreamMetaInstance, cls).__new__(cls, stream_instance, meta_data)
+
+
 class StreamDict(TypedBiDict):
     """
     Custom bi-directional dictionary where keys are StreamID objects and values are Stream objects.
