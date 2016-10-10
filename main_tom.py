@@ -142,12 +142,18 @@ if __name__ == '__main__':
         print(loc)
         n_rss_aid.print_head(loc, time_interval)
         print("")
-    exit(0)
 
     n_rss = w.create_node(stream_name="rss", channel=M, plate_ids=["H1.L.W"])
     w.create_multi_output_factor(tool_name="splitter", tool_parameters=dict(element="uid", mapping=mappings["uid"]),
-                                 source_node=n_rss_aid, sink_node=n_rss)
+                                 source_node=n_rss_aid, sink_node=n_rss).execute(time_interval)
 
+    for loc in w.plates["H1.L"].values:
+        for wearable in w.plates["H1.L.W"].values:
+            print(loc, wearable)
+            n_rss.print_head(wearable, time_interval)
+            print("")
+
+    exit(0)
 
     # PIR sensor plate
 
