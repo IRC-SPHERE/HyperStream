@@ -1,0 +1,41 @@
+{
+    "meta_data_lists" : {
+        "house": {
+            "1" : {
+                "location": ["kitchen", "lounge", "bedroom 1", "bedroom 2", "bathroom", "toilet", "study", "hallway", "stairs"],
+                "resident": ["1", "2", "3"]
+            },
+            "2" : {
+                "location": ["kitchen", "lounge", "bedroom 1", "bathroom", "toilet", "hallway"],
+                "resident": ["4", "5"]
+            }
+        }
+    },
+    "meta_data": [
+        {"identifier": "root"},
+        {"identifier": "1", "tag": "house", "data": "1", "parent": "root"},
+        {"identifier": "2", "tag": "house", "data": "2", "parent": "root"},
+        {"identifier": "1.kitchen", "tag": "location", "data": "kitchen", "parent": "1"},
+        {"identifier": "1.lounge", "tag": "location", "data": "lounge", "parent": "1"},
+        {"identifier": "1.bedroom_1", "tag": "location", "data": "bedroom 1", "parent": "1"},
+        {"identifier": "1.bedroom_2", "tag": "location", "data": "bedroom 2", "parent": "1"},
+        {"identifier": "1.bathroom", "tag": "location", "data": "bathroom", "parent": "1"},
+        {"identifier": "1.toilet", "tag": "location", "data": "toilet", "parent": "1"},
+        {"identifier": "1.study", "tag": "location", "data": "study", "parent": "1"},
+        {"identifier": "1.hallway", "tag": "location", "data": "hallway", "parent": "1"},
+        {"identifier": "1.stairs", "tag": "location", "data": "stairs", "parent": "1"},
+        {"identifier": "1.resident_A", "tag": "resident", "data": "A", "parent": "1"},
+        {"identifier": "1.resident_B", "tag": "resident", "data": "B", "parent": "1"},
+        {"identifier": "2.kitchen", "tag": "location", "data": "kitchen", "parent": "2"},
+        {"identifier": "2.lounge", "tag": "location", "data": "lounge", "parent": "2"},
+        {"identifier": "2.bedroom_1", "tag": "location", "data": "bedroom 1", "parent": "2"},
+        {"identifier": "2.bedroom_2", "tag": "location", "data": "bedroom 2", "parent": "2"},
+        {"identifier": "2.bathroom", "tag": "location", "data": "bathroom", "parent": "2"},
+        {"identifier": "2.toilet", "tag": "location", "data": "toilet", "parent": "2"},
+        {"identifier": "2.study", "tag": "location", "data": "study", "parent": "2"},
+        {"identifier": "2.hallway", "tag": "location", "data": "hallway", "parent": "2"},
+        {"identifier": "2.stairs", "tag": "location", "data": "stairs", "parent": "2"},
+        {"identifier": "2.resident_C", "tag": "resident", "data": "C", "parent": "2"},
+        {"identifier": "2.resident_C.test_data", "tag": "test_tag", "data": "test_data", "parent": "2.resident_C"}
+    ]
+}

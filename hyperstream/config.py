@@ -34,6 +34,15 @@ class HyperStreamConfig(Printable):
                 config = json.load(f)
                 self.mongo = config['mongo']
                 self.tool_path = config['tool_path']
+
+        except (OSError, IOError, TypeError) as e:
+            # raise
+            logging.error("Configuration error: " + str(e))
+
+        try:
+            with open('meta_data.json', 'r') as f:
+                logging.info('Reading ' + os.path.abspath(f.name))
+                config = json.load(f)
                 self.meta_data_lists = config['meta_data_lists']
                 self.meta_data = config['meta_data']
 

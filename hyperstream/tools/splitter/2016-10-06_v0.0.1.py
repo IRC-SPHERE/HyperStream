@@ -25,21 +25,19 @@ import logging
 
 
 class Splitter(MultiOutputTool):
-    def __init__(self, mapping):
-        super(Splitter, self).__init__(mapping=mapping)
+    def __init__(self, element, mapping):
+        super(Splitter, self).__init__(element=element, mapping=mapping)
+        self.element = element
         self.mapping = mapping
 
     def _execute(self, source, sinks, interval, output_plate):
         for timestamp, value in source.window(interval).items():
-            if self.mapping[0] not in value:
-                logging.debug("Mapping {} not in instance".format(self.mapping[0]))
+            if self.element not in value:
+                logging.debug("Mapping element {} not in instance".format(self.element))
                 continue
-            meta_data = value.pop(self.mapping[0])
-            if meta_data not in self.mapping[1]:
-                logging.warn("Unknown value {} for meta data {}".format(meta_data, self.mapping[0]))
+            meta_data = value.pop(self.element)
+            if meta_data not in self.mapping:
+                logging.warn("Unknown value {} for meta data {}".format(meta_data, self.element))
                 continue
-            plate_value = self.mapping[1][meta_data]
+            plate_value = self.mapping[meta_data]
             yield StreamMetaInstance((timestamp, value), (output_plate.meta_data_id, plate_value))
-            # TODO: Put this into the correct stream. Perhaps we should just yield the value along with which plate it
-            # should go onto, and let the MultiOutputTool object put it onto the correct plate
-
