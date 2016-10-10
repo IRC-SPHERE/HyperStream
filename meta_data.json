@@ -42,7 +42,9 @@
         {"identifier": "1.study.A", "tag": "wearable", "data": "A", "parent": "1.study"},
         {"identifier": "1.kitchen.A", "tag": "wearable", "data": "A", "parent": "1.kitchen"},
         {"identifier": "1.bedroom_1.A", "tag": "wearable", "data": "A", "parent": "1.bedroom_1"},
-        {"identifier": "1.bedroom_2.A", "tag": "wearable", "data": "A", "parent": "1.bedroom_2"},
+        {"identifier": "1.bedroom_2.A", "tag": "wearable", "data": "A", "parent": "1.bedroom_2"}
+    ],
+    "meta_data_currently_not_used": [
         {"identifier": "1.hallway.B", "tag": "wearable", "data": "B", "parent": "1.hallway"},
         {"identifier": "1.lounge.B", "tag": "wearable", "data": "B", "parent": "1.lounge"},
         {"identifier": "1.study.B", "tag": "wearable", "data": "B", "parent": "1.study"},
