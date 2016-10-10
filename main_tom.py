@@ -60,7 +60,7 @@ if __name__ == '__main__':
     second = timedelta(seconds=1)
     minute = timedelta(minutes=1)
     hour = timedelta(hours=1)
-    t2 = t1 + 5 * minute
+    t2 = t1 + 1 * minute
 
     # Various channels
     M = channels.memory
@@ -129,11 +129,11 @@ if __name__ == '__main__':
             "b827eb524fec": "study"
         },
         'uid': {
-            "0aa05543a5c2": "1"
+            "0aa05543a5c2": "A"
         }
     }
 
-    n_rss_aid = w.create_node(stream_name="rss_aid", channel=S, plate_ids=["H1.L"])
+    n_rss_aid = w.create_node(stream_name="rss_aid", channel=M, plate_ids=["H1.L"])
     w.create_multi_output_factor(tool_name="splitter", tool_parameters=dict(element="aid", mapping=mappings["aid"]),
                                  source_node=n_rss_flat, sink_node=n_rss_aid).execute(time_interval)
 
@@ -143,9 +143,13 @@ if __name__ == '__main__':
         n_rss_aid.print_head(loc, time_interval)
         print("")
 
-    n_rss = w.create_node(stream_name="rss", channel=M, plate_ids=["H1.L.W"])
+    n_rss_aid_uid = w.create_node(stream_name="rss_aid_uid", channel=M, plate_ids=["H1.L.W"])
     w.create_multi_output_factor(tool_name="splitter", tool_parameters=dict(element="uid", mapping=mappings["uid"]),
-                                 source_node=n_rss_aid, sink_node=n_rss).execute(time_interval)
+                                 source_node=n_rss_aid, sink_node=n_rss_aid_uid).execute(time_interval)
+
+    n_rss = w.create_node(stream_name="rss", channel=M, plate_ids=["H1.L.W"])
+    w.create_factor(tool_name="component", tool_parameters=dict(key="wearable-rss"),
+                    source_nodes=[n_rss_aid_uid], sink_node=n_rss, alignment_node=None).execute(time_interval)
 
     for loc in w.plates["H1.L"].values:
         for wearable in w.plates["H1.L.W"].values:
@@ -162,10 +166,11 @@ if __name__ == '__main__':
     f_pir = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental", elements=("motion",)),
                             source_nodes=None, sink_node=n_pir, alignment_node=None)
 
-    # Stream to get RSSI data
+    # Stream to get RSS data
     n_rss_aid = w.create_node(stream_name="wearable", channel=S, plate_ids=["H1"])
     f_rss = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements=("rss",)),
                             source_nodes=None, sink_node=n_rss_aid, alignment_node=None)
+
 
     # Execute the workflow
     w.execute(time_interval)
