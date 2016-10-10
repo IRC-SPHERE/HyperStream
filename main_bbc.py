@@ -92,7 +92,7 @@ if __name__ == '__main__':
     w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements={"rss"}),
                     source_nodes=None, alignment_node=None, sink_node=n_rssi).execute(time_interval)
 
-    print("RSSI")
+    print("Wearable RSS")
     n_rssi.print_head(key, time_interval)
 
     # Get the clock ticks every 10s to perform sliding window averaging
@@ -188,7 +188,7 @@ if __name__ == '__main__':
         'hallway': 'mean',
     }
 
-    # TODO: Needs to be separted into plates
+    # TODO: Needs to be separated into plates
     n_rssi_vals = w.create_node(stream_name="rssi_vals", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool_name="component",
                              tool_parameters=dict(key="wearable-rss"),
