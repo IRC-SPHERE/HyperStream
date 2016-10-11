@@ -24,7 +24,7 @@ import os
 from collections import Iterable
 import logging
 
-from sphere_connector_package.sphere_connector import SphereConnector, DataWindow
+from sphere_connector_package.sphere_connector import SphereConnector, DataWindow, Experiment, ExperimentConfig
 
 from memory_channel import MemoryChannel
 from ..time_interval import TimeIntervals, TimeInterval
@@ -50,6 +50,22 @@ class SphereDataWindow(DataWindow):
         else:
             raise TypeError
         super(SphereDataWindow, self).__init__(sphere_connector, start, end)
+
+
+class SphereExperiment(Experiment):
+    """
+    Helper class to use the global sphere_connector object
+    """
+    def __init__(self, time_interval, annotators):
+        if isinstance(time_interval, TimeInterval):
+            start, end = time_interval.to_tuple()
+        elif isinstance(time_interval, Iterable):
+            start, end = time_interval
+        else:
+            raise TypeError
+        annotations = dict((annotator_id, {'filename': None}) for annotator_id in annotators)
+        experiment_config = ExperimentConfig(experiment_start=start, experiment_end=end, annotations=annotations)
+        super(SphereExperiment, self).__init__(sphere_connector, experiment_config)
 
 
 class SphereChannel(MemoryChannel):
