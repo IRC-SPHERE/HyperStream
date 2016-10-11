@@ -2,11 +2,11 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>hyperstream.models.time_range &#8212; HyperStream 1.0 documentation</title>
+    <title>hyperstream.models.time_interval &#8212; HyperStream 1.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -23,7 +23,6 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="HyperStream 1.0 documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" />
    
@@ -41,7 +40,7 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <h1>Source code for hyperstream.models.time_range</h1><div class="highlight"><pre>
+  <h1>Source code for hyperstream.models.time_interval</h1><div class="highlight"><pre>
 <span></span><span class="c1"># The MIT License (MIT) # Copyright (c) 2014-2017 University of Bristol</span>
 <span class="c1">#</span>
 <span class="c1">#  Permission is hereby granted, free of charge, to any person obtaining a copy</span>
@@ -65,21 +64,21 @@
 <span class="kn">from</span> <span class="nn">mongoengine</span> <span class="k">import</span> <span class="n">EmbeddedDocument</span><span class="p">,</span> <span class="n">DateTimeField</span><span class="p">,</span> <span class="n">EmbeddedDocumentListField</span>
 
 
-<div class="viewcode-block" id="TimeRangeModel"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.time_range.TimeRangeModel">[docs]</a><span class="k">class</span> <span class="nc">TimeRangeModel</span><span class="p">(</span><span class="n">EmbeddedDocument</span><span class="p">):</span>
+<div class="viewcode-block" id="TimeIntervalModel"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.time_interval.TimeIntervalModel">[docs]</a><span class="k">class</span> <span class="nc">TimeIntervalModel</span><span class="p">(</span><span class="n">EmbeddedDocument</span><span class="p">):</span>
     <span class="n">start</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">end</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="TimeRangeListModel"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.time_range.TimeRangeListModel">[docs]</a><span class="k">class</span> <span class="nc">TimeRangeListModel</span><span class="p">(</span><span class="n">EmbeddedDocumentListField</span><span class="p">):</span>
-<div class="viewcode-block" id="TimeRangeListModel.add_time_range"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.time_range.TimeRangeListModel.add_time_range">[docs]</a>    <span class="k">def</span> <span class="nf">add_time_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_range</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time_range</span><span class="p">,</span> <span class="n">TimeRangeModel</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Can only add TimeRangeModel objects&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="TimeRangeListModel"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.time_interval.TimeRangeListModel">[docs]</a><span class="k">class</span> <span class="nc">TimeRangeListModel</span><span class="p">(</span><span class="n">EmbeddedDocumentListField</span><span class="p">):</span>
+<div class="viewcode-block" id="TimeRangeListModel.add_time_interval"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.time_interval.TimeRangeListModel.add_time_interval">[docs]</a>    <span class="k">def</span> <span class="nf">add_time_interval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time_interval</span><span class="p">,</span> <span class="n">TimeIntervalModel</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Can only add TimeIntervalModel objects&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time_range</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_time_ranges</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time_interval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_time_intervals</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span></div>
 
-<div class="viewcode-block" id="TimeRangeListModel.update_time_ranges"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.time_range.TimeRangeListModel.update_time_ranges">[docs]</a>    <span class="k">def</span> <span class="nf">update_time_ranges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="TimeRangeListModel.update_time_intervals"><a class="viewcode-back" href="../../../hyperstream.models.html#hyperstream.models.time_interval.TimeRangeListModel.update_time_intervals">[docs]</a>    <span class="k">def</span> <span class="nf">update_time_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">sorted_by_lower_bound</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
         <span class="n">merged</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -92,7 +91,7 @@
                 <span class="c1"># we know via sorting that lower.start &lt;= higher.start</span>
                 <span class="k">if</span> <span class="n">higher</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;=</span> <span class="n">lower</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
                     <span class="n">upper_bound</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lower</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">higher</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
-                    <span class="n">merged</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">TimeRangeModel</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">lower</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>  <span class="c1"># replace by merged interval</span>
+                    <span class="n">merged</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">TimeIntervalModel</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">lower</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">)</span>  <span class="c1"># replace by merged interval</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">merged</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">higher</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">merged</span></div></div>
@@ -126,7 +125,7 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, SPHERE WP5 Team.
+      &copy;2016, SPHERE WP5.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>

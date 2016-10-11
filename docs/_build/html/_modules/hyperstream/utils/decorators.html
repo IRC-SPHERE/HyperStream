@@ -2,7 +2,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
@@ -23,7 +23,6 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="HyperStream 1.0 documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" />
    
@@ -66,7 +65,7 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 
 
-<div class="viewcode-block" id="timeit"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.stream.timeit">[docs]</a><span class="k">def</span> <span class="nf">timeit</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+<div class="viewcode-block" id="timeit"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.utils.decorators.timeit">[docs]</a><span class="k">def</span> <span class="nf">timeit</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">timed</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
         <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
@@ -78,7 +77,7 @@
     <span class="k">return</span> <span class="n">timed</span></div>
 
 
-<div class="viewcode-block" id="check_output_format"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.stream.check_output_format">[docs]</a><span class="k">def</span> <span class="nf">check_output_format</span><span class="p">(</span><span class="n">expected_formats</span><span class="p">):</span>
+<div class="viewcode-block" id="check_output_format"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.utils.decorators.check_output_format">[docs]</a><span class="k">def</span> <span class="nf">check_output_format</span><span class="p">(</span><span class="n">expected_formats</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Decorator for stream outputs that checks the format of the outputs after modifiers have been applied</span>
 <span class="sd">    :param expected_formats: The expected output formats</span>
@@ -95,7 +94,7 @@
     <span class="k">return</span> <span class="n">output_format_decorator</span></div>
 
 
-<div class="viewcode-block" id="check_tool_defined"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.stream.check_tool_defined">[docs]</a><span class="k">def</span> <span class="nf">check_tool_defined</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<div class="viewcode-block" id="check_tool_defined"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.utils.decorators.check_tool_defined">[docs]</a><span class="k">def</span> <span class="nf">check_tool_defined</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Decorator to check whether a tool stream has been defined before execution</span>
 <span class="sd">    :return: the decorator</span>
@@ -138,7 +137,7 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, SPHERE WP5 Team.
+      &copy;2016, SPHERE WP5.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>

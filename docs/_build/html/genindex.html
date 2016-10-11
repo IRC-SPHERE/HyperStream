@@ -3,7 +3,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
@@ -24,7 +24,6 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="HyperStream 1.0 documentation" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -73,7 +72,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="hyperstream.models.html#hyperstream.models.workflow.WorkflowStatusModel.add_time_interval">add_time_interval() (hyperstream.models.workflow.WorkflowStatusModel method)</a>
+  <dt><a href="hyperstream.models.html#hyperstream.models.time_interval.TimeRangeListModel.add_time_interval">add_time_interval() (hyperstream.models.time_interval.TimeRangeListModel method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="hyperstream.models.html#hyperstream.models.workflow.WorkflowStatusModel.add_time_interval">(hyperstream.models.workflow.WorkflowStatusModel method)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.workflow.WorkflowManager.add_workflow">add_workflow() (hyperstream.workflow.workflow.WorkflowManager method)</a>
   </dt>
 
       
@@ -125,15 +134,21 @@
 
       </dl></dd>
       
-  <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamDefinitionModel.channel_id">channel_id (hyperstream.models.stream.StreamDefinitionModel attribute)</a>
+  <dt><a href="hyperstream.models.html#hyperstream.models.node.NodeDefinitionModel.channel_id">channel_id (hyperstream.models.node.NodeDefinitionModel attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamDefinitionModel.channel_id">(hyperstream.models.stream.StreamDefinitionModel attribute)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="hyperstream.html#hyperstream.channel_manager.ChannelCollectionBase">ChannelCollectionBase (class in hyperstream.channel_manager)</a>
   </dt>
 
       
-  <dt><a href="hyperstream.html#hyperstream.channel.ChannelCollectionBase">ChannelCollectionBase (class in hyperstream.channel)</a>
-  </dt>
-
-      
-  <dt><a href="hyperstream.html#hyperstream.channel.ChannelManager">ChannelManager (class in hyperstream.channel)</a>
+  <dt><a href="hyperstream.html#hyperstream.channel_manager.ChannelManager">ChannelManager (class in hyperstream.channel_manager)</a>
   </dt>
 
       
@@ -156,8 +171,6 @@
   <dt><a href="hyperstream.utils.html#hyperstream.utils.decorators.check_tool_defined">check_tool_defined() (in module hyperstream.utils.decorators)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="hyperstream.channels.html#hyperstream.channels.memory_channel.MemoryChannel.clear_stream">clear_stream() (hyperstream.channels.memory_channel.MemoryChannel method)</a>
   </dt>
@@ -170,6 +183,26 @@
   <dt><a href="hyperstream.html#hyperstream.client.Client.client">client (hyperstream.client.Client attribute)</a>
   </dt>
 
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.workflow.WorkflowManager.commit_all">commit_all() (hyperstream.workflow.workflow.WorkflowManager method)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.workflow.WorkflowManager.commit_workflow">commit_workflow() (hyperstream.workflow.workflow.WorkflowManager method)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateDefinitionModel.complement">complement (hyperstream.models.plate.PlateDefinitionModel attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateModel.complement">(hyperstream.models.plate.PlateModel attribute)</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="hyperstream.html#hyperstream.stream.StreamView.component">component() (hyperstream.stream.StreamView method)</a>
   </dt>
@@ -188,6 +221,22 @@
 
       
   <dt><a href="hyperstream.itertools2.html#hyperstream.itertools2.itertools2.count">count() (in module hyperstream.itertools2.itertools2)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.workflow.Workflow.create_factor">create_factor() (hyperstream.workflow.workflow.Workflow method)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.workflow.Workflow.create_multi_output_factor">create_multi_output_factor() (hyperstream.workflow.workflow.Workflow method)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.workflow.Workflow.create_node">create_node() (hyperstream.workflow.workflow.Workflow method)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.workflow.WorkflowManager.create_plate">create_plate() (hyperstream.workflow.workflow.WorkflowManager method)</a>
   </dt>
 
       
@@ -259,9 +308,15 @@
   </dt>
 
       
-  <dt><a href="hyperstream.models.html#hyperstream.models.workflow.WorkflowDefinitionModel.description">description (hyperstream.models.workflow.WorkflowDefinitionModel attribute)</a>
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateDefinitionModel.description">description (hyperstream.models.plate.PlateDefinitionModel attribute)</a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="hyperstream.models.html#hyperstream.models.workflow.WorkflowDefinitionModel.description">(hyperstream.models.workflow.WorkflowDefinitionModel attribute)</a>
+  </dt>
+
+      </dl></dd>
   </dl></td>
 </tr></table>
 
@@ -269,9 +324,15 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="hyperstream.html#hyperstream.time_interval.TimeInterval.end">end (hyperstream.time_interval.TimeInterval attribute)</a>
+  <dt><a href="hyperstream.models.html#hyperstream.models.time_interval.TimeIntervalModel.end">end (hyperstream.models.time_interval.TimeIntervalModel attribute)</a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="hyperstream.html#hyperstream.time_interval.TimeInterval.end">(hyperstream.time_interval.TimeInterval attribute)</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="hyperstream.html#hyperstream.online_engine.OnlineEngine.execute">execute() (hyperstream.online_engine.OnlineEngine method)</a>
   </dt>
@@ -282,7 +343,23 @@
   </dt>
 
         
+  <dt><a href="hyperstream.html#hyperstream.tool.MultiOutputTool.execute">(hyperstream.tool.MultiOutputTool method)</a>
+  </dt>
+
+        
   <dt><a href="hyperstream.html#hyperstream.tool.Tool.execute">(hyperstream.tool.Tool method)</a>
+  </dt>
+
+        
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.factor.Factor.execute">(hyperstream.workflow.factor.Factor method)</a>
+  </dt>
+
+        
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.factor.MultiOutputFactor.execute">(hyperstream.workflow.factor.MultiOutputFactor method)</a>
+  </dt>
+
+        
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.workflow.Workflow.execute">(hyperstream.workflow.workflow.Workflow method)</a>
   </dt>
 
       </dl></dd>
@@ -303,6 +380,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.factor.Factor">Factor (class in hyperstream.workflow.factor)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.factor.FactorDefinitionModel">FactorDefinitionModel (class in hyperstream.models.factor)</a>
+  </dt>
+
+      
   <dt><a href="hyperstream.models.html#hyperstream.models.workflow.WorkflowDefinitionModel.factors">factors (hyperstream.models.workflow.WorkflowDefinitionModel attribute)</a>
   </dt>
 
@@ -316,12 +401,12 @@
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="hyperstream.channels.html#hyperstream.channels.file_channel.FileChannel">FileChannel (class in hyperstream.channels.file_channel)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="hyperstream.channels.html#hyperstream.channels.file_channel.FileDateTimeVersion">FileDateTimeVersion (class in hyperstream.channels.file_channel)</a>
   </dt>
@@ -341,7 +426,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="hyperstream.html#hyperstream.channel.ChannelManager.get_channel">get_channel() (hyperstream.channel.ChannelManager method)</a>
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.factor.Factor.get_alignment_stream">get_alignment_stream() (hyperstream.workflow.factor.Factor method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.factor.MultiOutputFactor.get_alignment_stream">(hyperstream.workflow.factor.MultiOutputFactor method)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="hyperstream.html#hyperstream.channel_manager.ChannelManager.get_channel">get_channel() (hyperstream.channel_manager.ChannelManager method)</a>
   </dt>
 
       
@@ -349,9 +444,23 @@
   </dt>
 
       
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.factor.Factor.get_global_sources">get_global_sources() (hyperstream.workflow.factor.Factor method)</a>
+  </dt>
+
+      
   <dt><a href="hyperstream.channels.html#hyperstream.channels.base_channel.BaseChannel.get_or_create_stream">get_or_create_stream() (hyperstream.channels.base_channel.BaseChannel method)</a>
   </dt>
 
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.plate.PlateManager.get_parent_data">get_parent_data() (hyperstream.workflow.plate.PlateManager static method)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.plate.PlateManager.get_parent_plate_value">get_parent_plate_value() (hyperstream.workflow.plate.PlateManager method)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="hyperstream.channels.html#hyperstream.channels.base_channel.BaseChannel.get_results">get_results() (hyperstream.channels.base_channel.BaseChannel method)</a>
   </dt>
@@ -378,10 +487,8 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="hyperstream.html#hyperstream.channel.ChannelManager.get_stream">get_stream() (hyperstream.channel.ChannelManager method)</a>
+  <dt><a href="hyperstream.html#hyperstream.channel_manager.ChannelManager.get_stream">get_stream() (hyperstream.channel_manager.ChannelManager method)</a>
   </dt>
 
       
@@ -403,7 +510,15 @@
 
       </dl></dd>
       
-  <dt><a href="hyperstream.html#hyperstream.channel.ChannelManager.get_tool">get_tool() (hyperstream.channel.ChannelManager method)</a>
+  <dt><a href="hyperstream.utils.html#hyperstream.utils.time_utils.get_timedelta">get_timedelta() (in module hyperstream.utils.time_utils)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.html#hyperstream.channel_manager.ChannelManager.get_tool">get_tool() (hyperstream.channel_manager.ChannelManager method)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.html#hyperstream.channel_manager.ChannelManager.get_tool_class">get_tool_class() (hyperstream.channel_manager.ChannelManager method)</a>
   </dt>
 
   </dl></td>
@@ -425,7 +540,7 @@
   </dt>
 
       
-  <dt><a href="hyperstream.html#module-hyperstream.channel">hyperstream.channel (module)</a>
+  <dt><a href="hyperstream.html#module-hyperstream.channel_manager">hyperstream.channel_manager (module)</a>
   </dt>
 
       
@@ -472,8 +587,6 @@
   <dt><a href="hyperstream.html#module-hyperstream.errors">hyperstream.errors (module)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="hyperstream.itertools2.html#module-hyperstream.itertools2">hyperstream.itertools2 (module)</a>
   </dt>
@@ -487,7 +600,29 @@
   </dt>
 
       
+  <dt><a href="hyperstream.models.html#module-hyperstream.models.factor">hyperstream.models.factor (module)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#module-hyperstream.models.node">hyperstream.models.node (module)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#module-hyperstream.models.plate">hyperstream.models.plate (module)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
   <dt><a href="hyperstream.models.html#module-hyperstream.models.stream">hyperstream.models.stream (module)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#module-hyperstream.models.time_interval">hyperstream.models.time_interval (module)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#module-hyperstream.models.tool">hyperstream.models.tool (module)</a>
   </dt>
 
       
@@ -527,11 +662,35 @@
   </dt>
 
       
-  <dt><a href="hyperstream.html#module-hyperstream.workflow">hyperstream.workflow (module)</a>
+  <dt><a href="hyperstream.workflow.html#module-hyperstream.workflow">hyperstream.workflow (module)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#module-hyperstream.workflow.factor">hyperstream.workflow.factor (module)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#module-hyperstream.workflow.node">hyperstream.workflow.node (module)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#module-hyperstream.workflow.plate">hyperstream.workflow.plate (module)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#module-hyperstream.workflow.workflow">hyperstream.workflow.workflow (module)</a>
   </dt>
 
       
   <dt><a href="hyperstream.html#hyperstream.config.HyperStreamConfig">HyperStreamConfig (class in hyperstream.config)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_time_interval.HyperStreamTimeIntervalTests">HyperStreamTimeIntervalTests (class in tests.test_time_interval)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_query.HyperStringTests">HyperStringTests (class in tests.test_query)</a>
   </dt>
 
   </dl></td>
@@ -541,10 +700,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamDefinitionModel.id">id (hyperstream.models.stream.StreamDefinitionModel attribute)</a>
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateDefinitionModel.id">id (hyperstream.models.plate.PlateDefinitionModel attribute)</a>
   </dt>
 
       <dd><dl>
+        
+  <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamDefinitionModel.id">(hyperstream.models.stream.StreamDefinitionModel attribute)</a>
+  </dt>
+
         
   <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamInstanceModel.id">(hyperstream.models.stream.StreamInstanceModel attribute)</a>
   </dt>
@@ -567,6 +730,10 @@
   </dt>
 
       
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.node.Node.intersection">intersection() (hyperstream.workflow.node.Node method)</a>
+  </dt>
+
+      
   <dt><a href="hyperstream.html#hyperstream.time_interval.TimeIntervals.is_empty">is_empty (hyperstream.time_interval.TimeIntervals attribute)</a>
   </dt>
 
@@ -574,6 +741,8 @@
   <dt><a href="hyperstream.channels.html#hyperstream.channels.file_channel.FileDateTimeVersion.is_python">is_python (hyperstream.channels.file_channel.FileDateTimeVersion attribute)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="hyperstream.html#hyperstream.stream.StreamView.items">items() (hyperstream.stream.StreamView method)</a>
   </dt>
@@ -584,8 +753,6 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="hyperstream.html#hyperstream.stream.StreamView.iteritems">iteritems() (hyperstream.stream.StreamView method)</a>
   </dt>
@@ -663,7 +830,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="hyperstream.html#hyperstream.channel.ChannelCollectionBase.memory">memory (hyperstream.channel.ChannelCollectionBase attribute)</a>
+  <dt><a href="hyperstream.html#hyperstream.channel_manager.ChannelCollectionBase.memory">memory (hyperstream.channel_manager.ChannelCollectionBase attribute)</a>
   </dt>
 
       
@@ -671,13 +838,29 @@
   </dt>
 
       
-  <dt><a href="hyperstream.html#hyperstream.tool.Tool.message">message() (hyperstream.tool.Tool method)</a>
+  <dt><a href="hyperstream.html#hyperstream.tool.MultiOutputTool.message">message() (hyperstream.tool.MultiOutputTool method)</a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="hyperstream.html#hyperstream.tool.Tool.message">(hyperstream.tool.Tool method)</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamIdField.meta_data">meta_data (hyperstream.models.stream.StreamIdField attribute)</a>
   </dt>
 
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateDefinitionModel.meta_data_id">meta_data_id (hyperstream.models.plate.PlateDefinitionModel attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateModel.meta_data_id">(hyperstream.models.plate.PlateModel attribute)</a>
+  </dt>
+
+      </dl></dd>
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
@@ -689,7 +872,15 @@
   </dt>
 
       
-  <dt><a href="hyperstream.html#hyperstream.channel.ChannelCollectionBase.mongo">mongo (hyperstream.channel.ChannelCollectionBase attribute)</a>
+  <dt><a href="hyperstream.html#hyperstream.channel_manager.ChannelCollectionBase.mongo">mongo (hyperstream.channel_manager.ChannelCollectionBase attribute)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.factor.MultiOutputFactor">MultiOutputFactor (class in hyperstream.workflow.factor)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.html#hyperstream.tool.MultiOutputTool">MultiOutputTool (class in hyperstream.tool)</a>
   </dt>
 
   </dl></td>
@@ -704,7 +895,15 @@
 
       <dd><dl>
         
+  <dt><a href="hyperstream.models.html#hyperstream.models.tool.ToolModel.name">(hyperstream.models.tool.ToolModel attribute)</a>
+  </dt>
+
+        
   <dt><a href="hyperstream.models.html#hyperstream.models.workflow.WorkflowDefinitionModel.name">(hyperstream.models.workflow.WorkflowDefinitionModel attribute)</a>
+  </dt>
+
+        
+  <dt><a href="hyperstream.html#hyperstream.tool.MultiOutputTool.name">(hyperstream.tool.MultiOutputTool attribute)</a>
   </dt>
 
         
@@ -716,8 +915,16 @@
   </dt>
 
       </dl></dd>
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.node.Node">Node (class in hyperstream.workflow.node)</a>
+  </dt>
+
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.node.NodeDefinitionModel">NodeDefinitionModel (class in hyperstream.models.node)</a>
+  </dt>
+
       
   <dt><a href="hyperstream.models.html#hyperstream.models.workflow.WorkflowDefinitionModel.nodes">nodes (hyperstream.models.workflow.WorkflowDefinitionModel attribute)</a>
   </dt>
@@ -729,10 +936,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamDefinitionModel.objects">objects (hyperstream.models.stream.StreamDefinitionModel attribute)</a>
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateDefinitionModel.objects">objects (hyperstream.models.plate.PlateDefinitionModel attribute)</a>
   </dt>
 
       <dd><dl>
+        
+  <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamDefinitionModel.objects">(hyperstream.models.stream.StreamDefinitionModel attribute)</a>
+  </dt>
+
         
   <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamInstanceModel.objects">(hyperstream.models.stream.StreamInstanceModel attribute)</a>
   </dt>
@@ -783,7 +994,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamDefinitionModel.parameters">parameters (hyperstream.models.stream.StreamDefinitionModel attribute)</a>
+  <dt><a href="hyperstream.models.html#hyperstream.models.tool.ToolModel.parameters">parameters (hyperstream.models.tool.ToolModel attribute)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateDefinitionModel.parent_plate">parent_plate (hyperstream.models.plate.PlateDefinitionModel attribute)</a>
   </dt>
 
       
@@ -794,8 +1009,50 @@
   <dt><a href="hyperstream.channels.html#hyperstream.channels.file_channel.FileChannel.path">path (hyperstream.channels.file_channel.FileChannel attribute)</a>
   </dt>
 
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.plate.Plate">Plate (class in hyperstream.workflow.plate)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateDefinitionModel.plate_id">plate_id (hyperstream.models.plate.PlateDefinitionModel attribute)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.node.NodeDefinitionModel.plate_ids">plate_ids (hyperstream.models.node.NodeDefinitionModel attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.node.Node.plate_ids">(hyperstream.workflow.node.Node attribute)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateDefinitionModel">PlateDefinitionModel (class in hyperstream.models.plate)</a>
+  </dt>
+
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateDefinitionModel.DoesNotExist">PlateDefinitionModel.DoesNotExist</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateDefinitionModel.MultipleObjectsReturned">PlateDefinitionModel.MultipleObjectsReturned</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.plate.PlateManager">PlateManager (class in hyperstream.workflow.plate)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateModel">PlateModel (class in hyperstream.models.plate)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.node.Node.print_head">print_head() (hyperstream.workflow.node.Node method)</a>
+  </dt>
+
       
   <dt><a href="hyperstream.utils.html#hyperstream.utils.utils.Printable">Printable (class in hyperstream.utils.utils)</a>
   </dt>
@@ -815,19 +1072,11 @@
   </dt>
 
       
-  <dt><a href="hyperstream.html#hyperstream.stream.Stream.relative_window">relative_window() (hyperstream.stream.Stream method)</a>
-  </dt>
-
-      
-  <dt><a href="hyperstream.html#hyperstream.stream.RelativeStreamView">RelativeStreamView (class in hyperstream.stream)</a>
+  <dt><a href="hyperstream.html#hyperstream.time_interval.RelativeTimeInterval">RelativeTimeInterval (class in hyperstream.time_interval)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="hyperstream.html#hyperstream.time_interval.RelativeTimeInterval">RelativeTimeInterval (class in hyperstream.time_interval)</a>
-  </dt>
-
       
   <dt><a href="hyperstream.models.html#hyperstream.models.workflow.WorkflowStatusModel.requested_intervals">requested_intervals (hyperstream.models.workflow.WorkflowStatusModel attribute)</a>
   </dt>
@@ -847,6 +1096,10 @@
   </dt>
 
       
+  <dt><a href="hyperstream.html#hyperstream.stream.DatabaseStream.save_definition">save_definition() (hyperstream.stream.DatabaseStream method)</a>
+  </dt>
+
+      
   <dt><a href="hyperstream.html#hyperstream.client.Client.session">session (hyperstream.client.Client attribute)</a>
   </dt>
 
@@ -855,11 +1108,23 @@
   </dt>
 
       
-  <dt><a href="hyperstream.html#hyperstream.channel.ChannelCollectionBase.sphere">sphere (hyperstream.channel.ChannelCollectionBase attribute)</a>
+  <dt><a href="hyperstream.models.html#hyperstream.models.factor.FactorDefinitionModel.sink">sink (hyperstream.models.factor.FactorDefinitionModel attribute)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.factor.FactorDefinitionModel.sources">sources (hyperstream.models.factor.FactorDefinitionModel attribute)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.html#hyperstream.channel_manager.ChannelCollectionBase.sphere">sphere (hyperstream.channel_manager.ChannelCollectionBase attribute)</a>
   </dt>
 
       
   <dt><a href="hyperstream.channels.html#hyperstream.channels.sphere_channel.SphereChannel">SphereChannel (class in hyperstream.channels.sphere_channel)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_sphere_connector.SphereConnectorTests">SphereConnectorTests (class in tests.test_sphere_connector)</a>
   </dt>
 
       
@@ -871,9 +1136,15 @@
   </dt>
 
       
-  <dt><a href="hyperstream.html#hyperstream.time_interval.TimeInterval.start">start (hyperstream.time_interval.TimeInterval attribute)</a>
+  <dt><a href="hyperstream.models.html#hyperstream.models.time_interval.TimeIntervalModel.start">start (hyperstream.models.time_interval.TimeIntervalModel attribute)</a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="hyperstream.html#hyperstream.time_interval.TimeInterval.start">(hyperstream.time_interval.TimeInterval attribute)</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="hyperstream.html#hyperstream.stream.Stream">Stream (class in hyperstream.stream)</a>
   </dt>
@@ -897,6 +1168,10 @@
 
       </dl></dd>
       
+  <dt><a href="hyperstream.models.html#hyperstream.models.node.NodeDefinitionModel.stream_name">stream_name (hyperstream.models.node.NodeDefinitionModel attribute)</a>
+  </dt>
+
+      
   <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamDefinitionModel.stream_type">stream_type (hyperstream.models.stream.StreamDefinitionModel attribute)</a>
   </dt>
 
@@ -910,6 +1185,8 @@
   <dt><a href="hyperstream.html#hyperstream.errors.StreamAlreadyExistsError">StreamAlreadyExistsError</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="hyperstream.html#hyperstream.errors.StreamDataNotAvailableError">StreamDataNotAvailableError</a>
   </dt>
@@ -918,8 +1195,6 @@
   <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamDefinitionModel">StreamDefinitionModel (class in hyperstream.models.stream)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamDefinitionModel.DoesNotExist">StreamDefinitionModel.DoesNotExist</a>
   </dt>
@@ -957,6 +1232,10 @@
   </dt>
 
       
+  <dt><a href="hyperstream.html#hyperstream.stream.StreamMetaInstance">StreamMetaInstance (class in hyperstream.stream)</a>
+  </dt>
+
+      
   <dt><a href="hyperstream.html#hyperstream.errors.StreamNotFoundError">StreamNotFoundError</a>
   </dt>
 
@@ -987,7 +1266,103 @@
   </dt>
 
       
+  <dt><a href="tests.html#tests.test_query.HyperStringTests.test_alignment_window_querying_average">test_alignment_window_querying_average() (tests.test_query.HyperStringTests method)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_query.HyperStringTests.test_chained_query">test_chained_query() (tests.test_query.HyperStringTests method)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_time_interval.HyperStreamTimeIntervalTests.test_constructors">test_constructors() (tests.test_time_interval.HyperStreamTimeIntervalTests method)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_query.HyperStringTests.test_database_channel">test_database_channel() (tests.test_query.HyperStringTests method)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_sphere_connector.SphereConnectorTests.test_filtering">test_filtering() (tests.test_sphere_connector.SphereConnectorTests method)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_query.HyperStringTests.test_overlapping_plates">test_overlapping_plates() (tests.test_query.HyperStringTests method)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_time_interval.HyperStreamTimeIntervalTests.test_relative_time_interval">test_relative_time_interval() (tests.test_time_interval.HyperStreamTimeIntervalTests method)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_query.HyperStringTests.test_simple_query">test_simple_query() (tests.test_query.HyperStringTests method)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_query.HyperStringTests.test_simple_workflow">test_simple_workflow() (tests.test_query.HyperStringTests method)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_query.HyperStringTests.test_time_interval">test_time_interval() (tests.test_query.HyperStringTests method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="tests.html#tests.test_time_interval.HyperStreamTimeIntervalTests.test_time_interval">(tests.test_time_interval.HyperStreamTimeIntervalTests method)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="tests.html#tests.test_tool_channel.TestToolChannel.test_tool_channel">test_tool_channel() (tests.test_tool_channel.TestToolChannel method)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_query.HyperStringTests.test_workflow_chain">test_workflow_chain() (tests.test_query.HyperStringTests method)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_query.HyperStringTests.test_workflow_chain2">test_workflow_chain2() (tests.test_query.HyperStringTests method)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#module-tests">tests (module)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#module-tests.helpers">tests.helpers (module)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#module-tests.temp">tests.temp (module)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#module-tests.test_query">tests.test_query (module)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#module-tests.test_sphere_connector">tests.test_sphere_connector (module)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="tests.html#module-tests.test_time_interval">tests.test_time_interval (module)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#module-tests.test_tool_channel">tests.test_tool_channel (module)</a>
+  </dt>
+
+      
+  <dt><a href="tests.html#tests.test_tool_channel.TestToolChannel">TestToolChannel (class in tests.test_tool_channel)</a>
+  </dt>
+
+      
   <dt><a href="hyperstream.html#hyperstream.time_interval.TimeInterval">TimeInterval (class in hyperstream.time_interval)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.time_interval.TimeIntervalModel">TimeIntervalModel (class in hyperstream.models.time_interval)</a>
   </dt>
 
       
@@ -999,6 +1374,10 @@
   </dt>
 
       
+  <dt><a href="hyperstream.models.html#hyperstream.models.time_interval.TimeRangeListModel">TimeRangeListModel (class in hyperstream.models.time_interval)</a>
+  </dt>
+
+      
   <dt><a href="hyperstream.html#hyperstream.stream.StreamView.timestamps">timestamps() (hyperstream.stream.StreamView method)</a>
   </dt>
 
@@ -1006,10 +1385,12 @@
   <dt><a href="hyperstream.html#hyperstream.time_interval.TimeInterval.to_tuple">to_tuple() (hyperstream.time_interval.TimeInterval method)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="hyperstream.html#hyperstream.tool.Tool">Tool (class in hyperstream.tool)</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.factor.FactorDefinitionModel.tool">tool (hyperstream.models.factor.FactorDefinitionModel attribute)</a>
   </dt>
 
       
@@ -1017,11 +1398,15 @@
   </dt>
 
       
+  <dt><a href="hyperstream.models.html#hyperstream.models.tool.ToolModel">ToolModel (class in hyperstream.models.tool)</a>
+  </dt>
+
+      
   <dt><a href="hyperstream.html#hyperstream.errors.ToolNotFoundError">ToolNotFoundError</a>
   </dt>
 
       
-  <dt><a href="hyperstream.html#hyperstream.channel.ChannelCollectionBase.tools">tools (hyperstream.channel.ChannelCollectionBase attribute)</a>
+  <dt><a href="hyperstream.html#hyperstream.channel_manager.ChannelCollectionBase.tools">tools (hyperstream.channel_manager.ChannelCollectionBase attribute)</a>
   </dt>
 
       
@@ -1039,7 +1424,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="hyperstream.html#hyperstream.channel.ChannelManager.update_channels">update_channels() (hyperstream.channel.ChannelManager method)</a>
+  <dt><a href="hyperstream.html#hyperstream.channel_manager.ChannelManager.update_channels">update_channels() (hyperstream.channel_manager.ChannelManager method)</a>
   </dt>
 
       
@@ -1081,9 +1466,15 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="hyperstream.models.html#hyperstream.models.workflow.WorkflowStatusModel.update_time_intervals">update_time_intervals() (hyperstream.models.workflow.WorkflowStatusModel method)</a>
+  <dt><a href="hyperstream.models.html#hyperstream.models.time_interval.TimeRangeListModel.update_time_intervals">update_time_intervals() (hyperstream.models.time_interval.TimeRangeListModel method)</a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="hyperstream.models.html#hyperstream.models.workflow.WorkflowStatusModel.update_time_intervals">(hyperstream.models.workflow.WorkflowStatusModel method)</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="hyperstream.utils.html#hyperstream.utils.time_utils.utcnow">utcnow() (in module hyperstream.utils.time_utils)</a>
   </dt>
@@ -1108,6 +1499,16 @@
   <dt><a href="hyperstream.models.html#hyperstream.models.stream.StreamInstanceModel.value">value (hyperstream.models.stream.StreamInstanceModel attribute)</a>
   </dt>
 
+      
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateDefinitionModel.values">values (hyperstream.models.plate.PlateDefinitionModel attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="hyperstream.models.html#hyperstream.models.plate.PlateModel.values">(hyperstream.models.plate.PlateModel attribute)</a>
+  </dt>
+
+      </dl></dd>
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
@@ -1121,6 +1522,10 @@
 
       </dl></dd>
       
+  <dt><a href="hyperstream.models.html#hyperstream.models.tool.ToolModel.version">version (hyperstream.models.tool.ToolModel attribute)</a>
+  </dt>
+
+      
   <dt><a href="hyperstream.channels.html#hyperstream.channels.module_channel.ModuleChannel.versions">versions (hyperstream.channels.module_channel.ModuleChannel attribute)</a>
   </dt>
 
@@ -1131,19 +1536,21 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="hyperstream.html#hyperstream.time_interval.TimeInterval.width">width (hyperstream.time_interval.TimeInterval attribute)</a>
+  </dt>
+
+      
   <dt><a href="hyperstream.utils.html#hyperstream.utils.utils.MetaDataTree.WIDTH">WIDTH (hyperstream.utils.utils.MetaDataTree attribute)</a>
   </dt>
 
       
-  <dt><a href="hyperstream.html#hyperstream.stream.RelativeStreamView.window">window() (hyperstream.stream.RelativeStreamView method)</a>
+  <dt><a href="hyperstream.html#hyperstream.stream.Stream.window">window() (hyperstream.stream.Stream method)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="hyperstream.html#hyperstream.stream.Stream.window">(hyperstream.stream.Stream method)</a>
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.workflow.Workflow">Workflow (class in hyperstream.workflow.workflow)</a>
   </dt>
 
-      </dl></dd>
       
   <dt><a href="hyperstream.models.html#hyperstream.models.workflow.WorkflowDefinitionModel.workflow_id">workflow_id (hyperstream.models.workflow.WorkflowDefinitionModel attribute)</a>
   </dt>
@@ -1160,6 +1567,10 @@
   <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="hyperstream.models.html#hyperstream.models.workflow.WorkflowDefinitionModel.MultipleObjectsReturned">WorkflowDefinitionModel.MultipleObjectsReturned</a>
+  </dt>
+
+      
+  <dt><a href="hyperstream.workflow.html#hyperstream.workflow.workflow.WorkflowManager">WorkflowManager (class in hyperstream.workflow.workflow)</a>
   </dt>
 
       
@@ -1222,7 +1633,7 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, SPHERE WP5 Team.
+      &copy;2016, SPHERE WP5.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>

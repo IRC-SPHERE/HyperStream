@@ -2,7 +2,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
@@ -23,10 +23,9 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="HyperStream 1.0 documentation" href="index.html" />
     <link rel="up" title="hyperstream package" href="hyperstream.html" />
-    <link rel="next" title="hyperstream.modifiers package" href="hyperstream.modifiers.html" />
+    <link rel="next" title="hyperstream.utils package" href="hyperstream.utils.html" />
     <link rel="prev" title="hyperstream.itertools2 package" href="hyperstream.itertools2.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -47,6 +46,183 @@
 <h1>hyperstream.models package<a class="headerlink" href="#hyperstream-models-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-hyperstream.models.factor">
+<span id="hyperstream-models-factor-module"></span><h2>hyperstream.models.factor module<a class="headerlink" href="#module-hyperstream.models.factor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="hyperstream.models.factor.FactorDefinitionModel">
+<em class="property">class </em><code class="descclassname">hyperstream.models.factor.</code><code class="descname">FactorDefinitionModel</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/models/factor.html#FactorDefinitionModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.models.factor.FactorDefinitionModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">mongoengine.document.EmbeddedDocument</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.models.factor.FactorDefinitionModel.sink">
+<code class="descname">sink</code><a class="headerlink" href="#hyperstream.models.factor.FactorDefinitionModel.sink" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.factor.FactorDefinitionModel.sources">
+<code class="descname">sources</code><a class="headerlink" href="#hyperstream.models.factor.FactorDefinitionModel.sources" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list field that wraps a standard field, allowing multiple instances
+of the field to be used as a list in the database.</p>
+<p>If using with ReferenceFields see: <span class="xref std std-ref">one-to-many-with-listfields</span></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Required means it cannot be empty - as the default for ListFields is []</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.factor.FactorDefinitionModel.tool">
+<code class="descname">tool</code><a class="headerlink" href="#hyperstream.models.factor.FactorDefinitionModel.tool" title="Permalink to this definition">¶</a></dt>
+<dd><p>An embedded document field - with a declared document_type.
+Only valid values are subclasses of <code class="xref py py-class docutils literal"><span class="pre">EmbeddedDocument</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-hyperstream.models.node">
+<span id="hyperstream-models-node-module"></span><h2>hyperstream.models.node module<a class="headerlink" href="#module-hyperstream.models.node" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="hyperstream.models.node.NodeDefinitionModel">
+<em class="property">class </em><code class="descclassname">hyperstream.models.node.</code><code class="descname">NodeDefinitionModel</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/models/node.html#NodeDefinitionModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.models.node.NodeDefinitionModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">mongoengine.document.EmbeddedDocument</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.models.node.NodeDefinitionModel.channel_id">
+<code class="descname">channel_id</code><a class="headerlink" href="#hyperstream.models.node.NodeDefinitionModel.channel_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.node.NodeDefinitionModel.plate_ids">
+<code class="descname">plate_ids</code><a class="headerlink" href="#hyperstream.models.node.NodeDefinitionModel.plate_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list field that wraps a standard field, allowing multiple instances
+of the field to be used as a list in the database.</p>
+<p>If using with ReferenceFields see: <span class="xref std std-ref">one-to-many-with-listfields</span></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Required means it cannot be empty - as the default for ListFields is []</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.node.NodeDefinitionModel.stream_name">
+<code class="descname">stream_name</code><a class="headerlink" href="#hyperstream.models.node.NodeDefinitionModel.stream_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-hyperstream.models.plate">
+<span id="hyperstream-models-plate-module"></span><h2>hyperstream.models.plate module<a class="headerlink" href="#module-hyperstream.models.plate" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="hyperstream.models.plate.PlateDefinitionModel">
+<em class="property">class </em><code class="descclassname">hyperstream.models.plate.</code><code class="descname">PlateDefinitionModel</code><span class="sig-paren">(</span><em>*args</em>, <em>**values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/models/plate.html#PlateDefinitionModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">mongoengine.document.Document</span></code></p>
+<dl class="exception">
+<dt id="hyperstream.models.plate.PlateDefinitionModel.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">mongoengine.errors.DoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.models.plate.PlateDefinitionModel.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">PlateDefinitionModel.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">mongoengine.errors.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.plate.PlateDefinitionModel.complement">
+<code class="descclassname">PlateDefinitionModel.</code><code class="descname">complement</code><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel.complement" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean field type.</p>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.1.2.</span></p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.plate.PlateDefinitionModel.description">
+<code class="descclassname">PlateDefinitionModel.</code><code class="descname">description</code><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.plate.PlateDefinitionModel.id">
+<code class="descclassname">PlateDefinitionModel.</code><code class="descname">id</code><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A field wrapper around MongoDB&#8217;s ObjectIds.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.plate.PlateDefinitionModel.meta_data_id">
+<code class="descclassname">PlateDefinitionModel.</code><code class="descname">meta_data_id</code><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel.meta_data_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.plate.PlateDefinitionModel.objects">
+<code class="descclassname">PlateDefinitionModel.</code><code class="descname">objects</code><em class="property"> = []</em><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.plate.PlateDefinitionModel.parent_plate">
+<code class="descclassname">PlateDefinitionModel.</code><code class="descname">parent_plate</code><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel.parent_plate" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.plate.PlateDefinitionModel.plate_id">
+<code class="descclassname">PlateDefinitionModel.</code><code class="descname">plate_id</code><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel.plate_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.plate.PlateDefinitionModel.values">
+<code class="descclassname">PlateDefinitionModel.</code><code class="descname">values</code><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list field that wraps a standard field, allowing multiple instances
+of the field to be used as a list in the database.</p>
+<p>If using with ReferenceFields see: <span class="xref std std-ref">one-to-many-with-listfields</span></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Required means it cannot be empty - as the default for ListFields is []</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hyperstream.models.plate.PlateModel">
+<em class="property">class </em><code class="descclassname">hyperstream.models.plate.</code><code class="descname">PlateModel</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/models/plate.html#PlateModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.models.plate.PlateModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">mongoengine.document.EmbeddedDocument</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.models.plate.PlateModel.complement">
+<code class="descname">complement</code><a class="headerlink" href="#hyperstream.models.plate.PlateModel.complement" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean field type.</p>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.1.2.</span></p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.plate.PlateModel.meta_data_id">
+<code class="descname">meta_data_id</code><a class="headerlink" href="#hyperstream.models.plate.PlateModel.meta_data_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.plate.PlateModel.values">
+<code class="descname">values</code><a class="headerlink" href="#hyperstream.models.plate.PlateModel.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list field that wraps a standard field, allowing multiple instances
+of the field to be used as a list in the database.</p>
+<p>If using with ReferenceFields see: <span class="xref std std-ref">one-to-many-with-listfields</span></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Required means it cannot be empty - as the default for ListFields is []</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-hyperstream.models.stream">
 <span id="hyperstream-models-stream-module"></span><h2>hyperstream.models.stream module<a class="headerlink" href="#module-hyperstream.models.stream" title="Permalink to this headline">¶</a></h2>
@@ -82,23 +258,6 @@
 <dt id="hyperstream.models.stream.StreamDefinitionModel.objects">
 <code class="descclassname">StreamDefinitionModel.</code><code class="descname">objects</code><em class="property"> = []</em><a class="headerlink" href="#hyperstream.models.stream.StreamDefinitionModel.objects" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="attribute">
-<dt id="hyperstream.models.stream.StreamDefinitionModel.parameters">
-<code class="descclassname">StreamDefinitionModel.</code><code class="descname">parameters</code><a class="headerlink" href="#hyperstream.models.stream.StreamDefinitionModel.parameters" title="Permalink to this definition">¶</a></dt>
-<dd><p>A dictionary field that wraps a standard Python dictionary. This is
-similar to an embedded document, but the structure is not defined.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Required means it cannot be empty - as the default for DictFields is {}</p>
-</div>
-<div class="versionadded">
-<p><span class="versionmodified">New in version 0.3.</span></p>
-</div>
-<div class="versionchanged">
-<p><span class="versionmodified">Changed in version 0.5: </span>- Can now handle complex / varying types of data</p>
-</div>
-</dd></dl>
 
 <dl class="attribute">
 <dt id="hyperstream.models.stream.StreamDefinitionModel.sandbox">
@@ -303,8 +462,100 @@ Only valid values are subclasses of <code class="xref py py-class docutils liter
 </dd></dl>
 
 </div>
-<div class="section" id="hyperstream-models-time-range-module">
-<h2>hyperstream.models.time_range module<a class="headerlink" href="#hyperstream-models-time-range-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-hyperstream.models.time_interval">
+<span id="hyperstream-models-time-interval-module"></span><h2>hyperstream.models.time_interval module<a class="headerlink" href="#module-hyperstream.models.time_interval" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="hyperstream.models.time_interval.TimeIntervalModel">
+<em class="property">class </em><code class="descclassname">hyperstream.models.time_interval.</code><code class="descname">TimeIntervalModel</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/models/time_interval.html#TimeIntervalModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.models.time_interval.TimeIntervalModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">mongoengine.document.EmbeddedDocument</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.models.time_interval.TimeIntervalModel.end">
+<code class="descname">end</code><a class="headerlink" href="#hyperstream.models.time_interval.TimeIntervalModel.end" title="Permalink to this definition">¶</a></dt>
+<dd><p>A datetime field.</p>
+<p>Uses the python-dateutil library if available alternatively use time.strptime
+to parse the dates.  Note: python-dateutil&#8217;s parser is fully featured and when
+installed you can utilise it to convert varying types of date formats into valid
+python datetime objects.</p>
+<dl class="docutils">
+<dt>Note: Microseconds are rounded to the nearest millisecond.</dt>
+<dd>Pre UTC microsecond support is effectively broken.
+Use <code class="xref py py-class docutils literal"><span class="pre">ComplexDateTimeField</span></code> if you
+need accurate microsecond support.</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.time_interval.TimeIntervalModel.start">
+<code class="descname">start</code><a class="headerlink" href="#hyperstream.models.time_interval.TimeIntervalModel.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>A datetime field.</p>
+<p>Uses the python-dateutil library if available alternatively use time.strptime
+to parse the dates.  Note: python-dateutil&#8217;s parser is fully featured and when
+installed you can utilise it to convert varying types of date formats into valid
+python datetime objects.</p>
+<dl class="docutils">
+<dt>Note: Microseconds are rounded to the nearest millisecond.</dt>
+<dd>Pre UTC microsecond support is effectively broken.
+Use <code class="xref py py-class docutils literal"><span class="pre">ComplexDateTimeField</span></code> if you
+need accurate microsecond support.</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hyperstream.models.time_interval.TimeRangeListModel">
+<em class="property">class </em><code class="descclassname">hyperstream.models.time_interval.</code><code class="descname">TimeRangeListModel</code><span class="sig-paren">(</span><em>document_type</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/models/time_interval.html#TimeRangeListModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.models.time_interval.TimeRangeListModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">mongoengine.fields.EmbeddedDocumentListField</span></code></p>
+<dl class="method">
+<dt id="hyperstream.models.time_interval.TimeRangeListModel.add_time_interval">
+<code class="descname">add_time_interval</code><span class="sig-paren">(</span><em>time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/models/time_interval.html#TimeRangeListModel.add_time_interval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.models.time_interval.TimeRangeListModel.add_time_interval" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.models.time_interval.TimeRangeListModel.update_time_intervals">
+<code class="descname">update_time_intervals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/models/time_interval.html#TimeRangeListModel.update_time_intervals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.models.time_interval.TimeRangeListModel.update_time_intervals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-hyperstream.models.tool">
+<span id="hyperstream-models-tool-module"></span><h2>hyperstream.models.tool module<a class="headerlink" href="#module-hyperstream.models.tool" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="hyperstream.models.tool.ToolModel">
+<em class="property">class </em><code class="descclassname">hyperstream.models.tool.</code><code class="descname">ToolModel</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/models/tool.html#ToolModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.models.tool.ToolModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">mongoengine.document.EmbeddedDocument</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.models.tool.ToolModel.name">
+<code class="descname">name</code><a class="headerlink" href="#hyperstream.models.tool.ToolModel.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.tool.ToolModel.parameters">
+<code class="descname">parameters</code><a class="headerlink" href="#hyperstream.models.tool.ToolModel.parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary field that wraps a standard Python dictionary. This is
+similar to an embedded document, but the structure is not defined.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Required means it cannot be empty - as the default for DictFields is {}</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.3.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified">Changed in version 0.5: </span>- Can now handle complex / varying types of data</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.models.tool.ToolModel.version">
+<code class="descname">version</code><a class="headerlink" href="#hyperstream.models.tool.ToolModel.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unicode string field.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-hyperstream.models.workflow">
 <span id="hyperstream-models-workflow-module"></span><h2>hyperstream.models.workflow module<a class="headerlink" href="#module-hyperstream.models.workflow" title="Permalink to this headline">¶</a></h2>
@@ -514,8 +765,12 @@ embedded documents to provide additional query helpers.</p>
   <ul>
 <li><a class="reference internal" href="#">hyperstream.models package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-hyperstream.models.factor">hyperstream.models.factor module</a></li>
+<li><a class="reference internal" href="#module-hyperstream.models.node">hyperstream.models.node module</a></li>
+<li><a class="reference internal" href="#module-hyperstream.models.plate">hyperstream.models.plate module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.models.stream">hyperstream.models.stream module</a></li>
-<li><a class="reference internal" href="#hyperstream-models-time-range-module">hyperstream.models.time_range module</a></li>
+<li><a class="reference internal" href="#module-hyperstream.models.time_interval">hyperstream.models.time_interval module</a></li>
+<li><a class="reference internal" href="#module-hyperstream.models.tool">hyperstream.models.tool module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.models.workflow">hyperstream.models.workflow module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.models">Module contents</a></li>
 </ul>
@@ -527,7 +782,7 @@ embedded documents to provide additional query helpers.</p>
   <li><a href="index.html">Documentation overview</a><ul>
   <li><a href="hyperstream.html">hyperstream package</a><ul>
       <li>Previous: <a href="hyperstream.itertools2.html" title="previous chapter">hyperstream.itertools2 package</a></li>
-      <li>Next: <a href="hyperstream.modifiers.html" title="next chapter">hyperstream.modifiers package</a></li>
+      <li>Next: <a href="hyperstream.utils.html" title="next chapter">hyperstream.utils package</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -554,7 +809,7 @@ embedded documents to provide additional query helpers.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, SPHERE WP5 Team.
+      &copy;2016, SPHERE WP5.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>

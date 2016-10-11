@@ -9,16 +9,16 @@ Subpackages
     hyperstream.channels
     hyperstream.itertools2
     hyperstream.models
-    hyperstream.modifiers
     hyperstream.utils
+    hyperstream.workflow
 
 Submodules
 ----------
 
-hyperstream.channel module
---------------------------
+hyperstream.channel_manager module
+----------------------------------
 
-.. automodule:: hyperstream.channel
+.. automodule:: hyperstream.channel_manager
     :members:
     :undoc-members:
     :show-inheritance:
@@ -55,14 +55,6 @@ hyperstream.online_engine module
     :undoc-members:
     :show-inheritance:
 
-hyperstream.plate module
-------------------------
-
-.. automodule:: hyperstream.plate
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 hyperstream.stream module
 -------------------------
 
@@ -83,14 +75,6 @@ hyperstream.tool module
 -----------------------
 
 .. automodule:: hyperstream.tool
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-hyperstream.workflow module
----------------------------
-
-.. automodule:: hyperstream.workflow
     :members:
     :undoc-members:
     :show-inheritance:

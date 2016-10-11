@@ -2,7 +2,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
@@ -23,7 +23,6 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="HyperStream 1.0 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" />
    
@@ -115,7 +114,7 @@
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;authentication_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;authentication_database&#39;</span><span class="p">]</span>
             <span class="k">del</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;authentication_database&#39;</span><span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">connect</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">connect</span><span class="p">(</span><span class="n">alias</span><span class="o">=</span><span class="s2">&quot;hyperstream&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Client.get_config_value"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.client.Client.get_config_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_config_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">get_value_safe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server_config</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span></div></div>
@@ -149,7 +148,7 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, SPHERE WP5 Team.
+      &copy;2016, SPHERE WP5.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
