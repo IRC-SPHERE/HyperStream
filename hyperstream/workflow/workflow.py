@@ -17,12 +17,15 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+Workflow and WorkflowManager definitions.
+"""
 
-from ..utils import Printable, FrozenKeyDict, MIN_DATE, utcnow
+from ..utils import Printable, FrozenKeyDict
 from node import Node
 from factor import Factor, MultiOutputFactor
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
-from ..stream import StreamId  # , StreamView
+from ..stream import StreamId
 from ..errors import StreamNotFoundError, IncompatiblePlatesError
 
 import logging
@@ -32,18 +35,18 @@ import itertools
 
 class Workflow(Printable):
     """
-    Workflow. This defines the graph of operations through "nodes" and "factors".
+    Workflow.
+    This defines the graph of operations through "nodes" and "factors".
     """
-    
     def __init__(self, channels, plates, workflow_id, name, description, owner):
         """
         Initialise the workflow
-        :param channels:
-        :param plates:
-        :param workflow_id:
-        :param name:
-        :param description:
-        :param owner:
+        :param channels: The channels used by this workflow
+        :param plates: All of the plates used by this workflow
+        :param workflow_id: The workflow id
+        :param name: The name of the workflow
+        :param description: A human readable description
+        :param owner: The owner/author of the workflow
         """
         self.channels = channels
         self.plates = plates
@@ -59,8 +62,8 @@ class Workflow(Printable):
     
     def execute(self, time_interval):
         """
-        Here we execute the streams in the workflow
-        :return:
+        Here we execute the factors over the streams in the workflow
+        :return: None
         """
         # TODO: Currently expects the factors to be declared sequentially
         # for factor_collection in self.factor_collections.values()[::-1]:
@@ -161,22 +164,20 @@ class Workflow(Printable):
         if len(output_plates) > 1:
             raise NotImplementedError
 
-        # TODO: Make sure input plate is a parent of the output plate
-        # if source_node.plate_ids:
-        #     for p in source_node.plate_ids:
-        #         if p not in set(sink_plates):
-        #             raise IncompatiblePlatesError("{} not in sink node plate".format(p))
-        #     for p in sink_plates:
-        #         if p not in set(source_node.plate_ids):
-        #             raise IncompatiblePlatesError("{} not in source node plate".format(p))
-        #     input_plate = [self.plates[plate_id] for plate_id in source_node.plate_ids]
-        # else:
-        #     input_plate = None
-
         input_plates = [self.plates[plate_id] for plate_id in source_node.plate_ids]
 
         if len(input_plates) > 1:
             raise NotImplementedError
+
+        if output_plates[0].parent is None and len(input_plates) == 1:
+            raise IncompatiblePlatesError("Parent plate does not match input plate")
+
+        if output_plates[0].parent is not None and len(input_plates) == 0:
+            raise IncompatiblePlatesError("Parent plate does not match input plate")
+
+        if output_plates[0].parent is not None and len(input_plates) == 1 \
+                and output_plates[0].parent != input_plates[0]:
+            raise IncompatiblePlatesError("Parent plate does not match input plate")
 
         factor = MultiOutputFactor(tool=tool, source_node=source_node, sink_node=sink_node,
                                    input_plate=input_plates[0], output_plate=output_plates[0])
@@ -237,7 +238,7 @@ class WorkflowManager(Printable):
                                             list(itertools.chain.from_iterable(s.plate_ids for s in source_nodes))],
                                            key=lambda x: len(x))
                     
-                    # TODO: Here we need to get the subgraph of the plate tree so that we can build our for loops later
+                    # TODO: Here we need to get the sub-graph of the plate tree so that we can build our for loops later
                     # TODO: One for loop for each level of nesting
                     tool = channels.get_tool(
                         tool=f.tool.name,
@@ -250,10 +251,12 @@ class WorkflowManager(Printable):
     
     def add_workflow(self, workflow, commit=False):
         """
-
-        :param workflow:
-        :param commit:
-        :return:
+        Add a new workflow and optionally commit it to the database
+        :param workflow: The workflow
+        :param commit: Whether to commit the workflow to the database
+        :type workflow: Workflow
+        :type commit: bool
+        :return: None
         """
         self.workflows[workflow.workflow_id] = workflow
         logging.info("Added workflow {} to workflow manager".format(workflow.workflow_id))
@@ -266,9 +269,9 @@ class WorkflowManager(Printable):
     
     def commit_workflow(self, workflow_id):
         """
-
-        :param workflow_id:
-        :return:
+        Commit the workflow to the database
+        :param workflow_id: The workflow id
+        :return: None
         """
         # TODO: We should also be committing the Stream definitions if there are new ones
         
@@ -291,7 +294,7 @@ class WorkflowManager(Printable):
     def commit_all(self):
         """
         Commit all workflows to the database
-        :return:
+        :return: None
         """
         for workflow_id in self.uncommitted_workflows:
             self.commit_workflow(workflow_id)

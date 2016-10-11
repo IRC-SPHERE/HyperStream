@@ -43,7 +43,10 @@ class TimeIntervals(Printable):
                 self.intervals.append(v)
     
     def __str__(self):
-        return " U ".join(map(str, self.intervals))
+        return " U ".join(map(str, self.intervals)) if self.intervals else "[]"
+
+    def __repr__(self):
+        return "{}([{}])".format(self.__class__.__name__, ", ".join(map(repr, self.intervals)))
 
     @property
     def is_empty(self):
