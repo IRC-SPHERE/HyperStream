@@ -129,7 +129,7 @@ class MultiOutputTool(Printable, Hashable):
                 for item in self._execute(source=source, interval=interval, output_plate=output_plate):
                     # Join the output meta data with the parent plate meta data
                     meta_data = input_plate_value + (item.meta_data,)
-                    sink = next(s for s in sinks if s.stream_id.meta_data == meta_data)
+                    sink = next(s for s in sinks if tuple(sorted(s.stream_id.meta_data)) == tuple(sorted(meta_data)))
                     sink.writer(item.stream_instance)
                     produced_data = True
 

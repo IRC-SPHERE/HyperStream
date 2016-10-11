@@ -58,7 +58,7 @@ class Node(Printable):
 
     def print_head(self, plate_value, interval, n=10):
         data = False
-        for k, v in self.streams[plate_value].window(interval).head(n):
+        for k, v in self.streams[tuple(sorted(plate_value))].window(interval).head(n):
             data = True
             print("{}, {}".format(k, v))
         if not data:

@@ -39,7 +39,10 @@
         {"identifier": "2.resident_C.test_data", "tag": "test_tag", "data": "test_data", "parent": "2.resident_C"},
         {"identifier": "1.hallway.A", "tag": "wearable", "data": "A", "parent": "1.hallway"},
         {"identifier": "1.lounge.A", "tag": "wearable", "data": "A", "parent": "1.lounge"},
-        {"identifier": "1.kitchen.A", "tag": "wearable", "data": "A", "parent": "1.kitchen"}
+        {"identifier": "1.kitchen.A", "tag": "wearable", "data": "A", "parent": "1.kitchen"},
+        {"identifier": "1.annotator_2", "tag": "annotator", "data": "2", "parent": "1"},
+        {"identifier": "1.annotator_3", "tag": "annotator", "data": "3", "parent": "1"},
+        {"identifier": "1.annotator_5", "tag": "annotator", "data": "5", "parent": "1"}
     ],
     "meta_data_currently_not_used": [
         {"identifier": "1.study.A", "tag": "wearable", "data": "A", "parent": "1.study"},

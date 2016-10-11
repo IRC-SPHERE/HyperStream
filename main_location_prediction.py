@@ -21,8 +21,7 @@
 import logging
 from datetime import datetime, timedelta
 
-from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client, \
-    TimeInterval
+from hyperstream import ChannelManager, HyperStreamConfig, Workflow, PlateManager, WorkflowManager, Client, TimeInterval
 from hyperstream.utils import UTC
 
 from sphere_connector_package.sphere_connector import SphereLogger
@@ -39,6 +38,8 @@ motion_sensors = {
     "stairs": "motion-S1_S",
     "toilet": "motion-S1_WC"
 }
+
+annotator_ids = ["2", "3", "5"]
 
 # Mapping from access point to location, and wearable uid to wearable name
 mappings = {
@@ -61,7 +62,8 @@ mappings = {
     },
     'uid': {
         "0aa05543a5c2": "A"
-    }
+    },
+    'annotator': dict((x, x) for x in annotator_ids)
 }
 
 # Analysis of data from:
@@ -87,31 +89,17 @@ if __name__ == '__main__':
     # Various constants
     t1 = datetime(2015, 8, 6, 13, 35, 36, 35000, UTC)
     # TODO: Shortened time interval for now
-    # t2 = datetime(2015, 8, 6, 14, 12, 22, 8000, UTC)
+    t2 = datetime(2015, 8, 6, 14, 12, 22, 8000, UTC)
     second = timedelta(seconds=1)
     minute = timedelta(minutes=1)
     hour = timedelta(hours=1)
-    t2 = t1 + 1 * minute
+    # t2 = t1 + 5 * minute
 
     # Various channels
     M = channels.memory
     S = channels.sphere
     T = channels.tools
     D = channels.mongo
-
-    # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
-    environmental = StreamId(name='environmental', meta_data={'house': '1'})
-    clock = StreamId('clock')
-    aggregate = StreamId('aggregate')
-    every30s = StreamId('every30s')
-    motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
-    env_kitchen_30_s_window = StreamId('env_kitchen_30_s_window')
-    m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
-    average = StreamId('average')  # , meta_data={'house': '1'})
-    count = StreamId('count')
-    # sum_ = StreamId('sum')
-    sphere = StreamId('sphere')
-    component = StreamId('component')
 
     # Create a simple one step workflow for querying
     w = Workflow(
@@ -138,28 +126,54 @@ if __name__ == '__main__':
     w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements=("rss",)),
                     source_nodes=None, sink_node=n_rss_flat, alignment_node=None).execute(time_interval)
 
-    n_rss_flat.print_head(key, time_interval)
+    # Load in annotations from the same time period
+    n_annotations_flat = w.create_node(stream_name="annotations_flat", channel=M, plate_ids=["H1"])
+    w.create_factor(tool_name="sphere",
+                    tool_parameters=dict(modality="annotations", annotators=annotator_ids, elements=["Location"]),
+                    source_nodes=None, sink_node=n_annotations_flat, alignment_node=None).execute(time_interval)
+
+    # n_annotations_flat.print_head((("house", "1"),), time_interval)
+
+    # Put these on to an annotators plate
+    n_annotations_split = w.create_node(stream_name="annotations_split", channel=M, plate_ids=["H1.A"])
+    w.create_multi_output_factor(
+        tool_name="splitter", tool_parameters=dict(element="annotator", mapping=mappings["annotator"]),
+        source_node=n_annotations_flat, sink_node=n_annotations_split).execute(time_interval)
+
+    # for annotator in annotator_ids:
+    #     print("Annotator " + annotator)
+    #     n_annotations_split.print_head((("house", "1"), ("annotator", annotator)), time_interval)
+
+    # Pull out the label
+    n_annotations = w.create_node(stream_name="annotations", channel=M, plate_ids=["H1.A"])
+    w.create_factor(tool_name="component", tool_parameters=dict(key="label"), source_nodes=[n_annotations_split],
+                    sink_node=n_annotations, alignment_node=None).execute(time_interval)
+
+    for annotator in annotator_ids:
+        print("Annotator " + annotator)
+        n_annotations.print_head((("house", "1"), ("annotator", annotator)), time_interval)
+
+    # exit(0)
+
+    # n_rss_flat.print_head(key, time_interval)
 
     n_rss_aid = w.create_node(stream_name="rss_aid", channel=M, plate_ids=["H1.L"])
     w.create_multi_output_factor(tool_name="splitter", tool_parameters=dict(element="aid", mapping=mappings["aid"]),
                                  source_node=n_rss_flat, sink_node=n_rss_aid).execute(time_interval)
 
-    # w.execute(time_interval)
-    # for loc in w.plates["H1.L"].values:
-    for loc in ["kitchen", "hallway", "lounge"]:
-        print(loc)
-        n_rss_aid.print_head((("house", "1"), ("location", loc)), time_interval)
-        print("")
+    # for loc in ["kitchen", "hallway", "lounge"]:
+    #     print(loc)
+    #     n_rss_aid.print_head((("house", "1"), ("location", loc)), time_interval)
+    #     print("")
 
     n_rss_aid_uid = w.create_node(stream_name="rss_aid_uid", channel=M, plate_ids=["H1.L.W"])
     w.create_multi_output_factor(tool_name="splitter", tool_parameters=dict(element="uid", mapping=mappings["uid"]),
                                  source_node=n_rss_aid, sink_node=n_rss_aid_uid).execute(time_interval)
 
-    # for loc in w.plates["H1.L"].values:
-    for loc in ["kitchen", "hallway", "lounge"]:
-        print(loc)
-        n_rss_aid_uid.print_head((("house", "1"), ("location", loc), ('wearable', 'A')), time_interval)
-        print("")
+    # for loc in ["kitchen", "hallway", "lounge"]:
+    #     print(loc)
+    #     n_rss_aid_uid.print_head((("house", "1"), ("location", loc), ('wearable', 'A')), time_interval)
+    #     print("")
 
     n_rss = w.create_node(stream_name="rss", channel=M, plate_ids=["H1.L.W"])
     w.create_factor(tool_name="component", tool_parameters=dict(key="wearable-rss"),
@@ -170,9 +184,6 @@ if __name__ == '__main__':
         print(loc)
         n_rss.print_head((("house", "1"), ("location", loc), ('wearable', 'A')), time_interval)
         print("")
-
-
-    # Load in annotations from the same time period
 
     exit(0)
 
@@ -188,10 +199,8 @@ if __name__ == '__main__':
     f_rss = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements=("rss",)),
                             source_nodes=None, sink_node=n_rss_aid, alignment_node=None)
 
-
     # Execute the workflow
     w.execute(time_interval)
 
     print(n_pir.streams[('house', '1'), ].window(time_interval).values()[0:5])
     print(n_rss_aid.streams[('house', '1'),].window(time_interval).values()[0:5])
-
