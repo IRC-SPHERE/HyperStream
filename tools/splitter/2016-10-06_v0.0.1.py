@@ -30,8 +30,11 @@ class Splitter(MultiOutputTool):
         self.element = element
         self.mapping = mapping
 
-    def _execute(self, source, sinks, interval, output_plate):
-        for timestamp, value in source.window(interval).items():
+    def _execute(self, source, interval, output_plate):
+        from hyperstream.stream import StreamId
+        if source.stream_id == StreamId("rss_aid", (("house", "1"), ("location", "hallway"))):
+            pass
+        for timestamp, value in source.window(interval):
             if self.element not in value:
                 logging.debug("Mapping element {} not in instance".format(self.element))
                 continue

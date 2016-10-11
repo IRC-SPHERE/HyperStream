@@ -17,7 +17,9 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
-
+"""
+Plate and plate manager definitions.
+"""
 from ..utils import Printable, MetaDataTree
 from ..models import PlateDefinitionModel
 
@@ -26,20 +28,62 @@ from mongoengine.context_managers import switch_db
 
 
 class Plate(Printable):
-    def __init__(self, plate_id, meta_data_id, values):
+    """
+    A plate in the execution graph. This can be thought of as a "for loop" over the streams in a node
+    """
+    def __init__(self, plate_id, meta_data_id, values, parent_plate=None):
+        """
+        Initialise the plate
+        :param plate_id: Plate ID
+        :param meta_data_id: Meta data ID - corresponds to the tag in the meta data definitions
+        :param values: The plate values - corresponds to the data in the meta data definitions
+        :param parent_plate: The parent plate (object reference)
+        :type parent_plate: Plate
+        """
         self.plate_id = plate_id
         self.meta_data_id = meta_data_id
         self.values = [tuple(sorted(pv.items())) for pv in values]
+        self.parent = parent_plate
 
 
 class PlateManager(Printable):
-    def __init__(self, meta_data):
+    """
+    Plate manager. Manages the mapping between plates defined in the database with the global meta data definition.
+    """
+    def __init__(self, global_meta_data):
+        """
+        Initialise the manager
+
+        Want to get meta-data dictionaries for all plate combinations
+        e.g.
+
+        H plate, want
+
+        {'H': [
+          {'house': '1'},
+          {'house': '2'}
+        ]}
+
+        H1 plate, want
+
+        {'H1': [{'house': '1'}]}
+
+        H.R plate, want
+
+        {'H.R': [
+          {'house': '1', 'resident': '1'},
+          {'house': '1': 'resident': '2'},
+          {'house': '2': 'resident': '1'}
+        }
+
+        :param global_meta_data: The global meta data, which will be stored in a tree structure
+        """
         self.plates = {}
 
         self.global_plate_definitions = MetaDataTree()
 
         # Populate the global plate definitions from dict given in the config file
-        for item in meta_data:
+        for item in global_meta_data:
             self.global_plate_definitions.create_node(**item)
 
         logging.info("Global plate definitions: ")
@@ -50,30 +94,6 @@ class PlateManager(Printable):
             for p in PlateDefinitionModel.objects:
                 if not p.values and not p.complement:
                     raise ValueError("Empty values in plate definition and complement=False")
-
-                """
-                Want to get meta-data dictionaries for all plate combinations
-                e.g.
-
-                H plate, want
-
-                {'H': [
-                  {'house': '1'},
-                  {'house': '2'}
-                ]}
-
-                H1 plate, want
-
-                {'H1': [{'house': '1'}]}
-
-                H.R plate, want
-
-                {'H.R': [
-                  {'house': '1', 'resident': '1'},
-                  {'house': '1': 'resident': '2'},
-                  {'house': '2': 'resident': '1'}
-                }
-                """
 
                 # if p.plate_id in (u'H1', u'H1.kitchen', u'H1_str'):
                 #     logging.debug(p.plate_id)
@@ -96,7 +116,9 @@ class PlateManager(Printable):
                 if not values:
                     raise ValueError("Plate values for {} empty".format(p.plate_id))
 
-                self.plates[p.plate_id] = Plate(plate_id=p.plate_id, meta_data_id=p.meta_data_id, values=values)
+                # TODO: We should also be checking that the plate is defined over all of the values of the parent plate
+                self.plates[p.plate_id] = Plate(plate_id=p.plate_id, meta_data_id=p.meta_data_id, values=values,
+                                                parent_plate=self.plates[p.parent_plate] if p.parent_plate else None)
                 logging.debug(self.plates[p.plate_id])
 
     def get_parent_plate_value(self, tree, node, value=None):

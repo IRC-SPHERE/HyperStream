@@ -22,6 +22,7 @@ from ..utils import Printable
 from node import Node
 from ..tool import Tool, MultiOutputTool
 import logging
+from ..time_interval import TimeIntervals
 
 
 class Factor(Printable):
@@ -160,6 +161,13 @@ class MultiOutputFactor(Printable):
             sources = self.source.streams[None]
             self.tool.execute(source=sources, sinks=sinks, interval=time_interval,
                               input_plate_value=None, output_plate=self.output_plate)
+
+        # Update computed intervals
+        for sink in sinks:
+            sink.calculated_intervals += TimeIntervals([time_interval])
+            required_intervals = TimeIntervals([time_interval]) - sink.calculated_intervals
+            if not required_intervals.is_empty:
+                raise RuntimeError('Tool execution did not cover the time interval {}.'.format(required_intervals))
 
     def get_alignment_stream(self, plate=None, plate_value=None):
         if not self.alignment_node:
