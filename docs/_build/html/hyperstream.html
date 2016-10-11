@@ -2,7 +2,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
@@ -23,7 +23,6 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="HyperStream 1.0 documentation" href="index.html" />
     <link rel="next" title="hyperstream.channels package" href="hyperstream.channels.html" />
     <link rel="prev" title="Welcome to HyperStream’s documentation!" href="index.html" />
@@ -68,17 +67,14 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="hyperstream.models.html">hyperstream.models package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="hyperstream.models.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.models.html#module-hyperstream.models.factor">hyperstream.models.factor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.models.html#module-hyperstream.models.node">hyperstream.models.node module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.models.html#module-hyperstream.models.plate">hyperstream.models.plate module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hyperstream.models.html#module-hyperstream.models.stream">hyperstream.models.stream module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.models.html#hyperstream-models-time-range-module">hyperstream.models.time_range module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.models.html#module-hyperstream.models.time_interval">hyperstream.models.time_interval module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.models.html#module-hyperstream.models.tool">hyperstream.models.tool module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hyperstream.models.html#module-hyperstream.models.workflow">hyperstream.models.workflow module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hyperstream.models.html#module-hyperstream.models">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="hyperstream.modifiers.html">hyperstream.modifiers package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.modifiers.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.modifiers.html#hyperstream-modifiers-modifier-module">hyperstream.modifiers.modifier module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.modifiers.html#hyperstream-modifiers-simple-modifiers-module">hyperstream.modifiers.simple_modifiers module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hyperstream.modifiers.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="hyperstream.utils.html">hyperstream.utils package</a><ul>
@@ -89,68 +85,77 @@
 <li class="toctree-l2"><a class="reference internal" href="hyperstream.utils.html#module-hyperstream.utils">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="hyperstream.workflow.html">hyperstream.workflow package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.workflow.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.workflow.html#module-hyperstream.workflow.factor">hyperstream.workflow.factor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.workflow.html#module-hyperstream.workflow.node">hyperstream.workflow.node module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.workflow.html#module-hyperstream.workflow.plate">hyperstream.workflow.plate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.workflow.html#module-hyperstream.workflow.workflow">hyperstream.workflow.workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperstream.workflow.html#module-hyperstream.workflow">Module contents</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-hyperstream.channel">
-<span id="hyperstream-channel-module"></span><h2>hyperstream.channel module<a class="headerlink" href="#module-hyperstream.channel" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-hyperstream.channel_manager">
+<span id="hyperstream-channel-manager-module"></span><h2>hyperstream.channel_manager module<a class="headerlink" href="#module-hyperstream.channel_manager" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="hyperstream.channel.ChannelCollectionBase">
-<em class="property">class </em><code class="descclassname">hyperstream.channel.</code><code class="descname">ChannelCollectionBase</code><span class="sig-paren">(</span><em>tools</em>, <em>sphere</em>, <em>memory</em>, <em>mongo</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.channel.ChannelCollectionBase" title="Permalink to this definition">¶</a></dt>
+<dt id="hyperstream.channel_manager.ChannelCollectionBase">
+<em class="property">class </em><code class="descclassname">hyperstream.channel_manager.</code><code class="descname">ChannelCollectionBase</code><span class="sig-paren">(</span><em>tools</em>, <em>sphere</em>, <em>memory</em>, <em>mongo</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperstream.channel_manager.ChannelCollectionBase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
 <dl class="attribute">
-<dt id="hyperstream.channel.ChannelCollectionBase.memory">
-<code class="descname">memory</code><a class="headerlink" href="#hyperstream.channel.ChannelCollectionBase.memory" title="Permalink to this definition">¶</a></dt>
+<dt id="hyperstream.channel_manager.ChannelCollectionBase.memory">
+<code class="descname">memory</code><a class="headerlink" href="#hyperstream.channel_manager.ChannelCollectionBase.memory" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="hyperstream.channel.ChannelCollectionBase.mongo">
-<code class="descname">mongo</code><a class="headerlink" href="#hyperstream.channel.ChannelCollectionBase.mongo" title="Permalink to this definition">¶</a></dt>
+<dt id="hyperstream.channel_manager.ChannelCollectionBase.mongo">
+<code class="descname">mongo</code><a class="headerlink" href="#hyperstream.channel_manager.ChannelCollectionBase.mongo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 3</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="hyperstream.channel.ChannelCollectionBase.sphere">
-<code class="descname">sphere</code><a class="headerlink" href="#hyperstream.channel.ChannelCollectionBase.sphere" title="Permalink to this definition">¶</a></dt>
+<dt id="hyperstream.channel_manager.ChannelCollectionBase.sphere">
+<code class="descname">sphere</code><a class="headerlink" href="#hyperstream.channel_manager.ChannelCollectionBase.sphere" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="hyperstream.channel.ChannelCollectionBase.tools">
-<code class="descname">tools</code><a class="headerlink" href="#hyperstream.channel.ChannelCollectionBase.tools" title="Permalink to this definition">¶</a></dt>
+<dt id="hyperstream.channel_manager.ChannelCollectionBase.tools">
+<code class="descname">tools</code><a class="headerlink" href="#hyperstream.channel_manager.ChannelCollectionBase.tools" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="hyperstream.channel.ChannelManager">
-<em class="property">class </em><code class="descclassname">hyperstream.channel.</code><code class="descname">ChannelManager</code><a class="reference internal" href="_modules/hyperstream/channel.html#ChannelManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel.ChannelManager" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.channel.ChannelCollectionBase" title="hyperstream.channel.ChannelCollectionBase"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.channel.ChannelCollectionBase</span></code></a>, <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
+<dt id="hyperstream.channel_manager.ChannelManager">
+<em class="property">class </em><code class="descclassname">hyperstream.channel_manager.</code><code class="descname">ChannelManager</code><a class="reference internal" href="_modules/hyperstream/channel_manager.html#ChannelManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hyperstream.channel_manager.ChannelCollectionBase" title="hyperstream.channel_manager.ChannelCollectionBase"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.channel_manager.ChannelCollectionBase</span></code></a>, <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
 <p>Container for the predefined channels.</p>
 <dl class="method">
-<dt id="hyperstream.channel.ChannelManager.get_channel">
-<code class="descname">get_channel</code><span class="sig-paren">(</span><em>channel_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel.html#ChannelManager.get_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel.ChannelManager.get_channel" title="Permalink to this definition">¶</a></dt>
+<dt id="hyperstream.channel_manager.ChannelManager.get_channel">
+<code class="descname">get_channel</code><span class="sig-paren">(</span><em>channel_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel_manager.html#ChannelManager.get_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager.get_channel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the channel by id
 :param channel_id: The channel id
 :return: The channel object</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="hyperstream.channel.ChannelManager.get_stream">
-<code class="descname">get_stream</code><span class="sig-paren">(</span><em>stream_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel.html#ChannelManager.get_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel.ChannelManager.get_stream" title="Permalink to this definition">¶</a></dt>
+<dt id="hyperstream.channel_manager.ChannelManager.get_stream">
+<code class="descname">get_stream</code><span class="sig-paren">(</span><em>stream_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel_manager.html#ChannelManager.get_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager.get_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Searches all of the channels for a particular stream by id
 :param stream_id: The stream id
 :return: The stream reference</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="hyperstream.channel.ChannelManager.get_tool">
-<code class="descname">get_tool</code><span class="sig-paren">(</span><em>tool</em>, <em>tool_parameters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel.html#ChannelManager.get_tool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel.ChannelManager.get_tool" title="Permalink to this definition">¶</a></dt>
+<dt id="hyperstream.channel_manager.ChannelManager.get_tool">
+<code class="descname">get_tool</code><span class="sig-paren">(</span><em>tool</em>, <em>tool_parameters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel_manager.html#ChannelManager.get_tool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager.get_tool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets the tool object from the tool channel, and instantiates it using the tool parameters
 :param tool: The name or stream id for the tool in the tool channel
 :param tool_parameters: The parameters for the tool
@@ -158,8 +163,13 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="hyperstream.channel.ChannelManager.update_channels">
-<code class="descname">update_channels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel.html#ChannelManager.update_channels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel.ChannelManager.update_channels" title="Permalink to this definition">¶</a></dt>
+<dt id="hyperstream.channel_manager.ChannelManager.get_tool_class">
+<code class="descname">get_tool_class</code><span class="sig-paren">(</span><em>tool</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel_manager.html#ChannelManager.get_tool_class"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager.get_tool_class" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.channel_manager.ChannelManager.update_channels">
+<code class="descname">update_channels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel_manager.html#ChannelManager.update_channels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager.update_channels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pulls out all of the stream definitions from the database, and populates the channels with stream references
 :return: None</p>
 </dd></dl>
@@ -172,7 +182,7 @@
 <dl class="class">
 <dt id="hyperstream.client.Client">
 <em class="property">class </em><code class="descclassname">hyperstream.client.</code><code class="descname">Client</code><span class="sig-paren">(</span><em>server_config</em>, <em>auto_connect=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/client.html#Client"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.client.Client" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="hyperstream.client.Client.client">
 <code class="descname">client</code><em class="property"> = None</em><a class="headerlink" href="#hyperstream.client.Client.client" title="Permalink to this definition">¶</a></dt>
@@ -215,37 +225,37 @@
 <dl class="exception">
 <dt id="hyperstream.errors.ChannelNotFoundError">
 <em class="property">exception </em><code class="descclassname">hyperstream.errors.</code><code class="descname">ChannelNotFoundError</code><a class="reference internal" href="_modules/hyperstream/errors.html#ChannelNotFoundError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.errors.ChannelNotFoundError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="hyperstream.errors.IncompatiblePlatesError">
 <em class="property">exception </em><code class="descclassname">hyperstream.errors.</code><code class="descname">IncompatiblePlatesError</code><a class="reference internal" href="_modules/hyperstream/errors.html#IncompatiblePlatesError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.errors.IncompatiblePlatesError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="hyperstream.errors.StreamAlreadyExistsError">
 <em class="property">exception </em><code class="descclassname">hyperstream.errors.</code><code class="descname">StreamAlreadyExistsError</code><a class="reference internal" href="_modules/hyperstream/errors.html#StreamAlreadyExistsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.errors.StreamAlreadyExistsError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="hyperstream.errors.StreamDataNotAvailableError">
 <em class="property">exception </em><code class="descclassname">hyperstream.errors.</code><code class="descname">StreamDataNotAvailableError</code><a class="reference internal" href="_modules/hyperstream/errors.html#StreamDataNotAvailableError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.errors.StreamDataNotAvailableError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="hyperstream.errors.StreamNotFoundError">
 <em class="property">exception </em><code class="descclassname">hyperstream.errors.</code><code class="descname">StreamNotFoundError</code><a class="reference internal" href="_modules/hyperstream/errors.html#StreamNotFoundError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.errors.StreamNotFoundError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="hyperstream.errors.ToolNotFoundError">
 <em class="property">exception </em><code class="descclassname">hyperstream.errors.</code><code class="descname">ToolNotFoundError</code><a class="reference internal" href="_modules/hyperstream/errors.html#ToolNotFoundError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.errors.ToolNotFoundError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
 </dd></dl>
 
 </div>
@@ -254,7 +264,7 @@
 <dl class="class">
 <dt id="hyperstream.online_engine.OnlineEngine">
 <em class="property">class </em><code class="descclassname">hyperstream.online_engine.</code><code class="descname">OnlineEngine</code><span class="sig-paren">(</span><em>hyperstream_config</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/online_engine.html#OnlineEngine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.online_engine.OnlineEngine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="hyperstream.online_engine.OnlineEngine.execute">
 <code class="descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/online_engine.html#OnlineEngine.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.online_engine.OnlineEngine.execute" title="Permalink to this definition">¶</a></dt>
@@ -263,14 +273,11 @@
 </dd></dl>
 
 </div>
-<div class="section" id="hyperstream-plate-module">
-<h2>hyperstream.plate module<a class="headerlink" href="#hyperstream-plate-module" title="Permalink to this headline">¶</a></h2>
-</div>
 <div class="section" id="module-hyperstream.stream">
 <span id="hyperstream-stream-module"></span><h2>hyperstream.stream module<a class="headerlink" href="#module-hyperstream.stream" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="hyperstream.stream.DatabaseStream">
-<em class="property">class </em><code class="descclassname">hyperstream.stream.</code><code class="descname">DatabaseStream</code><span class="sig-paren">(</span><em>channel</em>, <em>stream_id</em>, <em>calculated_intervals=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#DatabaseStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.DatabaseStream" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">hyperstream.stream.</code><code class="descname">DatabaseStream</code><span class="sig-paren">(</span><em>channel</em>, <em>stream_id</em>, <em>calculated_intervals</em>, <em>sandbox</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#DatabaseStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.DatabaseStream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#hyperstream.stream.Stream" title="hyperstream.stream.Stream"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.stream.Stream</span></code></a></p>
 <p>Simple subclass that overrides the calculated intervals property</p>
 <dl class="attribute">
@@ -278,22 +285,19 @@
 <code class="descname">calculated_intervals</code><a class="headerlink" href="#hyperstream.stream.DatabaseStream.calculated_intervals" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.stream.RelativeStreamView">
-<em class="property">class </em><code class="descclassname">hyperstream.stream.</code><code class="descname">RelativeStreamView</code><span class="sig-paren">(</span><em>stream</em>, <em>relative_time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#RelativeStreamView"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.RelativeStreamView" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
 <dl class="method">
-<dt id="hyperstream.stream.RelativeStreamView.window">
-<code class="descname">window</code><span class="sig-paren">(</span><em>time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#RelativeStreamView.window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.RelativeStreamView.window" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="hyperstream.stream.DatabaseStream.save_definition">
+<code class="descname">save_definition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#DatabaseStream.save_definition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.DatabaseStream.save_definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the stream definition to the database. This assumes that the definition doesn&#8217;t already exist, and will
+raise an exception if it does.
+:return: None</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="hyperstream.stream.Stream">
-<em class="property">class </em><code class="descclassname">hyperstream.stream.</code><code class="descname">Stream</code><span class="sig-paren">(</span><em>channel</em>, <em>stream_id</em>, <em>calculated_intervals=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">hyperstream.stream.</code><code class="descname">Stream</code><span class="sig-paren">(</span><em>channel</em>, <em>stream_id</em>, <em>calculated_intervals</em>, <em>sandbox</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Hashable" title="hyperstream.utils.utils.Hashable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Hashable</span></code></a></p>
 <p>Stream reference class</p>
 <dl class="attribute">
@@ -305,15 +309,6 @@
 <dt id="hyperstream.stream.Stream.defined">
 <code class="descname">defined</code><em class="property"> = False</em><a class="headerlink" href="#hyperstream.stream.Stream.defined" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="method">
-<dt id="hyperstream.stream.Stream.relative_window">
-<code class="descname">relative_window</code><span class="sig-paren">(</span><em>relative_time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/stream.html#Stream.relative_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.Stream.relative_window" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the time execute for this stream
-:param relative_time_interval: either a RelativeTimeInterval object or (start, end) tuple of str or timedelta
-:type relative_time_interval: Iterable, RelativeTimeInterval
-:return: a relative stream view object</p>
-</dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.stream.Stream.set_tool_reference">
@@ -381,6 +376,13 @@ Example:</p>
 <em class="property">class </em><code class="descclassname">hyperstream.stream.</code><code class="descname">StreamInstance</code><a class="reference internal" href="_modules/hyperstream/stream.html#StreamInstance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.StreamInstance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#hyperstream.stream.StreamInstance" title="hyperstream.stream.StreamInstance"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.stream.StreamInstance</span></code></a></p>
 <p>Simple helper class for storing data instances that&#8217;s a bit neater than simple tuples</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hyperstream.stream.StreamMetaInstance">
+<em class="property">class </em><code class="descclassname">hyperstream.stream.</code><code class="descname">StreamMetaInstance</code><a class="reference internal" href="_modules/hyperstream/stream.html#StreamMetaInstance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.stream.StreamMetaInstance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hyperstream.stream.StreamMetaInstance" title="hyperstream.stream.StreamMetaInstance"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.stream.StreamMetaInstance</span></code></a></p>
+<p>StreamInstance that also contains meta data</p>
 </dd></dl>
 
 <dl class="class">
@@ -476,7 +478,7 @@ Thin wrapper around a (start, end) tuple of timedelta objects that provides some
 <dl class="class">
 <dt id="hyperstream.time_interval.TimeInterval">
 <em class="property">class </em><code class="descclassname">hyperstream.time_interval.</code><code class="descname">TimeInterval</code><span class="sig-paren">(</span><em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/time_interval.html#TimeInterval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.time_interval.TimeInterval" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Time interval object.
 Thin wrapper around a (start, end) tuple of datetime objects that provides some validation</p>
 <dl class="attribute">
@@ -497,6 +499,11 @@ Thin wrapper around a (start, end) tuple of datetime objects that provides some 
 <dl class="method">
 <dt id="hyperstream.time_interval.TimeInterval.validate_types">
 <code class="descname">validate_types</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/time_interval.html#TimeInterval.validate_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.time_interval.TimeInterval.validate_types" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.time_interval.TimeInterval.width">
+<code class="descname">width</code><a class="headerlink" href="#hyperstream.time_interval.TimeInterval.width" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -560,12 +567,37 @@ absolute in iso strings,   e.g. (&#8220;2016-04-28T20:00:00.000Z&#8221;, &#8220;
 </dd></dl>
 
 <dl class="class">
+<dt id="hyperstream.tool.MultiOutputTool">
+<em class="property">class </em><code class="descclassname">hyperstream.tool.</code><code class="descname">MultiOutputTool</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/tool.html#MultiOutputTool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.tool.MultiOutputTool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a>, <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Hashable" title="hyperstream.utils.utils.Hashable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Hashable</span></code></a></p>
+<p>Special type of tool that outputs multiple streams on a new plate rather than a single stream.
+There are in this case multiple sinks rather than a single sink, and a single source rather than multiple sources.
+Note that no alignment stream is required here.
+Also note that we don&#8217;t subclass Tool due to different calling signatures</p>
+<dl class="method">
+<dt id="hyperstream.tool.MultiOutputTool.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>source</em>, <em>sinks</em>, <em>interval</em>, <em>input_plate_value</em>, <em>output_plate</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/tool.html#MultiOutputTool.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.tool.MultiOutputTool.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.tool.MultiOutputTool.message">
+<code class="descname">message</code><span class="sig-paren">(</span><em>interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/tool.html#MultiOutputTool.message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.tool.MultiOutputTool.message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.tool.MultiOutputTool.name">
+<code class="descname">name</code><a class="headerlink" href="#hyperstream.tool.MultiOutputTool.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="hyperstream.tool.Tool">
 <em class="property">class </em><code class="descclassname">hyperstream.tool.</code><code class="descname">Tool</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/tool.html#Tool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.tool.Tool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a>, <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Hashable" title="hyperstream.utils.utils.Hashable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Hashable</span></code></a></p>
 <dl class="method">
 <dt id="hyperstream.tool.Tool.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>sources</em>, <em>sink</em>, <em>interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/tool.html#Tool.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.tool.Tool.execute" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute</code><span class="sig-paren">(</span><em>sources</em>, <em>sink</em>, <em>alignment_stream</em>, <em>interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/tool.html#Tool.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.tool.Tool.execute" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -589,9 +621,6 @@ absolute in iso strings,   e.g. (&#8220;2016-04-28T20:00:00.000Z&#8221;, &#8220;
 </dd></dl>
 
 </div>
-<div class="section" id="module-hyperstream.workflow">
-<span id="hyperstream-workflow-module"></span><h2>hyperstream.workflow module<a class="headerlink" href="#module-hyperstream.workflow" title="Permalink to this headline">¶</a></h2>
-</div>
 <div class="section" id="module-hyperstream">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-hyperstream" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -608,16 +637,14 @@ absolute in iso strings,   e.g. (&#8220;2016-04-28T20:00:00.000Z&#8221;, &#8220;
 <li><a class="reference internal" href="#">hyperstream package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-hyperstream.channel">hyperstream.channel module</a></li>
+<li><a class="reference internal" href="#module-hyperstream.channel_manager">hyperstream.channel_manager module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.client">hyperstream.client module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.config">hyperstream.config module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.errors">hyperstream.errors module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.online_engine">hyperstream.online_engine module</a></li>
-<li><a class="reference internal" href="#hyperstream-plate-module">hyperstream.plate module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.stream">hyperstream.stream module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.time_interval">hyperstream.time_interval module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.tool">hyperstream.tool module</a></li>
-<li><a class="reference internal" href="#module-hyperstream.workflow">hyperstream.workflow module</a></li>
 <li><a class="reference internal" href="#module-hyperstream">Module contents</a></li>
 </ul>
 </li>
@@ -653,7 +680,7 @@ absolute in iso strings,   e.g. (&#8220;2016-04-28T20:00:00.000Z&#8221;, &#8220;
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, SPHERE WP5 Team.
+      &copy;2016, SPHERE WP5.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>

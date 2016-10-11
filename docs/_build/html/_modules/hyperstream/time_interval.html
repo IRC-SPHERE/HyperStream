@@ -2,7 +2,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
@@ -23,7 +23,6 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="HyperStream 1.0 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" />
    
@@ -62,7 +61,7 @@
 <span class="c1">#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE</span>
 <span class="c1">#  OR OTHER DEALINGS IN THE SOFTWARE.</span>
 
-<span class="kn">from</span> <span class="nn">utils</span> <span class="k">import</span> <span class="n">MIN_DATE</span><span class="p">,</span> <span class="n">utcnow</span><span class="p">,</span> <span class="n">UTC</span><span class="p">,</span> <span class="n">Printable</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="k">import</span> <span class="n">MIN_DATE</span><span class="p">,</span> <span class="n">utcnow</span><span class="p">,</span> <span class="n">UTC</span><span class="p">,</span> <span class="n">Printable</span><span class="p">,</span> <span class="n">get_timedelta</span>
 
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 <span class="kn">from</span> <span class="nn">dateutil.parser</span> <span class="k">import</span> <span class="n">parse</span>
@@ -144,6 +143,9 @@
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">TimeIntervals</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">intervals</span><span class="p">))</span>
 
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span>
+
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">)</span></div>
 
@@ -169,7 +171,11 @@
         
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">val</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_end</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;start should be &lt; end&quot;</span><span class="p">)</span></div>
-    
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start</span>
@@ -218,25 +224,16 @@
 <span class="sd">    Thin wrapper around a (start, end) tuple of timedelta objects that provides some validation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="n">start_time</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">start</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">):</span>
-            <span class="n">start_time</span> <span class="o">=</span> <span class="n">start</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">get_timedelta</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">get_timedelta</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="c1"># TODO: add check for future (positive values) and ensure that start &lt; end</span>
-            <span class="n">end_time</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">):</span>
-            <span class="n">end_time</span> <span class="o">=</span> <span class="n">end</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;=</span> <span class="n">end</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;start should be strictly less than  end&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">start_time</span> <span class="o">&gt;=</span> <span class="n">end_time</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;start should be &lt; end&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;relative time intervals in the future are not supported&quot;</span><span class="p">)</span>
 
-        <span class="nb">super</span><span class="p">(</span><span class="n">RelativeTimeInterval</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">RelativeTimeInterval</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
         
 <div class="viewcode-block" id="RelativeTimeInterval.validate_types"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.time_interval.RelativeTimeInterval.validate_types">[docs]</a>    <span class="k">def</span> <span class="nf">validate_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">):</span>
@@ -319,7 +316,7 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, SPHERE WP5 Team.
+      &copy;2016, SPHERE WP5.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>

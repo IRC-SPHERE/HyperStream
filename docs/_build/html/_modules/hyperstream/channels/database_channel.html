@@ -2,7 +2,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
@@ -23,7 +23,6 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="HyperStream 1.0 documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" />
    
@@ -66,10 +65,12 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">base_channel</span> <span class="k">import</span> <span class="n">BaseChannel</span>
 <span class="kn">from</span> <span class="nn">..models</span> <span class="k">import</span> <span class="n">StreamInstanceModel</span>
-<span class="kn">from</span> <span class="nn">..stream</span> <span class="k">import</span> <span class="n">StreamInstance</span>
+<span class="kn">from</span> <span class="nn">..stream</span> <span class="k">import</span> <span class="n">StreamInstance</span><span class="p">,</span> <span class="n">DatabaseStream</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="k">import</span> <span class="n">StreamAlreadyExistsError</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">mongoengine</span> <span class="k">import</span> <span class="n">NotUniqueError</span>
+<span class="kn">from</span> <span class="nn">mongoengine.context_managers</span> <span class="k">import</span> <span class="n">switch_db</span>
 
 
 <div class="viewcode-block" id="DatabaseChannel"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel">[docs]</a><span class="k">class</span> <span class="nc">DatabaseChannel</span><span class="p">(</span><span class="n">BaseChannel</span><span class="p">):</span>
@@ -105,17 +106,25 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">query</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">as_raw</span><span class="p">()</span>
         <span class="n">query</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;$gt&#39;</span><span class="p">:</span> <span class="n">time_interval</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="s1">&#39;$lte&#39;</span><span class="p">:</span> <span class="n">time_interval</span><span class="o">.</span><span class="n">end</span><span class="p">}</span>
-        <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">StreamInstanceModel</span><span class="o">.</span><span class="n">objects</span><span class="p">(</span><span class="n">__raw__</span><span class="o">=</span><span class="n">query</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="n">StreamInstance</span><span class="p">(</span><span class="n">timestamp</span><span class="o">=</span><span class="n">instance</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">instance</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+        <span class="k">with</span> <span class="n">switch_db</span><span class="p">(</span><span class="n">StreamInstanceModel</span><span class="p">,</span> <span class="s1">&#39;hyperstream&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">StreamInstanceModel</span><span class="o">.</span><span class="n">objects</span><span class="p">(</span><span class="n">__raw__</span><span class="o">=</span><span class="n">query</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">StreamInstance</span><span class="p">(</span><span class="n">timestamp</span><span class="o">=</span><span class="n">instance</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">instance</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DatabaseChannel.create_stream"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel.create_stream">[docs]</a>    <span class="k">def</span> <span class="nf">create_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">):</span>
+<div class="viewcode-block" id="DatabaseChannel.create_stream"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel.create_stream">[docs]</a>    <span class="k">def</span> <span class="nf">create_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">,</span> <span class="n">sandbox</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create the stream</span>
 <span class="sd">        :param stream_id: The stream identifier</span>
+<span class="sd">        :param sandbox: The sandbox for this stream</span>
 <span class="sd">        :return: None</span>
 <span class="sd">        :raises: NotImplementedError</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Database streams currently need to be defined in the database&quot;</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">stream_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">StreamAlreadyExistsError</span><span class="p">(</span><span class="s2">&quot;Stream with id &#39;</span><span class="si">{}</span><span class="s2">&#39; already exists&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stream_id</span><span class="p">))</span>
+
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">DatabaseStream</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_id</span><span class="o">=</span><span class="n">stream_id</span><span class="p">,</span> <span class="n">calculated_intervals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sandbox</span><span class="o">=</span><span class="n">sandbox</span><span class="p">)</span>
+        <span class="n">stream</span><span class="o">.</span><span class="n">save_definition</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">stream</span>
+        <span class="k">return</span> <span class="n">stream</span></div>
 
 <div class="viewcode-block" id="DatabaseChannel.get_stream_writer"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel.get_stream_writer">[docs]</a>    <span class="k">def</span> <span class="nf">get_stream_writer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -126,20 +135,36 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">writer</span><span class="p">(</span><span class="n">document_collection</span><span class="p">):</span>
-            <span class="c1"># TODO: Presumably this should be overridden by users&#39; personal channels - allows for non-mongo outputs.</span>
-            <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">document_collection</span><span class="p">:</span>
-                <span class="n">instance</span> <span class="o">=</span> <span class="n">StreamInstanceModel</span><span class="p">(</span>
-                    <span class="n">stream_id</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
-                    <span class="n">datetime</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
-                    <span class="n">value</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">instance</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
-                <span class="k">except</span> <span class="n">NotUniqueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="c1"># TODO: Fix this ... computed intervals not being stored!</span>
-                    <span class="c1"># pass</span>
-                    <span class="k">raise</span> <span class="n">e</span>
-                    <span class="c1"># logging.warn(e)</span>
-        <span class="k">return</span> <span class="n">writer</span></div></div>
+            <span class="k">with</span> <span class="n">switch_db</span><span class="p">(</span><span class="n">StreamInstanceModel</span><span class="p">,</span> <span class="s1">&#39;hyperstream&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">document_collection</span><span class="p">,</span> <span class="n">StreamInstance</span><span class="p">):</span>
+                    <span class="n">t</span><span class="p">,</span> <span class="n">doc</span> <span class="o">=</span> <span class="n">document_collection</span>
+                    <span class="n">instance</span> <span class="o">=</span> <span class="n">StreamInstanceModel</span><span class="p">(</span>
+                        <span class="n">stream_id</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
+                        <span class="n">datetime</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+                        <span class="n">value</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">instance</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                    <span class="k">except</span> <span class="n">NotUniqueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="c1"># TODO: Should now be fixed</span>
+                        <span class="c1"># pass</span>
+                        <span class="k">raise</span> <span class="n">e</span>
+                        <span class="c1"># logging.warn(e)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># TODO: Presumably this should be overridden by users&#39; personal channels - allows for non-mongo outputs.</span>
+                    <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">document_collection</span><span class="p">:</span>
+                        <span class="n">instance</span> <span class="o">=</span> <span class="n">StreamInstanceModel</span><span class="p">(</span>
+                            <span class="n">stream_id</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
+                            <span class="n">datetime</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+                            <span class="n">value</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">instance</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                        <span class="k">except</span> <span class="n">NotUniqueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="c1"># TODO: Should now be fixed</span>
+                            <span class="c1"># pass</span>
+                            <span class="k">raise</span> <span class="n">e</span>
+                            <span class="c1"># logging.warn(e)</span>
+            <span class="k">return</span> <span class="n">writer</span></div></div>
 </pre></div>
 
           </div>
@@ -170,7 +195,7 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, SPHERE WP5 Team.
+      &copy;2016, SPHERE WP5.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>

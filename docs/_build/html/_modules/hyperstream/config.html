@@ -2,7 +2,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
@@ -23,7 +23,6 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="HyperStream 1.0 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" />
    
@@ -78,6 +77,15 @@
                 <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">mongo</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;mongo&#39;</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">tool_path</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;tool_path&#39;</span><span class="p">]</span>
+
+        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">IOError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># raise</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Configuration error: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;meta_data.json&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Reading &#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">meta_data_lists</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;meta_data_lists&#39;</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">meta_data</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;meta_data&#39;</span><span class="p">]</span>
 
@@ -114,7 +122,7 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, SPHERE WP5 Team.
+      &copy;2016, SPHERE WP5.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>

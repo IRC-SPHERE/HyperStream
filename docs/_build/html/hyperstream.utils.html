@@ -2,7 +2,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
@@ -23,10 +23,10 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="HyperStream 1.0 documentation" href="index.html" />
     <link rel="up" title="hyperstream package" href="hyperstream.html" />
-    <link rel="prev" title="hyperstream.modifiers package" href="hyperstream.modifiers.html" />
+    <link rel="next" title="hyperstream.workflow package" href="hyperstream.workflow.html" />
+    <link rel="prev" title="hyperstream.models package" href="hyperstream.models.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -74,6 +74,11 @@
 <div class="section" id="module-hyperstream.utils.time_utils">
 <span id="hyperstream-utils-time-utils-module"></span><h2>hyperstream.utils.time_utils module<a class="headerlink" href="#module-hyperstream.utils.time_utils" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
+<dt id="hyperstream.utils.time_utils.get_timedelta">
+<code class="descclassname">hyperstream.utils.time_utils.</code><code class="descname">get_timedelta</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/utils/time_utils.html#get_timedelta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.time_utils.get_timedelta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="hyperstream.utils.time_utils.utcnow">
 <code class="descclassname">hyperstream.utils.time_utils.</code><code class="descname">utcnow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/utils/time_utils.html#utcnow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.time_utils.utcnow" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -84,13 +89,13 @@
 <dl class="class">
 <dt id="hyperstream.utils.utils.FrozenKeyDict">
 <em class="property">class </em><code class="descclassname">hyperstream.utils.utils.</code><code class="descname">FrozenKeyDict</code><a class="reference internal" href="_modules/hyperstream/utils/utils.html#FrozenKeyDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.utils.FrozenKeyDict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">dict</span></code></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="hyperstream.utils.utils.Hashable">
 <em class="property">class </em><code class="descclassname">hyperstream.utils.utils.</code><code class="descname">Hashable</code><a class="reference internal" href="_modules/hyperstream/utils/utils.html#Hashable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.utils.Hashable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="hyperstream.utils.utils.Hashable.name">
 <code class="descname">name</code><a class="headerlink" href="#hyperstream.utils.utils.Hashable.name" title="Permalink to this definition">¶</a></dt>
@@ -132,7 +137,7 @@
 <dl class="class">
 <dt id="hyperstream.utils.utils.Printable">
 <em class="property">class </em><code class="descclassname">hyperstream.utils.utils.</code><code class="descname">Printable</code><a class="reference internal" href="_modules/hyperstream/utils/utils.html#Printable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.utils.Printable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>A base class for default printing</p>
 </dd></dl>
 
@@ -202,7 +207,8 @@ Raises ValueDuplicationError if the same value is added again</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
   <li><a href="hyperstream.html">hyperstream package</a><ul>
-      <li>Previous: <a href="hyperstream.modifiers.html" title="previous chapter">hyperstream.modifiers package</a></li>
+      <li>Previous: <a href="hyperstream.models.html" title="previous chapter">hyperstream.models package</a></li>
+      <li>Next: <a href="hyperstream.workflow.html" title="next chapter">hyperstream.workflow package</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -229,7 +235,7 @@ Raises ValueDuplicationError if the same value is added again</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, SPHERE WP5 Team.
+      &copy;2016, SPHERE WP5.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>

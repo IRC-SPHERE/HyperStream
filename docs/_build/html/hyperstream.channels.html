@@ -2,7 +2,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
@@ -23,7 +23,6 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="HyperStream 1.0 documentation" href="index.html" />
     <link rel="up" title="hyperstream package" href="hyperstream.html" />
     <link rel="next" title="hyperstream.itertools2 package" href="hyperstream.itertools2.html" />
@@ -54,9 +53,10 @@
 <dt id="hyperstream.channels.base_channel.BaseChannel">
 <em class="property">class </em><code class="descclassname">hyperstream.channels.base_channel.</code><code class="descname">BaseChannel</code><span class="sig-paren">(</span><em>channel_id</em>, <em>can_calc=False</em>, <em>can_create=False</em>, <em>calc_agent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/base_channel.html#BaseChannel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.base_channel.BaseChannel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
+<p>Abstract base class for channels</p>
 <dl class="method">
 <dt id="hyperstream.channels.base_channel.BaseChannel.create_stream">
-<code class="descname">create_stream</code><span class="sig-paren">(</span><em>stream_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/base_channel.html#BaseChannel.create_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.base_channel.BaseChannel.create_stream" title="Permalink to this definition">¶</a></dt>
+<code class="descname">create_stream</code><span class="sig-paren">(</span><em>stream_id</em>, <em>sandbox=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/base_channel.html#BaseChannel.create_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.base_channel.BaseChannel.create_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Must be overridden by deriving classes, must create the stream according to the tool and return its unique
 identifier stream_id</p>
 </dd></dl>
@@ -129,9 +129,10 @@ return(f)</dd>
 <p>Database Channel. Data stored and retrieved in mongodb using mongoengine.</p>
 <dl class="method">
 <dt id="hyperstream.channels.database_channel.DatabaseChannel.create_stream">
-<code class="descname">create_stream</code><span class="sig-paren">(</span><em>stream_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/database_channel.html#DatabaseChannel.create_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.database_channel.DatabaseChannel.create_stream" title="Permalink to this definition">¶</a></dt>
+<code class="descname">create_stream</code><span class="sig-paren">(</span><em>stream_id</em>, <em>sandbox=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/database_channel.html#DatabaseChannel.create_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.database_channel.DatabaseChannel.create_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create the stream
 :param stream_id: The stream identifier
+:param sandbox: The sandbox for this stream
 :return: None
 :raises: NotImplementedError</p>
 </dd></dl>
@@ -225,6 +226,7 @@ Uses semantic version.</p>
 <dt id="hyperstream.channels.memory_channel.MemoryChannel">
 <em class="property">class </em><code class="descclassname">hyperstream.channels.memory_channel.</code><code class="descname">MemoryChannel</code><span class="sig-paren">(</span><em>channel_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#hyperstream.channels.base_channel.BaseChannel" title="hyperstream.channels.base_channel.BaseChannel"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.channels.base_channel.BaseChannel</span></code></a></p>
+<p>Channel whose data lives in memory</p>
 <dl class="method">
 <dt id="hyperstream.channels.memory_channel.MemoryChannel.check_calculation_times">
 <code class="descname">check_calculation_times</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel.check_calculation_times"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel.check_calculation_times" title="Permalink to this definition">¶</a></dt>
@@ -237,7 +239,7 @@ Uses semantic version.</p>
 
 <dl class="method">
 <dt id="hyperstream.channels.memory_channel.MemoryChannel.create_stream">
-<code class="descname">create_stream</code><span class="sig-paren">(</span><em>stream_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel.create_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel.create_stream" title="Permalink to this definition">¶</a></dt>
+<code class="descname">create_stream</code><span class="sig-paren">(</span><em>stream_id</em>, <em>sandbox=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel.create_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel.create_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Must be overridden by deriving classes, must create the stream according to the tool and return its unique
 identifier stream_id</p>
 </dd></dl>
@@ -284,7 +286,7 @@ The data structure self.streams is a dict of streams indexed by stream_id, each 
 Names and identifiers are the same in this channel.</p>
 <dl class="method">
 <dt id="hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.create_stream">
-<code class="descname">create_stream</code><span class="sig-paren">(</span><em>stream_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#ReadOnlyMemoryChannel.create_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.create_stream" title="Permalink to this definition">¶</a></dt>
+<code class="descname">create_stream</code><span class="sig-paren">(</span><em>stream_id</em>, <em>sandbox=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#ReadOnlyMemoryChannel.create_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.create_stream" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -442,7 +444,7 @@ respective module</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, SPHERE WP5 Team.
+      &copy;2016, SPHERE WP5.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
