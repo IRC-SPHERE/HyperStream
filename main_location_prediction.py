@@ -156,9 +156,9 @@ if __name__ == '__main__':
                                  source_node=n_rss_aid, sink_node=n_rss_aid_uid).execute(time_interval)
 
     # for loc in w.plates["H1.L"].values:
-    for loc_wearable in w.plates["H1.L.W"].values:
-        print(loc_wearable)
-        n_rss_aid_uid.print_head(loc_wearable, time_interval)
+    for loc in ["kitchen", "hallway", "lounge"]:
+        print(loc)
+        n_rss_aid_uid.print_head((("house", "1"), ("location", loc), ('wearable', 'A')), time_interval)
         print("")
 
     n_rss = w.create_node(stream_name="rss", channel=M, plate_ids=["H1.L.W"])
@@ -166,9 +166,9 @@ if __name__ == '__main__':
                     source_nodes=[n_rss_aid_uid], sink_node=n_rss, alignment_node=None).execute(time_interval)
 
     # for loc in w.plates["H1.L"].values:
-    for loc_wearable in w.plates["H1.L.W"].values:
-        print(loc_wearable)
-        n_rss.print_head(loc_wearable, time_interval)
+    for loc in ["kitchen", "hallway", "lounge"]:
+        print(loc)
+        n_rss.print_head((("house", "1"), ("location", loc), ('wearable', 'A')), time_interval)
         print("")
 
 

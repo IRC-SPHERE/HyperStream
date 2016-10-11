@@ -26,7 +26,6 @@ from hyperstream.time_interval import RelativeTimeInterval, TimeInterval
 from hyperstream.utils import UTC
 from hyperstream.itertools2 import online_average, count as online_count, any_set
 from sphere_connector_package.sphere_connector import SphereLogger
-from hyperstream.tool import ExplicitFactor
 
 from hyperstream import TimeInterval, RelativeTimeInterval
 

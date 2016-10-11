@@ -30,9 +30,6 @@ class Tool(Printable, Hashable):
         else:
             logging.debug('Defining a {} tool'.format(self.__class__.__name__))
         
-        self.sources = None
-        self.sink = None
-    
     def __eq__(self, other):
         # TODO: requires a unit test
         return isinstance(other, Tool) and hash(self) == hash(other)
@@ -89,9 +86,6 @@ class MultiOutputTool(Printable, Hashable):
         else:
             logging.debug('Defining a {} tool'.format(self.__class__.__name__))
 
-        self.sources = None
-        self.sink = None
-
     def __eq__(self, other):
         return isinstance(other, Tool) and hash(self) == hash(other)
 
@@ -102,7 +96,7 @@ class MultiOutputTool(Printable, Hashable):
     def name(self):
         return self.__class__.__module__
 
-    def _execute(self, source, sinks, interval, output_plate):
+    def _execute(self, source, interval, output_plate):
         raise NotImplementedError
 
     def execute(self, source, sinks, interval, input_plate_value, output_plate):
@@ -132,18 +126,12 @@ class MultiOutputTool(Printable, Hashable):
             produced_data = False
 
             for interval in required_intervals:
-                for item in self._execute(source=source, sinks=sinks, interval=interval, output_plate=output_plate):
+                for item in self._execute(source=source, interval=interval, output_plate=output_plate):
                     # Join the output meta data with the parent plate meta data
                     meta_data = input_plate_value + (item.meta_data,)
                     sink = next(s for s in sinks if s.stream_id.meta_data == meta_data)
                     sink.writer(item.stream_instance)
                     produced_data = True
-
-            for sink in sinks:
-                sink.calculated_intervals += TimeIntervals([interval])
-                required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
-                if not required_intervals.is_empty:
-                    raise RuntimeError('Tool execution did not cover the time interval {}.'.format(required_intervals))
 
             if not produced_data:
                 logging.warn("Tool did not produce any data for time interval {} on stream {}".format(
@@ -174,33 +162,3 @@ def check_input_stream_count(expected_number_of_streams):
         return func_wrapper
     
     return stream_count_decorator
-
-
-class ExplicitFactor(Printable, Hashable):
-    def __init__(self, tool, sources, sink):
-        if sources is not None and not isinstance(sources, list):
-            raise ValueError("Sources should be a list of streams")
-        
-        self.tool = tool
-        self.sources = sources
-        self.sink = sink
-        
-        self.sink.set_tool_reference(self)
-    
-    def execute(self, interval):
-        if not isinstance(interval, TimeInterval):
-            raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
-        
-        self.propagate_computation(interval)
-        
-        logging.info("Executing code for stream: {}".format(self.sink))
-        for stream_instance in self.tool._execute(self.sources, None, interval):
-            self.sink.writer(stream_instance)
-    
-    def propagate_computation(self, interval):
-        if self.sources is not None:
-            for source in self.sources:
-                assert isinstance(source.tool_reference, ExplicitFactor)
-                
-                logging.info("Propagating inference back to: {}".format(source))
-                source.tool_reference.execute(interval)
