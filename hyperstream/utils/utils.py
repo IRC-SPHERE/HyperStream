@@ -228,5 +228,5 @@ class TypedBiDict(Printable):
 class FrozenKeyDict(dict):
     def __setitem__(self, key, value):
         if key in self:
-            raise KeyError("Key {} already exists".format(key))
+            raise KeyError("Key {} has already been set".format(key))
         super(FrozenKeyDict, self).__setitem__(key, value)

@@ -111,7 +111,6 @@ if __name__ == '__main__':
         description="Would like to test localisation using PIR and RSSI, so we need to first get the appropriate data"
                     "out of the SPHERE stream, with the appropriate meta-data attached, and then use a model")
 
-    # 5 minutes of data to start with
     time_interval = TimeInterval(t1, t2)
 
     # PLATES:
@@ -121,11 +120,6 @@ if __name__ == '__main__':
     key = h1.values[0]
 
     # Location plate
-    # Here we used the splitter tool over the RSS data to generate the plate
-    n_rss_flat = w.create_node(stream_name="rss", channel=S, plate_ids=["H1"])
-    w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements=("rss",)),
-                    source_nodes=None, sink_node=n_rss_flat, alignment_node=None).execute(time_interval)
-
     # Load in annotations from the same time period
     n_annotations_flat = w.create_node(stream_name="annotations_flat", channel=M, plate_ids=["H1"])
     w.create_factor(tool_name="sphere",
@@ -145,7 +139,7 @@ if __name__ == '__main__':
     #     n_annotations_split.print_head((("house", "1"), ("annotator", annotator)), time_interval)
 
     # Pull out the label
-    n_annotations = w.create_node(stream_name="annotations", channel=M, plate_ids=["H1.A"])
+    n_annotations = w.create_node(stream_name="annotations", channel=D, plate_ids=["H1.A"])
     w.create_factor(tool_name="component", tool_parameters=dict(key="label"), source_nodes=[n_annotations_split],
                     sink_node=n_annotations, alignment_node=None).execute(time_interval)
 
@@ -154,6 +148,11 @@ if __name__ == '__main__':
         n_annotations.print_head((("house", "1"), ("annotator", annotator)), time_interval)
 
     # exit(0)
+
+    # Here we used the splitter tool over the RSS data to generate the plate
+    n_rss_flat = w.create_node(stream_name="rss", channel=S, plate_ids=["H1"])
+    w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements=("rss",)),
+                    source_nodes=None, sink_node=n_rss_flat, alignment_node=None).execute(time_interval)
 
     # n_rss_flat.print_head(key, time_interval)
 
@@ -175,7 +174,7 @@ if __name__ == '__main__':
     #     n_rss_aid_uid.print_head((("house", "1"), ("location", loc), ('wearable', 'A')), time_interval)
     #     print("")
 
-    n_rss = w.create_node(stream_name="rss", channel=M, plate_ids=["H1.L.W"])
+    n_rss = w.create_node(stream_name="rss", channel=D, plate_ids=["H1.L.W"])
     w.create_factor(tool_name="component", tool_parameters=dict(key="wearable-rss"),
                     source_nodes=[n_rss_aid_uid], sink_node=n_rss, alignment_node=None).execute(time_interval)
 
