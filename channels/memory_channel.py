@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from base_channel import BaseChannel
-from ..stream import Stream, StreamInstance
+from ..stream import Stream, StreamInstance, StreamInstanceCollection
 from ..time_interval import TimeIntervals
 from ..utils import MIN_DATE
 from ..errors import StreamNotFoundError, StreamAlreadyExistsError
@@ -33,7 +33,7 @@ class MemoryChannel(BaseChannel):
         super(MemoryChannel, self).__init__(channel_id=channel_id, can_calc=True, can_create=True)
         self.max_stream_id = 0
         self.data = dict()
-    
+
     def create_stream(self, stream_id, sandbox=None):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
@@ -48,13 +48,13 @@ class MemoryChannel(BaseChannel):
         stream = Stream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=None)
         
         self.streams[stream_id] = stream
-        self.data[stream_id] = []
+        self.data[stream_id] = StreamInstanceCollection()
         return stream
 
     def clear_stream(self, stream_id):
         if stream_id not in self.streams:
             raise StreamNotFoundError(stream_id)
-        self.data[stream_id] = []
+        self.data[stream_id] = StreamInstanceCollection()
 
     def delete_stream(self, stream_id):
         if stream_id not in self.streams:
