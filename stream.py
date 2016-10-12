@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from time_interval import TimeIntervals, parse_time_tuple, RelativeTimeInterval, TimeInterval
-from utils import Hashable, TypedBiDict, Printable, utcnow
+from utils import Hashable, TypedBiDict, Printable, utcnow, FrozenKeyDict
 from models import StreamStatusModel, TimeIntervalModel, StreamDefinitionModel
 
 import logging
@@ -141,6 +141,18 @@ class StreamDict(TypedBiDict):
     """
     def __init__(self, *args, **kwargs):
         super(StreamDict, self).__init__(StreamId, Stream, *args, **kwargs)
+
+
+class StreamInstanceCollection(FrozenKeyDict):
+
+    def append(self, instance):
+        if not (isinstance(instance, StreamInstance)):
+            raise ValueError("Expected StreamInstance, got {}".format(type(instance)))
+        self[instance.timestamp] = instance.value
+
+    def extend(self, instances):
+        for instance in instances:
+            self.append(instance)
 
 
 class StreamId(Hashable):

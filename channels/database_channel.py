@@ -87,6 +87,7 @@ class DatabaseChannel(BaseChannel):
         """
         Gets the database channel writer
         The mongoengine model checks whether a stream_id/datetime pair already exists in the DB (unique pairs)
+        Should be overridden by users' personal channels - allows for non-mongo outputs.
         :param stream: The stream
         :return: The stream writer function
         """
@@ -94,7 +95,9 @@ class DatabaseChannel(BaseChannel):
         def writer(document_collection):
             with switch_db(StreamInstanceModel, 'hyperstream'):
                 if isinstance(document_collection, StreamInstance):
-                    t, doc = document_collection
+                    document_collection = [document_collection]
+
+                for t, doc in document_collection:
                     instance = StreamInstanceModel(
                         stream_id=stream.stream_id.as_dict(),
                         datetime=t,
@@ -102,23 +105,10 @@ class DatabaseChannel(BaseChannel):
                     try:
                         instance.save()
                     except NotUniqueError as e:
-                        # TODO: Should now be fixed
-                        # pass
-                        raise e
-                        # logging.warn(e)
-
-                else:
-                # TODO: Presumably this should be overridden by users' personal channels - allows for non-mongo outputs.
-                    for t, doc in document_collection:
-                        instance = StreamInstanceModel(
-                            stream_id=stream.stream_id.as_dict(),
-                            datetime=t,
-                            value=doc)
-                        try:
-                            instance.save()
-                        except NotUniqueError as e:
-                            # TODO: Should now be fixed
-                            # pass
+                        # Implies that this has already been written to the database
+                        # Raise an error if the value differs from that in the database
+                        existing = StreamInstanceModel.objects(stream_id=stream.stream_id.as_dict(), datetime=t)[0]
+                        if existing.value != doc:
                             raise e
-                            # logging.warn(e)
-            return writer
+
+        return writer
