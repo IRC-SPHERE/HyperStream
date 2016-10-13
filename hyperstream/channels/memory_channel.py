@@ -75,8 +75,8 @@ class MemoryChannel(BaseChannel):
         :param time_interval: The time interval
         :return: The sorted data items
         """
-        return sorted((d for d in self.data[stream.stream_id] if d.timestamp in time_interval),
-                      key=lambda d: d.timestamp)
+        return [StreamInstance(t, self.data[stream.stream_id][t])
+                for t in sorted(self.data[stream.stream_id]) if t in time_interval]
 
     def get_stream_writer(self, stream):
         def writer(document_collection):

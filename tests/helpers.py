@@ -50,9 +50,9 @@ hyperstream_config = HyperStreamConfig()
 client = Client(hyperstream_config.mongo)
 channels = ChannelManager(hyperstream_config.tool_path)
 plates = PlateManager(hyperstream_config.meta_data).plates
-workflows = WorkflowManager(channels=channels, plates=plates)
+workflows = WorkflowManager(channel_manager=channels, plate_manager=plates)
 
-# Various channels
+# Various channel_manager
 M = channels.memory
 S = channels.sphere
 T = channels.tools

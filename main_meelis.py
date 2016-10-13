@@ -22,10 +22,12 @@ import logging
 from datetime import datetime, timedelta
 
 from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client, \
-    TimeInterval  # , StreamView
+    TimeInterval
 from hyperstream.utils import UTC, MIN_DATE
-from hyperstream.itertools2 import online_average, count as online_count
+from hyperstream.itertools2 import count as online_count
 from sphere_connector_package.sphere_connector import SphereLogger
+from sphere_helpers import PredefinedTools
+
 
 if __name__ == '__main__':
     # TODO: hyperstream needs it's own logger (can be a clone of this one)
@@ -35,9 +37,11 @@ if __name__ == '__main__':
     client = Client(hyperstream_config.mongo)
 
     # Define some managers
-    channels = ChannelManager(hyperstream_config.tool_path)
-    plates = PlateManager(hyperstream_config.meta_data).plates
-    workflows = WorkflowManager(channels=channels, plates=plates)
+    channel_manager = ChannelManager(hyperstream_config.tool_path)
+    plate_manager = PlateManager(hyperstream_config.meta_data).plates
+    workflow_manager = WorkflowManager(channel_manager=channel_manager, plate_manager=plate_manager)
+
+    tools = PredefinedTools(channel_manager)
 
     # Various constants
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
@@ -47,10 +51,10 @@ if __name__ == '__main__':
     hour = timedelta(hours=1)
 
     # Various channels
-    M = channels.memory
-    S = channels.sphere
-    T = channels.tools
-    D = channels.mongo
+    M = channel_manager.memory
+    S = channel_manager.sphere
+    T = channel_manager.tools
+    D = channel_manager.mongo
 
     # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
     environmental = StreamId(name='environmental', meta_data={'house': '1'})
@@ -68,8 +72,8 @@ if __name__ == '__main__':
 
     # Create a simple one step workflow for querying
     w = Workflow(
-        channels=channels,
-        plates=plates,
+        channels=channel_manager,
+        plates=plate_manager,
         workflow_id="simple_query_workflow",
         name="Simple query workflow",
         owner="TD",
@@ -98,8 +102,8 @@ if __name__ == '__main__':
 
     # More complex workflow
     w = Workflow(
-        channels=channels,
-        plates=plates,
+        channels=channel_manager,
+        plates=plate_manager,
         workflow_id="windowed_query_workflow",
         name="Windowed query workflow",
         owner="TD",
