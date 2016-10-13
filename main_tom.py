@@ -26,6 +26,7 @@ from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, P
 from hyperstream.utils import UTC
 
 from sphere_connector_package.sphere_connector import SphereLogger
+from sphere_helpers import PredefinedTools
 
 
 motion_sensors = {
@@ -49,9 +50,11 @@ if __name__ == '__main__':
     client = Client(hyperstream_config.mongo)
 
     # Define some managers
-    channels = ChannelManager(hyperstream_config.tool_path)
-    plates = PlateManager(hyperstream_config.meta_data).plates
-    workflows = WorkflowManager(channels=channels, plates=plates)
+    channel_manager = ChannelManager(hyperstream_config.tool_path)
+    plate_manager = PlateManager(hyperstream_config.meta_data).plates
+    workflow_manager = WorkflowManager(channel_manager=channel_manager, plate_manager=plate_manager)
+
+    tools = PredefinedTools(channel_manager)
 
     # Various constants
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
@@ -63,10 +66,10 @@ if __name__ == '__main__':
     t2 = t1 + 1 * minute
 
     # Various channels
-    M = channels.memory
-    S = channels.sphere
-    T = channels.tools
-    D = channels.mongo
+    M = channel_manager.memory
+    S = channel_manager.sphere
+    T = channel_manager.tools
+    D = channel_manager.mongo
 
     # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
     environmental = StreamId(name='environmental', meta_data={'house': '1'})
@@ -84,8 +87,8 @@ if __name__ == '__main__':
 
     # Create a simple one step workflow for querying
     w = Workflow(
-        channels=channels,
-        plates=plates,
+        channels=channel_manager,
+        plates=plate_manager,
         workflow_id="localisation",
         name="Test of localisation",
         owner="TD",
@@ -104,38 +107,12 @@ if __name__ == '__main__':
     # Location plate
     # Here we used the splitter tool over the RSS data to generate the plate
     n_rss_flat = w.create_node(stream_name="rss", channel=S, plate_ids=["H1"])
-    w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements=("rss",)),
-                    source_nodes=None, sink_node=n_rss_flat, alignment_node=None).execute(time_interval)
+    w.create_factor(tool=tools.wearable_rss,sources=None, sink=n_rss_flat).execute(time_interval)
 
     n_rss_flat.print_head(key, time_interval)
 
-    # Mapping from access point to location.
-    mappings = {
-        "aid": {
-            # New access points and sensor locations
-            "b827eb26dbd6": "hallway",
-            "b827eb643ba7": "lounge",
-            "b827eb0654a9": "study",
-            "b827eb48a755": "kitchen",
-            "b827eb645a8e": "kitchen",
-            "b827eb62fe45": "hallway",
-            "b827eb036271": "lounge",
-            "b827ebfd0967": "bedroom 1",
-            "b827ebcb1413": "bedroom 1",
-            "b827eb3f1106": "bedroom 2",
-            # Old access points
-            "b827ebea7bc4": "lounge",
-            "b827eb94cbd1": "kitchen",
-            "b827eb524fec": "study"
-        },
-        'uid': {
-            "0aa05543a5c2": "A"
-        }
-    }
-
     n_rss_aid = w.create_node(stream_name="rss_aid", channel=M, plate_ids=["H1.L"])
-    w.create_multi_output_factor(tool_name="splitter", tool_parameters=dict(element="aid", mapping=mappings["aid"]),
-                                 source_node=n_rss_flat, sink_node=n_rss_aid).execute(time_interval)
+    w.create_multi_output_factor(tool=tools.split_aid, source=n_rss_flat, sink=n_rss_aid).execute(time_interval)
 
     # w.execute(time_interval)
     for loc in w.plates["H1.L"].values:
@@ -144,12 +121,10 @@ if __name__ == '__main__':
         print("")
 
     n_rss_aid_uid = w.create_node(stream_name="rss_aid_uid", channel=M, plate_ids=["H1.L.W"])
-    w.create_multi_output_factor(tool_name="splitter", tool_parameters=dict(element="uid", mapping=mappings["uid"]),
-                                 source_node=n_rss_aid, sink_node=n_rss_aid_uid).execute(time_interval)
+    w.create_multi_output_factor(tool=tools.split_uid, source=n_rss_aid, sink=n_rss_aid_uid).execute(time_interval)
 
     n_rss = w.create_node(stream_name="rss", channel=M, plate_ids=["H1.L.W"])
-    w.create_factor(tool_name="component", tool_parameters=dict(key="wearable-rss"),
-                    source_nodes=[n_rss_aid_uid], sink_node=n_rss, alignment_node=None).execute(time_interval)
+    w.create_factor(tool=tools.wearable_rss_values, sources=[n_rss_aid_uid], sink=n_rss).execute(time_interval)
 
     for loc in w.plates["H1.L"].values:
         for wearable in w.plates["H1.L.W"].values:
@@ -163,14 +138,11 @@ if __name__ == '__main__':
 
     # Stream to get motion sensor data
     n_pir = w.create_node(stream_name="environmental_db", channel=D, plate_ids=["H1"])
-    f_pir = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental", elements=("motion",)),
-                            source_nodes=None, sink_node=n_pir, alignment_node=None)
+    f_pir = w.create_factor(tool=tools.environmental_motion, sources=None, sink=n_pir)
 
     # Stream to get RSS data
     n_rss_aid = w.create_node(stream_name="wearable", channel=S, plate_ids=["H1"])
-    f_rss = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="wearable", elements=("rss",)),
-                            source_nodes=None, sink_node=n_rss_aid, alignment_node=None)
-
+    f_rss = w.create_factor(tool=tools.wearable_rss, sources=None, sink=n_rss_aid)
 
     # Execute the workflow
     w.execute(time_interval)

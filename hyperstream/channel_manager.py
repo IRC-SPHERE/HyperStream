@@ -131,14 +131,14 @@ class ChannelManager(ChannelCollectionBase, Printable):
         tool_stream_view = self.tools[tool_id].window((MIN_DATE, utcnow()))
         return tool_stream_view.last().value
 
-    def get_tool(self, tool, tool_parameters):
+    def get_tool(self, name, parameters):
         """
         Gets the tool object from the tool channel, and instantiates it using the tool parameters
-        :param tool: The name or stream id for the tool in the tool channel
-        :param tool_parameters: The parameters for the tool
+        :param name: The name or stream id for the tool in the tool channel
+        :param parameters: The parameters for the tool
         :return: The instantiated tool object
         """
-        tool_class = self.get_tool_class(tool)
+        tool_class = self.get_tool_class(name)
 
         # Check that the number of arguments is correct for this tool
         arg_spec = inspect.getargspec(tool_class.__init__)
@@ -147,7 +147,7 @@ class ChannelManager(ChannelCollectionBase, Printable):
             min_expected = max_expected - len(arg_spec.defaults)
         else:
             min_expected = max_expected
-        num_parameters = len(tool_parameters) if tool_parameters is not None else 0
+        num_parameters = len(parameters) if parameters is not None else 0
         if not (min_expected <= num_parameters + 1 <= max_expected):
             message = "Tool {} takes a between {} and {} arguments ({} given)".format(
                 tool_class.__name__, min_expected, max_expected, num_parameters + 1)
@@ -155,8 +155,8 @@ class ChannelManager(ChannelCollectionBase, Printable):
             raise ValueError(message)
 
         # Instantiate tool
-        tool = tool_class(**tool_parameters) if tool_parameters is not None else tool_class()
-        if not tool:
+        name = tool_class(**parameters) if parameters is not None else tool_class()
+        if not name:
             raise ToolNotFoundError
 
-        return tool
+        return name

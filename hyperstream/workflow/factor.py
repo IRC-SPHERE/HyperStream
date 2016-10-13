@@ -81,6 +81,7 @@ class Factor(Printable):
             sink = self.sink.streams[None]
             self.tool.execute(sources=sources, sink=sink, interval=time_interval, alignment_stream=
                               self.get_alignment_stream(None, None))
+        return self
 
     def get_global_sources(self):
         # Also add streams that live outside of the plates
@@ -135,6 +136,12 @@ class MultiOutputFactor(Printable):
         self.output_plate = output_plate
 
     def execute(self, time_interval):
+        """
+        Execute the factor over the given time interval. Note that this is normally done by the workspace,
+        but can be done on the factor individually for testing
+        :param time_interval: The time interval
+        :return: self (for chaining)
+        """
         # if self.input_plate:
         #     if len(self.input_plate.values) > 1:
         #         # TODO: dealing with more than one plate value not yet supported
@@ -168,6 +175,7 @@ class MultiOutputFactor(Printable):
             required_intervals = TimeIntervals([time_interval]) - sink.calculated_intervals
             if not required_intervals.is_empty:
                 raise RuntimeError('Tool execution did not cover the time interval {}.'.format(required_intervals))
+        return self
 
     def get_alignment_stream(self, plate=None, plate_value=None):
         if not self.alignment_node:

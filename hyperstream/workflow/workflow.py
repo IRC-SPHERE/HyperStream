@@ -24,6 +24,7 @@ Workflow and WorkflowManager definitions.
 from ..utils import Printable, FrozenKeyDict
 from node import Node
 from factor import Factor, MultiOutputFactor
+from ..tool import Tool, MultiOutputTool
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
 from ..stream import StreamId
 from ..errors import StreamNotFoundError, IncompatiblePlatesError
@@ -107,64 +108,81 @@ class Workflow(Printable):
         
         return node
     
-    def create_factor(self, tool_name, tool_parameters, source_nodes, sink_node, alignment_node):
+    def create_factor(self, tool, sources, sink, alignment_node=None):
         """
         Creates a factor. Instantiates a single tool for all of the plates, and connects the source and sink nodes with
         that tool.
         :param alignment_node:
-        :param tool_name: The name of the tool to use
-        :param tool_parameters: The parameters for the tool. Note that these are currently fixed over a plate. For
-        parameters that vary over a plate, an extra input stream should be used
-        :param source_nodes: The source nodes
-        :param sink_node: The sink node
+        :param tool: The tool to use. This is either an instantiated Tool object or a dict with "name" and "parameters"
+        Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,
+        an extra input stream should be used
+        :param sources: The source nodes
+        :param sink: The sink node
         :return: The factor object
+        :type tool: Tool | dict
+        :type sources: list[Node] | tuple[Node] | None
+        :type sink: Node
+        :type alignment_node: Node | None
+        :rtype: Factor
         """
-        tool = self.channels.get_tool(tool=tool_name, tool_parameters=tool_parameters)
+        if isinstance(tool, dict):
+            tool = self.channels.get_tool(**tool)
 
-        if sink_node.plate_ids:
-            if source_nodes:
-                # Check that the plates are compatible
-                source_plates = itertools.chain(*(source.plate_ids for source in source_nodes))
-                for p in sink_node.plate_ids:
+        if not isinstance(tool, Tool):
+            raise ValueError("Expected Tool, got {}".format(type(tool)))
+
+        if sink.plate_ids:
+            if sources:
+                # Check that the plate_manager are compatible
+                source_plates = itertools.chain(*(source.plate_ids for source in sources))
+                for p in sink.plate_ids:
                     if p not in set(source_plates):
                         raise IncompatiblePlatesError("{} not in source plates".format(p))
                 for p in source_plates:
-                    if p not in set(sink_node.plate_ids):
-                        raise IncompatiblePlatesError("{} not in sink_node plates".format(p))
-            plates = [self.plates[plate_id] for plate_id in sink_node.plate_ids]
+                    if p not in set(sink.plate_ids):
+                        raise IncompatiblePlatesError("{} not in sink plate_manager".format(p))
+            plates = [self.plates[plate_id] for plate_id in sink.plate_ids]
         else:
             plates = None
 
-        factor = Factor(tool=tool, source_nodes=source_nodes,
-                        sink_node=sink_node, alignment_node=alignment_node,
+        factor = Factor(tool=tool, source_nodes=sources,
+                        sink_node=sink, alignment_node=alignment_node,
                         plates=plates)
-        self.factor_collections[tool_name].append(factor)
-        self.execution_order.append(tool_name)
+        self.factor_collections[tool.name].append(factor)
+        self.execution_order.append(tool)
         
         return factor
 
-    def create_multi_output_factor(self, tool_name, tool_parameters, source_node, sink_node):
+    def create_multi_output_factor(self, tool, source, sink):
         """
         Creates a multi-output factor.
         This takes a single node, applies a MultiOutputTool to create multiple nodes on a new plate
         Instantiates a single tool for all of the input plate values,
         and connects the source and sink nodes with that tool.
-        :param tool_name: The name of the tool to use
-        :param tool_parameters: The parameters for the tool. Note that these are currently fixed over a plate. For
-        parameters that vary over a plate, an extra input stream should be used
-        :param source_node: The source node
-        :param sink_node: The sink node
+        :param tool: The tool to use. This is either an instantiated Tool object or a dict with "name" and "parameters"
+        Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,
+        an extra input stream should be used
+        :param source: The source node
+        :param sink: The sink node
         :return: The factor object
+        :type tool: MultiOutputTool | dict
+        :type source: Node
+        :type sink: Node
+        :rtype: Factor
         """
-        tool = self.channels.get_tool(tool=tool_name, tool_parameters=tool_parameters)
+        if isinstance(tool, dict):
+            tool = self.channels.get_tool(name=tool["name"], parameters=["parameters"])
+
+        if not isinstance(tool, MultiOutputTool):
+            raise ValueError("Expected MultiOutputTool, got {}".format(type(tool)))
 
         # Check that the input_plate are compatible - note this is the opposite way round to a normal factor
-        output_plates = [self.plates[plate_id] for plate_id in sink_node.plate_ids]
+        output_plates = [self.plates[plate_id] for plate_id in sink.plate_ids]
 
         if len(output_plates) > 1:
             raise NotImplementedError
 
-        input_plates = [self.plates[plate_id] for plate_id in source_node.plate_ids]
+        input_plates = [self.plates[plate_id] for plate_id in source.plate_ids]
 
         if len(input_plates) > 1:
             raise NotImplementedError
@@ -179,10 +197,10 @@ class Workflow(Printable):
                 and output_plates[0].parent != input_plates[0]:
             raise IncompatiblePlatesError("Parent plate does not match input plate")
 
-        factor = MultiOutputFactor(tool=tool, source_node=source_node, sink_node=sink_node,
+        factor = MultiOutputFactor(tool=tool, source_node=source, sink_node=sink,
                                    input_plate=input_plates[0], output_plate=output_plates[0])
-        self.factor_collections[tool_name].append(factor)
-        self.execution_order.append(tool_name)
+        self.factor_collections[tool.name].append(factor)
+        self.execution_order.append(tool.name)
 
         return factor
 
@@ -192,14 +210,14 @@ class WorkflowManager(Printable):
     Workflow manager. Responsible for reading and writing workflows to the database, and can execute all of the
     workflows
     """
-    def __init__(self, channels, plates):
+    def __init__(self, channel_manager, plate_manager):
         """
         Initialise the workflow object
-        :param channels: The channel manager
-        :param plates: All defined plates
+        :param channel_manager: The channel manager
+        :param plate_manager: All defined plates
         """
-        self.channels = channels
-        self.plates = plates
+        self.channels = channel_manager
+        self.plates = plate_manager
         
         self.workflows = FrozenKeyDict()
         self.uncommitted_workflows = set()
@@ -207,8 +225,8 @@ class WorkflowManager(Printable):
         for workflow_definition in WorkflowDefinitionModel.objects():
             try:
                 workflow = Workflow(
-                    channels=channels,
-                    plates=plates,
+                    channels=channel_manager,
+                    plates=plate_manager,
                     workflow_id=workflow_definition.workflow_id,
                     name=workflow_definition.name,
                     description=workflow_definition.description,
@@ -218,7 +236,7 @@ class WorkflowManager(Printable):
                 for n in workflow_definition.nodes:
                     workflow.create_node(
                         stream_name=n.stream_name,
-                        channel=channels.get_channel(n.channel_id),
+                        channel=channel_manager.get_channel(n.channel_id),
                         plate_ids=n.plate_ids)
                 
                 # NOTE that we have to replicate the factor over the plate
@@ -228,21 +246,23 @@ class WorkflowManager(Printable):
                 # 2. nested plates
                 # 3. intersecting plates
                 # 4. a combination of 2. and 3.
+
+                # TODO: alignment node
                 for f in workflow_definition.factors:
                     continue
                     source_nodes = [workflow.nodes[s] for s in f.sources]
                     sink_node = workflow.nodes[f.sink]
                     
                     # sort the plate lists by increasing length
-                    factor_plates = sorted([plates[plate_id] for plate_id in
+                    factor_plates = sorted([plate_manager[plate_id] for plate_id in
                                             list(itertools.chain.from_iterable(s.plate_ids for s in source_nodes))],
                                            key=lambda x: len(x))
                     
                     # TODO: Here we need to get the sub-graph of the plate tree so that we can build our for loops later
                     # TODO: One for loop for each level of nesting
-                    tool = channels.get_tool(
-                        tool=f.tool.name,
-                        tool_parameters=f.tool.parameters)
+                    tool = channel_manager.get_tool(
+                        name=f.tool.name,
+                        parameters=f.tool.parameters)
                     workflow.create_factor(tool, source_nodes, sink_node, None)
                 
                 self.add_workflow(workflow, False)
