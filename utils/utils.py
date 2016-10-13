@@ -228,5 +228,15 @@ class TypedBiDict(Printable):
 class FrozenKeyDict(dict):
     def __setitem__(self, key, value):
         if key in self:
-            raise KeyError("Key {} has already been set".format(key))
+            # Try to reconcile the new value with the old
+            old = self[key]
+            if isinstance(value, dict) and isinstance(old, dict):
+                for k in value:
+                    if k in old:
+                        if value[k] != old[k]:
+                            raise KeyError(
+                                "Key {} has already been set with value {}, new value {}".format(key, self[key], value))
+                    self[key][k] = value[k]
+            else:
+                raise KeyError("Key {} has already been set with value {}, new value {}".format(key, self[key], value))
         super(FrozenKeyDict, self).__setitem__(key, value)
