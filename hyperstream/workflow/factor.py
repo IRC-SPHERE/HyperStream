@@ -116,7 +116,7 @@ class MultiOutputFactor(Printable):
         :param sink_node: The sink nodes
         :param input_plate: The plates over which this factor is defined
         :param output_plate: The new plate which will be created
-        :type tool: Tool
+        :type tool: MultiOutputTool
         :type sink_node: Node
         """
         if not isinstance(tool, MultiOutputTool):

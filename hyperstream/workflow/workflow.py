@@ -29,6 +29,7 @@ from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinit
 from ..stream import StreamId
 from ..errors import StreamNotFoundError, IncompatiblePlatesError
 
+from mongoengine.context_managers import switch_db
 import logging
 from collections import defaultdict
 import itertools
@@ -57,7 +58,8 @@ class Workflow(Printable):
         self.owner = owner
         self.nodes = {}
         self.execution_order = []
-        self.factor_collections = defaultdict(list)
+        # self.factor_collections = defaultdict(list)
+        self.factor_collections = FrozenKeyDict()
 
         logging.info("New workflow created with id {}".format(workflow_id))
     
@@ -148,6 +150,10 @@ class Workflow(Printable):
         factor = Factor(tool=tool, source_nodes=sources,
                         sink_node=sink, alignment_node=alignment_node,
                         plates=plates)
+
+        if tool.name not in self.factor_collections:
+            self.factor_collections[tool.name] = []
+
         self.factor_collections[tool.name].append(factor)
         self.execution_order.append(tool)
         
@@ -199,6 +205,10 @@ class Workflow(Printable):
 
         factor = MultiOutputFactor(tool=tool, source_node=source, sink_node=sink,
                                    input_plate=input_plates[0], output_plate=output_plates[0])
+
+        if tool.name not in self.factor_collections:
+            self.factor_collections[tool.name] = []
+
         self.factor_collections[tool.name].append(factor)
         self.execution_order.append(tool.name)
 
@@ -210,65 +220,67 @@ class WorkflowManager(Printable):
     Workflow manager. Responsible for reading and writing workflows to the database, and can execute all of the
     workflows
     """
-    def __init__(self, channel_manager, plate_manager):
+    def __init__(self, channel_manager, plates):
         """
         Initialise the workflow object
         :param channel_manager: The channel manager
-        :param plate_manager: All defined plates
+        :param plates: All defined plates
         """
         self.channels = channel_manager
-        self.plates = plate_manager
+        self.plates = plates
         
         self.workflows = FrozenKeyDict()
         self.uncommitted_workflows = set()
-        
-        for workflow_definition in WorkflowDefinitionModel.objects():
-            try:
-                workflow = Workflow(
-                    channels=channel_manager,
-                    plates=plate_manager,
-                    workflow_id=workflow_definition.workflow_id,
-                    name=workflow_definition.name,
-                    description=workflow_definition.description,
-                    owner=workflow_definition.owner
-                )
-                
-                for n in workflow_definition.nodes:
-                    workflow.create_node(
-                        stream_name=n.stream_name,
-                        channel=channel_manager.get_channel(n.channel_id),
-                        plate_ids=n.plate_ids)
-                
-                # NOTE that we have to replicate the factor over the plate
-                # This is fairly simple in the case of
-                # 1. a single plate.
-                # However we can have:
-                # 2. nested plates
-                # 3. intersecting plates
-                # 4. a combination of 2. and 3.
 
-                # TODO: alignment node
-                for f in workflow_definition.factors:
-                    continue
-                    source_nodes = [workflow.nodes[s] for s in f.sources]
-                    sink_node = workflow.nodes[f.sink]
-                    
-                    # sort the plate lists by increasing length
-                    factor_plates = sorted([plate_manager[plate_id] for plate_id in
-                                            list(itertools.chain.from_iterable(s.plate_ids for s in source_nodes))],
-                                           key=lambda x: len(x))
-                    
-                    # TODO: Here we need to get the sub-graph of the plate tree so that we can build our for loops later
-                    # TODO: One for loop for each level of nesting
-                    tool = channel_manager.get_tool(
-                        name=f.tool.name,
-                        parameters=f.tool.parameters)
-                    workflow.create_factor(tool, source_nodes, sink_node, None)
-                
-                self.add_workflow(workflow, False)
-            except StreamNotFoundError as e:
-                logging.error(str(e))
-    
+        with switch_db(WorkflowDefinitionModel, db_alias='hyperstream'):
+            for workflow_definition in WorkflowDefinitionModel.objects():
+                try:
+                    workflow = Workflow(
+                        channels=channel_manager,
+                        plates=plates,
+                        workflow_id=workflow_definition.workflow_id,
+                        name=workflow_definition.name,
+                        description=workflow_definition.description,
+                        owner=workflow_definition.owner
+                    )
+
+                    for n in workflow_definition.nodes:
+                        workflow.create_node(
+                            stream_name=n.stream_name,
+                            channel=channel_manager.get_channel(n.channel_id),
+                            plate_ids=n.plate_ids)
+
+                    # NOTE that we have to replicate the factor over the plate
+                    # This is fairly simple in the case of
+                    # 1. a single plate.
+                    # However we can have:
+                    # 2. nested plates
+                    # 3. intersecting plates
+                    # 4. a combination of 2. and 3.
+
+                    # TODO: alignment node
+                    for f in workflow_definition.factors:
+                        continue
+                        source_nodes = [workflow.nodes[s] for s in f.sources]
+                        sink_node = workflow.nodes[f.sink]
+
+                        # sort the plate lists by increasing length
+                        factor_plates = sorted([plates[plate_id] for plate_id in
+                                                list(itertools.chain.from_iterable(s.plate_ids for s in source_nodes))],
+                                               key=lambda x: len(x))
+
+                        # TODO: Here we need to get the sub-graph of the plate tree so that we can build our for loops
+                        # later
+                        # TODO: One for loop for each level of nesting
+                        tool = channel_manager.get_tool(
+                            name=f.tool.name,
+                            parameters=f.tool.parameters)
+                        workflow.create_factor(tool, source_nodes, sink_node, None)
+
+                    self.add_workflow(workflow, False)
+                except StreamNotFoundError as e:
+                    logging.error(str(e))
+
     def add_workflow(self, workflow, commit=False):
         """
         Add a new workflow and optionally commit it to the database

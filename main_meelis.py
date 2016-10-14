@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # Define some managers
     channel_manager = ChannelManager(hyperstream_config.tool_path)
     plate_manager = PlateManager(hyperstream_config.meta_data).plates
-    workflow_manager = WorkflowManager(channel_manager=channel_manager, plate_manager=plate_manager)
+    workflow_manager = WorkflowManager(channel_manager=channel_manager, plates=plate_manager)
 
     tools = PredefinedTools(channel_manager)
 

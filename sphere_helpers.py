@@ -23,8 +23,11 @@ Module containing some SPHERE specific helpers:
     - useful constants
     - predefined tools (with their parameters)
 """
-from datetime import timedelta
+from hyperstream.time_interval import TimeInterval
+from hyperstream.utils import UTC
 from hyperstream.itertools2 import online_average, count as online_count
+
+from datetime import timedelta, datetime
 from scipy import integrate
 import numpy as np
 import sys
@@ -57,7 +60,48 @@ motion_sensors = {
     "toilet": "motion-S1_WC"
 }
 
-annotator_ids = ["2", "3", "5"]
+scripted_experiments = (
+    (TimeInterval(datetime(2015,  8,  6, 13, 35, 36,  35000, UTC), datetime(2015,  8,  6, 14, 12, 22,   8000, UTC)),
+     ("2", "3", "5")),
+    (TimeInterval(datetime(2015,  8,  7, 11,  2, 21, 874000, UTC), datetime(2015,  8,  7, 11, 32, 45, 966000, UTC)),
+     ("2", "5", "6")),
+    (TimeInterval(datetime(2015,  8,  7, 11, 40, 45, 407000, UTC), datetime(2015,  8,  7, 12,  8, 50, 109000, UTC)),
+     ("3", "7", "8")),
+    (TimeInterval(datetime(2015,  8,  7, 14, 25, 19, 598000, UTC), datetime(2015,  8,  7, 14, 53, 30, 813000, UTC)),
+     ("10", "3", "9")),
+    (TimeInterval(datetime(2015,  8, 17, 15, 12, 12, 261000, UTC), datetime(2015,  8, 17, 15, 42, 19, 748000, UTC)),
+     ("5", "9")),
+    (TimeInterval(datetime(2015,  8, 17, 15, 45, 28, 293000, UTC), datetime(2015,  8, 17, 16, 12, 14, 110000, UTC)),
+     ("10", "5")),
+    (TimeInterval(datetime(2015,  8, 19, 10, 46, 49, 551000, UTC), datetime(2015,  8, 19, 11, 19, 26,  80000, UTC)),
+     ("1", "3")),
+    (TimeInterval(datetime(2015,  8, 19, 11, 23, 34, 481000, UTC), datetime(2015,  8, 19, 11, 49, 53, 491000, UTC)),
+     ("2", "5")),
+    (TimeInterval(datetime(2015,  9,  3, 14, 19, 14, 163000, UTC), datetime(2015,  9,  3, 14, 52, 26, 975000, UTC)),
+     ("1", "3", "9")),
+    (TimeInterval(datetime(2015,  9,  3, 14, 57,  9, 632000, UTC), datetime(2015,  9,  3, 15, 23, 13, 889000, UTC)),
+     ("2", "5")),
+    (TimeInterval(datetime(2015,  9,  4, 13, 38,  2, 320000, UTC), datetime(2015,  9,  4, 14,  8, 23, 721000, UTC)),
+     ("5", "9")),
+    (TimeInterval(datetime(2015,  9,  4, 14, 10, 56, 475000, UTC), datetime(2015,  9,  4, 14, 34, 53, 335000, UTC)),
+     ("10", "11")),
+    (TimeInterval(datetime(2015, 10, 16,  9, 22, 35, 292000, UTC), datetime(2015, 10, 16,  9, 52, 16, 256000, UTC)),
+     ("3", "5")),
+    (TimeInterval(datetime(2015, 10, 16,  9, 57, 15, 492000, UTC), datetime(2015, 10, 16, 10, 22, 38, 702000, UTC)),
+     ("3", "5")),
+    (TimeInterval(datetime(2015, 10, 21, 11,  6, 56,  20000, UTC), datetime(2015, 10, 21, 11, 39, 30, 167000, UTC)),
+     ("10", "5")),
+    (TimeInterval(datetime(2015, 10, 21, 11, 59, 11, 205000, UTC), datetime(2015, 10, 21, 12, 28, 10,  89000, UTC)),
+     ("10", "5")),
+    (TimeInterval(datetime(2015, 10, 23,  9, 54, 12, 941000, UTC), datetime(2015, 10, 23, 10, 24, 58, 627000, UTC)),
+     ("2", "9")),
+    (TimeInterval(datetime(2015, 10, 23, 11, 10, 14, 341000, UTC), datetime(2015, 10, 23, 11, 40, 13,  42000, UTC)),
+     ("12", "2")),
+    (TimeInterval(datetime(2015, 10, 23, 11, 49, 21, 606000, UTC), datetime(2015, 10, 23, 12, 17,  7, 378000, UTC)),
+     ("13", "5"))
+)
+
+annotator_ids = set(a for e in scripted_experiments for a in e[1])
 
 # Mapping from access point to location, and wearable uid to wearable name
 mappings = {
@@ -132,11 +176,11 @@ class PredefinedTools(object):
         )
 
         # ANNOTATIONS
-        self.annotations_location = channel_manager.get_tool(
-            name="sphere",
-            parameters=dict(modality="annotations", annotators=annotator_ids, elements={"Location"},
-                            filters={"trigger": 1})
-        )
+        # self.annotations_location = channel_manager.get_tool(
+        #     name="sphere",
+        #     parameters=dict(modality="annotations", annotators=annotator_ids, elements={"Location"},
+        #                     filters={"trigger": 1})
+        # )
 
         self.annotations_label = channel_manager.get_tool(
             name="component",
