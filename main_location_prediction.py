@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
         w.create_factor(
             tool=annotations_location, sources=None, sink=n_annotations_flat).execute(time_interval)\
-            .sink.print_head((("house", "1"),), time_interval)
+            .sink.print_head((("house", "1"), ('scripted', str(i + 1))), time_interval)
 
         plate_id = "H1.scripted_{}".format(i + 1)
         # Put these on to an annotators plate
