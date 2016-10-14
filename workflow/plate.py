@@ -25,6 +25,7 @@ from ..models import PlateDefinitionModel
 
 import logging
 from mongoengine.context_managers import switch_db
+from mongoengine import DoesNotExist, MultipleObjectsReturned
 
 
 class Plate(Printable):
@@ -92,34 +93,91 @@ class PlateManager(Printable):
         # Plate definitions (arrays of streams)
         with switch_db(PlateDefinitionModel, db_alias="hyperstream"):
             for p in PlateDefinitionModel.objects:
-                if not p.values and not p.complement:
-                    raise ValueError("Empty values in plate definition and complement=False")
+                self.add_plate(p)
 
-                # if p.plate_id in (u'H1', u'H1.kitchen', u'H1_str'):
-                #     logging.debug(p.plate_id)
+    def create_plate(self, plate_id, description, meta_data_id, values, complement, parent_plate):
+        """
+        Create a new plate, and commit it to the database
+        :param plate_id: The plate id - required to be unique
+        :param description: A human readable description
+        :param meta_data_id: The meta data id, which should correspond to the tag in the global meta data
+        :param values: Either a list of string values, or the empty list (for use with complement)
+        :param complement: If complement is true, then the complement of the values list will be used when getting
+        values from the global meta data
+        :param parent_plate: The parent plate identifier
+        :return: The newly created plate
+        :type plate_id: str | unicode
+        :type complement: bool
+        :type values: list | tuple
+        """
+        # Make sure the plate id doesn't already exist
+        with switch_db(PlateDefinitionModel, db_alias='hyperstream'):
+            try:
+                p = PlateDefinitionModel.objects.get(plate_id=plate_id)
+                if p:
+                    logging.info("Plate with id {} already exists".format(plate_id))
+                    return self.plates[plate_id]
+            except DoesNotExist:
+                pass
+            except MultipleObjectsReturned:
+                raise
 
-                if p.plate_id == u"H1.L":
-                    pass
+            plate_definition = PlateDefinitionModel(
+                plate_id=plate_id,
+                description=description,
+                meta_data_id=meta_data_id,
+                values=values,
+                complement=complement,
+                parent_plate=parent_plate
+            )
 
-                values = []
-                for n in self.global_plate_definitions.all_nodes():
-                    if n.tag == p.meta_data_id:
-                        if not p.values or n.data in p.values:
-                            if p.parent_plate:
-                                # This plate has parent plates, so we need to get parent data for the node
-                                parent_plate_value = self.get_parent_plate_value(self.global_plate_definitions, n)
-                                if tuple(parent_plate_value) not in self.plates[p.parent_plate].values:
-                                    continue
-                                values.insert(0, self.get_parent_data(self.global_plate_definitions, n, {n.tag: n.data}))
-                            else:
-                                values.insert(0, {n.tag: n.data})
-                if not values:
-                    raise ValueError("Plate values for {} empty".format(p.plate_id))
+            self.add_plate(plate_definition)
+            plate_definition.save()
+            return self.plates[plate_id]
 
-                # TODO: We should also be checking that the plate is defined over all of the values of the parent plate
-                self.plates[p.plate_id] = Plate(plate_id=p.plate_id, meta_data_id=p.meta_data_id, values=values,
-                                                parent_plate=self.plates[p.parent_plate] if p.parent_plate else None)
-                logging.debug(self.plates[p.plate_id])
+    def add_plate(self, plate_definition):
+        """
+        Add a plate using the plate definition
+        :param plate_definition: The plate definition
+        :return: None
+        :type plate_definition: PlateDefinitionModel
+        """
+        values = self.get_plate_values(plate_definition)
+
+        # TODO: We should also be checking that the plate is defined over all of the values of the parent plate
+        self.plates[plate_definition.plate_id] = Plate(
+            plate_id=plate_definition.plate_id,
+            meta_data_id=plate_definition.meta_data_id,
+            values=values,
+            parent_plate=self.plates[plate_definition.parent_plate] if plate_definition.parent_plate else None)
+
+        logging.debug("Added plate: {}".format(self.plates[plate_definition.plate_id]))
+
+    def get_plate_values(self, plate_definition):
+        """
+        Gets the plate values from the global meta data according to the given plate definition
+        :param plate_definition: The plate definition
+        :return: The plate values
+        :type plate_definition: PlateDefinitionModel
+        """
+        if not plate_definition.values and not plate_definition.complement:
+            raise ValueError("Empty values in plate definition and complement=False")
+
+        values = []
+        for n in self.global_plate_definitions.all_nodes():
+            if n.tag == plate_definition.meta_data_id:
+                if not plate_definition.values or n.data in plate_definition.values:
+                    if plate_definition.parent_plate:
+                        # This plate has parent plates, so we need to get parent data for the node
+                        parent_plate_value = self.get_parent_plate_value(self.global_plate_definitions, n)
+                        if tuple(parent_plate_value) not in self.plates[plate_definition.parent_plate].values:
+                            continue
+                        values.insert(0, self.get_parent_data(self.global_plate_definitions, n, {n.tag: n.data}))
+                    else:
+                        values.insert(0, {n.tag: n.data})
+        if not values:
+            raise ValueError("Plate values for {} empty".format(plate_definition.plate_id))
+        return values
 
     def get_parent_plate_value(self, tree, node, value=None):
         """
