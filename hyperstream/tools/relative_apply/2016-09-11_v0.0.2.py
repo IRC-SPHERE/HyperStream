@@ -53,5 +53,5 @@ class RelativeApply(Tool):
                     if x is not None:
                         result[kk] = x
                 # result = {kk: self.func(vv) for kk, vv in iter(vals)}
-            if result:
+            if result is not None:
                 yield StreamInstance(tt, result)
