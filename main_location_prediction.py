@@ -25,7 +25,7 @@ from hyperstream import ChannelManager, HyperStreamConfig, Workflow, PlateManage
 from hyperstream.utils import UTC
 
 from sphere_connector_package.sphere_connector import SphereLogger
-from sphere_helpers import PredefinedTools, annotator_ids
+from sphere_helpers import PredefinedTools, scripted_experiments
 
 
 # Analysis of data from:
@@ -45,19 +45,18 @@ if __name__ == '__main__':
 
     # Define some managers
     channel_manager = ChannelManager(hyperstream_config.tool_path)
-    plate_manager = PlateManager(hyperstream_config.meta_data).plates
-    workflow_manager = WorkflowManager(channel_manager=channel_manager, plate_manager=plate_manager)
+    plate_manager = PlateManager(hyperstream_config.meta_data)
+    workflow_manager = WorkflowManager(channel_manager=channel_manager, plates=plate_manager.plates)
 
     tools = PredefinedTools(channel_manager)
-
-    # Various constants
-    t1 = datetime(2015, 8, 6, 13, 35, 36, 35000, UTC)
-    # TODO: Shortened time interval for now
-    t2 = datetime(2015, 8, 6, 14, 12, 22, 8000, UTC)
-    second = timedelta(seconds=1)
-    minute = timedelta(minutes=1)
-    hour = timedelta(hours=1)
-    # t2 = t1 + 5 * minute
+    #
+    # # Various constants
+    # t1 = datetime(2015, 8, 6, 13, 35, 36, 35000, UTC)
+    # t2 = datetime(2015, 8, 6, 14, 12, 22, 8000, UTC)
+    # second = timedelta(seconds=1)
+    # minute = timedelta(minutes=1)
+    # hour = timedelta(hours=1)
+    # # t2 = t1 + 5 * minute
 
     # Various channel_manager
     M = channel_manager.memory
@@ -68,72 +67,91 @@ if __name__ == '__main__':
     # Create a simple one step workflow for querying
     w = Workflow(
         channels=channel_manager,
-        plates=plate_manager,
+        plates=plate_manager.plates,
         workflow_id="localisation",
         name="Test of localisation",
         owner="TD",
         description="Would like to test localisation using PIR and RSSI, so we need to first get the appropriate data"
                     "out of the SPHERE stream, with the appropriate meta-data attached, and then use a model")
 
-    time_interval = TimeInterval(t1, t2)
+    # time_interval = TimeInterval(t1, t2)
 
-    # Load in annotations from the same time period
-    n_annotations_flat = w.create_node(stream_name="annotations_flat", channel=M, plate_ids=["H1"])
-    w.create_factor(
-        tool=tools.annotations_location, sources=None, sink=n_annotations_flat).execute(time_interval)\
-        .sink.print_head((("house", "1"),), time_interval)
+    # TODO just two for now
+    for i, (time_interval, annotator_ids) in enumerate(scripted_experiments[:2]):
+        plate_manager.create_plate(
+            plate_id="H1.scripted_{}".format(i + 1),
+            description="Annotators for scripted experiment {} in SPHERE house".format(i + 1),
+            meta_data_id="annotator",
+            values=[],
+            complement=True,
+            parent_plate="H1.scripted"
+        )
 
-    # Put these on to an annotators plate
-    n_annotations_split = w.create_node(stream_name="annotations_split", channel=M, plate_ids=["H1.A"])
-    w.create_multi_output_factor(
-        tool=tools.split_annotator, source=n_annotations_flat, sink=n_annotations_split).execute(time_interval)
+        # Load in annotations from the same time period
+        n_annotations_flat = w.create_node(stream_name="annotations_flat", channel=M, plate_ids=["H1.scripted"])
 
-    # for annotator in annotator_ids:
-    #     print("Annotator " + annotator)
-    #     n_annotations_split.print_head((("house", "1"), ("annotator", annotator)), time_interval)
+        annotations_location = channel_manager.get_tool(
+            name="sphere",
+            parameters=dict(modality="annotations", annotators=annotator_ids, elements={"Location"},
+                            filters={"trigger": 1})
+        )
 
-    # Pull out the label
-    n_annotations = w.create_node(stream_name="annotations", channel=D, plate_ids=["H1.A"])
-    w.create_factor(tool=tools.annotations_label, sources=[n_annotations_split],
-                    sink=n_annotations).execute(time_interval)
+        w.create_factor(
+            tool=annotations_location, sources=None, sink=n_annotations_flat).execute(time_interval)\
+            .sink.print_head((("house", "1"),), time_interval)
 
-    for annotator in annotator_ids:
-        print("Annotator " + annotator)
-        n_annotations.print_head((("house", "1"), ("annotator", annotator)), time_interval)
+        plate_id = "H1.scripted_{}".format(i + 1)
+        # Put these on to an annotators plate
+        n_annotations_split = w.create_node(stream_name="annotations_split", channel=M, plate_ids=[plate_id])
+        w.create_multi_output_factor(
+            tool=tools.split_annotator, source=n_annotations_flat, sink=n_annotations_split).execute(time_interval)
 
-    # exit(0)
+        # for annotator in annotator_ids:
+        #     print("Annotator " + annotator)
+        #     n_annotations_split.print_head((("house", "1"), ("annotator", annotator)), time_interval)
 
-    # Here we used the splitter tool over the RSS data to generate the plate
-    n_rss_flat = w.create_node(stream_name="rss", channel=S, plate_ids=["H1"])
-    w.create_factor(tool=tools.wearable_rss, sources=None, sink=n_rss_flat).execute(time_interval)
+        # Pull out the label
+        n_annotations = w.create_node(stream_name="annotations", channel=M, plate_ids=[plate_id])
+        w.create_factor(tool=tools.annotations_label, sources=[n_annotations_split],
+                        sink=n_annotations).execute(time_interval)
 
-    # n_rss_flat.print_head(key, time_interval)
+        for annotator in annotator_ids:
+            print("Annotator " + annotator)
+            n_annotations.print_head((("house", "1"), ("annotator", annotator)), time_interval)
 
-    n_rss_aid = w.create_node(stream_name="rss_aid", channel=M, plate_ids=["H1.L"])
-    w.create_multi_output_factor(tool=tools.split_aid, source=n_rss_flat, sink=n_rss_aid).execute(time_interval)
+        continue
 
-    # for loc in ["kitchen", "hallway", "lounge"]:
-    #     print(loc)
-    #     n_rss_aid.print_head((("house", "1"), ("location", loc)), time_interval)
-    #     print("")
+        # Here we used the splitter tool over the RSS data to generate the plate
+        n_rss_flat = w.create_node(stream_name="rss", channel=S, plate_ids=["H1"])
+        w.create_factor(tool=tools.wearable_rss, sources=None, sink=n_rss_flat).execute(time_interval)
 
-    n_rss_aid_uid = w.create_node(stream_name="rss_aid_uid", channel=M, plate_ids=["H1.L.W"])
-    w.create_multi_output_factor(tool=tools.split_uid, source=n_rss_aid, sink=n_rss_aid_uid).execute(time_interval)
+        # n_rss_flat.print_head(key, time_interval)
 
-    # for loc in ["kitchen", "hallway", "lounge"]:
-    #     print(loc)
-    #     n_rss_aid_uid.print_head((("house", "1"), ("location", loc), ('wearable', 'A')), time_interval)
-    #     print("")
+        n_rss_aid = w.create_node(stream_name="rss_aid", channel=M, plate_ids=["H1.L"])
+        w.create_multi_output_factor(tool=tools.split_aid, source=n_rss_flat, sink=n_rss_aid).execute(time_interval)
 
-    n_rss = w.create_node(stream_name="rss", channel=D, plate_ids=["H1.L.W"])
-    w.create_factor(tool=tools.wearable_rss_values, sources=[n_rss_aid_uid],
-                    sink=n_rss, alignment_node=None).execute(time_interval)
+        # for loc in ["kitchen", "hallway", "lounge"]:
+        #     print(loc)
+        #     n_rss_aid.print_head((("house", "1"), ("location", loc)), time_interval)
+        #     print("")
 
-    # for loc in w.plate_manager["H1.L"].values:
-    for loc in ["kitchen", "hallway", "lounge"]:
-        print(loc)
-        n_rss.print_head((("house", "1"), ("location", loc), ('wearable', 'A')), time_interval)
-        print("")
+        n_rss_aid_uid = w.create_node(stream_name="rss_aid_uid", channel=M, plate_ids=["H1.L.W"])
+        w.create_multi_output_factor(tool=tools.split_uid, source=n_rss_aid, sink=n_rss_aid_uid).execute(time_interval)
+
+        # for loc in ["kitchen", "hallway", "lounge"]:
+        #     print(loc)
+        #     n_rss_aid_uid.print_head((("house", "1"), ("location", loc), ('wearable', 'A')), time_interval)
+        #     print("")
+
+        n_rss = w.create_node(stream_name="rss", channel=D, plate_ids=["H1.L.W"])
+        w.create_factor(tool=tools.wearable_rss_values, sources=[n_rss_aid_uid],
+                        sink=n_rss, alignment_node=None).execute(time_interval)
+
+        # for loc in w.plate_manager["H1.L"].values:
+        for loc in ["kitchen", "hallway", "lounge"]:
+            print(loc)
+            n_rss.print_head((("house", "1"), ("location", loc), ('wearable', 'A')), time_interval)
+            print("")
 
     exit(0)
 

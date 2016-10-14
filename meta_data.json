@@ -15,6 +15,7 @@
         {"identifier": "root"},
         {"identifier": "1", "tag": "house", "data": "1", "parent": "root"},
         {"identifier": "2", "tag": "house", "data": "2", "parent": "root"},
+
         {"identifier": "1.kitchen", "tag": "location", "data": "kitchen", "parent": "1"},
         {"identifier": "1.lounge", "tag": "location", "data": "lounge", "parent": "1"},
         {"identifier": "1.bedroom_1", "tag": "location", "data": "bedroom 1", "parent": "1"},
@@ -24,8 +25,10 @@
         {"identifier": "1.study", "tag": "location", "data": "study", "parent": "1"},
         {"identifier": "1.hallway", "tag": "location", "data": "hallway", "parent": "1"},
         {"identifier": "1.stairs", "tag": "location", "data": "stairs", "parent": "1"},
+
         {"identifier": "1.resident_A", "tag": "resident", "data": "A", "parent": "1"},
         {"identifier": "1.resident_B", "tag": "resident", "data": "B", "parent": "1"},
+
         {"identifier": "2.kitchen", "tag": "location", "data": "kitchen", "parent": "2"},
         {"identifier": "2.lounge", "tag": "location", "data": "lounge", "parent": "2"},
         {"identifier": "2.bedroom_1", "tag": "location", "data": "bedroom 1", "parent": "2"},
@@ -35,14 +38,100 @@
         {"identifier": "2.study", "tag": "location", "data": "study", "parent": "2"},
         {"identifier": "2.hallway", "tag": "location", "data": "hallway", "parent": "2"},
         {"identifier": "2.stairs", "tag": "location", "data": "stairs", "parent": "2"},
+
         {"identifier": "2.resident_C", "tag": "resident", "data": "C", "parent": "2"},
+
         {"identifier": "2.resident_C.test_data", "tag": "test_tag", "data": "test_data", "parent": "2.resident_C"},
+
         {"identifier": "1.hallway.A", "tag": "wearable", "data": "A", "parent": "1.hallway"},
         {"identifier": "1.lounge.A", "tag": "wearable", "data": "A", "parent": "1.lounge"},
         {"identifier": "1.kitchen.A", "tag": "wearable", "data": "A", "parent": "1.kitchen"},
+
         {"identifier": "1.annotator_2", "tag": "annotator", "data": "2", "parent": "1"},
         {"identifier": "1.annotator_3", "tag": "annotator", "data": "3", "parent": "1"},
-        {"identifier": "1.annotator_5", "tag": "annotator", "data": "5", "parent": "1"}
+        {"identifier": "1.annotator_5", "tag": "annotator", "data": "5", "parent": "1"},
+
+        {"identifier": "1.scripted_1", "tag": "scripted", "data": "1", "parent": "1"},
+        {"identifier": "1.scripted_2", "tag": "scripted", "data": "2", "parent": "1"},
+        {"identifier": "1.scripted_3", "tag": "scripted", "data": "3", "parent": "1"},
+        {"identifier": "1.scripted_4", "tag": "scripted", "data": "4", "parent": "1"},
+        {"identifier": "1.scripted_5", "tag": "scripted", "data": "5", "parent": "1"},
+        {"identifier": "1.scripted_6", "tag": "scripted", "data": "6", "parent": "1"},
+        {"identifier": "1.scripted_7", "tag": "scripted", "data": "7", "parent": "1"},
+        {"identifier": "1.scripted_8", "tag": "scripted", "data": "8", "parent": "1"},
+        {"identifier": "1.scripted_9", "tag": "scripted", "data": "9", "parent": "1"},
+        {"identifier": "1.scripted_10", "tag": "scripted", "data": "10", "parent": "1"},
+        {"identifier": "1.scripted_11", "tag": "scripted", "data": "11", "parent": "1"},
+        {"identifier": "1.scripted_12", "tag": "scripted", "data": "12", "parent": "1"},
+        {"identifier": "1.scripted_13", "tag": "scripted", "data": "13", "parent": "1"},
+        {"identifier": "1.scripted_14", "tag": "scripted", "data": "14", "parent": "1"},
+        {"identifier": "1.scripted_15", "tag": "scripted", "data": "15", "parent": "1"},
+        {"identifier": "1.scripted_16", "tag": "scripted", "data": "16", "parent": "1"},
+        {"identifier": "1.scripted_17", "tag": "scripted", "data": "17", "parent": "1"},
+        {"identifier": "1.scripted_18", "tag": "scripted", "data": "18", "parent": "1"},
+        {"identifier": "1.scripted_19", "tag": "scripted", "data": "19", "parent": "1"},
+
+        {"identifier": "1.scripted_1.annotator_2", "tag": "annotator", "data": "2", "parent": "1.scripted_1"},
+        {"identifier": "1.scripted_1.annotator_3", "tag": "annotator", "data": "3", "parent": "1.scripted_1"},
+        {"identifier": "1.scripted_1.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_1"},
+
+        {"identifier": "1.scripted_2.annotator_2", "tag": "annotator", "data": "2", "parent": "1.scripted_2"},
+        {"identifier": "1.scripted_2.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_2"},
+        {"identifier": "1.scripted_2.annotator_6", "tag": "annotator", "data": "6", "parent": "1.scripted_2"},
+
+        {"identifier": "1.scripted_3.annotator_3", "tag": "annotator", "data": "3", "parent": "1.scripted_3"},
+        {"identifier": "1.scripted_3.annotator_7", "tag": "annotator", "data": "7", "parent": "1.scripted_3"},
+        {"identifier": "1.scripted_3.annotator_8", "tag": "annotator", "data": "8", "parent": "1.scripted_3"},
+
+        {"identifier": "1.scripted_4.annotator_3", "tag": "annotator", "data": "3", "parent": "1.scripted_4"},
+        {"identifier": "1.scripted_4.annotator_9", "tag": "annotator", "data": "9", "parent": "1.scripted_4"},
+        {"identifier": "1.scripted_4.annotator_10", "tag": "annotator", "data": "10", "parent": "1.scripted_4"},
+
+        {"identifier": "1.scripted_5.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_5"},
+        {"identifier": "1.scripted_5.annotator_9", "tag": "annotator", "data": "9", "parent": "1.scripted_5"},
+
+        {"identifier": "1.scripted_6.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_6"},
+        {"identifier": "1.scripted_6.annotator_10", "tag": "annotator", "data": "10", "parent": "1.scripted_6"},
+
+        {"identifier": "1.scripted_7.annotator_1", "tag": "annotator", "data": "1", "parent": "1.scripted_7"},
+        {"identifier": "1.scripted_7.annotator_3", "tag": "annotator", "data": "3", "parent": "1.scripted_7"},
+
+        {"identifier": "1.scripted_8.annotator_2", "tag": "annotator", "data": "2", "parent": "1.scripted_8"},
+        {"identifier": "1.scripted_8.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_8"},
+
+        {"identifier": "1.scripted_9.annotator_1", "tag": "annotator", "data": "1", "parent": "1.scripted_9"},
+        {"identifier": "1.scripted_9.annotator_3", "tag": "annotator", "data": "3", "parent": "1.scripted_9"},
+        {"identifier": "1.scripted_9.annotator_9", "tag": "annotator", "data": "9", "parent": "1.scripted_9"},
+
+        {"identifier": "1.scripted_10.annotator_2", "tag": "annotator", "data": "2", "parent": "1.scripted_10"},
+        {"identifier": "1.scripted_10.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_10"},
+
+        {"identifier": "1.scripted_11.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_11"},
+        {"identifier": "1.scripted_11.annotator_9", "tag": "annotator", "data": "9", "parent": "1.scripted_11"},
+
+        {"identifier": "1.scripted_12.annotator_10", "tag": "annotator", "data": "10", "parent": "1.scripted_12"},
+        {"identifier": "1.scripted_12.annotator_11", "tag": "annotator", "data": "11", "parent": "1.scripted_12"},
+
+        {"identifier": "1.scripted_13.annotator_3", "tag": "annotator", "data": "3", "parent": "1.scripted_13"},
+        {"identifier": "1.scripted_13.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_13"},
+
+        {"identifier": "1.scripted_14.annotator_3", "tag": "annotator", "data": "3", "parent": "1.scripted_14"},
+        {"identifier": "1.scripted_14.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_14"},
+
+        {"identifier": "1.scripted_15.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_15"},
+        {"identifier": "1.scripted_15.annotator_10", "tag": "annotator", "data": "10", "parent": "1.scripted_15"},
+
+        {"identifier": "1.scripted_16.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_16"},
+        {"identifier": "1.scripted_16.annotator_10", "tag": "annotator", "data": "10", "parent": "1.scripted_16"},
+
+        {"identifier": "1.scripted_17.annotator_2", "tag": "annotator", "data": "2", "parent": "1.scripted_17"},
+        {"identifier": "1.scripted_17.annotator_9", "tag": "annotator", "data": "9", "parent": "1.scripted_17"},
+
+        {"identifier": "1.scripted_18.annotator_2", "tag": "annotator", "data": "2", "parent": "1.scripted_18"},
+        {"identifier": "1.scripted_18.annotator_12", "tag": "annotator", "data": "12", "parent": "1.scripted_18"},
+
+        {"identifier": "1.scripted_19.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_19"},
+        {"identifier": "1.scripted_19.annotator_13", "tag": "annotator", "data": "13", "parent": "1.scripted_19"}
     ],
     "meta_data_currently_not_used": [
         {"identifier": "1.study.A", "tag": "wearable", "data": "A", "parent": "1.study"},

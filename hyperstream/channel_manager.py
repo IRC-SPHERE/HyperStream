@@ -95,7 +95,7 @@ class ChannelManager(ChannelCollectionBase, Printable):
                     channel.create_stream(stream_id)
                 elif isinstance(channel, DatabaseChannel):
                     calculated_intervals = None
-                    with switch_db(StreamStatusModel, 'hyperstream'):
+                    with switch_db(StreamStatusModel, db_alias='hyperstream'):
                         try:
                             status = StreamStatusModel.objects.get(__raw__=stream_id.as_raw())
                             calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end),

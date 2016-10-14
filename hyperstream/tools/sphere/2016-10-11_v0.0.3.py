@@ -26,7 +26,6 @@ from hyperstream.stream import StreamInstance
 def reformat(doc):
     dt = doc['datetime']
     del doc['datetime']
-    
     return StreamInstance(dt, doc)
 
 
@@ -44,4 +43,4 @@ class Sphere(Tool):
     def _execute(self, sources, alignment_stream, interval):
         window = SphereExperiment(interval, self.annotators) if self.annotators else SphereDataWindow(interval)
         source = window.modalities[self.modality]
-        yield map(reformat, source.get_data(self.elements, self.filters, self.rename_keys))
+        return map(reformat, source.get_data(self.elements, self.filters, self.rename_keys))
