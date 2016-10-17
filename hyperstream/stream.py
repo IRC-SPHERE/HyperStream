@@ -144,7 +144,9 @@ class StreamDict(TypedBiDict):
 
 
 class StreamInstanceCollection(FrozenKeyDict):
-
+    """
+    A custom frozen dictionary for stream instances. Will raise an exception if a repeated instance is added
+    """
     def append(self, instance):
         if not (isinstance(instance, StreamInstance)):
             raise ValueError("Expected StreamInstance, got {}".format(type(instance)))
