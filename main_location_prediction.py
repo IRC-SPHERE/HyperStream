@@ -86,6 +86,8 @@ if __name__ == '__main__':
         for k, g in groupby((m for m in hyperstream_config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
                             lambda x: x['identifier'].split('.')[1].split('_')[1]))
 
+    time_interval = scripted_experiments.span
+
     # Here we used the splitter tool over the RSS data to generate the plate
     n_rss_flat = w.create_node(stream_name="rss", channel=S, plate_ids=["H1"])
     w.create_factor(tool=tools.wearable_rss, sources=None, sink=n_rss_flat).execute(time_interval)
