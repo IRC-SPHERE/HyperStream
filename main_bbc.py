@@ -76,28 +76,28 @@ if __name__ == '__main__':
     w.create_factor(tool=tools.environmental, sources=None, sink=n_environmental).execute(time_interval)
 
     print("Environmental")
-    n_environmental.print_head(key, time_interval)
+    n_environmental.print_head(None, key, time_interval)
 
     # Get wearable streams from the database
     n_wearable = w.create_node(stream_name="wearable", channel=S, plate_ids=["H1"])
     w.create_factor(tool=tools.wearable, sources=None, sink=n_wearable).execute(time_interval)
 
     print("Wearable")
-    n_wearable.print_head(key, time_interval)
+    n_wearable.print_head(None, key, time_interval)
 
     # Get RSS stream from the database
     n_rss = w.create_node(stream_name="rss", channel=S, plate_ids=["H1"])
     w.create_factor(tool=tools.wearable_rss, sources=None, sink=n_rss).execute(time_interval)
 
     print("Wearable RSS")
-    n_rss.print_head(key, time_interval)
+    n_rss.print_head(None, key, time_interval)
 
     # Get the clock ticks every 10s to perform sliding window averaging
     n_clock_10s = w.create_node(stream_name="clock_10s", channel=M, plate_ids=None)
     w.create_factor(tool=tools.clock_10s, sources=None, sink=n_clock_10s).execute(time_interval)
 
     print("Clock 10s")
-    n_clock_10s.print_head(None, time_interval)
+    n_clock_10s.print_head(None, None, time_interval)
 
     # Perform sliding window aggregation on each of the environmental streams
 
@@ -107,7 +107,7 @@ if __name__ == '__main__':
                     alignment_node=n_clock_10s).execute(time_interval)
 
     print("Environmental relative window")
-    n_environmental_rw.print_head(key, time_interval)
+    n_environmental_rw.print_head(None, key, time_interval)
 
     # TODO: TD Changed the plate from H1.L to H1 for now
     n_environmental_10s = w.create_node(stream_name="environmental_10s", channel=M, plate_ids=["H1"])
@@ -115,7 +115,7 @@ if __name__ == '__main__':
                     sink=n_environmental_10s).execute(time_interval)
 
     print("Environmental 10s aggregates")
-    n_environmental_10s.print_head(key, time_interval)
+    n_environmental_10s.print_head(None, key, time_interval)
 
     # Get humidity component
     # TODO: TD Changed the plate from H1.L to H1 for now
@@ -124,7 +124,7 @@ if __name__ == '__main__':
                     sink=n_humid, alignment_node=n_clock_10s).execute(time_interval)
 
     print("Humidity")
-    n_humid.print_head(key, time_interval)
+    n_humid.print_head(None, key, time_interval)
 
     # Create relative window over the humidity
     # TODO: TD Changed the plate from H1.L to H1 for now
@@ -133,7 +133,7 @@ if __name__ == '__main__':
                     alignment_node=n_clock_10s).execute(time_interval)
 
     print("Humidity 10s aggregate")
-    n_humid_10s.print_head(key, time_interval)
+    n_humid_10s.print_head(None, key, time_interval)
 
     # TODO: why does this difference need an alignment node?
 
@@ -144,7 +144,7 @@ if __name__ == '__main__':
                     sink=n_humid_diff_10s, alignment_node=n_clock_10s).execute(time_interval)
 
     print("Humidity differences")
-    n_humid_diff_10s.print_head(key, time_interval)
+    n_humid_diff_10s.print_head(None, key, time_interval)
 
     # Perform sliding window aggregation on the RSS stream
     rss_aggregators = {
@@ -158,21 +158,21 @@ if __name__ == '__main__':
     factor = w.create_factor(tool=tools.wearable_rss_values, sources=[n_rss], sink=n_rss_vals).execute(time_interval)
 
     print("RSS values only")
-    n_rss_vals.print_head(key, time_interval)
+    n_rss_vals.print_head(None, key, time_interval)
 
     n_rss_10s = w.create_node(stream_name="rss_10s", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool=tools.relative_window_minus10_0, sources=[n_rss_vals], sink=n_rss_10s,
                              alignment_node=n_clock_10s).execute(time_interval)
 
     print("RSS relative window")
-    n_rss_10s.print_head(key, time_interval)
+    n_rss_10s.print_head(None, key, time_interval)
 
     n_rss_10s_mean = w.create_node(stream_name="rss_10s_mean", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool=tools.relative_apply_mean, sources=[n_rss_10s], 
                              sink=n_rss_10s_mean).execute(time_interval)
 
     print("RSS 10s average")
-    n_rss_10s_mean.print_head(key, time_interval)
+    n_rss_10s_mean.print_head(None, key, time_interval)
 
     raise Exception("TD: Executing up to here")
 

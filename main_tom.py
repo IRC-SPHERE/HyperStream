@@ -109,7 +109,7 @@ if __name__ == '__main__':
     n_rss_flat = w.create_node(stream_name="rss", channel=S, plate_ids=["H1"])
     w.create_factor(tool=tools.wearable_rss,sources=None, sink=n_rss_flat).execute(time_interval)
 
-    n_rss_flat.print_head(key, time_interval)
+    n_rss_flat.print_head(None, key, time_interval)
 
     n_rss_aid = w.create_node(stream_name="rss_aid", channel=M, plate_ids=["H1.L"])
     w.create_multi_output_factor(tool=tools.split_aid, source=n_rss_flat, sink=n_rss_aid).execute(time_interval)
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     # w.execute(time_interval)
     for loc in w.plates["H1.L"].values:
         print(loc)
-        n_rss_aid.print_head(loc, time_interval)
+        n_rss_aid.print_head(None, loc, time_interval)
         print("")
 
     n_rss_aid_uid = w.create_node(stream_name="rss_aid_uid", channel=M, plate_ids=["H1.L.W"])
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     for loc in w.plates["H1.L"].values:
         for wearable in w.plates["H1.L.W"].values:
             print(loc, wearable)
-            n_rss.print_head(wearable, time_interval)
+            n_rss.print_head(None, wearable, time_interval)
             print("")
 
     exit(0)
