@@ -242,3 +242,16 @@ class FrozenKeyDict(dict):
                 raise KeyError("Key {} has already been set with value {}, new value {}".format(key, self[key], value))
             return
         super(FrozenKeyDict, self).__setitem__(key, value)
+
+
+class TypedFrozenKeyDict(FrozenKeyDict):
+    def __init__(self, key_type, *args, **kwargs):
+        if not isinstance(key_type, type):
+            raise ValueError("Expected type, got {}".format(type(key_type)))
+        self.key_type = key_type
+        super(TypedFrozenKeyDict, self).__init__(*args, **kwargs)
+
+    def __setitem__(self, key, value):
+        if not isinstance(key, self.key_type):
+            raise KeyError("Expected type {}, got {}".format(self.key_type, type(key)))
+        super(TypedFrozenKeyDict, self).__setitem__(key, value)
