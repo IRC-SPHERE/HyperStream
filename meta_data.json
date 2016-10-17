@@ -47,10 +47,6 @@
         {"identifier": "1.lounge.A", "tag": "wearable", "data": "A", "parent": "1.lounge"},
         {"identifier": "1.kitchen.A", "tag": "wearable", "data": "A", "parent": "1.kitchen"},
 
-        {"identifier": "1.annotator_2", "tag": "annotator", "data": "2", "parent": "1"},
-        {"identifier": "1.annotator_3", "tag": "annotator", "data": "3", "parent": "1"},
-        {"identifier": "1.annotator_5", "tag": "annotator", "data": "5", "parent": "1"},
-
         {"identifier": "1.scripted_1", "tag": "scripted", "data": "1", "parent": "1"},
         {"identifier": "1.scripted_2", "tag": "scripted", "data": "2", "parent": "1"},
         {"identifier": "1.scripted_3", "tag": "scripted", "data": "3", "parent": "1"},

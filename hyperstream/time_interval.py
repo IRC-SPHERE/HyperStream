@@ -17,12 +17,13 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
-
+"""
+Module for dealing with time intervals containing TimeInterval, TimeIntervals, and RelativeTimeInterval
+"""
 from utils import MIN_DATE, utcnow, UTC, Printable, get_timedelta
 
 from datetime import date, datetime, timedelta
 from dateutil.parser import parse
-import logging
 
 
 class TimeIntervals(Printable):
@@ -31,6 +32,11 @@ class TimeIntervals(Printable):
     Example object: (t1,t2] U (t3,t4] U ...
     """
     def __init__(self, intervals=None):
+        """
+        Initialise the object with the given intervals.
+        These should be in a format that can be parsed by parse_time_tuple
+        :param intervals: The time intervals
+        """
         self.intervals = []
         if intervals:
             for v in intervals:
@@ -51,7 +57,19 @@ class TimeIntervals(Printable):
     @property
     def is_empty(self):
         return len(self.intervals) == 0
-    
+
+    @property
+    def start(self):
+        return min(self.intervals, key=lambda x: x.start)
+
+    @property
+    def end(self):
+        return max(self.intervals, key=lambda x: x.end)
+
+    @property
+    def span(self):
+        return TimeInterval(self.start, self.end)
+
     def split(self, points):
         if len(points) == 0:
             return
@@ -207,12 +225,14 @@ def parse_time_tuple(start, end):
     """
     Parse a time tuple. These can be:
       relative in seconds,       e.g. (-4, 0)
-      relative in timedelta,     e.g. (timdelta(seconds=-4), timedelta(0))
+      relative in timedelta,     e.g. (timedelta(seconds=-4), timedelta(0))
       absolute in date/datetime, e.g. (datetime(2016, 4, 28, 20, 0, 0, 0, UTC), datetime(2016, 4, 28, 21, 0, 0, 0, UTC))
       absolute in iso strings,   e.g. ("2016-04-28T20:00:00.000Z", "2016-04-28T20:01:00.000Z")
     Mixtures of relative and absolute are not allowed
     :param start: Start time
     :param end: End time
+    :type start: int | timedelta | datetime | str
+    :type end: int | timedelta | datetime | str
     :return: TimeInterval or RelativeTimeInterval object
     """
     if isinstance(start, int):
