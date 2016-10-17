@@ -60,11 +60,11 @@ class TimeIntervals(Printable):
 
     @property
     def start(self):
-        return min(self.intervals, key=lambda x: x.start)
+        return min(self.intervals, key=lambda x: x.start).start
 
     @property
     def end(self):
-        return max(self.intervals, key=lambda x: x.end)
+        return max(self.intervals, key=lambda x: x.end).end
 
     @property
     def span(self):
