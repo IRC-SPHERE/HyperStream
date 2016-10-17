@@ -21,6 +21,8 @@
 from ..stream import StreamId
 from ..utils import Printable
 
+import logging
+
 
 class Node(Printable):
     """
@@ -56,10 +58,32 @@ class Node(Printable):
         keys = self.streams[0].stream_id.meta_data.keys()
         return StreamId(self.node_id, dict(*zip((kk, meta[kk]) for kk in keys)))
 
-    def print_head(self, plate_value, interval, n=10):
-        data = False
-        for k, v in self.streams[tuple(sorted(plate_value))].window(interval).head(n):
-            data = True
-            print("{}, {}".format(k, v))
-        if not data:
-            print("No data")
+    def print_head(self, parent_plate_value, plate_values, interval, n=10, print_func=logging.info):
+        """
+        Print the first n values from the streams in the given time interval.
+        The parent plate value is the value of the parent plate,
+        and then the plate values are the values for the plate that are to be printed.
+         e.g. print_head()
+        :param parent_plate_value: The parent plate value
+        :param plate_values:
+        :param interval:
+        :param n:
+        :param print_func:
+        :return:
+        """
+        if len(plate_values) == 1 and len(plate_values[0]) == 2 and isinstance(plate_values[0][0], str):
+            self.print_head(parent_plate_value, (plate_values,), interval, n)
+            return
+
+        for plate_value in plate_values:
+            if parent_plate_value:
+                plate_value = parent_plate_value + (plate_value,)
+
+            print_func("Plate value: {}".format(plate_value))
+            data = False
+            for k, v in self.streams[tuple(sorted(plate_value))].window(interval).head(n):
+                data = True
+                print_func("{}, {}".format(k, v))
+            if not data:
+                print_func("No data")
+            print_func("")
