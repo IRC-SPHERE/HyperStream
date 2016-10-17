@@ -21,7 +21,7 @@
 Workflow and WorkflowManager definitions.
 """
 
-from ..utils import Printable, FrozenKeyDict
+from ..utils import Printable, FrozenKeyDict, TypedFrozenKeyDict
 from node import Node
 from factor import Factor, MultiOutputFactor
 from ..tool import Tool, MultiOutputTool
@@ -31,7 +31,6 @@ from ..errors import StreamNotFoundError, IncompatiblePlatesError
 
 from mongoengine.context_managers import switch_db
 import logging
-from collections import defaultdict
 import itertools
 
 
@@ -58,8 +57,7 @@ class Workflow(Printable):
         self.owner = owner
         self.nodes = {}
         self.execution_order = []
-        # self.factor_collections = defaultdict(list)
-        self.factor_collections = FrozenKeyDict()
+        self.factor_collections = TypedFrozenKeyDict(str)
 
         logging.info("New workflow created with id {}".format(workflow_id))
     
@@ -210,7 +208,7 @@ class Workflow(Printable):
             self.factor_collections[tool.name] = []
 
         self.factor_collections[tool.name].append(factor)
-        self.execution_order.append(tool.name)
+        self.execution_order.append(tool)
 
         return factor
 
