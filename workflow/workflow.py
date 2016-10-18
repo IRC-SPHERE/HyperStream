@@ -84,20 +84,44 @@ class Workflow(Printable):
         """
         streams = {}
 
+        plate_values = self.get_overlapping_plate_values(plate_ids)
+
         if plate_ids:
-            for plate_id in plate_ids:
-                plate = self.plates[plate_id]
-                # streams[plate] = {}
+            # Create a stream for every entry in the cartesian product over plate values
 
-                # Currently allowing multiple plates here
+            # If there's a shared plate in the hierarchy, we need to join on this shared plate, e.g.:
+            #
+            # [self.plates[p].values for p in plate_ids][0] =
+            #   [(('house', '1'), ('location', 'hallway'), ('wearable', 'A')),
+            #    (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'))]
+            #
+            # [self.plates[p].values for p in plate_ids][1] =
+            #   [(('house', '1'), ('scripted', '15')),
+            #    (('house', '1'), ('scripted', '13'))]
+            #
+            # Result should be one stream for each of:
+            #   [(('house', '1'), ('location', 'hallway'), ('wearable', 'A'), ('scripted', '15)),
+            #    (('house', '1'), ('location', 'hallway'), ('wearable', 'A'), ('scripted', '13)),
+            #    (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'), ('scripted', '15)),
+            #    (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'), ('scripted', '13))]
 
-                for pv in plate.values:
-                    # Construct stream id
-                    stream_id = StreamId(name=stream_name, meta_data=pv)
+            if len(plate_ids) == 1:
+                plate_values = self.plates[plate_ids[0]].values
+            else:
+                if len(plate_ids) > 2:
+                    # TODO: For now, we will assume that there are only 2 plates
+                    raise NotImplementedError
 
-                    # Now try to locate the stream and add it (raises StreamNotFoundError if not found)
-                    # streams.append(self.channels.get_stream(stream_id))
-                    streams[pv] = channel.get_or_create_stream(stream_id=stream_id)
+                plate_values = self.cartesian_product(plate_ids)
+                print(plate_values)
+
+            for pv in plate_values:
+                # Construct stream id
+                stream_id = StreamId(name=stream_name, meta_data=pv)
+
+                # Now try to locate the stream and add it (raises StreamNotFoundError if not found)
+                # streams.append(self.channels.get_stream(stream_id))
+                streams[pv] = channel.get_or_create_stream(stream_id=stream_id)
 
         else:
             streams[None] = channel.get_or_create_stream(stream_id=StreamId(name=stream_name))
@@ -107,7 +131,90 @@ class Workflow(Printable):
         logging.info("Added node with id {}".format(stream_name))
         
         return node
-    
+
+    def get_overlapping_plate_values(self, plate_ids):
+        """
+        Need to find where in the tree the two plates intersect, e.g.
+
+        We are given as input plates D, E, whose positions in the tree are:
+
+        root -> A -> B -> C -> D
+        root -> A -> B -> E
+
+        The results should then be the cartesian product between C, D, E looped over A and B
+
+        If there's a shared plate in the hierarchy, we need to join on this shared plate, e.g.:
+
+        [self.plates[p].values for p in plate_ids][0] =
+          [(('house', '1'), ('location', 'hallway'), ('wearable', 'A')),
+           (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'))]
+        [self.plates[p].values for p in plate_ids][1] =
+          [(('house', '1'), ('scripted', '15')),
+           (('house', '1'), ('scripted', '13'))]
+
+        Result should be one stream for each of:
+          [(('house', '1'), ('location', 'hallway'), ('wearable', 'A'), ('scripted', '15)),
+           (('house', '1'), ('location', 'hallway'), ('wearable', 'A'), ('scripted', '13)),
+           (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'), ('scripted', '15)),
+           (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'), ('scripted', '13))]
+
+        :param plate_ids:
+        :return: The plate values
+        :type plate_ids: list[str] | list[unicode]
+        """
+        if not plate_ids:
+            raise ValueError("No plates specified")
+
+        if len(plate_ids) == 1:
+            return self.plates[plate_ids[0]].values
+
+        if len(plate_ids) > 2:
+            raise NotImplementedError
+
+        # Need to walk up the tree from each plate to find a matching position (possibly the root)
+        s0 = set(self.plates[plate_ids[0]].ancestors)
+        s1 = self.plates[plate_ids[1]].ancestors
+        intersection = list(s0.intersection(s1))
+        difference = list(s0.symmetric_difference(s1))
+
+        if len(intersection) == 0:
+            # No match, so we simply take the cartesian product
+            plate_values = self.cartesian_product(plate_ids)
+        else:
+            plate_values = []
+            for i, p in enumerate(intersection):
+                for plate_id in plate_ids:
+                    # First of all check that the intersection is at the beginning of the lists,
+                    # otherwise something has gone wrong
+                    if p != self.plates[plate_id].ancestors[i]:
+                        raise ValueError("Error in plate specification. Intersection between plates is not valid.")
+
+            # Now we need the cartesian product of all of the intersection values
+            intersection_plate_values = self.cartesian_product(intersection)
+
+            # Now get the cartesian product of all the values not in the intersection
+            difference_plate_value = self.cartesian_product(difference)
+
+            # Now for each of these plate values, we need the cartesian product of the plates not in the intersection
+            for d in difference:
+                z = [set(v).difference(itertools.chain(*intersection_plate_values)) for v in self.plates[d].values]
+                pv = list(map(lambda x: tuple(itertools.chain.from_iterable(x)),
+                              itertools.product(intersection_plate_values, map(tuple, z))))
+                plate_values.extend(pv)
+                a = 1
+
+        return plate_values
+
+    def cartesian_product(self, plate_ids):
+        """
+        Gets the plate values that are the cartesian product of the plate values of the lists of plates given
+        :param plate_ids: The list of plate ids
+        :return: The plate values
+        :type plate_ids: list[str] | list[unicode] | set[str] | set[unicode]
+        """
+        return [tuple(itertools.chain(*pv)) for pv in
+                itertools.product(*(sorted(set(self.plates[p].values)) for p in plate_ids))]
+
     def create_factor(self, tool, sources, sink, alignment_node=None):
         """
         Creates a factor. Instantiates a single tool for all of the plates, and connects the source and sink nodes with
@@ -133,7 +240,7 @@ class Workflow(Printable):
 
         if sink.plate_ids:
             if sources:
-                # Check that the plate_manager are compatible
+                # Check that the plates are compatible
                 source_plates = itertools.chain(*(source.plate_ids for source in sources))
                 for p in sink.plate_ids:
                     if p not in set(source_plates):
@@ -181,28 +288,56 @@ class Workflow(Printable):
             raise ValueError("Expected MultiOutputTool, got {}".format(type(tool)))
 
         # Check that the input_plate are compatible - note this is the opposite way round to a normal factor
-        output_plates = [self.plates[plate_id] for plate_id in sink.plate_ids]
-
-        if len(output_plates) > 1:
-            raise NotImplementedError
-
         input_plates = [self.plates[plate_id] for plate_id in source.plate_ids]
+        output_plates = [self.plates[plate_id] for plate_id in sink.plate_ids]
 
         if len(input_plates) > 1:
             raise NotImplementedError
 
-        if output_plates[0].parent is None and len(input_plates) == 1:
-            raise IncompatiblePlatesError("Parent plate does not match input plate")
+        if len(output_plates) == 0:
+            raise ValueError("No output plate found")
 
-        if output_plates[0].parent is not None and len(input_plates) == 0:
-            raise IncompatiblePlatesError("Parent plate does not match input plate")
+        if len(output_plates) == 1:
+            if not self.check_plate_compatibility(input_plates, output_plates[0]):
+                raise IncompatiblePlatesError("Parent plate does not match input plate")
 
-        if output_plates[0].parent is not None and len(input_plates) == 1 \
-                and output_plates[0].parent != input_plates[0]:
-            raise IncompatiblePlatesError("Parent plate does not match input plate")
+            factor = MultiOutputFactor(tool=tool, source_node=source, sink_node=sink,
+                                       input_plate=input_plates[0], output_plates=output_plates[0])
+        else:
+            # The output plates should be the same as the input plates, except for one
+            # additional plate. Since we're currently only supporting one input plate,
+            # we can safely assume that there is a single matching plate.
+            # Finally, note that the output plate must either have no parents
+            # (i.e. it is at the root of the tree), or the parent plate is somewhere
+            # in the input plate's ancestry
+            if len(output_plates) > 2:
+                raise NotImplementedError
+            if len(input_plates) != 1:
+                raise IncompatiblePlatesError("Require an input plate to match all but one of the output plates")
+            if output_plates[0] == input_plates[0]:
+                # Found a match, so the output plate should be the other plate
+                output_plate = output_plates[1]
+            else:
+                if output_plates[1].plate_id != input_plates[0].plate_id:
+                    raise IncompatiblePlatesError("Require an input plate to match all but one of the output plates")
+                output_plate = output_plates[0]
+                # Swap them round so the new plate is the last plate - this is required by the factor
+                output_plates[1], output_plates[0] = output_plates[0], output_plates[1]
 
-        factor = MultiOutputFactor(tool=tool, source_node=source, sink_node=sink,
-                                   input_plate=input_plates[0], output_plate=output_plates[0])
+            # We need to walk up the input plate's parent tree
+            match = False
+            parent = input_plates[0].parent
+            while parent is not None:
+                if parent.plate_id == output_plate.parent.plate_id:
+                    match = True
+                    break
+                parent = parent.parent
+            if not match:
+                raise IncompatiblePlatesError("Require an input plate to match all but one of the output plates")
+
+            factor = MultiOutputFactor(
+                tool=tool, source_node=source, sink_node=sink,
+                input_plate=input_plates[0], output_plates=output_plates)
 
         if tool.name not in self.factor_collections:
             self.factor_collections[tool.name] = []
@@ -211,6 +346,19 @@ class Workflow(Printable):
         self.execution_order.append(tool)
 
         return factor
+
+    @staticmethod
+    def check_plate_compatibility(input_plates, output_plate):
+        if len(input_plates) == 0:
+            if output_plate.parent is not None:
+                return False
+        else:
+            if output_plate.parent is None:
+                return False
+            else:
+                if output_plate.parent.plate_id != input_plates[0].plate_id:
+                    return False
+        return True
 
 
 class WorkflowManager(Printable):
