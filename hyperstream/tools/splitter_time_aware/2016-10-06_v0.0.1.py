@@ -48,7 +48,10 @@ class SplitterTimeAware(MultiOutputTool):
                     raise ValueError("Unknown data format")
 
                 if ti not in interval:
-                    raise ValueError("Cannot compute splitter outside of the requested interval")
+                    # Todo: change back to value error
+                    # raise ValueError("Cannot compute splitter outside of the requested interval")
+                    logging.warn("Cannot compute splitter outside of the requested interval")
+                    continue
 
                 if pv in mapping:
                     raise ValueError("Repeated time intervals for single plate value not currently supported")

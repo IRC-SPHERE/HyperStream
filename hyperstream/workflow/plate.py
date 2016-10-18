@@ -46,6 +46,24 @@ class Plate(Printable):
         self.values = [tuple(sorted(pv.items())) for pv in values]
         self.parent = parent_plate
 
+    @property
+    def is_root(self):
+        return self.parent is None
+
+    def get_ancestors(self, current=None):
+        if not current:
+            current = []
+        current.insert(0, self.plate_id)
+        if self.is_root:
+            if current:
+                return current
+        else:
+            return self.parent.get_ancestors(current)
+
+    @property
+    def ancestors(self):
+        return self.get_ancestors()
+
 
 class PlateManager(Printable):
     """
