@@ -87,34 +87,6 @@ class Workflow(Printable):
         plate_values = self.get_overlapping_plate_values(plate_ids)
 
         if plate_ids:
-            # Create a stream for every entry in the cartesian product over plate values
-
-            # If there's a shared plate in the hierarchy, we need to join on this shared plate, e.g.:
-            #
-            # [self.plates[p].values for p in plate_ids][0] =
-            #   [(('house', '1'), ('location', 'hallway'), ('wearable', 'A')),
-            #    (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'))]
-            #
-            # [self.plates[p].values for p in plate_ids][1] =
-            #   [(('house', '1'), ('scripted', '15')),
-            #    (('house', '1'), ('scripted', '13'))]
-            #
-            # Result should be one stream for each of:
-            #   [(('house', '1'), ('location', 'hallway'), ('wearable', 'A'), ('scripted', '15)),
-            #    (('house', '1'), ('location', 'hallway'), ('wearable', 'A'), ('scripted', '13)),
-            #    (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'), ('scripted', '15)),
-            #    (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'), ('scripted', '13))]
-
-            if len(plate_ids) == 1:
-                plate_values = self.plates[plate_ids[0]].values
-            else:
-                if len(plate_ids) > 2:
-                    # TODO: For now, we will assume that there are only 2 plates
-                    raise NotImplementedError
-
-                plate_values = self.cartesian_product(plate_ids)
-                print(plate_values)
-
             for pv in plate_values:
                 # Construct stream id
                 stream_id = StreamId(name=stream_name, meta_data=pv)
@@ -126,7 +98,7 @@ class Workflow(Printable):
         else:
             streams[None] = channel.get_or_create_stream(stream_id=StreamId(name=stream_name))
 
-        node = Node(stream_name, streams, plate_ids)
+        node = Node(stream_name, streams, plate_ids, plate_values)
         self.nodes[stream_name] = node
         logging.info("Added node with id {}".format(stream_name))
         
@@ -163,7 +135,7 @@ class Workflow(Printable):
         :type plate_ids: list[str] | list[unicode]
         """
         if not plate_ids:
-            raise ValueError("No plates specified")
+            return None
 
         if len(plate_ids) == 1:
             return self.plates[plate_ids[0]].values
@@ -179,31 +151,37 @@ class Workflow(Printable):
 
         if len(intersection) == 0:
             # No match, so we simply take the cartesian product
-            plate_values = self.cartesian_product(plate_ids)
-        else:
-            plate_values = []
-            for i, p in enumerate(intersection):
-                for plate_id in plate_ids:
-                    # First of all check that the intersection is at the beginning of the lists,
-                    # otherwise something has gone wrong
-                    if p != self.plates[plate_id].ancestors[i]:
-                        raise ValueError("Error in plate specification. Intersection between plates is not valid.")
+            return self.cartesian_product(plate_ids)
 
-            # Now we need the cartesian product of all of the intersection values
-            intersection_plate_values = self.cartesian_product(intersection)
+        for i, p in enumerate(intersection):
+            for plate_id in plate_ids:
+                # First of all check that the intersection is at the beginning of the lists,
+                # otherwise something has gone wrong
+                if p != self.plates[plate_id].ancestors[i]:
+                    raise ValueError("Error in plate specification. Intersection between plates is not valid.")
 
-            # Now get the cartesian product of all the values not in the intersection
-            difference_plate_value = self.cartesian_product(difference)
+        # Now we need the cartesian product of all of the intersection values
+        intersection_plate_values = self.cartesian_product(intersection)
 
-            # Now for each of these plate values, we need the cartesian product of the plates not in the intersection
+        plate_values = set()
+
+        for ipv in intersection_plate_values:
+            # We want to create the cartesian product for the plate values that are valid for this intersected
+            # plate value.
             for d in difference:
-                z = [set(v).difference(itertools.chain(*intersection_plate_values)) for v in self.plates[d].values]
-                pv = list(map(lambda x: tuple(itertools.chain.from_iterable(x)),
-                              itertools.product(intersection_plate_values, map(tuple, z))))
-                plate_values.extend(pv)
-                a = 1
+                for v in self.plates[d].values:
+                    if all(vv in v for vv in ipv):
+                        # Here we have a plate value on the difference that is also on the intersection
+                        # Next we get the complement of this
+                        difference_values = list(itertools.chain.from_iterable(
+                            self.plates[dd].values for dd in set(difference).difference([d])))
+                        for dv in difference_values:
+                            if all(vv in dv for vv in ipv):
+                                # This complement is also on the intersection, now we can add a plate value
+                                plate_values.add(
+                                    tuple(sorted(set(itertools.chain.from_iterable(itertools.product(v, dv))))))
 
-        return plate_values
+        return tuple(plate_values)
 
     def cartesian_product(self, plate_ids):
         """

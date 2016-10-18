@@ -91,7 +91,10 @@ class Factor(Printable):
         return self
 
     def get_global_sources(self):
-        # Also add streams that live outside of the plates
+        """
+        Gets streams that live outside of the plates
+        :return: Global streams
+        """
         sources = []
         if self.sources:
             for source in self.sources:
@@ -161,13 +164,7 @@ class MultiOutputFactor(Printable):
         :param time_interval: The time interval
         :return: self (for chaining)
         """
-        if len(self.output_plates) == 1:
-            output_plate_values = self.output_plates[0].values
-        else:
-            # Need to get streams for the cartesian product of all the plates
-            output_plate_values = [tuple(itertools.chain(*opv)) for opv in
-                                   itertools.product(*(sorted(set(p.values)) for p in self.output_plates))]
-
+        output_plate_values = self.sink.plate_values
         sinks = [self.sink.streams[opv] for opv in output_plate_values]
 
         if self.input_plate:
@@ -180,6 +177,8 @@ class MultiOutputFactor(Printable):
                     continue
 
                 if len(self.output_plates) > 0:
+                    # TODO: need to match up the input plate to output plate(s) here!
+                    raise NotImplementedError
                     ipv = ipv + output_plate_values
                 self.tool.execute(source=source, sinks=sinks, interval=time_interval,
                                   input_plate_value=ipv, output_plate=self.output_plates[0])
