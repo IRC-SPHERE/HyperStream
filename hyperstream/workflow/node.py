@@ -18,6 +18,12 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+Node module.
+
+Nodes are a collection of streams defined by shared meta-data keys (plates), and are connected in the
+computational graph by factors.
+"""
 from ..stream import StreamId
 from ..utils import Printable
 
@@ -28,7 +34,6 @@ class Node(Printable):
     """
     A node in the graph. This consists of a set of streams defined over a set of plates
     """
-
     def __init__(self, node_id, streams, plate_ids):
         """
         Initialise the node
@@ -50,11 +55,16 @@ class Node(Printable):
 
         """
 
-    # def __iter__(self):
-    #     return iter(self.streams)
-
     def intersection(self, meta):
-        # TODO: Why only streams[0] below?
+        """
+        Get the intersection between the meta data given and the meta data contained within the plates.
+        Since all of the streams have the same meta data keys (but differing values) we only need to consider
+        the first stream.
+        :param meta: The meta data to compare
+        :return: A stream id with the intersection between this node's meta data and the given meta data
+        :type meta: dict
+        :rtype: StreamId
+        """
         keys = self.streams[0].stream_id.meta_data.keys()
         return StreamId(self.node_id, dict(*zip((kk, meta[kk]) for kk in keys)))
 
