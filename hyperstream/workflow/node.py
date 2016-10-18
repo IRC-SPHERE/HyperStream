@@ -34,18 +34,20 @@ class Node(Printable):
     """
     A node in the graph. This consists of a set of streams defined over a set of plates
     """
-    def __init__(self, node_id, streams, plate_ids):
+    def __init__(self, node_id, streams, plate_ids, plate_values):
         """
         Initialise the node
         :param node_id: The node id
         :param streams: The streams, organised as a nested dictionary with plate objects as keys at the top level,
         and then plate values (tuple(sorted(plate_values.items())) as the keys at the next level
         :param plate_ids: The plate ids
+        :param plate_values: The plate values (populated meta data)
         """
         self.node_id = node_id
         self.streams = streams
         # TODO: Remove plate IDs
         self.plate_ids = tuple(plate_ids) if plate_ids else tuple()
+        self.plate_values = plate_values
 
         """
         When defining streams, it will be useful to be able to query node objects

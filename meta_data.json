@@ -67,6 +67,8 @@
         {"identifier": "1.scripted_18", "tag": "scripted", "data": "18", "parent": "1"},
         {"identifier": "1.scripted_19", "tag": "scripted", "data": "19", "parent": "1"},
 
+        {"identifier": "2.scripted_1", "tag": "scripted", "data": "1", "parent": "2"},
+
         {"identifier": "1.scripted_1.annotator_2", "tag": "annotator", "data": "2", "parent": "1.scripted_1"},
         {"identifier": "1.scripted_1.annotator_3", "tag": "annotator", "data": "3", "parent": "1.scripted_1"},
         {"identifier": "1.scripted_1.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_1"},
