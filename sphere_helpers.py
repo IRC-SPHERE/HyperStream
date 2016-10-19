@@ -210,3 +210,8 @@ class PredefinedTools(object):
             name="splitter",
             parameters=dict(element="uid", mapping=mappings["uid"])
         )
+
+        self.split_time = channel_manager.get_tool(
+            name="splitter_time_aware",
+            parameters=dict(time_intervals=scripted_experiments, meta_data_id="scripted")
+        )

@@ -43,8 +43,37 @@ class Plate(Printable):
         """
         self.plate_id = plate_id
         self.meta_data_id = meta_data_id
+
+        self.values = []
+        self.cardinality = 0
+        for pv in values:
+            self.values.append(tuple(sorted(pv.items())))
+            if self.cardinality == 0:
+                self.cardinality = len(pv)
+            else:
+                if len(pv) != self.cardinality:
+                    raise ValueError("Plate values have inconsistent cardinality")
+
         self.values = [tuple(sorted(pv.items())) for pv in values]
         self.parent = parent_plate
+
+    def _get_ancestors(self, current=None):
+        if not current:
+            current = []
+        current.insert(0, self.plate_id)
+        if self.is_root:
+            if current:
+                return current
+        else:
+            return self.parent._get_ancestors(current)
+
+    @property
+    def ancestors(self):
+        return self._get_ancestors()
+
+    @property
+    def is_root(self):
+        return self.parent is None
 
 
 class PlateManager(Printable):
