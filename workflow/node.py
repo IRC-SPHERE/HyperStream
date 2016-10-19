@@ -95,19 +95,16 @@ class Node(Printable):
 
         found = False
         for plate_value in plate_values:
-            if parent_plate_value:
-                plate_value = parent_plate_value + (plate_value,)
+            combined_plate_value = self.combine_plate_values(parent_plate_value, plate_value)
 
-            plate_value = tuple(sorted(plate_value))
-
-            if plate_value not in self.streams:
+            if combined_plate_value not in self.streams:
                 # This can happen if we have created a compound plate and only certain plate values are valid
                 continue
 
             found = True
-            print_func("Plate value: {}".format(plate_value))
+            print_func("Plate value: {}".format(combined_plate_value))
             data = False
-            for k, v in self.streams[plate_value].window(interval).head(n):
+            for k, v in self.streams[combined_plate_value].window(interval).head(n):
                 data = True
                 print_func("{}, {}".format(k, v))
             if not data:
@@ -115,3 +112,23 @@ class Node(Printable):
             print_func("")
         if not found:
             print_func("No streams found for the given plate values")
+
+    @staticmethod
+    def combine_plate_values(parent_plate_value, plate_value):
+        """
+        Combine the plate value(s) with the parent plate value(s)
+        :param parent_plate_value: The parent plate value(s)
+        :param plate_value: The plate value(s)
+        :return: The combined plate values
+        """
+        if parent_plate_value:
+            if isinstance(plate_value[0], (str, unicode)):
+                combined_plate_value = parent_plate_value + (plate_value,)
+            elif isinstance(plate_value[0], tuple):
+                combined_plate_value = parent_plate_value + plate_value
+            else:
+                raise TypeError("Unknown plate value type")
+        else:
+            combined_plate_value = plate_value
+
+        return tuple(sorted(combined_plate_value))
