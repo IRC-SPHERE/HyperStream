@@ -236,7 +236,7 @@ class Workflow(Printable):
                         raise IncompatiblePlatesError("{} not in source plates".format(p))
                 for p in source_plates:
                     if p not in set(sink.plate_ids):
-                        raise IncompatiblePlatesError("{} not in sink plate_manager".format(p))
+                        raise IncompatiblePlatesError("{} not in sink plates".format(p))
             plates = [self.plates[plate_id] for plate_id in sink.plate_ids]
         else:
             plates = None
