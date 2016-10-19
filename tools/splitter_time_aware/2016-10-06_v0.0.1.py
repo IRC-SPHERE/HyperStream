@@ -22,23 +22,28 @@
 from hyperstream.tool import MultiOutputTool
 from hyperstream.stream import StreamMetaInstance
 from hyperstream.time_interval import TimeInterval, TimeIntervals
+from hyperstream import IncompatiblePlatesError
 
 import logging
 
 
 class SplitterTimeAware(MultiOutputTool):
-    def __init__(self, time_intervals):
-        super(SplitterTimeAware, self).__init__(time_intervals=time_intervals)
+    def __init__(self, time_intervals, meta_data_id):
+        super(SplitterTimeAware, self).__init__(time_intervals=time_intervals, meta_data_id=meta_data_id)
         self.time_intervals = time_intervals
+        self.meta_data_id = meta_data_id
 
     def _execute(self, source, interval, output_plate):
         # time intervals could be a TimeIntervals object, a list of TimeInterval objects,
         # or a list of tuples of plate ids and TimeInterval objects
+        if output_plate.meta_data_id != self.meta_data_id:
+            raise IncompatiblePlatesError("Output plate does not match the specified meta data id")
+
         mapping = {}
         if isinstance(self.time_intervals, (tuple, list, TimeIntervals)):
             for i, el in enumerate(self.time_intervals):
                 if isinstance(el, TimeInterval):
-                    pv = str(i)
+                    pv = str(i + 1)
                     ti = el
                 elif isinstance(el, (tuple, list)):
                     if len(el) != 2 or not isinstance(el[0], str) or not isinstance(el[1], TimeInterval):
@@ -50,7 +55,7 @@ class SplitterTimeAware(MultiOutputTool):
                 if ti not in interval:
                     # Todo: change back to value error
                     # raise ValueError("Cannot compute splitter outside of the requested interval")
-                    logging.warn("Cannot compute splitter outside of the requested interval")
+                    # logging.warn("Cannot compute splitter outside of the requested interval")
                     continue
 
                 if pv in mapping:
@@ -60,4 +65,4 @@ class SplitterTimeAware(MultiOutputTool):
 
         for pv, ti in mapping.items():
             for instance in source.window(ti):
-                yield StreamMetaInstance(instance, (output_plate.meta_data_id, pv))
+                yield StreamMetaInstance(instance, (self.meta_data_id, pv))

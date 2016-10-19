@@ -25,7 +25,7 @@ import logging
 
 from time_interval import TimeInterval, TimeIntervals
 from stream import Stream
-from utils import Printable, Hashable
+from utils import Printable, Hashable, StreamNotAvailableError, ToolExecutionError
 
 
 class Tool(Printable, Hashable):
@@ -81,8 +81,7 @@ class Tool(Printable, Hashable):
         logging.info(self.message(interval))
 
         if interval.end > sink.channel.up_to_timestamp:
-            raise ValueError(
-                'The stream is not available after {} and cannot be calculated'.format(self.up_to_timestamp))
+            raise StreamNotAvailableError(self.up_to_timestamp)
 
         required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
 
@@ -98,7 +97,7 @@ class Tool(Printable, Hashable):
 
             required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
             if not required_intervals.is_empty:
-                raise RuntimeError('Tool execution did not cover the time interval {}.'.format(required_intervals))
+                raise ToolExecutionError(required_intervals)
 
             if not produced_data:
                 logging.warn("Tool did not produce any data for time interval {}".format(required_intervals))
@@ -185,7 +184,8 @@ class MultiOutputTool(Printable, Hashable):
                     # Join the output meta data with the parent plate meta data
                     meta_data = input_plate_value + (item.meta_data,)
                     try:
-                        sink = next(s for s in sinks if tuple(sorted(s.stream_id.meta_data)) == tuple(sorted(meta_data)))
+                        sink = next(s for s in sinks if
+                                    tuple(sorted(s.stream_id.meta_data)) == tuple(sorted(meta_data)))
                     except StopIteration:
                         raise
                     sink.writer(item.stream_instance)

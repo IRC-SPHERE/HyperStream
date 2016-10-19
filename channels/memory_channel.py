@@ -19,10 +19,10 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from base_channel import BaseChannel
+from hyperstream.utils.errors import StreamNotFoundError, StreamAlreadyExistsError
 from ..stream import Stream, StreamInstance, StreamInstanceCollection
 from ..time_interval import TimeIntervals
 from ..utils import MIN_DATE
-from ..errors import StreamNotFoundError, StreamAlreadyExistsError
 
 
 class MemoryChannel(BaseChannel):

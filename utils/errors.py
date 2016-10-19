@@ -41,3 +41,17 @@ class ChannelNotFoundError(Exception):
 
 class IncompatiblePlatesError(Exception):
     pass
+
+
+class StreamNotAvailableError(Exception):
+    message = 'The stream is not available after {} and cannot be calculated'
+
+    def __init__(self, up_to_timestamp):
+        super(StreamNotAvailableError, self).__init__(self.message.format(up_to_timestamp))
+
+
+class ToolExecutionError(Exception):
+    message = 'Tool execution did not cover the time interval {}.'
+
+    def __init__(self, required_intervals):
+        super(ToolExecutionError, self).__init__(self.message.format(required_intervals))
