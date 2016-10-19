@@ -30,6 +30,10 @@ class MemoryChannel(BaseChannel):
     Channel whose data lives in memory
     """
     def __init__(self, channel_id):
+        """
+        Initialise the channel
+        :param channel_id: The channel id
+        """
         super(MemoryChannel, self).__init__(channel_id=channel_id, can_calc=True, can_create=True)
         self.max_stream_id = 0
         self.data = dict()
@@ -52,9 +56,22 @@ class MemoryChannel(BaseChannel):
         return stream
 
     def clear_stream(self, stream_id):
+        """
+        Clears all the data in a given stream
+        :param stream_id: The stream id
+        :return: None
+        """
         if stream_id not in self.streams:
             raise StreamNotFoundError(stream_id)
         self.data[stream_id] = StreamInstanceCollection()
+
+    def clear_all(self):
+        """
+        Clears all streams in the channel - use with caution!
+        :return: None
+        """
+        for stream_id in self.streams:
+            self.data[stream_id] = StreamInstanceCollection()
 
     def delete_stream(self, stream_id):
         if stream_id not in self.streams:
