@@ -179,6 +179,7 @@ class MultiOutputFactor(Printable):
                 if len(self.output_plates) == 1:
                     if self.output_plates[0].parent.plate_id == self.input_plate.plate_id:
                         pass
+                        # ipv = ipv + output_plate_values
                         # raise NotImplementedError
                     else:
                         # ipv = output_plate_values
