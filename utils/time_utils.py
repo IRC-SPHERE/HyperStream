@@ -41,4 +41,4 @@ def get_timedelta(value):
     elif isinstance(value, timedelta):
         return value
     else:
-        raise ValueError("Expected int or timedelta, got {}".format(type(value)))
+        raise ValueError("Expected int, float, or timedelta, got {}".format(type(value)))

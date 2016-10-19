@@ -24,7 +24,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from hyperstream import TimeInterval, RelativeTimeInterval
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
-from hyperstream.utils import MIN_DATE
+from hyperstream.utils import MIN_DATE, get_timedelta
 from datetime import timedelta
 import logging
 
@@ -51,7 +51,9 @@ class SlidingWindow(Tool):
         self.first = first
         self.lower = relative_interval.end
         self.width = relative_interval.width
-        self.increment = increment
+
+        # Additional validation for the increment
+        self.increment = get_timedelta(increment)
     
     @check_input_stream_count(0)
     def _execute(self, sources, alignment_stream, interval):
