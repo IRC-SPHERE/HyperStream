@@ -140,7 +140,7 @@ if __name__ == '__main__':
         'hallway': 'mean',
     }
 
-    # TODO: Needs to be separated into plate_manager
+    # TODO: Needs to be separated into plates
     n_rss_vals = w.create_node(stream_name="rss_vals", channel=M, plate_ids=["H1"])
     factor = w.create_factor(tool=tools.wearable_rss_values, sources=[n_rss], sink=n_rss_vals).execute(time_interval)
 
