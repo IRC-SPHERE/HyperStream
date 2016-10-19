@@ -440,7 +440,9 @@ class HyperStringTests(unittest.TestCase):
             print
         
         md = list(n_average_motion.streams[(('house', '1'),)].window(interval).values())[:10]
-        
+
+        print(md)
+
         # TODO: This test fails since the computations are not chained back to the source.
         assert md == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0]
 
