@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
     print_head("rss_raw",       None,       h1,         time_interval, 10, print)
     print_head("rss_aid",       h1,         locs,       time_interval, 10, print)
-    print_head("rss_aid_uid",   wA,         locs,       time_interval, 10, print)
+    print_head("rss_aid_uid",   h1 + wA,    locs,       time_interval, 10, print)
     print_head("rss",           h1 + wA,    locs,       time_interval, 10, print)
     print_head("rss_time",      h1 + wA,    locs_eids,  time_interval, 10, print)
 
