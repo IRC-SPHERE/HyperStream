@@ -187,7 +187,8 @@ class MultiOutputTool(Printable, Hashable):
                         sink = next(s for s in sinks if
                                     tuple(sorted(s.stream_id.meta_data)) == tuple(sorted(meta_data)))
                     except StopIteration:
-                        raise
+                        # raise
+                        continue
                     sink.writer(item.stream_instance)
                     produced_data = True
 
