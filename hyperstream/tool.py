@@ -17,13 +17,21 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+Tool module. Defines Tool and MultiOutputTool base classes.
+"""
 
 import logging
+
 from time_interval import TimeInterval, TimeIntervals
-from utils import Printable, Hashable
+from stream import Stream
+from utils import Printable, Hashable, StreamNotAvailableError, ToolExecutionError
 
 
 class Tool(Printable, Hashable):
+    """
+    Base class for tools. Tools are the unit of computation, operating on input streams to produce an output stream
+    """
     def __init__(self, **kwargs):
         if kwargs:
             logging.debug('Defining a {} tool with parameters {}'.format(self.__class__.__name__, kwargs))
@@ -42,16 +50,38 @@ class Tool(Printable, Hashable):
         return self.__class__.__module__
     
     def _execute(self, sources, alignment_stream, interval):
+        """
+        Tool implementations should override this function to actually perform computations
+        :param sources: The source streams (possibly None)
+        :param alignment_stream: The alignment stream
+        :param interval: The time interval
+        :type sources: list[Stream] | tuple[Stream] | None
+        :type alignment_stream: Stream | None
+        :type interval: TimeInterval
+        :return: None
+        """
         raise NotImplementedError
     
     def execute(self, sources, sink, alignment_stream, interval):
+        """
+        Execute the tool over the given time interval.
+        If an alignment stream is given, the output instances will be aligned to this stream
+        :param sources: The source streams (possibly None)
+        :param sink: The sink stream
+        :param alignment_stream: The alignment stream
+        :param interval: The time interval
+        :type sources: list[Stream] | tuple[Stream] | None
+        :type sink: Stream
+        :type alignment_stream: Stream | None
+        :type interval: TimeInterval
+        :return: None
+        """
         if not isinstance(interval, TimeInterval):
             raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
         logging.info(self.message(interval))
 
         if interval.end > sink.channel.up_to_timestamp:
-            raise ValueError(
-                'The stream is not available after {} and cannot be calculated'.format(self.up_to_timestamp))
+            raise StreamNotAvailableError(self.up_to_timestamp)
 
         required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
 
@@ -67,7 +97,7 @@ class Tool(Printable, Hashable):
 
             required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
             if not required_intervals.is_empty:
-                raise RuntimeError('Tool execution did not cover the time interval {}.'.format(required_intervals))
+                raise ToolExecutionError(required_intervals)
 
             if not produced_data:
                 logging.warn("Tool did not produce any data for time interval {}".format(required_intervals))
@@ -97,9 +127,33 @@ class MultiOutputTool(Printable, Hashable):
         return self.__class__.__module__
 
     def _execute(self, source, interval, output_plate):
+        """
+        Tool implementations should override this function to actually perform computations
+        :param source: The source stream
+        :param interval: The time interval
+        :param output_plate: The plate where data is put onto
+        :type source: Stream
+        :type interval: TimeInterval
+        :type output_plate: Plate
+        :return: None
+        """
         raise NotImplementedError
 
     def execute(self, source, sinks, interval, input_plate_value, output_plate):
+        """
+        Execute the tool over the given time interval.
+        :param source: The source stream
+        :param sinks: The sink streams
+        :param interval: The time interval
+        :param input_plate_value: The value of the plate where data comes from (can be None)
+        :param output_plate: The plate where data is put onto
+        :type source: Stream
+        :type sinks: list[Stream] | tuple[Stream]
+        :type interval: TimeInterval
+        :type input_plate_value: tuple[tuple[str, str]] | None
+        :type output_plate: Plate
+        :return: None
+        """
         if not isinstance(interval, TimeInterval):
             raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
         logging.info(self.message(interval))
@@ -129,7 +183,11 @@ class MultiOutputTool(Printable, Hashable):
                 for item in self._execute(source=source, interval=interval, output_plate=output_plate):
                     # Join the output meta data with the parent plate meta data
                     meta_data = input_plate_value + (item.meta_data,)
-                    sink = next(s for s in sinks if tuple(sorted(s.stream_id.meta_data)) == tuple(sorted(meta_data)))
+                    try:
+                        sink = next(s for s in sinks if
+                                    tuple(sorted(s.stream_id.meta_data)) == tuple(sorted(meta_data)))
+                    except StopIteration:
+                        raise
                     sink.writer(item.stream_instance)
                     produced_data = True
 
@@ -144,7 +202,6 @@ def check_input_stream_count(expected_number_of_streams):
     :param expected_number_of_streams: The expected number of streams
     :return: the decorator
     """
-    
     def stream_count_decorator(func):
         def func_wrapper(*args, **kwargs):
             self = args[0]

@@ -21,8 +21,11 @@
 from ..utils import Printable
 from node import Node
 from ..tool import Tool, MultiOutputTool
-import logging
+from plate import Plate
 from ..time_interval import TimeIntervals
+
+import logging
+import itertools
 
 
 class Factor(Printable):
@@ -39,6 +42,8 @@ class Factor(Printable):
         :param plates: The plates over which this factor is defined
         :type tool: Tool
         :type sink_node: Node
+        :type alignment_node: Node | None
+        :type plates: list[Plate] | tuple[Plate]
         """
         if not isinstance(tool, Tool):
             raise ValueError("Expected tool, got {}".format(type(tool)))
@@ -56,9 +61,11 @@ class Factor(Printable):
 
         if alignment_node and not isinstance(alignment_node, Node):
             raise ValueError("Expected node, got {}".format(type(alignment_node)))
+
         if alignment_node and alignment_node.plate_ids:
             # TODO: Need to implement alignment nodes that live inside plates
             raise NotImplementedError("Currently only alignment nodes outside of plates are supported")
+
         self.alignment_node = alignment_node
 
     def execute(self, time_interval):
@@ -84,7 +91,10 @@ class Factor(Printable):
         return self
 
     def get_global_sources(self):
-        # Also add streams that live outside of the plates
+        """
+        Gets streams that live outside of the plates
+        :return: Global streams
+        """
         sources = []
         if self.sources:
             for source in self.sources:
@@ -93,6 +103,12 @@ class Factor(Printable):
         return sources
 
     def get_alignment_stream(self, plate=None, plate_value=None):
+        """
+        Gets the alignment stream for a particular plate value
+        :param plate: The plate on which the alignment node lives
+        :param plate_value: The plate value to select the stream from the node
+        :return: The alignment stream
+        """
         if not self.alignment_node:
             return None
         if plate is not None or plate_value is not None:
@@ -108,16 +124,18 @@ class MultiOutputFactor(Printable):
     multiple plates.
     Note there is no concept of an alignment node here.
     """
-    def __init__(self, tool, source_node, sink_node, input_plate, output_plate):
+    def __init__(self, tool, source_node, sink_node, input_plate, output_plates):
         """
         Initialise this factor
         :param tool: The tool
         :param source_node: The source node
         :param sink_node: The sink nodes
-        :param input_plate: The plates over which this factor is defined
-        :param output_plate: The new plate which will be created
+        :param input_plate: The plate over which this factor is defined
+        :param output_plates: The plates, the last of which will be the new one created
         :type tool: MultiOutputTool
         :type sink_node: Node
+        :type input_plate: Plate | None
+        :type output_plates: list[Plate] | tuple[Plate] | Plate
         """
         if not isinstance(tool, MultiOutputTool):
             raise ValueError("Expected tool, got {}".format(type(tool)))
@@ -133,26 +151,21 @@ class MultiOutputFactor(Printable):
 
         # TODO: The input plate should be a parent of the output plate
         self.input_plate = input_plate
-        self.output_plate = output_plate
+
+        if isinstance(output_plates, Plate):
+            output_plates = (output_plates, )
+
+        self.output_plates = output_plates
 
     def execute(self, time_interval):
         """
         Execute the factor over the given time interval. Note that this is normally done by the workspace,
-        but can be done on the factor individually for testing
+        but can also be done on the factor directly
         :param time_interval: The time interval
         :return: self (for chaining)
         """
-        # if self.input_plate:
-        #     if len(self.input_plate.values) > 1:
-        #         # TODO: dealing with more than one plate value not yet supported
-        #         raise NotImplementedError
-        #     output_plate_values = [v for opv in self.output_plate.values for v in opv
-        #                            if v not in self.input_plate.values[0]]
-        # else:
-        #     output_plate_values = self.output_plate.values
-
-        # TODO: Check that this output plate value is valid
-        sinks = [self.sink.streams[opv] for opv in self.output_plate.values]
+        output_plate_values = self.sink.plate_values
+        sinks = [self.sink.streams[opv] for opv in output_plate_values]
 
         if self.input_plate:
             for ipv in self.input_plate.values:
@@ -162,12 +175,23 @@ class MultiOutputFactor(Printable):
                     logging.warn("Plate {} with value {} not valid for source {}".format(
                         self.input_plate, ipv, self.source))
                     continue
+
+                if len(self.output_plates) == 1:
+                    if self.output_plates[0].parent.plate_id == self.input_plate.plate_id:
+                        pass
+                        # raise NotImplementedError
+                    else:
+                        # ipv = output_plate_values
+                        raise NotImplementedError
+
                 self.tool.execute(source=source, sinks=sinks, interval=time_interval,
-                                  input_plate_value=ipv, output_plate=self.output_plate)
+                                  input_plate_value=ipv, output_plate=self.output_plates[-1])
         else:
             sources = self.source.streams[None]
+            if len(self.output_plates) != 1:
+                raise ValueError("Should be a single output plate if there is no input plate")
             self.tool.execute(source=sources, sinks=sinks, interval=time_interval,
-                              input_plate_value=None, output_plate=self.output_plate)
+                              input_plate_value=None, output_plate=self.output_plates[0])
 
         # Update computed intervals
         for sink in sinks:
@@ -178,6 +202,12 @@ class MultiOutputFactor(Printable):
         return self
 
     def get_alignment_stream(self, plate=None, plate_value=None):
+        """
+        Gets the alignment stream for a particular plate value
+        :param plate: The plate on which the alignment node lives
+        :param plate_value: The plate value to select the stream from the node
+        :return: The alignment stream
+        """
         if not self.alignment_node:
             return None
         if plate is not None or plate_value is not None:

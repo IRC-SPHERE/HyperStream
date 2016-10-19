@@ -18,11 +18,14 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
-from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, Client, Workflow
+from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, Client, Workflow, HyperStreamLogger
+
+import logging
 
 
 class HyperStream(object):
     def __init__(self):
+        self.logger = HyperStreamLogger(path='/tmp', filename='hyperstream', loglevel=logging.DEBUG)
         self.config = HyperStreamConfig()
         self.client = Client(self.config.mongo)
 

@@ -18,15 +18,11 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream.config import HyperStreamConfig
+from hyperstream import HyperStream
 from hyperstream.online_engine import OnlineEngine
-from sphere_connector_package.sphere_connector import SphereLogger
-import logging
 
 
 if __name__ == '__main__':
-    # TODO: hyperstream needs it's own logger (can be a clone of this one)
-    sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
-
-    online_engine = OnlineEngine(HyperStreamConfig())
+    hyperstream = HyperStream()
+    online_engine = OnlineEngine(hyperstream)
     online_engine.execute()

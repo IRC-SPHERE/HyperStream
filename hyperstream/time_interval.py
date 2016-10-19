@@ -125,7 +125,7 @@ class TimeIntervals(Printable):
         return not self == other
 
     def __iter__(self):
-        return iter(self.intervals)
+        return iter(sorted(self.intervals))
 
 
 class TimeInterval(object):
@@ -188,12 +188,30 @@ class TimeInterval(object):
         return hash((self.start, self.end))
 
     def __contains__(self, item):
-        return self.start < item <= self.end
+        if isinstance(item, (date, datetime)):
+            return self.start < item <= self.end
+        if isinstance(item, TimeInterval):
+            return item.start in self and item.end in self
+        raise TypeError("can't compare datetime.datetime to {}".format(type(item)))
 
     def __add__(self, other):
+        if isinstance(other, (tuple, list)) and len(other) == 2:
+            other = RelativeTimeInterval(*other)
         if not isinstance(other, RelativeTimeInterval):
             raise ValueError("Can only add a relative time interval to a time interval")
         return TimeInterval(self.start + other.start, self.end + other.end)
+
+    # def resize(self, *args):
+    #     if len(args) == 1:
+    #         if isinstance(args[0], RelativeTimeInterval):
+    #             rti = args[0]
+    #         else:
+    #             raise TypeError("Single argument should be RelativeTimeInterval")
+    #     elif len(args) == 2:
+    #         rti = RelativeTimeInterval(*args)
+    #     else:
+    #         raise ValueError("Too many input arguments")
+    #     return self + rti
 
 
 class RelativeTimeInterval(TimeInterval):
