@@ -425,6 +425,9 @@ class WorkflowManager(Printable):
         :type commit: bool
         :return: None
         """
+        if workflow.workflow_id in self.workflows:
+            raise KeyError("Workflow with id {} already exists".format(workflow.workflow_id))
+
         self.workflows[workflow.workflow_id] = workflow
         logging.info("Added workflow {} to workflow manager".format(workflow.workflow_id))
         
