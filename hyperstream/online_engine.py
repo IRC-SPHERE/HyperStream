@@ -18,19 +18,10 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from channel_manager import ChannelManager
-from workflow import WorkflowManager, PlateManager
-from client import Client
-
 
 class OnlineEngine(object):
-    def __init__(self, hyperstream_config):
-        self.config = hyperstream_config
-        self.client = Client(self.config.mongo)
-
-        self.channels = ChannelManager(self.config.tool_path)
-        self.plates = PlateManager(self.config.meta_data).plates
-        self.workflows = WorkflowManager(self.channels, self.plates)
+    def __init__(self, hyperstream):
+        self.hyperstream = hyperstream
 
     def execute(self):
-        self.workflows.execute_all()
+        self.hyperstream.workflows.execute_all()

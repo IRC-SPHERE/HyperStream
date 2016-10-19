@@ -87,10 +87,16 @@ class Node(Printable):
             self.print_head(parent_plate_value, (plate_values,), interval, n)
             return
 
+        found = False
         for plate_value in plate_values:
             if parent_plate_value:
                 plate_value = parent_plate_value + (plate_value,)
 
+            if plate_value not in self.streams:
+                # This can happen if we have created a compound plate and only certain plate values are valid
+                continue
+
+            found = True
             print_func("Plate value: {}".format(plate_value))
             data = False
             for k, v in self.streams[tuple(sorted(plate_value))].window(interval).head(n):
@@ -99,3 +105,5 @@ class Node(Printable):
             if not data:
                 print_func("No data")
             print_func("")
+        if not found:
+            logging.warn("No streams found for the given plate values")

@@ -18,12 +18,11 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from itertools import groupby
+import itertools
 import logging
 
 from hyperstream import HyperStream, TimeInterval
 
-from sphere_connector_package.sphere_connector import SphereLogger
 from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
 
 
@@ -37,8 +36,6 @@ from sphere_helpers import PredefinedTools, scripted_experiments, second, minute
 
 if __name__ == '__main__':
     # TODO: hyperstream needs it's own logger (can be a clone of this one)
-    sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
-
     hyperstream = HyperStream()
 
     tools = PredefinedTools(hyperstream.channel_manager)
@@ -66,11 +63,15 @@ if __name__ == '__main__':
     locs = tuple(("location", loc) for loc in ["kitchen", "hallway", "lounge"])
     eids = tuple(("scripted", i + 1) for i in range(0, len(scripted_experiments.intervals)))
 
+    locs_eids = tuple(itertools.product(locs, eids))
+    print(locs_eids)
+
     # get a dict of experiment_id => annotator_id mappings
     experiment_id_to_annotator_ids = dict(
         (k, [a['data'] for a in g])
-        for k, g in groupby((m for m in hyperstream.config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
-                            lambda x: x['identifier'].split('.')[1].split('_')[1]))
+        for k, g in itertools.groupby(
+            (m for m in hyperstream.config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
+            lambda x: x['identifier'].split('.')[1].split('_')[1]))
 
     # time_interval = scripted_experiments.span
     time_interval = TimeInterval(scripted_experiments.intervals[0].start,
@@ -101,7 +102,7 @@ if __name__ == '__main__':
     # N["rss_aid"].print_head(h1, locs, time_interval)
     # N["rss_aid_uid"].print_head(w1, locs, time_interval)
     N["rss"].print_head(h1 + wA, locs, time_interval)
-    N["rss_time"].print_head(h1 + wA + locs, eids, time_interval)
+    N["rss_time"].print_head(h1 + wA, locs_eids, time_interval)
 
     exit(0)
 

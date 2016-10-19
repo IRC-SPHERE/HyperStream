@@ -18,30 +18,16 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-import logging
 from datetime import datetime, timedelta
 
-from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client, \
-    TimeInterval
-from hyperstream.utils import UTC, MIN_DATE
+from hyperstream import HyperStream, StreamId, TimeInterval, UTC, MIN_DATE
 from hyperstream.itertools2 import count as online_count
-from sphere_connector_package.sphere_connector import SphereLogger
 from sphere_helpers import PredefinedTools
 
 
 if __name__ == '__main__':
-    # TODO: hyperstream needs it's own logger (can be a clone of this one)
-    sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
-
-    hyperstream_config = HyperStreamConfig()
-    client = Client(hyperstream_config.mongo)
-
-    # Define some managers
-    channel_manager = ChannelManager(hyperstream_config.tool_path)
-    plate_manager = PlateManager(hyperstream_config.meta_data).plates
-    workflow_manager = WorkflowManager(channel_manager=channel_manager, plates=plate_manager)
-
-    tools = PredefinedTools(channel_manager)
+    hyperstream = HyperStream()
+    tools = PredefinedTools(hyperstream.channel_manager)
 
     # Various constants
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
@@ -51,10 +37,10 @@ if __name__ == '__main__':
     hour = timedelta(hours=1)
 
     # Various channels
-    M = channel_manager.memory
-    S = channel_manager.sphere
-    T = channel_manager.tools
-    D = channel_manager.mongo
+    M = hyperstream.channel_manager.memory
+    S = hyperstream.channel_manager.sphere
+    T = hyperstream.channel_manager.tools
+    D = hyperstream.channel_manager.mongo
 
     # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
     environmental = StreamId(name='environmental', meta_data={'house': '1'})
@@ -71,9 +57,7 @@ if __name__ == '__main__':
     component = StreamId('component')
 
     # Create a simple one step workflow for querying
-    w = Workflow(
-        channels=channel_manager,
-        plates=plate_manager,
+    w = hyperstream.create_workflow(
         workflow_id="simple_query_workflow",
         name="Simple query workflow",
         owner="TD",
@@ -101,9 +85,7 @@ if __name__ == '__main__':
               'temperature': None}])
 
     # More complex workflow
-    w = Workflow(
-        channels=channel_manager,
-        plates=plate_manager,
+    w = hyperstream.create_workflow(
         workflow_id="windowed_query_workflow",
         name="Windowed query workflow",
         owner="TD",
