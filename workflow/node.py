@@ -98,6 +98,8 @@ class Node(Printable):
             if parent_plate_value:
                 plate_value = parent_plate_value + (plate_value,)
 
+            plate_value = tuple(sorted(plate_value))
+
             if plate_value not in self.streams:
                 # This can happen if we have created a compound plate and only certain plate values are valid
                 continue
@@ -105,7 +107,7 @@ class Node(Printable):
             found = True
             print_func("Plate value: {}".format(plate_value))
             data = False
-            for k, v in self.streams[tuple(sorted(plate_value))].window(interval).head(n):
+            for k, v in self.streams[plate_value].window(interval).head(n):
                 data = True
                 print_func("{}, {}".format(k, v))
             if not data:
