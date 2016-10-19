@@ -21,17 +21,18 @@
 Workflow and WorkflowManager definitions.
 """
 
-from ..utils import Printable, FrozenKeyDict, TypedFrozenKeyDict
-from node import Node
-from factor import Factor, MultiOutputFactor
-from ..tool import Tool, MultiOutputTool
-from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
-from ..stream import StreamId
-from ..errors import StreamNotFoundError, IncompatiblePlatesError
+import itertools
+import logging
 
 from mongoengine.context_managers import switch_db
-import logging
-import itertools
+
+from factor import Factor, MultiOutputFactor
+from hyperstream.utils.errors import StreamNotFoundError, IncompatiblePlatesError
+from node import Node
+from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
+from ..stream import StreamId
+from ..tool import Tool, MultiOutputTool
+from ..utils import Printable, FrozenKeyDict, TypedFrozenKeyDict
 
 
 class Workflow(Printable):
@@ -163,6 +164,12 @@ class Workflow(Printable):
         # Now we need the cartesian product of all of the intersection values
         intersection_plate_values = self.cartesian_product(intersection)
 
+        # The expected cardinality will be the length of the intersection values,
+        # plus the sum of the difference values
+        intersection_cardinality = len(intersection_plate_values)
+        difference_cardinality = sum(map(lambda x: self.plates[x].cardinality - intersection_cardinality, plate_ids))
+        expected_cardinality = difference_cardinality + intersection_cardinality
+
         plate_values = set()
 
         for ipv in intersection_plate_values:
@@ -173,13 +180,17 @@ class Workflow(Printable):
                     if all(vv in v for vv in ipv):
                         # Here we have a plate value on the difference that is also on the intersection
                         # Next we get the complement of this
-                        difference_values = list(itertools.chain.from_iterable(
-                            self.plates[dd].values for dd in set(difference).difference([d])))
+                        separate_values = [self.plates[dd].values for dd in set(difference).difference([d])]
+                        difference_values = list(x for x in itertools.chain.from_iterable(separate_values)
+                                                 if len(x) == difference_cardinality)
                         for dv in difference_values:
                             if all(vv in dv for vv in ipv):
                                 # This complement is also on the intersection, now we can add a plate value
-                                plate_values.add(
-                                    tuple(sorted(set(itertools.chain.from_iterable(itertools.product(v, dv))))))
+                                plate_value = sorted(set(itertools.chain.from_iterable(itertools.product(v, dv))))
+                                if len(set(x[0] for x in plate_value)) != expected_cardinality:
+                                    # raise ValueError("Incorrect cardinality")
+                                    continue
+                                plate_values.add(tuple(plate_value))
 
         return tuple(plate_values)
 
