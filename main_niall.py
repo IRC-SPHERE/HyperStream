@@ -21,10 +21,9 @@
 import logging
 from datetime import datetime, timedelta
 
-from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, Client
+from hyperstream import HyperStream, StreamId
 from hyperstream.utils import UTC
 from hyperstream.itertools2 import online_average
-from sphere_connector_package.sphere_connector import SphereLogger
 from sphere_helpers import PredefinedTools
 
 from hyperstream import TimeInterval, RelativeTimeInterval
@@ -32,23 +31,14 @@ from hyperstream import TimeInterval, RelativeTimeInterval
 from hyperstream.utils.time_utils import MIN_DATE
 
 if __name__ == '__main__':
-    # TODO: hyperstream needs it's own logger (can be a clone of this one)
-    sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
-    
-    hyperstream_config = HyperStreamConfig()
-    client = Client(hyperstream_config.mongo)
-    
-    # Define some managers
-    channel_manager = ChannelManager(hyperstream_config.tool_path)
-    plate_manager = PlateManager(hyperstream_config.meta_data).plates
-
-    tools = PredefinedTools(channel_manager)
+    hyperstream = HyperStream()
+    tools = PredefinedTools(hyperstream.channel_manager)
 
     # Various channels
-    M = channel_manager.memory
-    S = channel_manager.sphere
-    T = channel_manager.tools
-    D = channel_manager.mongo
+    M = hyperstream.channel_manager.memory
+    S = hyperstream.channel_manager.sphere
+    T = hyperstream.channel_manager.tools
+    D = hyperstream.channel_manager.mongo
     
     # A couple of parameters
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
@@ -58,9 +48,7 @@ if __name__ == '__main__':
     minute = timedelta(minutes=1)
     second = timedelta(seconds=1)
     
-    w = Workflow(
-        channels=channel_manager,
-        plates=plate_manager,
+    w = hyperstream.create_workflow(
         workflow_id="nt_test",
         name="test",
         owner="nt",
@@ -147,18 +135,19 @@ if __name__ == '__main__':
     
     # Create the synch tool
     M.create_stream(stream_id=sid_every_second)
-    t_clock = channel_manager.get_tool('clock', dict(first=MIN_DATE, stride=1 * second))
+    t_clock = hyperstream.channel_manager.get_tool(
+        'clock', dict(first=MIN_DATE, stride=1 * second))
     
     # Get data from database
     # D.create_stream(environmental)
-    t_environmental = channel_manager.get_tool('sphere',
-                                               dict(modality='environmental', filters={'uid': {'$regex': r'S\d+_K'}}))
+    t_environmental = hyperstream.channel_manager.get_tool(
+        'sphere', dict(modality='environmental', filters={'uid': {'$regex': r'S\d+_K'}}))
     
     # Apply relative window
     window_id = StreamId('sid_window_environmental_niall')
     # D.create_stream(window_id )
     windowed_environmental = D[window_id]
-    t_relative_environmental_data = channel_manager.get_tool(
+    t_relative_environmental_data = hyperstream.channel_manager.get_tool(
         'relative_window', dict(relative_start=-30, relative_end=0, values_only=True))
     
     # #
@@ -197,9 +186,7 @@ if __name__ == '__main__':
     exit()
     
     # Define the workflow
-    w = Workflow(
-        channels=channel_manager,
-        plates=plate_manager,
+    w = hyperstream.create_workflow(
         workflow_id="nt_test",
         name="test",
         owner="nt",

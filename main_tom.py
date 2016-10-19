@@ -21,11 +21,9 @@
 import logging
 from datetime import datetime, timedelta
 
-from hyperstream import ChannelManager, HyperStreamConfig, StreamId, Workflow, PlateManager, WorkflowManager, Client, \
-    TimeInterval
+from hyperstream import HyperStream, StreamId, TimeInterval
 from hyperstream.utils import UTC
 
-from sphere_connector_package.sphere_connector import SphereLogger
 from sphere_helpers import PredefinedTools
 
 
@@ -43,18 +41,8 @@ motion_sensors = {
 
 
 if __name__ == '__main__':
-    # TODO: hyperstream needs it's own logger (can be a clone of this one)
-    sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
-
-    hyperstream_config = HyperStreamConfig()
-    client = Client(hyperstream_config.mongo)
-
-    # Define some managers
-    channel_manager = ChannelManager(hyperstream_config.tool_path)
-    plate_manager = PlateManager(hyperstream_config.meta_data).plates
-    workflow_manager = WorkflowManager(channel_manager=channel_manager, plates=plate_manager)
-
-    tools = PredefinedTools(channel_manager)
+    hyperstream = HyperStream()
+    tools = PredefinedTools(hyperstream.channel_manager)
 
     # Various constants
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
@@ -66,10 +54,10 @@ if __name__ == '__main__':
     t2 = t1 + 1 * minute
 
     # Various channels
-    M = channel_manager.memory
-    S = channel_manager.sphere
-    T = channel_manager.tools
-    D = channel_manager.mongo
+    M = hyperstream.channel_manager.memory
+    S = hyperstream.channel_manager.sphere
+    T = hyperstream.channel_manager.tools
+    D = hyperstream.channel_manager.mongo
 
     # TODO: We could make the __getitem__ accept str and do the following, but for now it only accepts StringId
     environmental = StreamId(name='environmental', meta_data={'house': '1'})
@@ -86,9 +74,7 @@ if __name__ == '__main__':
     component = StreamId('component')
 
     # Create a simple one step workflow for querying
-    w = Workflow(
-        channels=channel_manager,
-        plates=plate_manager,
+    w = hyperstream.create_workflow(
         workflow_id="localisation",
         name="Test of localisation",
         owner="TD",

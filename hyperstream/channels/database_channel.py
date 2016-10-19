@@ -20,14 +20,13 @@
 """
 Database channel module.
 """
-from base_channel import BaseChannel
-from ..models import StreamInstanceModel
-from ..stream import StreamInstance, DatabaseStream
-from ..errors import StreamAlreadyExistsError
-
-import logging
 from mongoengine import NotUniqueError
 from mongoengine.context_managers import switch_db
+
+from base_channel import BaseChannel
+from hyperstream.utils.errors import StreamAlreadyExistsError
+from ..models import StreamInstanceModel
+from ..stream import StreamInstance, DatabaseStream
 
 
 class DatabaseChannel(BaseChannel):

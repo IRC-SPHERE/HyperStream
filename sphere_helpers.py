@@ -213,5 +213,5 @@ class PredefinedTools(object):
 
         self.split_time = channel_manager.get_tool(
             name="splitter_time_aware",
-            parameters=dict(time_intervals=scripted_experiments)
+            parameters=dict(time_intervals=scripted_experiments, meta_data_id="scripted")
         )

@@ -26,6 +26,12 @@ from future.utils import python_2_unicode_compatible
 from treelib.tree import Tree, NodePropertyAbsentError, NodeIDAbsentError
 import simplejson as json
 from bidict import bidict, ValueDuplicationError
+import logging
+import os
+import sys
+import coloredlogs
+
+from .. import __version__
 
 
 @python_2_unicode_compatible
@@ -255,3 +261,53 @@ class TypedFrozenKeyDict(FrozenKeyDict):
         if not isinstance(key, self.key_type):
             raise KeyError("Expected type {}, got {}".format(self.key_type, type(key)))
         super(TypedFrozenKeyDict, self).__setitem__(key, value)
+
+
+def touch(full_name, times=None):
+    with open(full_name, 'a'):
+        os.utime(full_name, times)
+
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+
+class HyperStreamLogger(Printable):
+    def __init__(self, path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG):
+        # coloredlogs.install(level=loglevel)
+        log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
+        root_logger = logging.getLogger()
+        root_logger.setLevel(loglevel)
+
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        if not filename.endswith('.log'):
+            filename += '.log'
+        full_name = os.path.join(path, filename)
+        touch(full_name)
+
+        file_handler = logging.FileHandler(full_name)
+        file_handler.setFormatter(log_formatter)
+        root_logger.addHandler(file_handler)
+
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(log_formatter)
+        root_logger.addHandler(console_handler)
+        #
+        # stream_handler = logging.StreamHandler()
+        # stream_handler.setFormatter(log_formatter)
+        # memory_handler = logging.handlers.MemoryHandler(1024 * 10, root_logger.level, stream_handler)
+        # root_logger.addHandler(memory_handler)
+
+        # Capture warnings
+        logging.captureWarnings(True)
+
+        # Capture uncaught exceptions
+        sys.excepthook = handle_exception
+
+        # logging.config.dictConfig(LOGGING)
+        logging.debug("Sphere connector version: " + __version__)

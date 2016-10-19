@@ -21,26 +21,15 @@
 import logging
 from datetime import datetime, timedelta
 
-from hyperstream import ChannelManager, HyperStreamConfig, Workflow, PlateManager, WorkflowManager, Client, TimeInterval
-from hyperstream.utils import UTC
-from sphere_connector_package.sphere_connector import SphereLogger
+from hyperstream import HyperStream, TimeInterval, UTC
 
 from sphere_helpers import PredefinedTools
 
 
 if __name__ == '__main__':
-    # TODO: hyperstream needs it's own logger (can be a clone of this one)
-    sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG)
+    hyperstream = HyperStream()
 
-    hyperstream_config = HyperStreamConfig()
-    client = Client(hyperstream_config.mongo)
-
-    # Define some managers
-    channel_manager = ChannelManager(hyperstream_config.tool_path)
-    plate_manager = PlateManager(hyperstream_config.meta_data).plates
-    workflow_manager = WorkflowManager(channel_manager=channel_manager, plates=plate_manager)
-
-    tools = PredefinedTools(channel_manager)
+    tools = PredefinedTools(hyperstream.channel_manager)
 
     # Various constants
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
@@ -51,18 +40,16 @@ if __name__ == '__main__':
     minute = timedelta(minutes=1)
     hour = timedelta(hours=1)
 
-    key = (('house', '1'))
+    key = (('house', '1'), )
 
-    # Various channel_manager
-    M = channel_manager.memory
-    S = channel_manager.sphere
-    T = channel_manager.tools
-    D = channel_manager.mongo
+    # Various channels
+    M = hyperstream.channel_manager.memory
+    S = hyperstream.channel_manager.sphere
+    T = hyperstream.channel_manager.tools
+    D = hyperstream.channel_manager.mongo
 
     # Create a simple one step workflow for querying
-    w = Workflow(
-        channels=channel_manager,
-        plates=plate_manager,
+    w = hyperstream.create_workflow(
         workflow_id="bbc_workflow",
         name="BBC workflow",
         owner="WP5",

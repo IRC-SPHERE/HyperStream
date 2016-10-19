@@ -160,7 +160,7 @@ class MultiOutputFactor(Printable):
     def execute(self, time_interval):
         """
         Execute the factor over the given time interval. Note that this is normally done by the workspace,
-        but can be done on the factor individually for testing
+        but can also be done on the factor directly
         :param time_interval: The time interval
         :return: self (for chaining)
         """
@@ -176,12 +176,16 @@ class MultiOutputFactor(Printable):
                         self.input_plate, ipv, self.source))
                     continue
 
-                if len(self.output_plates) > 0:
-                    # TODO: need to match up the input plate to output plate(s) here!
-                    raise NotImplementedError
-                    ipv = ipv + output_plate_values
+                if len(self.output_plates) == 1:
+                    if self.output_plates[0].parent.plate_id == self.input_plate.plate_id:
+                        pass
+                        # raise NotImplementedError
+                    else:
+                        # ipv = output_plate_values
+                        raise NotImplementedError
+
                 self.tool.execute(source=source, sinks=sinks, interval=time_interval,
-                                  input_plate_value=ipv, output_plate=self.output_plates[0])
+                                  input_plate_value=ipv, output_plate=self.output_plates[-1])
         else:
             sources = self.source.streams[None]
             if len(self.output_plates) != 1:

@@ -18,12 +18,10 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream import HyperStreamConfig, OnlineEngine, UTC, StreamId, ChannelManager, WorkflowManager, PlateManager, \
-    Client
+from hyperstream import HyperStream, UTC, StreamId
 
-from sphere_connector_package.sphere_connector import SphereConnector, SphereLogger
+from sphere_connector_package.sphere_connector import SphereConnector
 from datetime import datetime, timedelta
-import logging
 
 import os
 
@@ -42,21 +40,14 @@ zero = timedelta(0)
 
 
 # Hyperstream setup
-sphere_logger = SphereLogger(path='/tmp', filename='sphere_connector', loglevel=logging.CRITICAL)
-sphere_connector = SphereConnector(include_mongo=True, include_redcap=False, sphere_logger=sphere_logger)
-hyperstream_config = HyperStreamConfig()
-# online_engine = OnlineEngine(hyperstream_config)
-
-client = Client(hyperstream_config.mongo)
-channels = ChannelManager(hyperstream_config.tool_path)
-plates = PlateManager(hyperstream_config.meta_data).plates
-workflows = WorkflowManager(channel_manager=channels, plates=plates)
+hyperstream = HyperStream()
+sphere_connector = SphereConnector(include_mongo=True, include_redcap=False)
 
 # Various channel_manager
-M = channels.memory
-S = channels.sphere
-T = channels.tools
-D = channels.mongo
+M = hyperstream.channel_manager.memory
+S = hyperstream.channel_manager.sphere
+T = hyperstream.channel_manager.tools
+D = hyperstream.channel_manager.mongo
 
 
 # Some useful Stream IDs
