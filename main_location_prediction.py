@@ -61,7 +61,7 @@ if __name__ == '__main__':
     h1 = (('house', '1'),)
     wA = (('wearable', 'A'),)
     locs = tuple(("location", loc) for loc in ["kitchen", "hallway", "lounge"])
-    eids = tuple(("scripted", i + 1) for i in range(0, len(scripted_experiments.intervals)))
+    eids = tuple(("scripted", str(i + 1)) for i in range(0, len(scripted_experiments.intervals)))
     locs_eids = tuple(itertools.product(locs, eids))
 
     # get a dict of experiment_id => annotator_id mappings
