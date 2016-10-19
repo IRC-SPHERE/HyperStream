@@ -83,6 +83,12 @@ class Node(Printable):
         :param print_func: The function used for printing (e.g. logging.info() or print())
         :return: None
         """
+        # Deferred import to avoid circular dependence
+        from . import Plate
+        if isinstance(plate_values, Plate):
+            self.print_head(parent_plate_value, plate_values.values, interval, n, print_func)
+            return
+
         if len(plate_values) == 1 and len(plate_values[0]) == 2 and isinstance(plate_values[0][0], str):
             self.print_head(parent_plate_value, (plate_values,), interval, n, print_func)
             return

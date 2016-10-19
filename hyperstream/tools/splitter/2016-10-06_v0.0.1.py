@@ -22,6 +22,7 @@
 from hyperstream.tool import MultiOutputTool
 from hyperstream.stream import StreamMetaInstance
 import logging
+from copy import deepcopy
 
 
 class Splitter(MultiOutputTool):
@@ -35,6 +36,7 @@ class Splitter(MultiOutputTool):
             if self.element not in value:
                 logging.debug("Mapping element {} not in instance".format(self.element))
                 continue
+            value = deepcopy(value)
             meta_data = str(value.pop(self.element))
             if meta_data not in self.mapping:
                 logging.warn("Unknown value {} for meta data {}".format(meta_data, self.element))
