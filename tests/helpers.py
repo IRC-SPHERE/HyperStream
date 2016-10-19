@@ -43,6 +43,8 @@ zero = timedelta(0)
 hyperstream = HyperStream()
 sphere_connector = SphereConnector(include_mongo=True, include_redcap=False)
 
+channels = hyperstream.channel_manager
+
 # Various channel_manager
 M = hyperstream.channel_manager.memory
 S = hyperstream.channel_manager.sphere
