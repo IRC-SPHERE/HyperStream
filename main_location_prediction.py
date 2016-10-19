@@ -110,7 +110,8 @@ if __name__ == '__main__':
     # time_interval = scripted_experiments.span
     # time_interval = TimeInterval(scripted_experiments.intervals[0].start,
     #                              scripted_experiments.intervals[0].start + second)
-    time_interval = scripted_experiments.intervals[0] + (-1, 0)
+    # time_interval = scripted_experiments[0] + (-1, 0)
+    time_interval = scripted_experiments[0:2].span
 
     w.execute(time_interval)
 

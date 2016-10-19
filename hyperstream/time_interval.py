@@ -127,6 +127,14 @@ class TimeIntervals(Printable):
     def __iter__(self):
         return iter(sorted(self.intervals))
 
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            items = self.intervals[key]
+            if isinstance(items, TimeInterval):
+                return items
+            return TimeIntervals(items)
+        return self.intervals[key]
+
 
 class TimeInterval(object):
     """
