@@ -36,7 +36,6 @@ from sphere_helpers import PredefinedTools, scripted_experiments, second, minute
 # end: {$lte: ISODate('2015-08-06T14:12:22.008000Z')}})
 
 if __name__ == '__main__':
-    # TODO: hyperstream needs it's own logger (can be a clone of this one)
     hyperstream = HyperStream()
 
     tools = PredefinedTools(hyperstream.channel_manager)
@@ -46,9 +45,6 @@ if __name__ == '__main__':
     S = hyperstream.channel_manager.sphere
     T = hyperstream.channel_manager.tools
     D = hyperstream.channel_manager.mongo
-
-    # Dictionary to hold nodes
-    N = {}
 
     # Create a simple one step workflow for querying
     w = hyperstream.create_workflow(
@@ -72,29 +68,30 @@ if __name__ == '__main__':
             (m for m in hyperstream.config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
             lambda x: x['identifier'].split('.')[1].split('_')[1]))
 
+    nodes = (
+        ("rss_raw",     M, ["H1"]),                    # Raw RSS data
+        ("rss_aid",     M, ["H1.L"]),                  # RSS by access point id
+        ("rss_aid_uid", M, ["H1.L.W"]),                # RSS by access point id and device id
+        ("rss",         M, ["H1.L.W"]),                # RSS values only (by access point id and device id)
+        ("rss_time",    M, ["H1.L.W", "H1.scripted"])  # RSS values per scripted experiment
+    )
+
+    # Create all of the nodes
+    N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
+
+    w.create_factor(tool=tools.wearable_rss, sources=None, sink=N["rss_raw"])
+    w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_raw"], sink=N["rss_aid"])
+    w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_aid"], sink=N["rss_aid_uid"])
+    w.create_factor(tool=tools.wearable_rss_values, sources=[N["rss_aid_uid"]], sink=N["rss"])
+
+    # Now we want to split by time interval onto a time-oriented plate
+    # N["rss_time"] = w.create_node(stream_name="rss_time", channel=M, plate_ids=["H.L", "H.scripted"])
+    w.create_multi_output_factor(tool=tools.split_time, source=N["rss"], sink=N["rss_time"])
+
     # time_interval = scripted_experiments.span
     # time_interval = TimeInterval(scripted_experiments.intervals[0].start,
     #                              scripted_experiments.intervals[0].start + second)
     time_interval = scripted_experiments.intervals[0] + (-1, 0)
-
-    # Here we used the splitter tool over the RSS data to generate the plate
-    N["rss_flat"] = w.create_node(stream_name="rss", channel=S, plate_ids=["H1"])
-    w.create_factor(tool=tools.wearable_rss, sources=None, sink=N["rss_flat"])
-
-    N["rss_aid"] = w.create_node(stream_name="rss_aid", channel=M, plate_ids=["H1.L"])
-    w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_flat"], sink=N["rss_aid"])
-
-    N["rss_aid_uid"] = w.create_node(stream_name="rss_aid_uid", channel=M, plate_ids=["H1.L.W"])
-    w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_aid"], sink=N["rss_aid_uid"])
-
-    N["rss"] = w.create_node(stream_name="rss", channel=D, plate_ids=["H1.L.W"])
-    w.create_factor(tool=tools.wearable_rss_values, sources=[N["rss_aid_uid"]], sink=N["rss"])
-
-    # Now we want to split by time interval onto a time-oriented plate
-    N["rss_time"] = w.create_node(stream_name="rss_time", channel=M, plate_ids=["H1.L.W", "H1.scripted"])
-    # N["rss_time"] = w.create_node(stream_name="rss_time", channel=M, plate_ids=["H.L", "H.scripted"])
-    f = w.create_multi_output_factor(tool=tools.split_time, source=N["rss"], sink=N["rss_time"])
-    # f.execute(time_interval)
 
     w.execute(time_interval)
 
@@ -102,11 +99,11 @@ if __name__ == '__main__':
         print_func("Node: {}".format(node_id))
         N[node_id].print_head(parent_plate_values, plate_values, interval, n, print_func)
 
-    print_head("rss_flat", None, h1, time_interval, 10, print)
-    print_head("rss_aid", h1, locs, time_interval, 10, print)
-    print_head("rss_aid_uid", wA, locs, time_interval, 10, print)
-    print_head("rss", h1 + wA, locs, time_interval, 10, print)
-    print_head("rss_time", h1 + wA, locs_eids, time_interval, 10, print)
+    print_head("rss_raw",       None,       h1,         time_interval, 10, print)
+    print_head("rss_aid",       h1,         locs,       time_interval, 10, print)
+    print_head("rss_aid_uid",   wA,         locs,       time_interval, 10, print)
+    print_head("rss",           h1 + wA,    locs,       time_interval, 10, print)
+    print_head("rss_time",      h1 + wA,    locs_eids,  time_interval, 10, print)
 
     exit(0)
 

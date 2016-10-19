@@ -19,8 +19,9 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 import unittest
+import logging
 
-from hyperstream import TimeInterval, TimeIntervals, Workflow, RelativeTimeInterval  # , StreamView
+from hyperstream import TimeInterval, TimeIntervals, RelativeTimeInterval
 from hyperstream.itertools2 import online_average
 from hyperstream.utils import MIN_DATE, utcnow
 from helpers import *
@@ -205,9 +206,7 @@ class HyperStringTests(unittest.TestCase):
 
     def test_simple_workflow(self):
         # Create a simple one step workflow for querying
-        w = Workflow(
-            channels=channels,
-            plates=plates,
+        w = hyperstream.create_workflow(
             workflow_id="simple_query_workflow",
             name="Simple query workflow",
             owner="TD",
@@ -342,9 +341,7 @@ class HyperStringTests(unittest.TestCase):
     def test_workflow_chain(self):
         interval = TimeInterval(t1, t1 + timedelta(minutes=10))
     
-        w = Workflow(
-            channels=channels,
-            plates=plates,
+        w = hyperstream.create_workflow(
             workflow_id="nt_test",
             name="test",
             owner="nt",
@@ -398,9 +395,7 @@ class HyperStringTests(unittest.TestCase):
     def test_workflow_chain2(self):
         interval = TimeInterval(t1, t1 + timedelta(minutes=10))
     
-        w = Workflow(
-            channels=channels,
-            plates=plates,
+        w = hyperstream.create_workflow(
             workflow_id="nt_test",
             name="test",
             owner="nt",
