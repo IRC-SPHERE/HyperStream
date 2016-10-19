@@ -29,9 +29,14 @@ from bidict import bidict, ValueDuplicationError
 import logging
 import os
 import sys
-import coloredlogs
+# import coloredlogs
 
 from .. import __version__
+
+# The next two lines are to fix the "UnicodeDecodeError: 'ascii' codec can't decode byte" error
+#  http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 
 @python_2_unicode_compatible

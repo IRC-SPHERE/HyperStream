@@ -76,15 +76,15 @@ class Node(Printable):
         The parent plate value is the value of the parent plate,
         and then the plate values are the values for the plate that are to be printed.
          e.g. print_head()
-        :param parent_plate_value: The parent plate value
-        :param plate_values:
-        :param interval:
-        :param n:
-        :param print_func:
-        :return:
+        :param parent_plate_value: The (fixed) parent plate value
+        :param plate_values: The plate values over which to loop
+        :param interval: The time interval
+        :param n: The maximum number of elements to print
+        :param print_func: The function used for printing (e.g. logging.info() or print())
+        :return: None
         """
         if len(plate_values) == 1 and len(plate_values[0]) == 2 and isinstance(plate_values[0][0], str):
-            self.print_head(parent_plate_value, (plate_values,), interval, n)
+            self.print_head(parent_plate_value, (plate_values,), interval, n, print_func)
             return
 
         found = False
@@ -106,4 +106,4 @@ class Node(Printable):
                 print_func("No data")
             print_func("")
         if not found:
-            logging.warn("No streams found for the given plate values")
+            print_func("No streams found for the given plate values")
