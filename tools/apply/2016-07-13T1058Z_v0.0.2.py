@@ -32,5 +32,5 @@ class Apply(Tool):
 
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
-        for t, d in sources[0].window(interval):
+        for t, d in sources[0].window(interval, force_calculation=True):
             yield StreamInstance(t, self.func(d))

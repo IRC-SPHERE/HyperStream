@@ -120,7 +120,13 @@ class ChannelManager(ChannelCollectionBase, Printable):
                     raise NotImplementedError
 
     def get_tool_class(self, tool):
-        # TODO: Use tool versions - here we just take the latest one
+        """
+        Gets the actual class which cna then be instantiated with its parameters
+        :param tool: The tool name or id
+        :return: The tool class
+        :type tool: str | unicode | StreamId
+        :rtype Tool | MultiOutputTool
+        """
         if isinstance(tool, (str, unicode)):
             tool_id = StreamId(tool)
         elif isinstance(tool, StreamId):
@@ -128,7 +134,8 @@ class ChannelManager(ChannelCollectionBase, Printable):
         else:
             raise TypeError(tool)
 
-        tool_stream_view = self.tools[tool_id].window((MIN_DATE, utcnow()))
+        tool_stream_view = self.tools[tool_id].window((MIN_DATE, self.tools.up_to_timestamp))
+        # TODO: Use tool versions - here we just take the latest one
         return tool_stream_view.last().value
 
     def get_tool(self, name, parameters):

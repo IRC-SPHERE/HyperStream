@@ -45,6 +45,11 @@ class Node(Printable):
         """
         self.node_id = node_id
         self.streams = streams
+        for stream in streams.values():
+            stream.node = self
+
+        self.factor = None  # reference to the factor that defines this node. Required for upstream computation
+
         # TODO: Remove plate IDs
         self.plate_ids = tuple(plate_ids) if plate_ids else tuple()
         self.plate_values = plate_values

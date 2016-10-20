@@ -20,7 +20,7 @@
 """
 Plate and plate manager definitions.
 """
-from ..utils import Printable, MetaDataTree
+from ..utils import Printable, MetaDataTree, PlateEmptyError, PlateDefinitionError
 from ..models import PlateDefinitionModel
 
 import logging
@@ -190,7 +190,7 @@ class PlateManager(Printable):
         :type plate_definition: PlateDefinitionModel
         """
         if not plate_definition.values and not plate_definition.complement:
-            raise ValueError("Empty values in plate definition and complement=False")
+            raise PlateDefinitionError()
 
         values = []
         for n in self.global_plate_definitions.all_nodes():
@@ -205,7 +205,7 @@ class PlateManager(Printable):
                     else:
                         values.insert(0, {n.tag: n.data})
         if not values:
-            raise ValueError("Plate values for {} empty".format(plate_definition.plate_id))
+            raise PlateEmptyError(plate_definition.plate_id)
         return values
 
     def get_parent_plate_value(self, tree, node, value=None):

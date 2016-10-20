@@ -21,11 +21,8 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from hyperstream import TimeInterval, RelativeTimeInterval
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
-from datetime import timedelta
-import logging
 
 
 class SlidingApply(Tool):
@@ -36,8 +33,8 @@ class SlidingApply(Tool):
     # noinspection PyCompatibility
     @check_input_stream_count(2)
     def _execute(self, sources, alignment_stream, interval):
-        sliding_window = sources[0].window(interval)
-        data = iter(sources[1].window(interval))
+        sliding_window = sources[0].window(interval, force_calculation=True)
+        data = iter(sources[1].window(interval, force_calculation=True))
         
         window = []
         future = []

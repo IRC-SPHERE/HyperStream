@@ -64,5 +64,5 @@ class SplitterTimeAware(MultiOutputTool):
                 mapping[pv] = ti
 
         for pv, ti in mapping.items():
-            for instance in source.window(ti):
+            for instance in source.window(ti, force_calculation=True):
                 yield StreamMetaInstance(instance, (self.meta_data_id, pv))
