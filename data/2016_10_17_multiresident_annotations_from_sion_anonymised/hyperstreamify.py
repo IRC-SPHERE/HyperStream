@@ -52,17 +52,17 @@ for i in range(data.shape[0]):
                 if (exper.person_id[j]==bb2person[bb_id]) and (exper.first_occurrence[j]<=data.dt[i]) and (exper.last_occurrence[j]>=data.dt[i]):
                     exp_id = exper.experiment[j]
                     wearable_id = exper.wearable[j]
-            if (exp_id==0): #or (bb2person[bb_id]==5):
-                out_of_experiment[bb2person[bb_id]] = data.dt[i] # on Friday person number 5 was hanging around outside of the experiment times
             if exp_id>0:
                 rows.append({'dt':data.dt[i],'camera_id':data.camera_id[i],'person_id':bb2person[bb_id],'exper_id':exp_id,'wearable_id':wearable_id})
+            else:
+                out_of_experiment[bb2person[bb_id]] = data.dt[i] # on Friday video was switched on some time between experiments 6 and 7 and the persons 5, 13, 25 got annotated in that range - we discard that information here
 res = pd.DataFrame(rows)
 print(out_of_experiment)
+# {25: 1467985373054, 5: 1467985361449, 13: 1467985377428}
 
 res.to_csv('location_annotations.csv', sep=',', index=False)
 
 
-# in the range [1467985042332,1467985361449] person 5 was moving around
 # in one experiment person 1 forgot to put on the wearable
 
 
