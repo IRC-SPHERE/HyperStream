@@ -25,14 +25,15 @@ import itertools
 import logging
 
 from mongoengine.context_managers import switch_db
+from collections import defaultdict
 
 from factor import Factor, MultiOutputFactor
-from hyperstream.utils.errors import StreamNotFoundError, IncompatiblePlatesError
+from ..utils import StreamNotFoundError, IncompatiblePlatesError, NodeAlreadyExistsError, FactorAlreadyExistsError
 from node import Node
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
 from ..stream import StreamId
 from ..tool import Tool, MultiOutputTool
-from ..utils import Printable, FrozenKeyDict, TypedFrozenKeyDict
+from ..utils import Printable, FrozenKeyDict, TypedFrozenKeyDict, LinkageError
 
 
 class Workflow(Printable):
@@ -102,7 +103,7 @@ class Workflow(Printable):
         node = Node(stream_name, streams, plate_ids, plate_values)
         self.nodes[stream_name] = node
         logging.info("Added node with id {}".format(stream_name))
-        
+
         return node
 
     def get_overlapping_plate_values(self, plate_ids):
@@ -250,7 +251,7 @@ class Workflow(Printable):
 
         self.factor_collections[tool.name].append(factor)
         self.execution_order.append(tool)
-        
+
         return factor
 
     def create_multi_output_factor(self, tool, source, sink):

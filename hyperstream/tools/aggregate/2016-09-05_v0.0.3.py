@@ -18,11 +18,9 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream import TimeInterval, RelativeTimeInterval
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 from datetime import timedelta
-import logging
 
 
 class Aggregate(Tool):
@@ -51,12 +49,10 @@ class Aggregate(Tool):
         #             interval, data_stream.time_interval))
         #         raise NotImplementedError
 
-        # data = data_stream.window(interval).iteritems()
         data = iter(data_stream)
 
         window = []
         future = []
-        # for (t, _) in timer.window(interval).iteritems():
         for (t, _) in iter(timer):
             while (len(window) > 0) and (window[0][0] <= t + rel_start):
                 window = window[1:]

@@ -36,12 +36,11 @@ class Aggregate(Tool):
         rel_start = data_stream.relative_time_interval.start
         rel_end = data_stream.relative_time_interval.end
 
-        # data = data_stream.window(interval).iteritems()
-        data = iter(data_stream.window(interval))
+        data = iter(data_stream.window(interval, force_calculation=True))
 
         window = []
         future = []
-        for (t, _) in alignment_stream.window(interval):
+        for (t, _) in alignment_stream.window(interval, force_calculation=True):
             while (len(window) > 0) and (window[0][0] <= t + rel_start):
                 window = window[1:]
             while (len(future) > 0) and (future[0][0] <= t + rel_end):
