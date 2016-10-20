@@ -31,9 +31,7 @@ from helpers import *
 class HyperStringTests(unittest.TestCase):
     def test_time_interval(self):
         now = datetime(2016, 1, 1, 0, 0, 0)
-        minute = timedelta(minutes=1)
-        hour = timedelta(hours=1)
-        
+
         i1 = TimeIntervals([
             TimeInterval(now, now + hour),
             TimeInterval(now + 2 * hour, now + 3 * hour),
@@ -396,11 +394,11 @@ class HyperStringTests(unittest.TestCase):
         interval = TimeInterval(t1, t1 + timedelta(minutes=10))
     
         w = hyperstream.create_workflow(
-            workflow_id="nt_test",
+            workflow_id="nt_test2",
             name="test",
             owner="nt",
             description="test")
-    
+
         # Define the sliding window
         n_sliding_window = w.create_node(stream_name="sliding_window", channel=M, plate_ids=None)
         w.create_factor(
@@ -441,13 +439,11 @@ class HyperStringTests(unittest.TestCase):
         
         md = list(n_average_motion.streams[(('house', '1'),)].window(interval).values())[:10]
 
-        print(md)
-
-        # TODO: This test fails since the computations are not chained back to the source.
+        # print(md)
         assert md == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0]
 
     def test_overlapping_plates(self):
-        # TODO: Create test that involves multiple overlapping plate_manager
+        # TODO: Create test that involves multiple overlapping plates
         assert False
 
 
