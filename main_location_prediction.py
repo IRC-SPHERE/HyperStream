@@ -98,7 +98,7 @@ if __name__ == '__main__':
         source=N["rss_aid"],
         sink=N["rss_aid_uid"])
 
-    w.create_factor(
+    f = w.create_factor(
         tool=tools.wearable_rss_values,
         sources=[N["rss_aid_uid"]],
         sink=N["rss"])
@@ -113,7 +113,8 @@ if __name__ == '__main__':
     # time_interval = scripted_experiments[0] + (-1, 0)
     time_interval = scripted_experiments[0:2].span
 
-    w.execute(time_interval)
+    f.execute(time_interval)
+    # w.execute(time_interval)
 
     def print_head(node_id, parent_plate_values, plate_values, interval, n=10, print_func=print):
         print_func("Node: {}".format(node_id))

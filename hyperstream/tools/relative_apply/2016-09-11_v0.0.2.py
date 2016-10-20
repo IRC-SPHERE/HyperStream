@@ -20,7 +20,6 @@
 
 from hyperstream.tool import Tool, check_input_stream_count
 from collections import defaultdict
-from hyperstream.channels.sphere_channel import SphereDataWindow
 from hyperstream.stream import StreamInstance
 
 
@@ -31,7 +30,7 @@ class RelativeApply(Tool):
     
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
-        for tt, rows in sources[0].window(interval):
+        for tt, rows in sources[0].window(interval, force_calculation=True):
             vals = defaultdict(list)
             
             for row in rows:

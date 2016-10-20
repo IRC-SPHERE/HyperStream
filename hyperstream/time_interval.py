@@ -135,6 +135,11 @@ class TimeIntervals(Printable):
             return TimeIntervals(items)
         return self.intervals[key]
 
+    def __bool__(self):
+        return self.intervals is not None and len(self.intervals) > 0
+
+    __nonzero__ = __bool__
+
 
 class TimeInterval(object):
     """

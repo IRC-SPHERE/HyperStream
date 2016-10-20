@@ -25,7 +25,6 @@ from plate import Plate
 from ..time_interval import TimeIntervals
 
 import logging
-import itertools
 
 
 class Factor(Printable):
@@ -56,6 +55,7 @@ class Factor(Printable):
         if not isinstance(sink_node, Node):
             raise ValueError("Expected node, got {}".format(type(sink_node)))
         self.sink = sink_node
+        sink_node.factor = self
 
         self.plates = plates
 
@@ -69,6 +69,11 @@ class Factor(Printable):
         self.alignment_node = alignment_node
 
     def execute(self, time_interval):
+        """
+        Execute the factor over the given time interval
+        :param time_interval:
+        :return:
+        """
         if self.plates:
             for plate in self.plates:
                 for pv in plate.values:
@@ -148,6 +153,7 @@ class MultiOutputFactor(Printable):
         if not isinstance(sink_node, Node):
             raise ValueError("Expected node, got {}".format(type(sink_node)))
         self.sink = sink_node
+        sink_node.factor = self
 
         # TODO: The input plate should be a parent of the output plate
         self.input_plate = input_plate

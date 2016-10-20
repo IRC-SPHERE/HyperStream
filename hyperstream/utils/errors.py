@@ -55,3 +55,26 @@ class ToolExecutionError(Exception):
 
     def __init__(self, required_intervals):
         super(ToolExecutionError, self).__init__(self.message.format(required_intervals))
+
+
+class PlateEmptyError(Exception):
+    message = 'Plate values for {} empty'
+
+    def __init__(self, plate_id):
+        super(PlateEmptyError, self).__init__(self.message.format(plate_id))
+
+
+class PlateDefinitionError(Exception):
+    message = "Empty values in plate definition and complement=False"
+
+
+class LinkageError(Exception):
+    pass
+
+
+class NodeAlreadyExistsError(Exception):
+    message = "Cannot have duplicate nodes"
+
+
+class FactorAlreadyExistsError(Exception):
+    message = "Cannot have duplicate factors - a new factor object should be created"

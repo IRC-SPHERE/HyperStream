@@ -22,33 +22,53 @@ from time_interval import TimeIntervals, parse_time_tuple, RelativeTimeInterval,
 from utils import Hashable, TypedBiDict, Printable, utcnow, FrozenKeyDict
 from models import StreamStatusModel, TimeIntervalModel, StreamDefinitionModel
 
-import logging
-# from copy import deepcopy
 from collections import Iterable, namedtuple, deque
 from datetime import datetime
 from mongoengine.context_managers import switch_db
+import logging
 
 
 class StreamView(Printable):
     """
     Simple helper class for storing streams with a time interval (i.e. a "view" on a stream)
+    :param stream: The stream upon which this is a view
+    :param time_interval: The time interval over which this view is defined
+    :param force_calculation: Whether we should force calculation for this stream view if data does not exist
+    :type stream: Stream
+    :type time_interval: TimeInterval
     """
-    def __init__(self, stream, time_interval):
+    def __init__(self, stream, time_interval, force_calculation=False):
         if not isinstance(stream, Stream):
             raise ValueError("stream must be Stream object")
         if not isinstance(time_interval, TimeInterval):
             raise ValueError("relative_time_interval must be TimeInterval object")
         self.stream = stream
         self.time_interval = time_interval
+        self.force_calculation = force_calculation
 
     def __iter__(self):
+        required_intervals = TimeIntervals([self.time_interval]) - self.stream.calculated_intervals
+        if not required_intervals.is_empty:
+            if self.force_calculation:
+                if self.stream.node is not None and self.stream.node.factor is not None:
+                    # Try to request upstream computation
+                    for interval in required_intervals:
+                        self.stream.node.factor.execute(interval)
+
+            # Is there still computation needing doing?
+            if not required_intervals.is_empty:
+                logging.warn(
+                    "Stream {} not available for time interval {}. Perhaps upstream calculations haven't been performed"
+                    .format(self.stream.stream_id, required_intervals))
+
         for item in self.stream.channel.get_results(self.stream, self.time_interval):
             yield item
 
     def items(self):
         """
         Return all results as a list
-        :return:
+        :return: The results
+        :rtype: list[StreamInstance]
         """
         return list(self.iteritems())
 
@@ -217,9 +237,6 @@ class Stream(Hashable):
     """
     Stream reference class
     """
-    _calculated_intervals = None
-    defined = False
-
     def __init__(self, channel, stream_id, calculated_intervals, sandbox):
         """
         :param channel: The channel to which this stream belongs
@@ -233,17 +250,19 @@ class Stream(Hashable):
         """
         self.channel = channel
         if not isinstance(stream_id, StreamId):
-            raise TypeError(str(type(stream_id)))
+            raise TypeError(type(stream_id))
         self.stream_id = stream_id
         # self.get_results_func = get_results_func
+        self._calculated_intervals = None
         if calculated_intervals:
             if not isinstance(calculated_intervals, TimeIntervals):
-                raise TypeError(str(type(calculated_intervals)))
+                raise TypeError(type(calculated_intervals))
             self.calculated_intervals = calculated_intervals
         else:
             self.calculated_intervals = TimeIntervals()
         self.tool_reference = None  # needed to traverse the graph outside of workflows
         self.sandbox = sandbox
+        self.node = None  # Back reference to node
 
         # Here we define the output type. When modifiers are applied, this changes
         # self.output_format = 'doc_gen'
@@ -265,23 +284,45 @@ class Stream(Hashable):
     
     @property
     def calculated_intervals(self):
-        # TODO: this should be read from the stream_status collection if it's in the database channel
+        """
+        Get the calculated intervals
+        This will be read from the stream_status collection if it's in the database channel
+        :return: The calculated intervals
+        """
         return self._calculated_intervals
     
     @calculated_intervals.setter
     def calculated_intervals(self, value):
-        # TODO: this should be written to the stream_status collection if it's in the database channel
-        self._calculated_intervals = value
+        """
+        Set the calculated intervals
+        This will be written to the stream_status collection if it's in the database channel
+        :param value: The calculated intervals
+        :type value: TimeIntervals, TimeInterval, list[TimeInterval]
+        """
+        if not value:
+            self._calculated_intervals = TimeIntervals()
+            return
+        
+        if isinstance(value, TimeInterval):
+            self._calculated_intervals = TimeIntervals([value])
+        elif isinstance(value, TimeIntervals):
+            self._calculated_intervals = value
+        elif isinstance(value, list):
+            self._calculated_intervals = TimeIntervals(value)
+        else:
+            raise TypeError("Expected list/TimeInterval/TimeIntervals, got {}".format(type(value)))
     
     @property
     def writer(self):
         return self.channel.get_stream_writer(self)
 
-    def window(self, time_interval):
+    def window(self, time_interval, force_calculation=False):
         """
         Gets a view on this stream for the time interval given
         :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
+        :param force_calculation: Whether we should force calculation for this stream view if data does not exist
         :type time_interval: Iterable, TimeInterval
+        :type force_calculation: bool
         :return: a stream view object
         """
         if isinstance(time_interval, TimeInterval):
@@ -295,7 +336,7 @@ class Stream(Hashable):
         else:
             raise TypeError("Expected TimeInterval or (start, end) tuple of type str or datetime, got {}"
                             .format(type(time_interval)))
-        return StreamView(stream=self, time_interval=time_interval)
+        return StreamView(stream=self, time_interval=time_interval, force_calculation=force_calculation)
 
 
 class DatabaseStream(Stream):
