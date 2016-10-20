@@ -32,7 +32,7 @@ class Splitter(MultiOutputTool):
         self.mapping = mapping
 
     def _execute(self, source, interval, output_plate):
-        for timestamp, value in source.window(interval):
+        for timestamp, value in source.window(interval, force_calculation=True):
             if self.element not in value:
                 logging.debug("Mapping element {} not in instance".format(self.element))
                 continue

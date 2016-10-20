@@ -22,5 +22,7 @@ from utils import MetaDataTree, Hashable, Printable, TypedBiDict, FrozenKeyDict,
 from time_utils import UTC, MIN_DATE, MAX_DATE, utcnow, get_timedelta
 from decorators import timeit, check_output_format, check_tool_defined
 from errors import StreamNotAvailableError, StreamAlreadyExistsError, StreamDataNotAvailableError, \
-    StreamNotFoundError, IncompatiblePlatesError, ToolNotFoundError, ChannelNotFoundError, ToolExecutionError
+    StreamNotFoundError, IncompatiblePlatesError, ToolNotFoundError, ChannelNotFoundError, ToolExecutionError, \
+    PlateEmptyError, PlateDefinitionError, LinkageError, FactorAlreadyExistsError, NodeAlreadyExistsError
+
 

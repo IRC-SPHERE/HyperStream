@@ -39,7 +39,7 @@ class RelativeWindow(Tool):
         
         window = []
         future = []
-        for (t, _) in alignment_stream.window(interval):
+        for (t, _) in alignment_stream.window(interval, force_calculation=True):
             while (len(window) > 0) and (window[0][0] <= t + self.relative_interval.start):
                 window = window[1:]
             while (len(future) > 0) and (future[0][0] <= t + self.relative_interval.end):

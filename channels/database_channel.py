@@ -48,10 +48,6 @@ class DatabaseChannel(BaseChannel):
         :return:
         """
         raise NotImplementedError
-        # intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
-        # for stream in self.streams:
-        #     stream.calculated_intervals = intervals
-        # self.up_to_timestamp = up_to_timestamp
 
     def get_results(self, stream, time_interval):
         """

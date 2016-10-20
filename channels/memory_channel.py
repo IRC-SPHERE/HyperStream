@@ -97,8 +97,6 @@ class MemoryChannel(BaseChannel):
 
     def get_stream_writer(self, stream):
         def writer(document_collection):
-            # TODO from niall: I added this type check to fix bug with the Apply tool. \
-            #   please verify that it does not interfere with other code
             if stream.stream_id not in self.data:
                 raise RuntimeError("Data slot does not exist for {}, perhaps create_stream was not used?"
                                    .format(stream))
@@ -107,8 +105,8 @@ class MemoryChannel(BaseChannel):
             elif isinstance(document_collection, list):
                 self.data[stream.stream_id].extend(document_collection)
             else:
-                raise ValueError('Expected: [StreamInstance, list<StreamInstance>], got {}. '
-                                 .format(type(document_collection)))
+                raise TypeError('Expected: [StreamInstance, list<StreamInstance>], got {}. '
+                                .format(type(document_collection)))
         
         return writer
 
@@ -128,7 +126,6 @@ class ReadOnlyMemoryChannel(BaseChannel):
     """
     
     def __init__(self, channel_id, up_to_timestamp=MIN_DATE):
-        # TODO: should the up_to_timestamp parameter be up to datetime.max?
         super(ReadOnlyMemoryChannel, self).__init__(channel_id=channel_id, can_calc=False, can_create=False)
         self.up_to_timestamp = MIN_DATE
         if up_to_timestamp > MIN_DATE:
@@ -140,10 +137,7 @@ class ReadOnlyMemoryChannel(BaseChannel):
     
     def get_stream_writer(self, stream):
         raise RuntimeError("Read-only channel")
-    
-    # def str_stream(self, stream_id):
-    #     return 'externally defined, memory-based, read-only stream'
-    
+
     def update_streams(self, up_to_timestamp):
         """
         Deriving classes must override this function
@@ -156,23 +150,10 @@ class ReadOnlyMemoryChannel(BaseChannel):
         I.e., all the streams that have been created before or at that timestamp are calculated exactly until
         up_to_timestamp.
         """
-        # for stream_id in self.streams:
-        #     self.streams[stream_id].calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
-        for stream in self.streams:
-            stream.calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
+        for stream_id in self.streams:
+            self.streams[stream_id].calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
         self.up_to_timestamp = up_to_timestamp
     
     def get_results(self, stream, time_interval):
         raise NotImplementedError
-        # # start = relative_time_interval.start
-        # # end = relative_time_interval.end
-        # # if isinstance(start, timedelta) or isinstance(end, timedelta):
-        # #     raise ValueError('Cannot calculate a relative stream')
-        # # if end > self.up_to_timestamp:
-        # #     raise ValueError(
-        # #         'The stream is not available after ' + str(self.up_to_timestamp) + ' and cannot be calculated')
-        # result = []
-        # for (tool_info, data) in self.streams[stream.stream_id]:
-        #     if start < tool_info.timestamp <= end:
-        #         result.append(StreamInstance(tool_info.timestamp, data))
-        # return sorted(result, key=lambda x: x.timestamp)
+
