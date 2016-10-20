@@ -54,11 +54,14 @@ if __name__ == '__main__':
         description="Would like to test localisation using PIR and RSS, so we need to first get the appropriate data"
                     "out of the SPHERE stream, with the appropriate meta-data attached, and then use a model")
 
+    # The nodes
+    N = w.nodes
+
     # Some plate values for display purposes
     h1 = (('house', '1'),)
     wA = (('wearable', 'A'),)
     locs = tuple(("location", loc) for loc in ["kitchen", "hallway", "lounge"])
-    eids = tuple(("scripted", i + 1) for i in range(0, len(scripted_experiments.intervals)))
+    eids = tuple(("scripted", str(i + 1)) for i in range(0, len(scripted_experiments.intervals)))
     locs_eids = tuple(itertools.product(locs, eids))
 
     # get a dict of experiment_id => annotator_id mappings
@@ -77,12 +80,28 @@ if __name__ == '__main__':
     )
 
     # Create all of the nodes
-    N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
+    for stream_name, channel, plate_ids in nodes:
+        w.create_node(stream_name, channel, plate_ids)
 
-    w.create_factor(tool=tools.wearable_rss, sources=None, sink=N["rss_raw"])
-    w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_raw"], sink=N["rss_aid"])
-    w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_aid"], sink=N["rss_aid_uid"])
-    w.create_factor(tool=tools.wearable_rss_values, sources=[N["rss_aid_uid"]], sink=N["rss"])
+    w.create_factor(
+        tool=tools.wearable_rss,
+        sources=None,
+        sink=N["rss_raw"])
+
+    w.create_multi_output_factor(
+        tool=tools.split_aid,
+        source=N["rss_raw"],
+        sink=N["rss_aid"])
+
+    w.create_multi_output_factor(
+        tool=tools.split_uid,
+        source=N["rss_aid"],
+        sink=N["rss_aid_uid"])
+
+    w.create_factor(
+        tool=tools.wearable_rss_values,
+        sources=[N["rss_aid_uid"]],
+        sink=N["rss"])
 
     # Now we want to split by time interval onto a time-oriented plate
     # N["rss_time"] = w.create_node(stream_name="rss_time", channel=M, plate_ids=["H.L", "H.scripted"])
@@ -91,7 +110,8 @@ if __name__ == '__main__':
     # time_interval = scripted_experiments.span
     # time_interval = TimeInterval(scripted_experiments.intervals[0].start,
     #                              scripted_experiments.intervals[0].start + second)
-    time_interval = scripted_experiments.intervals[0] + (-1, 0)
+    # time_interval = scripted_experiments[0] + (-1, 0)
+    time_interval = scripted_experiments[0:2].span
 
     w.execute(time_interval)
 
@@ -101,7 +121,7 @@ if __name__ == '__main__':
 
     print_head("rss_raw",       None,       h1,         time_interval, 10, print)
     print_head("rss_aid",       h1,         locs,       time_interval, 10, print)
-    print_head("rss_aid_uid",   wA,         locs,       time_interval, 10, print)
+    print_head("rss_aid_uid",   h1 + wA,    locs,       time_interval, 10, print)
     print_head("rss",           h1 + wA,    locs,       time_interval, 10, print)
     print_head("rss_time",      h1 + wA,    locs_eids,  time_interval, 10, print)
 

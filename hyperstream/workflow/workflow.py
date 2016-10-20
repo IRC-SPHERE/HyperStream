@@ -236,7 +236,7 @@ class Workflow(Printable):
                         raise IncompatiblePlatesError("{} not in source plates".format(p))
                 for p in source_plates:
                     if p not in set(sink.plate_ids):
-                        raise IncompatiblePlatesError("{} not in sink plate_manager".format(p))
+                        raise IncompatiblePlatesError("{} not in sink plates".format(p))
             plates = [self.plates[plate_id] for plate_id in sink.plate_ids]
         else:
             plates = None
@@ -425,6 +425,9 @@ class WorkflowManager(Printable):
         :type commit: bool
         :return: None
         """
+        if workflow.workflow_id in self.workflows:
+            raise KeyError("Workflow with id {} already exists".format(workflow.workflow_id))
+
         self.workflows[workflow.workflow_id] = workflow
         logging.info("Added workflow {} to workflow manager".format(workflow.workflow_id))
         

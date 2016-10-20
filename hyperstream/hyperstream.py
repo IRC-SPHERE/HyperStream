@@ -44,6 +44,7 @@ class HyperStream(object):
             owner=owner,
             description=description
         )
+
         self.workflow_manager.add_workflow(w)
 
         return w
