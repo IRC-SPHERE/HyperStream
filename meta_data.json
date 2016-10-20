@@ -129,7 +129,17 @@
         {"identifier": "1.scripted_18.annotator_12", "tag": "annotator", "data": "12", "parent": "1.scripted_18"},
 
         {"identifier": "1.scripted_19.annotator_5", "tag": "annotator", "data": "5", "parent": "1.scripted_19"},
-        {"identifier": "1.scripted_19.annotator_13", "tag": "annotator", "data": "13", "parent": "1.scripted_19"}
+        {"identifier": "1.scripted_19.annotator_13", "tag": "annotator", "data": "13", "parent": "1.scripted_19"},
+
+        {"identifier": "1.multiresident_experiment_1", "tag": "multiresident_experiment", "data": "1", "parent": "1"},
+        {"identifier": "1.multiresident_experiment_2", "tag": "multiresident_experiment", "data": "2", "parent": "1"},
+        {"identifier": "1.multiresident_experiment_3", "tag": "multiresident_experiment", "data": "3", "parent": "1"},
+        {"identifier": "1.multiresident_experiment_4", "tag": "multiresident_experiment", "data": "4", "parent": "1"},
+        {"identifier": "1.multiresident_experiment_5", "tag": "multiresident_experiment", "data": "5", "parent": "1"},
+        {"identifier": "1.multiresident_experiment_6", "tag": "multiresident_experiment", "data": "6", "parent": "1"},
+        {"identifier": "1.multiresident_experiment_7", "tag": "multiresident_experiment", "data": "7", "parent": "1"},
+        {"identifier": "1.multiresident_experiment_8", "tag": "multiresident_experiment", "data": "8", "parent": "1"},
+        {"identifier": "1.multiresident_experiment_9", "tag": "multiresident_experiment", "data": "9", "parent": "1"}
     ],
     "meta_data_currently_not_used": [
         {"identifier": "1.study.A", "tag": "wearable", "data": "A", "parent": "1.study"},
