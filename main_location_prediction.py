@@ -98,20 +98,20 @@ if __name__ == '__main__':
         source=N["rss_aid"],
         sink=N["rss_aid_uid"])
 
-    f = w.create_factor(
+    w.create_factor(
         tool=tools.wearable_rss_values,
         sources=[N["rss_aid_uid"]],
         sink=N["rss"])
 
     # Now we want to split by time interval onto a time-oriented plate
     # N["rss_time"] = w.create_node(stream_name="rss_time", channel=M, plate_ids=["H.L", "H.scripted"])
-    w.create_multi_output_factor(tool=tools.split_time, source=N["rss"], sink=N["rss_time"])
+    f = w.create_multi_output_factor(tool=tools.split_time, source=N["rss"], sink=N["rss_time"])
 
     # time_interval = scripted_experiments.span
     # time_interval = TimeInterval(scripted_experiments.intervals[0].start,
     #                              scripted_experiments.intervals[0].start + second)
     # time_interval = scripted_experiments[0] + (-1, 0)
-    time_interval = scripted_experiments[0:2].span
+    time_interval = scripted_experiments[0:2].span + (-1, 0)
 
     f.execute(time_interval)
     # w.execute(time_interval)

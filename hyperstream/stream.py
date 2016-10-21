@@ -56,6 +56,7 @@ class StreamView(Printable):
                         self.stream.parent_node.factor.execute(interval)
 
             # Is there still computation needing doing?
+            required_intervals = TimeIntervals([self.time_interval]) - self.stream.calculated_intervals
             if not required_intervals.is_empty:
                 logging.warn(
                     "Stream {} not available for time interval {}. Perhaps upstream calculations haven't been performed"
