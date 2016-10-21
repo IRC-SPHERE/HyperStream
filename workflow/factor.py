@@ -55,7 +55,7 @@ class Factor(Printable):
         if not isinstance(sink_node, Node):
             raise ValueError("Expected node, got {}".format(type(sink_node)))
         self.sink = sink_node
-        sink_node.factor = self
+        sink_node._factor = self
 
         self.plates = plates
 

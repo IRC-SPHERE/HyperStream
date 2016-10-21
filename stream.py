@@ -50,10 +50,10 @@ class StreamView(Printable):
         required_intervals = TimeIntervals([self.time_interval]) - self.stream.calculated_intervals
         if not required_intervals.is_empty:
             if self.force_calculation:
-                if self.stream.node is not None and self.stream.node.factor is not None:
+                if self.stream.parent_node is not None and self.stream.parent_node.factor is not None:
                     # Try to request upstream computation
                     for interval in required_intervals:
-                        self.stream.node.factor.execute(interval)
+                        self.stream.parent_node.factor.execute(interval)
 
             # Is there still computation needing doing?
             if not required_intervals.is_empty:
@@ -262,7 +262,7 @@ class Stream(Hashable):
             self.calculated_intervals = TimeIntervals()
         self.tool_reference = None  # needed to traverse the graph outside of workflows
         self.sandbox = sandbox
-        self.node = None  # Back reference to node
+        self._node = None  # Back reference to node
 
         # Here we define the output type. When modifiers are applied, this changes
         # self.output_format = 'doc_gen'
@@ -281,7 +281,15 @@ class Stream(Hashable):
     
     def __eq__(self, other):
         return str(self) == str(other)
-    
+
+    @property
+    def parent_node(self):
+        return self._node
+
+    @parent_node.setter
+    def parent_node(self, node):
+        self._node = node
+
     @property
     def calculated_intervals(self):
         """
