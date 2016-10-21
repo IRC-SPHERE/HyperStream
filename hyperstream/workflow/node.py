@@ -46,9 +46,9 @@ class Node(Printable):
         self.node_id = node_id
         self.streams = streams
         for stream in streams.values():
-            stream.node = self
+            stream.parent_node = self
 
-        self.factor = None  # reference to the factor that defines this node. Required for upstream computation
+        self._factor = None  # reference to the factor that defines this node. Required for upstream computation
 
         # TODO: Remove plate IDs
         self.plate_ids = tuple(plate_ids) if plate_ids else tuple()
@@ -61,6 +61,14 @@ class Node(Printable):
             meta_data = {'a': 1, 'b': 1}
 
         """
+
+    @property
+    def factor(self):
+        return self._factor
+
+    @factor.setter
+    def factor(self, value):
+        self._factor = value
 
     def intersection(self, meta):
         """
