@@ -47,21 +47,24 @@ class SplitterTimeAware(MultiOutputTool):
                     ti = el
                 elif isinstance(el, (tuple, list)):
                     if len(el) != 2 or not isinstance(el[0], str) or not isinstance(el[1], TimeInterval):
-                        raise ValueError("Unknown data format")
+                        raise ValueError("SplitterTimeAware: Unknown data format")
                     pv, ti = el
                 else:
-                    raise ValueError("Unknown data format")
+                    raise ValueError("SplitterTimeAware: Unknown data format")
 
                 if ti not in interval:
-                    # Todo: change back to value error
-                    # raise ValueError("Cannot compute splitter outside of the requested interval")
-                    # logging.warn("Cannot compute splitter outside of the requested interval")
+                    # This means that the user has requested a time interval of
+                    # calculation that doesn't cover the range of the intervals provided as parameters
+                    logging.warn("SplitterTimeAware: "
+                                 "Requested interval doesn't cover the range of the intervals provided as parameters")
                     continue
 
                 if pv in mapping:
                     raise ValueError("Repeated time intervals for single plate value not currently supported")
 
                 mapping[pv] = ti
+        else:
+            raise TypeError("Expected [tuple, list, TimeIntervals], got{}".format(type(self.time_intervals)))
 
         for pv, ti in mapping.items():
             for instance in source.window(ti, force_calculation=True):
