@@ -100,7 +100,8 @@ class Tool(Printable, Hashable):
                 raise ToolExecutionError(required_intervals)
 
             if not produced_data:
-                logging.warn("Tool did not produce any data for time interval {}".format(required_intervals))
+                logging.warn("{} did not produce any data for time interval {} on stream".format(
+                    self.name, required_intervals, sink))
 
 
 class MultiOutputTool(Printable, Hashable):
@@ -193,8 +194,8 @@ class MultiOutputTool(Printable, Hashable):
                     produced_data = True
 
             if not produced_data:
-                logging.warn("Tool did not produce any data for time interval {} on stream {}".format(
-                    required_intervals, source))
+                logging.warn("{} did not produce any data for time interval {} on stream {}".format(
+                    self.name, required_intervals, source))
 
 
 def check_input_stream_count(expected_number_of_streams):
