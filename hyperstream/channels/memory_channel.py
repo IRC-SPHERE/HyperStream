@@ -38,6 +38,10 @@ class MemoryChannel(BaseChannel):
         self.max_stream_id = 0
         self.data = dict()
 
+    @property
+    def non_empty_streams(self):
+        return dict(filter(lambda x: len(x[1]) > 0, self.data.items()))
+
     def create_stream(self, stream_id, sandbox=None):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
