@@ -89,7 +89,7 @@ class HyperStreamAggregatorTests(unittest.TestCase):
 
         aggregator = channels.get_tool(
             name="aggregate",
-            parameters=dict(func=online_average, aggregation_plate="H1.L.W")
+            parameters=dict(func=online_average, aggregation_meta_data="wearable")
         )
 
         N = w.nodes
