@@ -40,7 +40,7 @@ class MultiresidentExperimentImporter(Tool):
     def __init__(self):
         super(MultiresidentExperimentImporter, self).__init__()
         path = os.path.dirname(hyperstream.__file__)
-        self.data = pd.read_csv(path+'/../data/2016_10_17_multiresident_annotations_from_sion_anonymised/location_annotations.csv')
+        self.data = pd.read_csv(path+'/../data/2016_10_17_multiresident_annotations_from_sion_anonymised/location_annotations_unique_dt.csv')
         self.data = self.data.iloc[0:10000]
         self.experiment_metadata = pd.read_csv(path+'/../data/2016_10_17_multiresident_annotations_from_sion_anonymised/occurrence_times_manually.txt')
 
