@@ -75,15 +75,11 @@ class Factor(Printable):
         :return:
         """
         if self.plates:
+            # TODO: This loop over plates is probably not correct:
+            # What we probably want is to take the cartesian product of plate values
             for plate in self.plates:
                 for pv in plate.values:
-                    sources = self.get_global_sources()
-                    if self.sources:
-                        for source in self.sources:
-                            if pv in source.streams:
-                                sources.append(source.streams[pv])
-                            else:
-                                logging.warn("Plate {} with value {} not valid for source {}".format(plate, pv, source))
+                    sources = self.get_sources(plate, pv)
                     sink = self.sink.streams[pv]
                     self.tool.execute(sources=sources, sink=sink, interval=time_interval,
                                       alignment_stream=self.get_alignment_stream(None, None))
@@ -94,6 +90,39 @@ class Factor(Printable):
             self.tool.execute(sources=sources, sink=sink, interval=time_interval, alignment_stream=
                               self.get_alignment_stream(None, None))
         return self
+
+    def get_sources(self, plate, plate_value, sources=None):
+        """
+        Gets the source streams for a given plate value on a plate.
+        Also populates with source streams that are valid for the parent plates of this plate,
+        with the appropriate meta-data for the parent plate.
+        :param plate: The plate being operated on
+        :param plate_value: The specific plate value of interest
+        :param sources: The currently found sources (for recursion)
+        :return: The appropriate source streams
+        :type plate: Plate
+        :type plate_value: tuple
+        :type sources: list[Stream] | None
+        """
+        if sources is None:
+            sources = []
+
+        if self.sources:
+            for source in self.sources:
+                if plate_value in source.streams:
+                    sources.append(source.streams[plate_value])
+                else:
+                    logging.warn("Plate {} with value {} not valid for source {}"
+                                 .format(plate, plate_value, source))
+
+        if not plate.is_root:
+            # Populate with sources defined on parent plate
+            parent_plate_value = tuple(pv for pv in plate_value if pv[0] != plate.meta_data_id)
+            sources = self.get_sources(plate.parent, parent_plate_value, sources)
+
+        sources.extend(self.get_global_sources())
+
+        return sources
 
     def get_global_sources(self):
         """
