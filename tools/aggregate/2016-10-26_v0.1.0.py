@@ -18,10 +18,9 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream.stream import StreamMetaInstance
+from hyperstream.stream import StreamInstance
 from hyperstream.tool import AggregateTool
 from hyperstream.utils import MIN_DATE
-import pandas as pd
 
 
 class Aggregate(AggregateTool):
@@ -38,32 +37,28 @@ class Aggregate(AggregateTool):
     def _execute(self, sources, alignment_stream, interval):
 
         # Put all of the data in a dict of sorted lists (inefficient!)
-        data = dict((source, sorted(source.window(interval, force_calculation=True), key=lambda x: x.timestamp))
+        data = dict((source.stream_id,
+                     sorted(source.window(interval, force_calculation=True), key=lambda x: x.timestamp))
                     for source in sources)
 
         # Create a set of all of the timestamps available (also inefficient!)
         timestamps = sorted(set(item.timestamp for d in data.values() for item in d))
 
-        # Mappings from streams to destinations
-        mappings = dict((source, tuple(m for m in source.stream_id.meta_data if m[0] != self.aggregation_meta_data))
-                        for source in sources)
-
         # maintain dict of indices where the timestamps appear
-        last_timestamps = dict((source, MIN_DATE) for source in data)
+        last_timestamps = dict((stream_id, MIN_DATE) for stream_id in data)
 
         # Now loop through the timestamps, and aggregate over the aggregation plate
         for ts in timestamps:
-            values = dict((d, []) for d in set(mappings.values()))
-            for s in data:
-                for item in data[s]:
-                    if item.timestamp > last_timestamps[s]:
+            values = []
+            for stream_id in data:
+                for item in data[stream_id]:
+                    if item.timestamp < last_timestamps[stream_id]:
                         continue
                     if item.timestamp < ts:
                         continue
                     if item.timestamp == ts:
-                        values[mappings[s]].append(item.value)
-                    last_timestamps[s] = item.timestamp
-            raise NotImplementedError
-            yield StreamMetaInstance(stream_instance=(ts, dict((d, self.func(v)) for d, v in sorted(values.items()))),
-                                     meta_data=None)
+                        values.append(item.value)
+                    last_timestamps[stream_id] = item.timestamp
+                    break
+            yield StreamInstance(ts, self.func(values))
 
