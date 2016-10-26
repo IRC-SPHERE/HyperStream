@@ -142,6 +142,22 @@ class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
             raise ValueError("Timestamp must be datetime.datetime")
         return super(StreamInstance, cls).__new__(cls, timestamp, value)
 
+    def as_list(self, flat=True):
+        if flat:
+            l = self.value.items()
+            l.append(["timestamp", self.timestamp])
+            return l
+        else:
+            return [self.timestamp, self.value]
+
+    def as_dict(self, flat=True):
+        if flat:
+            d = self.value.copy()
+            d['timestamp'] = self.timestamp
+            return d
+        else:
+            return dict(timestamp=self.timestamp, value=self.value)
+
 
 class StreamMetaInstance(namedtuple("StreamMetaInstance", "stream_instance meta_data")):
     """
