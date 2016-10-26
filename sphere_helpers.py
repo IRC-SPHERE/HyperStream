@@ -104,7 +104,15 @@ mappings = {
         "b827eb524fec": "study"
     },
     'uid': {
-        "0aa05543a5c2": "A"
+        "0aa05543a5c2": "A",
+        "00:12:4b:ad:8a:04": "A",
+        "00:12:4b:ad:83:85": "B",
+        "00:12:4b:ad:94:81": "C",
+        "00:12:4b:ad:87:84": "D",
+        "a0:e6:f8:ad:8a:04": "A",
+        "a0:e6:f8:ad:83:85": "B",
+        "a0:e6:f8:ad:94:81": "C",
+        "a0:e6:f8:ad:87:84": "D"
     },
     # 'annotator': dict((x, x) for x in annotator_ids)
 }
