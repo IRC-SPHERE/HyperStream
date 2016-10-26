@@ -18,17 +18,22 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.stream import StreamInstance
+from hyperstream.tool import AggregateTool
+import pandas as pd
 
-class Aggregate(Tool):
-    def __init__(self, timer, func):
-        super(Aggregate, self).__init__(timer=timer, func=func)
-        self.timer = timer
+
+class Aggregate(AggregateTool):
+    """
+    This tool aggregates over a given plate, for example, if the input is all the streams in a node on plate A.B,
+    and the aggregation is over plate B, the results will live on plate A alone.
+    This can also be thought of as marginalising one dimension of a tensor over the plates
+    """
+    def __init__(self, func, aggregation_plate):
+        super(Aggregate, self).__init__(func=func, aggregation_plate=aggregation_plate)
         self.func = func
+        self.aggregation_plate = aggregation_plate
 
-    @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
-        for (t, _) in self.timer():
-            writer([StreamInstance(t, 'pool')])
-            raise NotImplementedError
+        df = pd.DataFrame([source.window(interval).items() for source in sources])
+        raise NotImplementedError
