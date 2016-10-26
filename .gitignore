@@ -102,3 +102,4 @@ ENV/
 .ropeproject
 hyperstream_config.json
 exportToHTML
+config.json
