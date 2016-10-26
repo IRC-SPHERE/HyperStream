@@ -26,6 +26,7 @@ import unittest
 import logging
 
 from hyperstream import TimeInterval, TimeIntervals, RelativeTimeInterval
+from hyperstream.stream import StreamInstance
 from hyperstream.itertools2 import online_average
 from hyperstream.utils import MIN_DATE, utcnow
 from helpers import *
@@ -81,33 +82,106 @@ h1 = (('house', '1'),)
 wA = (('wearable', 'A'),)
 locs = tuple(("location", loc) for loc in ["kitchen", "hallway", "lounge"])
 
+RSS_DEV_AVG = {
+    (('house', '1'), ('location', 'kitchen')): [
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 43,   2000, tzinfo=UTC), -85.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 45, 404000, tzinfo=UTC), -99.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 46, 806000, tzinfo=UTC), -89.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 47, 406000, tzinfo=UTC), -90.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 47, 606000, tzinfo=UTC), -90.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 47, 807000, tzinfo=UTC), -93.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 49,   8000, tzinfo=UTC), -93.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 49, 208000, tzinfo=UTC), -93.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 49, 408000, tzinfo=UTC), -93.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 49, 608000, tzinfo=UTC), -95.0)
+    ],
+
+    (('house', '1'), ('location', 'hallway')): [
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 36, 196000, tzinfo=UTC), -82.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 36, 396000, tzinfo=UTC), -82.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 36, 596000, tzinfo=UTC), -83.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 36, 796000, tzinfo=UTC), -82.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 36, 996000, tzinfo=UTC), -92.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 37, 197000, tzinfo=UTC), -83.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 37, 397000, tzinfo=UTC), -83.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 37, 597000, tzinfo=UTC), -84.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 37, 797000, tzinfo=UTC), -82.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 37, 997000, tzinfo=UTC), -82.0)
+    ],
+
+    (('house', '1'), ('location', 'lounge')): [
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 45, 604000, tzinfo=UTC), -88.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 54, 413000, tzinfo=UTC), -86.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 57, 416000, tzinfo=UTC), -85.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 57, 616000, tzinfo=UTC), -86.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 57, 816000, tzinfo=UTC), -86.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 58,  16000, tzinfo=UTC), -89.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 35, 58, 217000, tzinfo=UTC), -89.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 36,  2,  20000, tzinfo=UTC), -85.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 36,  7, 225000, tzinfo=UTC), -77.0),
+        StreamInstance(datetime(2015, 8, 6, 13, 36,  7, 826000, tzinfo=UTC), -84.0)
+    ]
+}
 
 # noinspection PyMethodMayBeStatic
 class HyperStreamAggregatorTests(unittest.TestCase):
     def test_basic_aggregator(self):
         w = basic_workflow(sys._getframe().f_code.co_name)
 
-        aggregator = channels.get_tool(
+        aggregate_dev = channels.get_tool(
             name="aggregate",
             parameters=dict(func=online_average, aggregation_meta_data="wearable")
         )
 
         N = w.nodes
         w.create_factor(
-            tool=aggregator,
+            tool=aggregate_dev,
             sources=[N["rss"]],
             sink=N["rss_dev_avg"]
         )
 
-        time_interval = scripted_experiments[0]
+        time_interval = TimeInterval(scripted_experiments[0].start, scripted_experiments[0].start + 2 * minute)
         w.execute(time_interval)
 
-        # print_head(w, "rss_raw", None, h1, time_interval, 10, print)
-        # print_head(w, "rss_aid", h1, locs, time_interval, 10, print)
-        # print_head(w, "rss_aid_uid", h1 + wA, locs, time_interval, 10, print)
         print_head(w, "rss", h1 + wA, locs, time_interval, 10, print)
-        print_head(w, "rss_dev_avg", h1 + wA, locs, time_interval, 10, print)
+        print_head(w, "rss_dev_avg", h1, locs, time_interval, 10, print)
 
+        assert all(list(N["rss_dev_avg"].streams[k].window(time_interval).head(10)) == v
+                   for k, v in RSS_DEV_AVG.items())
+
+    def test_off_plate_aggregator(self):
+        """
+        This is a test for aggregation where the aggregate is up the tree, but the destination plate is not in the
+        ancestry. For example:
+         source plate: H1.L.W
+         aggregate:    L
+         destination:  H1.W
+
+        Note here that H1.W is not an ancestor of H1.L.W (only H1 and H1.L are), so we have to figure out that H1.W is
+        a valid destination, based on the fact that all but one of the meta data id's are shared.
+        """
+        w = basic_workflow(sys._getframe().f_code.co_name)
+
+        aggregate_loc = channels.get_tool(
+            name="aggregate",
+            parameters=dict(func=online_average, aggregation_meta_data="location")
+        )
+
+        N = w.nodes
+        w.create_factor(
+            tool=aggregate_loc,
+            sources=[N["rss"]],
+            sink=N["rss_loc_avg"]
+        )
+
+        time_interval = TimeInterval(scripted_experiments[0].start, scripted_experiments[0].start + 2 * minute)
+        w.execute(time_interval)
+
+        print_head(w, "rss", h1 + wA, locs, time_interval, 10, print)
+        print_head(w, "rss_loc_avg", h1, wA, time_interval, 10, print)
+
+        # assert all(list(N["rss_loc_avg"].streams[k].window(time_interval).head(10)) == v
+        #            for k, v in RSS_LOC_AVG.items())
         assert False
 
     def test_subarray(self):
