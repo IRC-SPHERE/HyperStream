@@ -82,15 +82,23 @@ class Factor(Printable):
                 if self.alignment_node:
                     raise ValueError("Currently an alignment node cannot be used with an Aggregate Tool")
 
-                all_sources = self.sources[0]
-
-                # Here we should loop through the plate values of the sink, and get the sources that are appropriate for
-                # that given plate value, and pass only those sources to the tool. This is cleaner than making the tool
-                # deal with all of the sources
+                # Simply provide all sources to the tool
                 for pv in self.sink.plate_values:
-                    sources = [all_sources.streams[s] for s in all_sources.streams if all([v in s for v in pv])]
-                    sink = self.sink.streams[pv]
-                    self.tool.execute(sources=sources, sink=sink, interval=time_interval, alignment_stream=None)
+                    self.tool.execute(
+                        sources=self.sources[0].streams.values(),
+                        sink=self.sink.streams[pv],
+                        interval=time_interval,
+                        alignment_stream=None)
+
+                # all_sources = self.sources[0]
+                #
+                # # Here we should loop through the plate values of the sink, and get the sources that are appropriate for
+                # # that given plate value, and pass only those sources to the tool. This is cleaner than making the tool
+                # # deal with all of the sources
+                # for pv in self.sink.plate_values:
+                #     sources = [all_sources.streams[s] for s in all_sources.streams if all([v in s for v in pv])]
+                #     sink = self.sink.streams[pv]
+                #     self.tool.execute(sources=sources, sink=sink, interval=time_interval, alignment_stream=None)
 
             else:
                 # TODO: This loop over plates is probably not correct:
