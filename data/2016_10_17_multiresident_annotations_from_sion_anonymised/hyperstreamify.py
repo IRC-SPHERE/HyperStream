@@ -38,7 +38,9 @@ for (i,row) in coords.iterrows():
 
 res = pd.DataFrame()
 rows = []
+rows_unique_dt = []
 out_of_experiment = {}
+existing_times = {}
 print('working through data')
 for i in range(data.shape[0]):
     if (i % 10000)==0:
@@ -54,13 +56,18 @@ for i in range(data.shape[0]):
                     wearable_id = exper.wearable[j]
             if exp_id>0:
                 rows.append({'dt':data.dt[i],'camera_id':data.camera_id[i],'person_id':bb2person[bb_id],'exper_id':exp_id,'wearable_id':wearable_id})
+                if not existing_times.has_key(data.dt[i]):
+                    rows_unique_dt.append({'dt':data.dt[i],'camera_id':data.camera_id[i],'person_id':bb2person[bb_id],'exper_id':exp_id,'wearable_id':wearable_id})
+                    existing_times[data.dt[i]] = True
             else:
                 out_of_experiment[bb2person[bb_id]] = data.dt[i] # on Friday video was switched on some time between experiments 6 and 7 and the persons 5, 13, 25 got annotated in that range - we discard that information here
 res = pd.DataFrame(rows)
+res_unique_dt = pd.DataFrame(rows_unique_dt)
 print(out_of_experiment)
 # {25: 1467985373054, 5: 1467985361449, 13: 1467985377428}
 
 res.to_csv('location_annotations.csv', sep=',', index=False)
+res_unique_dt.to_csv('location_annotations_unique_dt.csv', sep=',', index=False)
 
 
 # in one experiment person 1 forgot to put on the wearable
