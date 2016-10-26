@@ -32,7 +32,8 @@ from ..utils import MIN_DATE, MAX_DATE
 
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sphere_connector = SphereConnector(
-    config_filename=os.path.join(path, 'config_strauss.json'),
+#    config_filename=os.path.join(path, 'config_strauss.json'),
+    config_filename=os.path.join(path, 'config.json'),
     include_mongo=True,
     include_redcap=False,
     sphere_logger=None)

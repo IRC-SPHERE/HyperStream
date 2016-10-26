@@ -13,7 +13,7 @@
         "username": "dbuser",
         "password": "rYYr7QEeD5",
         "authentication_database": "admin",
-        "db": "hyperstream",
+        "db": "sphere",
         "modalities": {
             "environmental": {
                 "collection": "environmental",
@@ -47,7 +47,19 @@
                 "fields": {
                     "gw": 1,
                     "uid": 1,
-                    "e": 1
+                    "e": 1,
+                    "bt": 1
+                }
+            },
+            "wearable3": {
+                "collection": "wearable",
+                "date_time_field": "bt",
+                "event": "e",
+                "fields": {
+                    "gw": 1,
+                    "uid": 1,
+                    "e": 1,
+                    "bt": 1
                 }
             },
             "video": {

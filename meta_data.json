@@ -28,6 +28,13 @@
 
         {"identifier": "1.resident_A", "tag": "resident", "data": "A", "parent": "1"},
         {"identifier": "1.resident_B", "tag": "resident", "data": "B", "parent": "1"},
+        {"identifier": "1.resident_C", "tag": "resident", "data": "C", "parent": "1"},
+        {"identifier": "1.resident_D", "tag": "resident", "data": "D", "parent": "1"},
+
+        {"identifier": "1.wearable_A", "tag": "wearable", "data": "A", "parent": "1"},
+        {"identifier": "1.wearable_B", "tag": "wearable", "data": "B", "parent": "1"},
+        {"identifier": "1.wearable_C", "tag": "wearable", "data": "C", "parent": "1"},
+        {"identifier": "1.wearable_D", "tag": "wearable", "data": "D", "parent": "1"},
 
         {"identifier": "2.kitchen", "tag": "location", "data": "kitchen", "parent": "2"},
         {"identifier": "2.lounge", "tag": "location", "data": "lounge", "parent": "2"},
@@ -46,6 +53,15 @@
         {"identifier": "1.hallway.A", "tag": "wearable", "data": "A", "parent": "1.hallway"},
         {"identifier": "1.lounge.A", "tag": "wearable", "data": "A", "parent": "1.lounge"},
         {"identifier": "1.kitchen.A", "tag": "wearable", "data": "A", "parent": "1.kitchen"},
+        {"identifier": "1.hallway.B", "tag": "wearable", "data": "B", "parent": "1.hallway"},
+        {"identifier": "1.lounge.B", "tag": "wearable", "data": "B", "parent": "1.lounge"},
+        {"identifier": "1.kitchen.B", "tag": "wearable", "data": "B", "parent": "1.kitchen"},
+        {"identifier": "1.hallway.C", "tag": "wearable", "data": "C", "parent": "1.hallway"},
+        {"identifier": "1.lounge.C", "tag": "wearable", "data": "C", "parent": "1.lounge"},
+        {"identifier": "1.kitchen.C", "tag": "wearable", "data": "C", "parent": "1.kitchen"},
+        {"identifier": "1.hallway.D", "tag": "wearable", "data": "D", "parent": "1.hallway"},
+        {"identifier": "1.lounge.D", "tag": "wearable", "data": "D", "parent": "1.lounge"},
+        {"identifier": "1.kitchen.D", "tag": "wearable", "data": "D", "parent": "1.kitchen"},
 
         {"identifier": "1.scripted_1", "tag": "scripted", "data": "1", "parent": "1"},
         {"identifier": "1.scripted_2", "tag": "scripted", "data": "2", "parent": "1"},
