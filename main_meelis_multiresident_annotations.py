@@ -25,6 +25,7 @@ import datetime
 import pytz
 
 from hyperstream import HyperStream, TimeInterval, TimeIntervals
+from hyperstream.stream import StreamId
 
 from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
 
@@ -116,13 +117,15 @@ if __name__ == '__main__':
 #            lambda x: x['identifier'].split('.')[1].split('_')[1]))
 
     nodes = (
-        ("every_min",   M, ["H1"]),                    # sliding windows one every minute
+        ("every_min",   M, ["H1.W"]),                    # sliding windows one every minute
         ("rss_raw",     M, ["H1"]),                    # Raw RSS data
         ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
         ("rss_uid",     M, ["H1.W"]),                  # RSS by wearable id
         ("vidloc_uid",  M, ["H1.W"]),                  # RSS by wearable id
         ("vidloc_uid_align",  M, ["H1.W"]),                  # RSS by wearable id
         ("vidloc_rss",  M, ["H1.W"]),                  # RSS by wearable id
+        ("vidloc_rss_anno",  M, ["H1.W"]),                  # RSS by wearable id
+        ("vidloc_rss_anno_json",  M, ["H1.W"]),                  # RSS by wearable id
         ("rss_vec",     M, ["H1.W"]),                  # RSS by wearable id
         ("rss_counter", M, ["H1.W"]),                  # RSS by wearable id
         ("rss_aid",     M, ["H1.L"]),                  # RSS by access point id
@@ -169,43 +172,60 @@ if __name__ == '__main__':
         sources=[N["every_min"],N["rss_uid"]],
         sink=N["rss_counter"]
     )
-###    w.create_multi_output_factor(
-###        tool=hyperstream.channel_manager.get_tool(
-###            name="splitter",
-###            parameters=dict(element="wearable_id",mapping=dict(A="A",B="B",C="C",D="D"))
-###        ),
-###        source=N["vidloc_raw"],
-###        sink=N["vidloc_uid"]
-###    )
-###    w.create_factor(
-###        tool=hyperstream.channel_manager.get_tool(
-###            name="multiresident_experiment_importer",
-###            parameters=dict()
-###        ),
-###        sources=None,
-###        sink=N["vidloc_raw"]
-###    )
-###    w.create_factor(
-###        tool=hyperstream.channel_manager.get_tool(
-###            name="aligning_window",
-###            parameters=dict(lower=datetime.timedelta(seconds=-1),upper=datetime.timedelta(0))
-###        ),
-###        sources=[N["vidloc_uid"]],
-###        sink=N["vidloc_uid_align"]
-###    )
-###    def take_last(data):
-###        l = list(data)
-###        if len(l)==0:
-###            return None
-###        return l[-1][1]
-###    w.create_factor(
-###        tool=hyperstream.channel_manager.get_tool(
-###            name="sliding_apply",
-###            parameters=dict(func=take_last) # lambda data:list(data)[-1][1])
-###        ),
-###        sources=[N["vidloc_uid_align"],N["rss_vec"]],
-###        sink=N["vidloc_rss"]
-###    )
+    w.create_multi_output_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="splitter",
+            parameters=dict(element="wearable_id",mapping=dict(A="A",B="B",C="C",D="D"))
+        ),
+        source=N["vidloc_raw"],
+        sink=N["vidloc_uid"]
+    )
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="multiresident_experiment_importer",
+            parameters=dict()
+        ),
+        sources=None,
+        sink=N["vidloc_raw"]
+    )
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="aligning_window",
+            parameters=dict(lower=datetime.timedelta(seconds=-2),upper=datetime.timedelta(0))
+        ),
+        sources=[N["vidloc_uid"]],
+        sink=N["vidloc_uid_align"]
+    )
+    def component_wise_max(data):
+        res = [-120,-120,-120]
+        for (time,value) in data:
+            for i in range(3):
+                res[i] = max(res[i],value[i])
+        return res
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="sliding_apply",
+            parameters=dict(func=component_wise_max) # lambda data:list(data)[-1][1])
+        ),
+        sources=[N["vidloc_uid_align"],N["rss_vec"]],
+        sink=N["vidloc_rss"]
+    )
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="aligned_merge",
+            parameters=dict(names=["anno","rssi"])
+        ),
+        sources=[N["vidloc_uid"],N["vidloc_rss"]],
+        sink=N["vidloc_rss_anno"]
+    )
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="jsonify",
+            parameters=dict()
+        ),
+        sources=[N["vidloc_rss_anno"]],
+        sink=N["vidloc_rss_anno_json"]
+    )
 
 #    w.create_factor(tool=tools.wearable_rss_values, sources=[N["rss_aid_uid"]], sink=N["rss"])
 
@@ -219,7 +239,20 @@ if __name__ == '__main__':
 #    time_interval = scripted_experiments.intervals[0] + (-1, 0)
 
 #    w.execute(exp_times.span)
-    w.execute(TimeInterval(exp_times.start,exp_times.start+datetime.timedelta(minutes=10)))
+    w.execute(TimeInterval(exp_times.start,exp_times.start+datetime.timedelta(hours=48)))
+
+    file = open("vidloc_rss_anno.csv","w")
+    file.write("dt,wearable,person,exper,camera,rssi1,rssi2,rssi3\n")
+    for wearable in ["A","B","C","D"]:
+        stream = M.data[StreamId(name="vidloc_rss_anno",meta_data=(("house","1"),("wearable",wearable)))]
+        for t in sorted(stream):
+            anno = stream[t]["anno"]
+            rssi = stream[t]["rssi"]
+            row = [str(t),wearable,str(anno["person_id"]),str(anno["exper_id"]),str(anno["camera_id"])] + [str(x) for x in rssi]
+            file.write(",".join(row)+"\n")
+    file.close()
+
+
 #    w.execute(time_interval)
     exit(0)
 
