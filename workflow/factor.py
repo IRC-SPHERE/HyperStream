@@ -20,7 +20,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 from ..utils import Printable
 from node import Node
-from ..tool import Tool, MultiOutputTool
+from ..tool import Tool, MultiOutputTool, AggregateTool
 from plate import Plate
 from ..time_interval import TimeIntervals
 
@@ -75,15 +75,36 @@ class Factor(Printable):
         :return:
         """
         if self.plates:
-            # TODO: This loop over plates is probably not correct:
-            # What we probably want is to take the cartesian product of plate values
-            for plate in self.plates:
-                for pv in plate.values:
-                    sources = self.get_sources(plate, pv)
+            if isinstance(self.tool, AggregateTool):
+                # TODO: These checks should be done at factor creation time rather than now
+                if len(self.sources) != 1:
+                    raise ValueError("Currently only a single source node is valid for an AggregateTool")
+                if self.alignment_node:
+                    raise ValueError("Currently an alignment node cannot be used with an Aggregate Tool")
+
+                all_sources = self.sources[0]
+
+                # Here we should loop through the plate values of the sink, and get the sources that are appropriate for
+                # that given plate value, and pass only those sources to the tool. This is cleaner than making the tool
+                # deal with all of the sources
+                for pv in self.sink.plate_values:
+                    sources = [all_sources.streams[s] for s in all_sources.streams if all([v in s for v in pv])]
                     sink = self.sink.streams[pv]
-                    self.tool.execute(sources=sources, sink=sink, interval=time_interval,
-                                      alignment_stream=self.get_alignment_stream(None, None))
+                    self.tool.execute(sources=sources, sink=sink, interval=time_interval, alignment_stream=None)
+
+            else:
+                # TODO: This loop over plates is probably not correct:
+                # What we probably want is to take the cartesian product of plate values
+                for plate in self.plates:
+                    for pv in plate.values:
+                        sources = self.get_sources(plate, pv)
+                        sink = self.sink.streams[pv]
+                        self.tool.execute(sources=sources, sink=sink, interval=time_interval,
+                                          alignment_stream=self.get_alignment_stream(None, None))
         else:
+            if isinstance(self.tool, AggregateTool):
+                raise ValueError("Cannot execute an AggregateTool if no plates are defined for the factor")
+
             # sources = [source.streams[None] for source in self.sources] if self.sources else None
             sources = self.get_global_sources()
             sink = self.sink.streams[None]
