@@ -32,7 +32,7 @@ from ..utils import StreamNotFoundError, IncompatiblePlatesError, NodeAlreadyExi
 from node import Node
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
 from ..stream import StreamId
-from ..tool import Tool, MultiOutputTool
+from ..tool import Tool, MultiOutputTool, AggregateTool
 from ..utils import Printable, FrozenKeyDict, TypedFrozenKeyDict, LinkageError
 
 
@@ -232,12 +232,19 @@ class Workflow(Printable):
             if sources:
                 # Check that the plates are compatible
                 source_plates = itertools.chain(*(source.plate_ids for source in sources))
-                for p in sink.plate_ids:
-                    if p not in set(source_plates):
-                        raise IncompatiblePlatesError("{} not in source plates".format(p))
-                for p in source_plates:
-                    if p not in set(sink.plate_ids):
-                        raise IncompatiblePlatesError("{} not in sink plates".format(p))
+                source_parents = set(self.plates[p].parent for source in sources for p in source.plate_ids)
+                if isinstance(tool, AggregateTool):
+                    # Check if the parent plate is valid instead
+                    for p in sink.plate_ids:
+                        if self.plates[p] not in source_parents:
+                            raise IncompatiblePlatesError("{} not in source's parent plates".format(p))
+                else:
+                    for p in sink.plate_ids:
+                        if p not in set(source_plates):
+                            raise IncompatiblePlatesError("{} not in source plates".format(p))
+                    for p in source_plates:
+                        if p not in set(sink.plate_ids):
+                            raise IncompatiblePlatesError("{} not in sink plates".format(p))
             plates = [self.plates[plate_id] for plate_id in sink.plate_ids]
         else:
             plates = None

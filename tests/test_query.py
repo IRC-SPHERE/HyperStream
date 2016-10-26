@@ -28,7 +28,7 @@ from helpers import *
 
 
 # noinspection PyMethodMayBeStatic
-class HyperStringTests(unittest.TestCase):
+class HyperStreamQueryTests(unittest.TestCase):
     def test_time_interval(self):
         now = datetime(2016, 1, 1, 0, 0, 0)
 
