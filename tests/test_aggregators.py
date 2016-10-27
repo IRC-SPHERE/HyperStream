@@ -43,6 +43,16 @@ def basic_workflow(workflow_id):
         ("rss", M, ["H1.L.W"]),  # RSS values only (by access point id and device id)
         ("rss_dev_avg", M, ["H1.L"]),  # Averaged RSS values by device, per location
         ("rss_loc_avg", M, ["H1.W"]),  # Averaged RSS values by location, per device
+        ("rss_kitchen", M, ["H1.K"]),  # Averaged RSS values by location, per device
+    )
+
+    hyperstream.plate_manager.create_plate(
+        plate_id="H1.K",
+        description="Kitchen in SPHERE house",
+        meta_data_id="location",
+        values=["kitchen"],
+        complement=False,
+        parent_plate="H1"
     )
 
     # Create all of the nodes
@@ -141,6 +151,7 @@ RSS_LOC_AVG = {
     (('house', '1'), ('wearable', 'D')): []
 }
 
+
 # noinspection PyMethodMayBeStatic
 class HyperStreamAggregatorTests(unittest.TestCase):
     def test_basic_aggregator(self):
@@ -201,10 +212,24 @@ class HyperStreamAggregatorTests(unittest.TestCase):
         assert all(list(N["rss_loc_avg"].streams[k].window(time_interval).head(10)) == v
                    for k, v in RSS_LOC_AVG.items())
 
-    def test_subarray(self):
-        assert False
-    
     def test_index_of(self):
+        w = basic_workflow(sys._getframe().f_code.co_name)
+
+        aggregate_loc = channels.get_tool(
+            name="index_of",
+            parameters=dict(index=(('house', '1'), ('location', 'kitchen')), aggregation_meta_data="location")
+        )
+
+        N = w.nodes
+        w.create_factor(
+            tool=aggregate_loc,
+            sources=[N["rss"]],
+            sink=N["rss_loc_avg"]
+        )
+
+        time_interval = TimeInterval(scripted_experiments[0].start, scripted_experiments[0].start + 2 * minute)
+        w.execute(time_interval)
+
         assert False
 
 
