@@ -20,6 +20,8 @@
 
 from hyperstream import HyperStream, UTC, StreamId
 
+from sphere_helpers import PredefinedTools, scripted_experiments
+
 from sphere_connector_package.sphere_connector import SphereConnector
 from datetime import datetime, timedelta
 
@@ -51,6 +53,8 @@ S = hyperstream.channel_manager.sphere
 T = hyperstream.channel_manager.tools
 D = hyperstream.channel_manager.mongo
 
+# Some predefined tools
+tools = PredefinedTools(hyperstream.channel_manager)
 
 # Some useful Stream IDs
 environmental = StreamId('environmental', meta_data={'house': '1'})
@@ -69,7 +73,3 @@ sphere = StreamId('sphere')
 component = StreamId('component')
 component_filter = StreamId('component_filter')
 
-
-# Some tools
-# t_clock = T[clock].define(stride=30 * second)
-# t_env = T[sphere].define(modality='environmental')

@@ -18,17 +18,8 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream.tool import Tool, check_input_stream_count
-from hyperstream.stream import StreamInstance
-
-class Aggregate(Tool):
-    def __init__(self, timer, func):
-        super(Aggregate, self).__init__(timer=timer, func=func)
-        self.timer = timer
-        self.func = func
-
-    @check_input_stream_count(1)
-    def _execute(self, sources, alignment_stream, interval):
-        for (t, _) in self.timer():
-            writer([StreamInstance(t, 'pool')])
-            raise NotImplementedError
+from stream_id import StreamId
+from stream_instance import StreamInstance, StreamMetaInstance
+from stream_view import StreamView
+from stream import Stream, DatabaseStream
+from stream_collections import StreamDict, StreamInstanceCollection

@@ -25,9 +25,7 @@ import json
 
 class Jsonify(Tool):
     """
-    Simple tool that picks out a component of the data dict if it is a range of values. If compliment is true,
-    the component is picked out if it is not in the list. e.g. to delete None values, use:
-    ComponentFilter(key, values=[None], complement=true)
+    Converts the value part of the stream instances to json format
     """
     def __init__(self):
         super(Jsonify, self).__init__()
@@ -35,5 +33,5 @@ class Jsonify(Tool):
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
         for time, data in sources[0].window(interval, force_calculation=True):
-            yield StreamInstance(time,json.dumps([str(time),data],sort_keys=True))
+            yield StreamInstance(time, json.dumps([str(time), data], sort_keys=True))
 

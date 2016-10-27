@@ -24,16 +24,11 @@ Workflow and WorkflowManager definitions.
 import itertools
 import logging
 
-from mongoengine.context_managers import switch_db
-from collections import defaultdict
-
 from factor import Factor, MultiOutputFactor
-from ..utils import StreamNotFoundError, IncompatiblePlatesError, NodeAlreadyExistsError, FactorAlreadyExistsError
 from node import Node
-from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
 from ..stream import StreamId
-from ..tool import Tool, MultiOutputTool
-from ..utils import Printable, FrozenKeyDict, TypedFrozenKeyDict, LinkageError
+from ..tool import Tool, MultiOutputTool, AggregateTool
+from ..utils import Printable, TypedFrozenKeyDict, IncompatiblePlatesError, FactorDefinitionError
 
 
 class Workflow(Printable):
@@ -146,8 +141,8 @@ class Workflow(Printable):
             raise NotImplementedError
 
         # Need to walk up the tree from each plate to find a matching position (possibly the root)
-        s0 = set(self.plates[plate_ids[0]].ancestors)
-        s1 = self.plates[plate_ids[1]].ancestors
+        s0 = set(self.plates[plate_ids[0]].ancestor_plate_ids)
+        s1 = self.plates[plate_ids[1]].ancestor_plate_ids
         intersection = list(s0.intersection(s1))
         difference = list(s0.symmetric_difference(s1))
 
@@ -159,7 +154,7 @@ class Workflow(Printable):
             for plate_id in plate_ids:
                 # First of all check that the intersection is at the beginning of the lists,
                 # otherwise something has gone wrong
-                if p != self.plates[plate_id].ancestors[i]:
+                if p != self.plates[plate_id].ancestor_plate_ids[i]:
                     raise ValueError("Error in plate specification. Intersection between plates is not valid.")
 
         # Now we need the cartesian product of all of the intersection values
@@ -229,15 +224,33 @@ class Workflow(Printable):
             raise ValueError("Expected Tool, got {}".format(type(tool)))
 
         if sink.plate_ids:
-            if sources:
-                # Check that the plates are compatible
-                source_plates = itertools.chain(*(source.plate_ids for source in sources))
-                for p in sink.plate_ids:
-                    if p not in set(source_plates):
-                        raise IncompatiblePlatesError("{} not in source plates".format(p))
-                for p in source_plates:
-                    if p not in set(sink.plate_ids):
-                        raise IncompatiblePlatesError("{} not in sink plates".format(p))
+            if isinstance(tool, AggregateTool):
+                if not sources or len(sources) != 1:
+                    raise FactorDefinitionError("Aggregate tools require a single source node")
+
+                if not sources[0].plate_ids or len(sources[0].plate_ids) != 1:
+                    raise FactorDefinitionError("Aggregate tools require source node to live on a single plate")
+
+                if len(sink.plate_ids) != 1:
+                    raise FactorDefinitionError("Aggregate tools require sink node to live on a single plate")
+
+                # Check if the parent plate is valid instead
+                source_plate = self.plates[sources[0].plate_ids[0]]
+                sink_plate = self.plates[sink.plate_ids[0]]
+
+                error = self.check_plate_compatibility(tool, source_plate, sink_plate)
+                if error is not None:
+                    raise IncompatiblePlatesError(error)
+            else:
+                if sources:
+                    # Check that the plates are compatible
+                    source_plates = itertools.chain(*(source.plate_ids for source in sources))
+                    for p in sink.plate_ids:
+                        if p not in set(source_plates):
+                            raise IncompatiblePlatesError("{} not in source plates".format(p))
+                    for p in source_plates:
+                        if p not in set(sink.plate_ids):
+                            raise IncompatiblePlatesError("{} not in sink plates".format(p))
             plates = [self.plates[plate_id] for plate_id in sink.plate_ids]
         else:
             plates = None
@@ -288,7 +301,7 @@ class Workflow(Printable):
             raise ValueError("No output plate found")
 
         if len(output_plates) == 1:
-            if not self.check_plate_compatibility(input_plates, output_plates[0]):
+            if not self.check_multi_output_plate_compatibility(input_plates, output_plates[0]):
                 raise IncompatiblePlatesError("Parent plate does not match input plate")
 
             factor = MultiOutputFactor(tool=tool, source_node=source, sink_node=sink,
@@ -338,151 +351,49 @@ class Workflow(Printable):
         return factor
 
     @staticmethod
-    def check_plate_compatibility(input_plates, output_plate):
-        if len(input_plates) == 0:
-            if output_plate.parent is not None:
+    def check_plate_compatibility(tool, source_plate, sink_plate):
+        """
+        Checks whether the source and sink plate are compatible given the tool
+        :param tool: The tool
+        :param source_plate: The source plate
+        :param sink_plate: The sink plate
+        :return: Either an error, or None
+        :type tool: Tool
+        :type source_plate: Plate
+        :type sink_plate: Plate
+        :rtype: None | str
+        """
+        if sink_plate == source_plate.parent:
+            return None
+
+        # could be that they have the same meta data, but the sink plate is a simplification of the source
+        # plate (e.g. when using IndexOf tool)
+        if sink_plate.meta_data_id == source_plate.meta_data_id:
+            if all(v in set(source_plate.values) for v in sink_plate.values):
+                return None
+            else:
+                return "Sink plate {} is not a simplification of source plate {}".format(sink_plate, source_plate)
+
+        # Also check to see if the meta data differs by only one value
+        meta_data_diff = set(source_plate.ancestor_meta_data_ids) - set(sink_plate.ancestor_meta_data_ids)
+        if len(meta_data_diff) == 1:
+            # Is the diff value the same as the aggregation meta id passed to the aggregate tool
+            if tool.aggregation_meta_data not in meta_data_diff:
+                return "Aggregate tool meta data ({}) " \
+                       "does not match the diff between source and sink plates ({})".format(
+                        tool.aggregation_meta_data, list(meta_data_diff)[0])
+        else:
+            return "{} not in source's parent plates".format(sink_plate)
+
+    @staticmethod
+    def check_multi_output_plate_compatibility(source_plates, sink_plate):
+        if len(source_plates) == 0:
+            if sink_plate.parent is not None:
                 return False
         else:
-            if output_plate.parent is None:
+            if sink_plate.parent is None:
                 return False
             else:
-                if output_plate.parent.plate_id != input_plates[0].plate_id:
+                if sink_plate.parent.plate_id != source_plates[0].plate_id:
                     return False
         return True
-
-
-class WorkflowManager(Printable):
-    """
-    Workflow manager. Responsible for reading and writing workflows to the database, and can execute all of the
-    workflows
-    """
-    def __init__(self, channel_manager, plates):
-        """
-        Initialise the workflow object
-        :param channel_manager: The channel manager
-        :param plates: All defined plates
-        """
-        self.channels = channel_manager
-        self.plates = plates
-        
-        self.workflows = FrozenKeyDict()
-        self.uncommitted_workflows = set()
-
-        with switch_db(WorkflowDefinitionModel, db_alias='hyperstream'):
-            for workflow_definition in WorkflowDefinitionModel.objects():
-                try:
-                    workflow = Workflow(
-                        channels=channel_manager,
-                        plates=plates,
-                        workflow_id=workflow_definition.workflow_id,
-                        name=workflow_definition.name,
-                        description=workflow_definition.description,
-                        owner=workflow_definition.owner
-                    )
-
-                    for n in workflow_definition.nodes:
-                        workflow.create_node(
-                            stream_name=n.stream_name,
-                            channel=channel_manager.get_channel(n.channel_id),
-                            plate_ids=n.plate_ids)
-
-                    # NOTE that we have to replicate the factor over the plate
-                    # This is fairly simple in the case of
-                    # 1. a single plate.
-                    # However we can have:
-                    # 2. nested plates
-                    # 3. intersecting plates
-                    # 4. a combination of 2. and 3.
-
-                    # TODO: alignment node
-                    for f in workflow_definition.factors:
-                        continue
-                        source_nodes = [workflow.nodes[s] for s in f.sources]
-                        sink_node = workflow.nodes[f.sink]
-
-                        # sort the plate lists by increasing length
-                        factor_plates = sorted([plates[plate_id] for plate_id in
-                                                list(itertools.chain.from_iterable(s.plate_ids for s in source_nodes))],
-                                               key=lambda x: len(x))
-
-                        # TODO: Here we need to get the sub-graph of the plate tree so that we can build our for loops
-                        # later
-                        # TODO: One for loop for each level of nesting
-                        tool = channel_manager.get_tool(
-                            name=f.tool.name,
-                            parameters=f.tool.parameters)
-                        workflow.create_factor(tool, source_nodes, sink_node, None)
-
-                    self.add_workflow(workflow, False)
-                except StreamNotFoundError as e:
-                    logging.error(str(e))
-
-    def add_workflow(self, workflow, commit=False):
-        """
-        Add a new workflow and optionally commit it to the database
-        :param workflow: The workflow
-        :param commit: Whether to commit the workflow to the database
-        :type workflow: Workflow
-        :type commit: bool
-        :return: None
-        """
-        if workflow.workflow_id in self.workflows:
-            raise KeyError("Workflow with id {} already exists".format(workflow.workflow_id))
-
-        self.workflows[workflow.workflow_id] = workflow
-        logging.info("Added workflow {} to workflow manager".format(workflow.workflow_id))
-        
-        # Optionally also save the workflow to database
-        if commit:
-            self.commit_workflow(workflow.workflow_id)
-        else:
-            self.uncommitted_workflows.add(workflow.workflow_id)
-    
-    def commit_workflow(self, workflow_id):
-        """
-        Commit the workflow to the database
-        :param workflow_id: The workflow id
-        :return: None
-        """
-        # TODO: We should also be committing the Stream definitions if there are new ones
-        
-        workflow = self.workflows[workflow_id]
-        
-        workflow_definition = WorkflowDefinitionModel(
-            workflow_id=workflow.workflow_id,
-            name=workflow.name,
-            description=workflow.description,
-            nodes=[NodeDefinitionModel(stream_name=n.stream_name, plate_ids=n.plate_ids) for n in workflow.nodes],
-            factors=[FactorDefinitionModel(tool=f.tool, sources=[s.stream_id for s in f.sources], sink=f.sink.stream_id)
-                     for f in workflow.factors],
-            owner=workflow.owner
-        )
-        
-        workflow_definition.save()
-        self.uncommitted_workflows.remove(workflow_id)
-        logging.info("Committed workflow {} to database".format(workflow_id))
-    
-    def commit_all(self):
-        """
-        Commit all workflows to the database
-        :return: None
-        """
-        for workflow_id in self.uncommitted_workflows:
-            self.commit_workflow(workflow_id)
-    
-    # def execute_all(self):
-    #     """
-    #     Execute all workflows
-    #     """
-    #     for workflow in self.workflows:
-    #         self.workflows[workflow].execute()
-    
-    def create_plate(self, plate, commit=False):
-        """
-        Create a plate. Make sure all workflows can use it, and optionally commit it to database
-        :param plate: The plate
-        :param commit: Commit to database
-        :return: None
-        """
-        # TODO: Add the plate, make sure all workflows can use it, and optionally commit it to database
-        raise NotImplementedError

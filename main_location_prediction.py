@@ -126,6 +126,10 @@ if __name__ == '__main__':
     print_head("rss",           h1 + wA,    locs,       time_interval, 10, print)
     print_head("rss_time",      h1 + wA,    locs_eids,  time_interval, 10, print)
 
+    # TODO: Example of training on one set of data and testing on another
+    # TODO: Example of training on several sets of data and testing on other sets
+    raise NotImplementedError
+
     exit(0)
 
     # TODO just two for now
