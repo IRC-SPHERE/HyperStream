@@ -27,8 +27,8 @@ import datetime
 import pytz
 
 
-DATA_PATH = '/../data/2016_10_17_multiresident_annotations_from_sion_anonymised/location_annotations_unique_dt.csv'
-META_PATH = '/../data/2016_10_17_multiresident_annotations_from_sion_anonymised/occurrence_times_manually.txt'
+DATA_PATH = '../data/2016_10_17_multiresident_annotations_from_sion_anonymised/location_annotations_unique_dt.csv'
+META_PATH = '../data/2016_10_17_multiresident_annotations_from_sion_anonymised/occurrence_times_manually.txt'
 
 
 def unix2datetime(u):
