@@ -58,9 +58,16 @@ class Plate(Printable):
         self.parent = parent_plate
 
     def _get_ancestors(self, current=None):
+        """
+        Gets the ancestors of this node
+        :param current: The current ancestor list
+        :return: The ancestor list
+        :type current: list[Plate] | list[str] | list[unicode] | None
+        :rtype: list[Plate] | list[str] | list[unicode]
+        """
         if not current:
             current = []
-        current.insert(0, self.plate_id)
+        current.insert(0, self)
         if self.is_root:
             if current:
                 return current
@@ -68,8 +75,16 @@ class Plate(Printable):
             return self.parent._get_ancestors(current)
 
     @property
-    def ancestors(self):
-        return self._get_ancestors()
+    def ancestor_plate_ids(self):
+        return [p.plate_id for p in self.ancestor_plates]
+
+    @property
+    def ancestor_plates(self):
+        return self._get_ancestors(current=None)
+
+    @property
+    def ancestor_meta_data_ids(self):
+        return [p.meta_data_id for p in self.ancestor_plates]
 
     @property
     def is_root(self):

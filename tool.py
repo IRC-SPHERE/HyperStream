@@ -205,6 +205,10 @@ class AggregateTool(Tool):
     and the aggregation is over plate B, the results will live on plate A alone.
     This can also be thought of as marginalising one dimension of a tensor over the plates
     """
+    def __init__(self, aggregation_meta_data, **kwargs):
+        super(AggregateTool, self).__init__(aggregation_meta_data=aggregation_meta_data, **kwargs)
+        self.aggregation_meta_data = aggregation_meta_data
+
     def _execute(self, sources, alignment_stream, interval):
         raise NotImplementedError
 
