@@ -23,15 +23,12 @@ Workflow and WorkflowManager definitions.
 
 import itertools
 import logging
-from mongoengine.context_managers import switch_db
 
 from factor import Factor, MultiOutputFactor
-from ..utils import StreamNotFoundError, IncompatiblePlatesError, FactorDefinitionError
 from node import Node
-from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
 from ..stream import StreamId
 from ..tool import Tool, MultiOutputTool, AggregateTool
-from ..utils import Printable, FrozenKeyDict, TypedFrozenKeyDict
+from ..utils import Printable, TypedFrozenKeyDict, IncompatiblePlatesError, FactorDefinitionError
 
 
 class Workflow(Printable):
@@ -374,140 +371,3 @@ class Workflow(Printable):
                 if output_plate.parent.plate_id != input_plates[0].plate_id:
                     return False
         return True
-
-
-class WorkflowManager(Printable):
-    """
-    Workflow manager. Responsible for reading and writing workflows to the database, and can execute all of the
-    workflows
-    """
-    def __init__(self, channel_manager, plates):
-        """
-        Initialise the workflow object
-        :param channel_manager: The channel manager
-        :param plates: All defined plates
-        """
-        self.channels = channel_manager
-        self.plates = plates
-        
-        self.workflows = FrozenKeyDict()
-        self.uncommitted_workflows = set()
-
-        with switch_db(WorkflowDefinitionModel, db_alias='hyperstream'):
-            for workflow_definition in WorkflowDefinitionModel.objects():
-                try:
-                    workflow = Workflow(
-                        channels=channel_manager,
-                        plates=plates,
-                        workflow_id=workflow_definition.workflow_id,
-                        name=workflow_definition.name,
-                        description=workflow_definition.description,
-                        owner=workflow_definition.owner
-                    )
-
-                    for n in workflow_definition.nodes:
-                        workflow.create_node(
-                            stream_name=n.stream_name,
-                            channel=channel_manager.get_channel(n.channel_id),
-                            plate_ids=n.plate_ids)
-
-                    # NOTE that we have to replicate the factor over the plate
-                    # This is fairly simple in the case of
-                    # 1. a single plate.
-                    # However we can have:
-                    # 2. nested plates
-                    # 3. intersecting plates
-                    # 4. a combination of 2. and 3.
-
-                    # TODO: alignment node
-                    for f in workflow_definition.factors:
-                        continue
-                        source_nodes = [workflow.nodes[s] for s in f.sources]
-                        sink_node = workflow.nodes[f.sink]
-
-                        # sort the plate lists by increasing length
-                        factor_plates = sorted([plates[plate_id] for plate_id in
-                                                list(itertools.chain.from_iterable(s.plate_ids for s in source_nodes))],
-                                               key=lambda x: len(x))
-
-                        # TODO: Here we need to get the sub-graph of the plate tree so that we can build our for loops
-                        # later
-                        # TODO: One for loop for each level of nesting
-                        tool = channel_manager.get_tool(
-                            name=f.tool.name,
-                            parameters=f.tool.parameters)
-                        workflow.create_factor(tool, source_nodes, sink_node, None)
-
-                    self.add_workflow(workflow, False)
-                except StreamNotFoundError as e:
-                    logging.error(str(e))
-
-    def add_workflow(self, workflow, commit=False):
-        """
-        Add a new workflow and optionally commit it to the database
-        :param workflow: The workflow
-        :param commit: Whether to commit the workflow to the database
-        :type workflow: Workflow
-        :type commit: bool
-        :return: None
-        """
-        if workflow.workflow_id in self.workflows:
-            raise KeyError("Workflow with id {} already exists".format(workflow.workflow_id))
-
-        self.workflows[workflow.workflow_id] = workflow
-        logging.info("Added workflow {} to workflow manager".format(workflow.workflow_id))
-        
-        # Optionally also save the workflow to database
-        if commit:
-            self.commit_workflow(workflow.workflow_id)
-        else:
-            self.uncommitted_workflows.add(workflow.workflow_id)
-    
-    def commit_workflow(self, workflow_id):
-        """
-        Commit the workflow to the database
-        :param workflow_id: The workflow id
-        :return: None
-        """
-        # TODO: We should also be committing the Stream definitions if there are new ones
-        
-        workflow = self.workflows[workflow_id]
-        
-        workflow_definition = WorkflowDefinitionModel(
-            workflow_id=workflow.workflow_id,
-            name=workflow.name,
-            description=workflow.description,
-            nodes=[NodeDefinitionModel(stream_name=n.stream_name, plate_ids=n.plate_ids) for n in workflow.nodes],
-            factors=[FactorDefinitionModel(tool=f.tool, sources=[s.stream_id for s in f.sources], sink=f.sink.stream_id)
-                     for f in workflow.factors],
-            owner=workflow.owner
-        )
-        
-        workflow_definition.save()
-        self.uncommitted_workflows.remove(workflow_id)
-        logging.info("Committed workflow {} to database".format(workflow_id))
-    
-    def commit_all(self):
-        """
-        Commit all workflows to the database
-        :return: None
-        """
-        for workflow_id in self.uncommitted_workflows:
-            self.commit_workflow(workflow_id)
-    
-    # def execute_all(self):
-    #     """
-    #     Execute all workflows
-    #     """
-    #     for workflow in self.workflows:
-    #         self.workflows[workflow].execute()
-    
-    def create_plate(self, plate, commit=False):
-        """
-        Create a plate. Make sure all workflows can use it, and optionally commit it to database
-        :param plate: The plate
-        :param commit: Commit to database
-        :return: None
-        """
-        # TODO: Add the plate, make sure all workflows can use it, and optionally commit it to database
-        raise NotImplementedError
