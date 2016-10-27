@@ -198,6 +198,21 @@ class MultiOutputTool(Printable, Hashable):
                     self.name, required_intervals, source))
 
 
+class AggregateTool(Tool):
+    """
+    This type of tool aggregates over a given plate.
+    For example, if the input is all the streams in a node on plate A.B,
+    and the aggregation is over plate B, the results will live on plate A alone.
+    This can also be thought of as marginalising one dimension of a tensor over the plates
+    """
+    def __init__(self, aggregation_meta_data, **kwargs):
+        super(AggregateTool, self).__init__(aggregation_meta_data=aggregation_meta_data, **kwargs)
+        self.aggregation_meta_data = aggregation_meta_data
+
+    def _execute(self, sources, alignment_stream, interval):
+        raise NotImplementedError
+
+
 def check_input_stream_count(expected_number_of_streams):
     """
     Decorator for Tool._execute that checks the number of input streams
