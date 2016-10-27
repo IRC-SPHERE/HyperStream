@@ -23,17 +23,15 @@ Workflow and WorkflowManager definitions.
 
 import itertools
 import logging
-
 from mongoengine.context_managers import switch_db
-from collections import defaultdict
 
 from factor import Factor, MultiOutputFactor
-from ..utils import StreamNotFoundError, IncompatiblePlatesError, NodeAlreadyExistsError, FactorAlreadyExistsError
+from ..utils import StreamNotFoundError, IncompatiblePlatesError, FactorDefinitionError
 from node import Node
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
 from ..stream import StreamId
 from ..tool import Tool, MultiOutputTool, AggregateTool
-from ..utils import Printable, FrozenKeyDict, TypedFrozenKeyDict, LinkageError
+from ..utils import Printable, FrozenKeyDict, TypedFrozenKeyDict
 
 
 class Workflow(Printable):
@@ -146,8 +144,8 @@ class Workflow(Printable):
             raise NotImplementedError
 
         # Need to walk up the tree from each plate to find a matching position (possibly the root)
-        s0 = set(self.plates[plate_ids[0]].ancestors)
-        s1 = self.plates[plate_ids[1]].ancestors
+        s0 = set(self.plates[plate_ids[0]].ancestor_plate_ids)
+        s1 = self.plates[plate_ids[1]].ancestor_plate_ids
         intersection = list(s0.intersection(s1))
         difference = list(s0.symmetric_difference(s1))
 
@@ -159,7 +157,7 @@ class Workflow(Printable):
             for plate_id in plate_ids:
                 # First of all check that the intersection is at the beginning of the lists,
                 # otherwise something has gone wrong
-                if p != self.plates[plate_id].ancestors[i]:
+                if p != self.plates[plate_id].ancestor_plate_ids[i]:
                     raise ValueError("Error in plate specification. Intersection between plates is not valid.")
 
         # Now we need the cartesian product of all of the intersection values
@@ -229,16 +227,36 @@ class Workflow(Printable):
             raise ValueError("Expected Tool, got {}".format(type(tool)))
 
         if sink.plate_ids:
-            if sources:
-                # Check that the plates are compatible
-                source_plates = itertools.chain(*(source.plate_ids for source in sources))
-                source_parents = set(self.plates[p].parent for source in sources for p in source.plate_ids)
-                if isinstance(tool, AggregateTool):
-                    # Check if the parent plate is valid instead
-                    for p in sink.plate_ids:
-                        if self.plates[p] not in source_parents:
-                            raise IncompatiblePlatesError("{} not in source's parent plates".format(p))
-                else:
+            if isinstance(tool, AggregateTool):
+                if not sources or len(sources) != 1:
+                    raise FactorDefinitionError("Aggregate tools require a single source node")
+
+                if not sources[0].plate_ids or len(sources[0].plate_ids) != 1:
+                    raise FactorDefinitionError("Aggregate tools require source node to live on a single plate")
+
+                if len(sink.plate_ids) != 1:
+                    raise FactorDefinitionError("Aggregate tools require sink node to live on a single plate")
+
+                # Check if the parent plate is valid instead
+                source_plate = self.plates[sources[0].plate_ids[0]]
+                sink_plate = self.plates[sink.plate_ids[0]]
+
+                if sink_plate != source_plate.parent:
+                    # Also check to see if the meta data differs by only one value
+                    meta_data_diff = set(source_plate.ancestor_meta_data_ids) - set(sink_plate.ancestor_meta_data_ids)
+                    if len(meta_data_diff) == 1:
+                        # Is the diff value the same as the aggregation meta id passed to the aggregate tool
+                        if tool.aggregation_meta_data not in meta_data_diff:
+                            raise IncompatiblePlatesError(
+                                "Aggregate tool meta data ({}) does not match the diff "
+                                "between source and sink plates ({})".format(
+                                    tool.aggregation_meta_data, list(meta_data_diff)[0]))
+                    else:
+                        raise IncompatiblePlatesError("{} not in source's parent plates".format(sink_plate))
+            else:
+                if sources:
+                    # Check that the plates are compatible
+                    source_plates = itertools.chain(*(source.plate_ids for source in sources))
                     for p in sink.plate_ids:
                         if p not in set(source_plates):
                             raise IncompatiblePlatesError("{} not in source plates".format(p))
