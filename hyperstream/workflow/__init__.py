@@ -20,5 +20,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 from factor import Factor
 from node import Node
-from plate import Plate, PlateManager
-from workflow import Workflow, WorkflowManager
+from plate import Plate
+from plate_manager import PlateManager
+from workflow import Workflow
+from workflow_manager import WorkflowManager
