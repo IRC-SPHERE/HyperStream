@@ -388,7 +388,7 @@ class HyperStreamQueryTests(unittest.TestCase):
         assert motion == [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]
     
         md = n_average_motion.streams[house_1].window(interval).values()[:10]
-        assert md == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0]
+        assert md == [0.0, 0.0, 0.0, 0.25, 0.25, 0.4, 0.25, 0.25, 0.0, 0.0]
 
     def test_workflow_chain2(self):
         interval = TimeInterval(t1, t1 + timedelta(minutes=10))
@@ -440,7 +440,7 @@ class HyperStreamQueryTests(unittest.TestCase):
         md = list(n_average_motion.streams[(('house', '1'),)].window(interval).values())[:10]
 
         # print(md)
-        assert md == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0]
+        assert md == [0.0, 0.0, 0.0, 0.25, 0.25, 0.4, 0.25, 0.25, 0.0, 0.0]
 
     def test_overlapping_plates(self):
         # TODO: Create test that involves multiple overlapping plates
