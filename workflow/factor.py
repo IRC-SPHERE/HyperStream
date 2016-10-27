@@ -130,7 +130,9 @@ class Factor(Printable):
 
         if self.sources:
             for source in self.sources:
-                if plate_value in source.streams:
+                if len(source.streams) == 1 and None in source.streams:
+                    sources.append(source.streams[None])
+                elif plate_value in source.streams:
                     sources.append(source.streams[plate_value])
                 else:
                     logging.warn("Plate {} with value {} not valid for source {}"
@@ -141,7 +143,7 @@ class Factor(Printable):
             parent_plate_value = tuple(pv for pv in plate_value if pv[0] != plate.meta_data_id)
             sources = self.get_sources(plate.parent, parent_plate_value, sources)
 
-        sources.extend(self.get_global_sources())
+        # sources.extend(self.get_global_sources())
 
         return sources
 
