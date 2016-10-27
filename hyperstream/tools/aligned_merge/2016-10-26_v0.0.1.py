@@ -22,34 +22,35 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from hyperstream.stream import StreamInstance
-from hyperstream.tool import Tool, check_input_stream_count
+from hyperstream.tool import Tool
 
 
 class AlignedMerge(Tool):
-    def __init__(self, names):
-        super(AlignedMerge, self).__init__(names=None)
+    def __init__(self, names=None):
+        super(AlignedMerge, self).__init__(names=names)
         self.names = names
     
-    # noinspection PyCompatibility
-#    @check_input_stream_count(2) # MK: cannot check because the number depends on the length of self.names
+    # Note: cannot check stream count because the number depends on the length of self.names
     def _execute(self, sources, alignment_stream, interval):
-        if (self.names is not None) and (len(self.names)!=len(sources)):
-            raise TypeError("Tool AlignedMerge expected {} streams as input, got {} instead".format(len(self.names),len(sources)))
+        if (self.names is not None) and (len(self.names) != len(sources)):
+            raise TypeError("Tool AlignedMerge expected {} streams as input, got {} instead".format(
+                len(self.names), len(sources)))
         streams = [iter(source.window(interval, force_calculation=True)) for source in sources]
 
         # Take data from the execute
         while True:
             try:
                 docs = [next(stream) for stream in streams]
-                times = [tt for (tt,dd) in docs]
+                times = [tt for (tt, dd) in docs]
                 for tt in times:
                     if tt!=times[0]:
-                        raise ValueError("Tool AlignedMerge expects aligned streams, but received conflicting timestamps {} and {}".format(times[0],tt))
-                values = [dd for (tt,dd) in docs]
+                        raise ValueError("Tool AlignedMerge expects aligned streams, "
+                                         "but received conflicting timestamps {} and {}".format(times[0], tt))
+                values = [dd for (tt, dd) in docs]
                 if self.names is None:
                     yield StreamInstance(times[0], values)
                 else:
-                    yield StreamInstance(times[0], dict([(self.names[i],values[i]) for i in range(len(self.names))]))
+                    yield StreamInstance(times[0], dict([(self.names[i], values[i]) for i in range(len(self.names))]))
             except StopIteration:
                 break
 
