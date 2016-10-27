@@ -18,12 +18,30 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from utils import MetaDataTree, Hashable, Printable, TypedBiDict, FrozenKeyDict, TypedFrozenKeyDict, HyperStreamLogger
-from time_utils import UTC, MIN_DATE, MAX_DATE, utcnow, get_timedelta
-from decorators import timeit, check_output_format, check_tool_defined
-from errors import StreamNotAvailableError, StreamAlreadyExistsError, StreamDataNotAvailableError, \
-    StreamNotFoundError, IncompatiblePlatesError, ToolNotFoundError, ChannelNotFoundError, ToolExecutionError, \
-    PlateEmptyError, PlateDefinitionError, LinkageError, FactorAlreadyExistsError, NodeAlreadyExistsError, \
-    FactorDefinitionError
+from hyperstream.tool import AggregateTool
 
+
+class IndexOf(AggregateTool):
+    """
+    This tool selects a single stream from a node, and places it on the appropriate plate
+    """
+    def __init__(self, index, aggregation_meta_data):
+        super(IndexOf, self).__init__(index=index, aggregation_meta_data=aggregation_meta_data)
+        self.index = index
+
+    def _execute(self, sources, alignment_stream, interval):
+
+        source = None
+        for s in sources:
+            if s.stream_id.meta_data == self.index:
+                source = s
+                break
+            if all(v in s.stream_id.meta_data for v in self.index):
+                source = s
+                break
+
+        if not source:
+            raise IndexError("Index {} not found in sources".format(self.index))
+
+        return source.window(interval, force_calculation=True)
 
