@@ -332,9 +332,9 @@ class HyperStreamQueryTests(unittest.TestCase):
             interval=interval
         )
         
-        assert(stream_memory_m_kitchen_mean.window(interval).values() == [
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.33333333333333337, 1.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        assert(stream_memory_m_kitchen_mean.window(interval).values() ==
+               [0.0, 0.0, 0.0, 0.25, 0.25, 0.4, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     def test_workflow_chain(self):
         interval = TimeInterval(t1, t1 + timedelta(minutes=10))

@@ -22,6 +22,7 @@
 import logging
 from mongoengine.context_managers import switch_db
 
+from . import Workflow
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
 from ..utils import Printable, FrozenKeyDict, StreamNotFoundError
 
