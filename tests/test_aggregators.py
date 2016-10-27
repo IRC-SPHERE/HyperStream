@@ -123,6 +123,24 @@ RSS_DEV_AVG = {
     ]
 }
 
+RSS_LOC_AVG = {
+    (('house', '1'), ('wearable', 'A')): [
+        StreamInstance(timestamp=datetime(2015, 8, 6, 13, 35, 36, 196000, tzinfo=UTC), value=-82.0),
+        StreamInstance(timestamp=datetime(2015, 8, 6, 13, 35, 36, 396000, tzinfo=UTC), value=-82.0),
+        StreamInstance(timestamp=datetime(2015, 8, 6, 13, 35, 36, 596000, tzinfo=UTC), value=-83.0),
+        StreamInstance(timestamp=datetime(2015, 8, 6, 13, 35, 36, 796000, tzinfo=UTC), value=-82.0),
+        StreamInstance(timestamp=datetime(2015, 8, 6, 13, 35, 36, 996000, tzinfo=UTC), value=-92.0),
+        StreamInstance(timestamp=datetime(2015, 8, 6, 13, 35, 37, 197000, tzinfo=UTC), value=-83.0),
+        StreamInstance(timestamp=datetime(2015, 8, 6, 13, 35, 37, 397000, tzinfo=UTC), value=-83.0),
+        StreamInstance(timestamp=datetime(2015, 8, 6, 13, 35, 37, 597000, tzinfo=UTC), value=-84.0),
+        StreamInstance(timestamp=datetime(2015, 8, 6, 13, 35, 37, 797000, tzinfo=UTC), value=-82.0),
+        StreamInstance(timestamp=datetime(2015, 8, 6, 13, 35, 37, 997000, tzinfo=UTC), value=-82.0)
+    ],
+    (('house', '1'), ('wearable', 'B')): [],
+    (('house', '1'), ('wearable', 'C')): [],
+    (('house', '1'), ('wearable', 'D')): []
+}
+
 # noinspection PyMethodMayBeStatic
 class HyperStreamAggregatorTests(unittest.TestCase):
     def test_basic_aggregator(self):
@@ -180,9 +198,8 @@ class HyperStreamAggregatorTests(unittest.TestCase):
         print_head(w, "rss", h1 + wA, locs, time_interval, 10, print)
         print_head(w, "rss_loc_avg", h1, wA, time_interval, 10, print)
 
-        # assert all(list(N["rss_loc_avg"].streams[k].window(time_interval).head(10)) == v
-        #            for k, v in RSS_LOC_AVG.items())
-        assert False
+        assert all(list(N["rss_loc_avg"].streams[k].window(time_interval).head(10)) == v
+                   for k, v in RSS_LOC_AVG.items())
 
     def test_subarray(self):
         assert False
@@ -193,3 +210,5 @@ class HyperStreamAggregatorTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+

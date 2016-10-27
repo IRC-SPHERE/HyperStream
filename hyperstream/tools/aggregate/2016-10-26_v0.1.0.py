@@ -32,7 +32,6 @@ class Aggregate(AggregateTool):
     def __init__(self, func, aggregation_meta_data):
         super(Aggregate, self).__init__(func=func, aggregation_meta_data=aggregation_meta_data)
         self.func = func
-        self.aggregation_meta_data = aggregation_meta_data
 
     def _execute(self, sources, alignment_stream, interval):
 
