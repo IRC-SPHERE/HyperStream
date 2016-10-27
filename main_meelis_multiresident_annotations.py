@@ -125,7 +125,7 @@ if __name__ == '__main__':
         ("vidloc_uid_align",  M, ["H1.W"]),                  # RSS by wearable id
         ("vidloc_rss",  M, ["H1.W"]),                  # RSS by wearable id
         ("vidloc_rss_anno",  M, ["H1.W"]),                  # RSS by wearable id
-        ("vidloc_rss_anno_json",  M, ["H1.W"]),                  # RSS by wearable id
+        ("vidloc_rss_anno_dict",  M, ["H1.W"]),                  # RSS by wearable id
         ("rss_vec",     M, ["H1.W"]),                  # RSS by wearable id
         ("rss_counter", M, ["H1.W"]),                  # RSS by wearable id
         ("rss_aid",     M, ["H1.L"]),                  # RSS by access point id
@@ -220,11 +220,11 @@ if __name__ == '__main__':
     )
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
-            name="jsonify",
+            name="multiresident_reformat",
             parameters=dict()
         ),
         sources=[N["vidloc_rss_anno"]],
-        sink=N["vidloc_rss_anno_json"]
+        sink=N["vidloc_rss_anno_dict"]
     )
 
 #    w.create_factor(tool=tools.wearable_rss_values, sources=[N["rss_aid_uid"]], sink=N["rss"])
@@ -239,18 +239,19 @@ if __name__ == '__main__':
 #    time_interval = scripted_experiments.intervals[0] + (-1, 0)
 
 #    w.execute(exp_times.span)
-    w.execute(TimeInterval(exp_times.start,exp_times.start+datetime.timedelta(hours=48)))
+    w.execute(TimeInterval(exp_times.start,exp_times.start+datetime.timedelta(minutes=5)))
+#    w.execute(TimeInterval(exp_times.start,exp_times.start+datetime.timedelta(hours=48)))
 
-    file = open("vidloc_rss_anno.csv","w")
-    file.write("dt,wearable,person,exper,camera,rssi1,rssi2,rssi3\n")
-    for wearable in ["A","B","C","D"]:
-        stream = M.data[StreamId(name="vidloc_rss_anno",meta_data=(("house","1"),("wearable",wearable)))]
-        for t in sorted(stream):
-            anno = stream[t]["anno"]
-            rssi = stream[t]["rssi"]
-            row = [str(t),wearable,str(anno["person_id"]),str(anno["exper_id"]),str(anno["camera_id"])] + [str(x) for x in rssi]
-            file.write(",".join(row)+"\n")
-    file.close()
+###    file = open("vidloc_rss_anno.csv","w")
+###    file.write("dt,wearable,person,exper,camera,rssi1,rssi2,rssi3\n")
+###    for wearable in ["A","B","C","D"]:
+###        stream = M.data[StreamId(name="vidloc_rss_anno",meta_data=(("house","1"),("wearable",wearable)))]
+###        for t in sorted(stream):
+###            anno = stream[t]["anno"]
+###            rssi = stream[t]["rssi"]
+###            row = [str(t),wearable,str(anno["person_id"]),str(anno["exper_id"]),str(anno["camera_id"])] + [str(x) for x in rssi]
+###            file.write(",".join(row)+"\n")
+###    file.close()
 
 
 #    w.execute(time_interval)
