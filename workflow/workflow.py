@@ -238,18 +238,9 @@ class Workflow(Printable):
                 source_plate = self.plates[sources[0].plate_ids[0]]
                 sink_plate = self.plates[sink.plate_ids[0]]
 
-                if sink_plate != source_plate.parent:
-                    # Also check to see if the meta data differs by only one value
-                    meta_data_diff = set(source_plate.ancestor_meta_data_ids) - set(sink_plate.ancestor_meta_data_ids)
-                    if len(meta_data_diff) == 1:
-                        # Is the diff value the same as the aggregation meta id passed to the aggregate tool
-                        if tool.aggregation_meta_data not in meta_data_diff:
-                            raise IncompatiblePlatesError(
-                                "Aggregate tool meta data ({}) does not match the diff "
-                                "between source and sink plates ({})".format(
-                                    tool.aggregation_meta_data, list(meta_data_diff)[0]))
-                    else:
-                        raise IncompatiblePlatesError("{} not in source's parent plates".format(sink_plate))
+                error = self.check_plate_compatibility(tool, source_plate, sink_plate)
+                if error is not None:
+                    raise IncompatiblePlatesError(error)
             else:
                 if sources:
                     # Check that the plates are compatible
@@ -310,7 +301,7 @@ class Workflow(Printable):
             raise ValueError("No output plate found")
 
         if len(output_plates) == 1:
-            if not self.check_plate_compatibility(input_plates, output_plates[0]):
+            if not self.check_multi_output_plate_compatibility(input_plates, output_plates[0]):
                 raise IncompatiblePlatesError("Parent plate does not match input plate")
 
             factor = MultiOutputFactor(tool=tool, source_node=source, sink_node=sink,
@@ -360,14 +351,49 @@ class Workflow(Printable):
         return factor
 
     @staticmethod
-    def check_plate_compatibility(input_plates, output_plate):
-        if len(input_plates) == 0:
-            if output_plate.parent is not None:
+    def check_plate_compatibility(tool, source_plate, sink_plate):
+        """
+        Checks whether the source and sink plate are compatible given the tool
+        :param tool: The tool
+        :param source_plate: The source plate
+        :param sink_plate: The sink plate
+        :return: Either an error, or None
+        :type tool: Tool
+        :type source_plate: Plate
+        :type sink_plate: Plate
+        :rtype: None | str
+        """
+        if sink_plate == source_plate.parent:
+            return None
+
+        # could be that they have the same meta data, but the sink plate is a simplification of the source
+        # plate (e.g. when using IndexOf tool)
+        if sink_plate.meta_data_id == source_plate.meta_data_id:
+            if all(v in set(source_plate.values) for v in sink_plate.values):
+                return None
+            else:
+                return "Sink plate {} is not a simplification of source plate {}".format(sink_plate, source_plate)
+
+        # Also check to see if the meta data differs by only one value
+        meta_data_diff = set(source_plate.ancestor_meta_data_ids) - set(sink_plate.ancestor_meta_data_ids)
+        if len(meta_data_diff) == 1:
+            # Is the diff value the same as the aggregation meta id passed to the aggregate tool
+            if tool.aggregation_meta_data not in meta_data_diff:
+                return "Aggregate tool meta data ({}) " \
+                       "does not match the diff between source and sink plates ({})".format(
+                        tool.aggregation_meta_data, list(meta_data_diff)[0])
+        else:
+            return "{} not in source's parent plates".format(sink_plate)
+
+    @staticmethod
+    def check_multi_output_plate_compatibility(source_plates, sink_plate):
+        if len(source_plates) == 0:
+            if sink_plate.parent is not None:
                 return False
         else:
-            if output_plate.parent is None:
+            if sink_plate.parent is None:
                 return False
             else:
-                if output_plate.parent.plate_id != input_plates[0].plate_id:
+                if sink_plate.parent.plate_id != source_plates[0].plate_id:
                     return False
         return True
