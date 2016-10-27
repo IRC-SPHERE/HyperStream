@@ -31,9 +31,17 @@ class IndexOf(AggregateTool):
 
     def _execute(self, sources, alignment_stream, interval):
 
-        source = next(s for s in sources if s.stream_id.meta_data == self.index)
+        source = None
+        for s in sources:
+            if s.stream_id.meta_data == self.index:
+                source = s
+                break
+            if all(v in s.stream_id.meta_data for v in self.index):
+                source = s
+                break
+
         if not source:
             raise IndexError("Index {} not found in sources".format(self.index))
 
-        return source.window(interval)
+        return source.window(interval, force_calculation=True)
 
