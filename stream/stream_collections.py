@@ -18,9 +18,29 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
-from factor import Factor
-from node import Node
-from plate import Plate
-from plate_manager import PlateManager
-from workflow import Workflow
-from workflow_manager import WorkflowManager
+
+from . import Stream, StreamId, StreamInstance
+from ..utils import TypedBiDict, FrozenKeyDict
+
+
+class StreamDict(TypedBiDict):
+    """
+    Custom bi-directional dictionary where keys are StreamID objects and values are Stream objects.
+    Raises ValueDuplicationError if the same Stream is added again
+    """
+    def __init__(self, *args, **kwargs):
+        super(StreamDict, self).__init__(StreamId, Stream, *args, **kwargs)
+
+
+class StreamInstanceCollection(FrozenKeyDict):
+    """
+    A custom frozen dictionary for stream instances. Will raise an exception if a repeated instance is added
+    """
+    def append(self, instance):
+        if not (isinstance(instance, StreamInstance)):
+            raise ValueError("Expected StreamInstance, got {}".format(type(instance)))
+        self[instance.timestamp] = instance.value
+
+    def extend(self, instances):
+        for instance in instances:
+            self.append(instance)
