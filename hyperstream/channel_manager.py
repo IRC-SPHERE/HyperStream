@@ -146,14 +146,14 @@ class ChannelManager(dict, Printable):
                     continue
                 if tool_id in tool_channel:
                     # noinspection PyTypeChecker
-                    tool_stream_view = tool_channel[tool_id].window((MIN_DATE, self.tools.up_to_timestamp))
+                    tool_stream_view = tool_channel[tool_id].window((MIN_DATE, tool_channel.up_to_timestamp))
 
         if tool_stream_view is None:
             raise ToolNotFoundError(tool)
 
         # TODO: Use tool versions - here we just take the latest one
         return tool_stream_view.last().value
-
+        
     def get_tool(self, name, parameters):
         """
         Gets the tool object from the tool channel(s), and instantiates it using the tool parameters
