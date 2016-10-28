@@ -227,6 +227,7 @@ class Workflow(Printable):
                 if not sources or len(sources) != 1:
                     raise FactorDefinitionError("Aggregate tools require a single source node")
 
+                # TODO: Actually - it should be fine if the plates are all shared, except for the aggregation plate
                 if not sources[0].plate_ids or len(sources[0].plate_ids) != 1:
                     raise FactorDefinitionError("Aggregate tools require source node to live on a single plate")
 
