@@ -23,10 +23,12 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="index.html" />
     <link rel="up" title="hyperstream package" href="hyperstream.html" />
     <link rel="next" title="hyperstream.workflow package" href="hyperstream.workflow.html" />
-    <link rel="prev" title="hyperstream.models package" href="hyperstream.models.html" />
+    <link rel="prev" title="hyperstream.stream package" href="hyperstream.stream.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -71,6 +73,129 @@
 <dd></dd></dl>
 
 </div>
+<div class="section" id="module-hyperstream.utils.errors">
+<span id="hyperstream-utils-errors-module"></span><h2>hyperstream.utils.errors module<a class="headerlink" href="#module-hyperstream.utils.errors" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="hyperstream.utils.errors.ChannelAlreadyExistsError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">ChannelAlreadyExistsError</code><a class="reference internal" href="_modules/hyperstream/utils/errors.html#ChannelAlreadyExistsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.ChannelAlreadyExistsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.ChannelNotFoundError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">ChannelNotFoundError</code><a class="reference internal" href="_modules/hyperstream/utils/errors.html#ChannelNotFoundError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.ChannelNotFoundError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.FactorAlreadyExistsError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">FactorAlreadyExistsError</code><a class="reference internal" href="_modules/hyperstream/utils/errors.html#FactorAlreadyExistsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.FactorAlreadyExistsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.utils.errors.FactorAlreadyExistsError.message">
+<code class="descname">message</code><em class="property"> = 'Cannot have duplicate factors - a new factor object should be created'</em><a class="headerlink" href="#hyperstream.utils.errors.FactorAlreadyExistsError.message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.FactorDefinitionError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">FactorDefinitionError</code><a class="reference internal" href="_modules/hyperstream/utils/errors.html#FactorDefinitionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.FactorDefinitionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.IncompatiblePlatesError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">IncompatiblePlatesError</code><a class="reference internal" href="_modules/hyperstream/utils/errors.html#IncompatiblePlatesError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.IncompatiblePlatesError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.LinkageError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">LinkageError</code><a class="reference internal" href="_modules/hyperstream/utils/errors.html#LinkageError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.LinkageError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.NodeAlreadyExistsError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">NodeAlreadyExistsError</code><a class="reference internal" href="_modules/hyperstream/utils/errors.html#NodeAlreadyExistsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.NodeAlreadyExistsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.utils.errors.NodeAlreadyExistsError.message">
+<code class="descname">message</code><em class="property"> = 'Cannot have duplicate nodes'</em><a class="headerlink" href="#hyperstream.utils.errors.NodeAlreadyExistsError.message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.PlateDefinitionError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">PlateDefinitionError</code><a class="reference internal" href="_modules/hyperstream/utils/errors.html#PlateDefinitionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.PlateDefinitionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.utils.errors.PlateDefinitionError.message">
+<code class="descname">message</code><em class="property"> = 'Empty values in plate definition and complement=False'</em><a class="headerlink" href="#hyperstream.utils.errors.PlateDefinitionError.message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.PlateEmptyError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">PlateEmptyError</code><span class="sig-paren">(</span><em>plate_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/utils/errors.html#PlateEmptyError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.PlateEmptyError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.utils.errors.PlateEmptyError.message">
+<code class="descname">message</code><em class="property"> = 'Plate values for {} empty'</em><a class="headerlink" href="#hyperstream.utils.errors.PlateEmptyError.message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.StreamAlreadyExistsError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">StreamAlreadyExistsError</code><a class="reference internal" href="_modules/hyperstream/utils/errors.html#StreamAlreadyExistsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.StreamAlreadyExistsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.StreamDataNotAvailableError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">StreamDataNotAvailableError</code><a class="reference internal" href="_modules/hyperstream/utils/errors.html#StreamDataNotAvailableError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.StreamDataNotAvailableError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.StreamNotAvailableError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">StreamNotAvailableError</code><span class="sig-paren">(</span><em>up_to_timestamp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/utils/errors.html#StreamNotAvailableError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.StreamNotAvailableError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.utils.errors.StreamNotAvailableError.message">
+<code class="descname">message</code><em class="property"> = 'The stream is not available after {} and cannot be calculated'</em><a class="headerlink" href="#hyperstream.utils.errors.StreamNotAvailableError.message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.StreamNotFoundError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">StreamNotFoundError</code><a class="reference internal" href="_modules/hyperstream/utils/errors.html#StreamNotFoundError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.StreamNotFoundError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.ToolExecutionError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">ToolExecutionError</code><span class="sig-paren">(</span><em>required_intervals</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/utils/errors.html#ToolExecutionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.ToolExecutionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<dl class="attribute">
+<dt id="hyperstream.utils.errors.ToolExecutionError.message">
+<code class="descname">message</code><em class="property"> = 'Tool execution did not cover the time interval {}.'</em><a class="headerlink" href="#hyperstream.utils.errors.ToolExecutionError.message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="hyperstream.utils.errors.ToolNotFoundError">
+<em class="property">exception </em><code class="descclassname">hyperstream.utils.errors.</code><code class="descname">ToolNotFoundError</code><a class="reference internal" href="_modules/hyperstream/utils/errors.html#ToolNotFoundError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.errors.ToolNotFoundError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+</div>
 <div class="section" id="module-hyperstream.utils.time_utils">
 <span id="hyperstream-utils-time-utils-module"></span><h2>hyperstream.utils.time_utils module<a class="headerlink" href="#module-hyperstream.utils.time_utils" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
@@ -101,6 +226,12 @@
 <code class="descname">name</code><a class="headerlink" href="#hyperstream.utils.utils.Hashable.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="hyperstream.utils.utils.HyperStreamLogger">
+<em class="property">class </em><code class="descclassname">hyperstream.utils.utils.</code><code class="descname">HyperStreamLogger</code><span class="sig-paren">(</span><em>path=u'/tmp'</em>, <em>filename=u'hyperstream'</em>, <em>loglevel=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/utils/utils.html#HyperStreamLogger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.utils.HyperStreamLogger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
@@ -179,6 +310,22 @@ Raises ValueDuplicationError if the same value is added again</p>
 
 </dd></dl>
 
+<dl class="class">
+<dt id="hyperstream.utils.utils.TypedFrozenKeyDict">
+<em class="property">class </em><code class="descclassname">hyperstream.utils.utils.</code><code class="descname">TypedFrozenKeyDict</code><span class="sig-paren">(</span><em>key_type</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/utils/utils.html#TypedFrozenKeyDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.utils.TypedFrozenKeyDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hyperstream.utils.utils.FrozenKeyDict" title="hyperstream.utils.utils.FrozenKeyDict"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.FrozenKeyDict</span></code></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="hyperstream.utils.utils.handle_exception">
+<code class="descclassname">hyperstream.utils.utils.</code><code class="descname">handle_exception</code><span class="sig-paren">(</span><em>exc_type</em>, <em>exc_value</em>, <em>exc_traceback</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/utils/utils.html#handle_exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.utils.handle_exception" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="hyperstream.utils.utils.touch">
+<code class="descclassname">hyperstream.utils.utils.</code><code class="descname">touch</code><span class="sig-paren">(</span><em>full_name</em>, <em>times=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/utils/utils.html#touch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.utils.utils.touch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-hyperstream.utils">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-hyperstream.utils" title="Permalink to this headline">¶</a></h2>
@@ -196,6 +343,7 @@ Raises ValueDuplicationError if the same value is added again</p>
 <li><a class="reference internal" href="#">hyperstream.utils package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-hyperstream.utils.decorators">hyperstream.utils.decorators module</a></li>
+<li><a class="reference internal" href="#module-hyperstream.utils.errors">hyperstream.utils.errors module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.utils.time_utils">hyperstream.utils.time_utils module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.utils.utils">hyperstream.utils.utils module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.utils">Module contents</a></li>
@@ -207,7 +355,7 @@ Raises ValueDuplicationError if the same value is added again</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
   <li><a href="hyperstream.html">hyperstream package</a><ul>
-      <li>Previous: <a href="hyperstream.models.html" title="previous chapter">hyperstream.models package</a></li>
+      <li>Previous: <a href="hyperstream.stream.html" title="previous chapter">hyperstream.stream package</a></li>
       <li>Next: <a href="hyperstream.workflow.html" title="next chapter">hyperstream.workflow package</a></li>
   </ul></li>
   </ul></li>
@@ -238,7 +386,7 @@ Raises ValueDuplicationError if the same value is added again</p>
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |

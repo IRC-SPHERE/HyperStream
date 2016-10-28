@@ -23,6 +23,8 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" />
    
@@ -92,14 +94,14 @@
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">module_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
                 <span class="c1"># logging.debug(&#39;importing: &#39; + module_file)</span>
                 <span class="n">module_name</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">pp</span><span class="p">:</span> <span class="n">sub</span><span class="p">(</span><span class="s1">r&#39;[^a-zA-Z0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">pp</span><span class="p">),</span> <span class="n">module_file_components</span><span class="p">))</span>
-                
+
                 <span class="n">module</span> <span class="o">=</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_module</span><span class="p">(</span>
                     <span class="n">module_name</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">module_file</span><span class="p">,</span>
                     <span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">,</span> <span class="n">imp</span><span class="o">.</span><span class="n">PY_SOURCE</span><span class="p">)</span>
                 <span class="p">)</span>
-                
+
                 <span class="k">return</span> <span class="n">module</span>
-        
+
         <span class="k">return</span> <span class="n">tool_info</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="n">module_importer</span></div></div>
 </pre></div>
 
@@ -134,7 +136,7 @@
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
     </div>

@@ -23,6 +23,8 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" />
    
@@ -69,6 +71,17 @@
 <span class="kn">from</span> <span class="nn">treelib.tree</span> <span class="k">import</span> <span class="n">Tree</span><span class="p">,</span> <span class="n">NodePropertyAbsentError</span><span class="p">,</span> <span class="n">NodeIDAbsentError</span>
 <span class="kn">import</span> <span class="nn">simplejson</span> <span class="k">as</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">bidict</span> <span class="k">import</span> <span class="n">bidict</span><span class="p">,</span> <span class="n">ValueDuplicationError</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="c1"># import coloredlogs</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">__version__</span>
+
+<span class="c1"># The next two lines are to fix the &quot;UnicodeDecodeError: &#39;ascii&#39; codec can&#39;t decode byte&quot; error</span>
+<span class="c1">#  http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte</span>
+<span class="n">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span>
 
 
 <span class="nd">@python_2_unicode_compatible</span>
@@ -271,8 +284,83 @@
 <div class="viewcode-block" id="FrozenKeyDict"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.utils.utils.FrozenKeyDict">[docs]</a><span class="k">class</span> <span class="nc">FrozenKeyDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Key </span><span class="si">{}</span><span class="s2"> already exists&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+            <span class="c1"># Try to reconcile the new value with the old</span>
+            <span class="n">old</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">old</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">value</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">!=</span> <span class="n">old</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+                            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                                <span class="s2">&quot;Key </span><span class="si">{}</span><span class="s2"> has already been set with value </span><span class="si">{}</span><span class="s2">, new value </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value</span><span class="p">))</span>
+                        <span class="k">continue</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Key </span><span class="si">{}</span><span class="s2"> has already been set with value </span><span class="si">{}</span><span class="s2">, new value </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value</span><span class="p">))</span>
+            <span class="k">return</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">FrozenKeyDict</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TypedFrozenKeyDict"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.utils.utils.TypedFrozenKeyDict">[docs]</a><span class="k">class</span> <span class="nc">TypedFrozenKeyDict</span><span class="p">(</span><span class="n">FrozenKeyDict</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_type</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key_type</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expected type, got </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">key_type</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key_type</span> <span class="o">=</span> <span class="n">key_type</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TypedFrozenKeyDict</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_type</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Expected type </span><span class="si">{}</span><span class="s2">, got </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_type</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)))</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TypedFrozenKeyDict</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="touch"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.utils.utils.touch">[docs]</a><span class="k">def</span> <span class="nf">touch</span><span class="p">(</span><span class="n">full_name</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">full_name</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">full_name</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="handle_exception"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.utils.utils.handle_exception">[docs]</a><span class="k">def</span> <span class="nf">handle_exception</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="ne">KeyboardInterrupt</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">__excepthook__</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Uncaught exception&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="HyperStreamLogger"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.utils.utils.HyperStreamLogger">[docs]</a><span class="k">class</span> <span class="nc">HyperStreamLogger</span><span class="p">(</span><span class="n">Printable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/tmp&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;hyperstream&#39;</span><span class="p">,</span> <span class="n">loglevel</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">):</span>
+        <span class="c1"># coloredlogs.install(level=loglevel)</span>
+        <span class="n">log_formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> [</span><span class="si">%(levelname)-5.5s</span><span class="s2">]  </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">root_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+        <span class="n">root_logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">loglevel</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.log&#39;</span><span class="p">):</span>
+            <span class="n">filename</span> <span class="o">+=</span> <span class="s1">&#39;.log&#39;</span>
+        <span class="n">full_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="n">touch</span><span class="p">(</span><span class="n">full_name</span><span class="p">)</span>
+
+        <span class="n">file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">full_name</span><span class="p">)</span>
+        <span class="n">file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">log_formatter</span><span class="p">)</span>
+        <span class="n">root_logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">file_handler</span><span class="p">)</span>
+
+        <span class="n">console_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+        <span class="n">console_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">log_formatter</span><span class="p">)</span>
+        <span class="n">root_logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">console_handler</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="c1"># stream_handler = logging.StreamHandler()</span>
+        <span class="c1"># stream_handler.setFormatter(log_formatter)</span>
+        <span class="c1"># memory_handler = logging.handlers.MemoryHandler(1024 * 10, root_logger.level, stream_handler)</span>
+        <span class="c1"># root_logger.addHandler(memory_handler)</span>
+
+        <span class="c1"># Capture warnings</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">captureWarnings</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Capture uncaught exceptions</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">excepthook</span> <span class="o">=</span> <span class="n">handle_exception</span>
+
+        <span class="c1"># logging.config.dictConfig(LOGGING)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;HyperStream version: &quot;</span> <span class="o">+</span> <span class="n">__version__</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -306,7 +394,7 @@
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
     </div>

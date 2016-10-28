@@ -23,6 +23,8 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" />
    
@@ -61,27 +63,41 @@
 <span class="c1"># DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR</span>
 <span class="c1"># OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE</span>
 <span class="c1"># OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Node module.</span>
+
+<span class="sd">Nodes are a collection of streams defined by shared meta-data keys (plates), and are connected in the</span>
+<span class="sd">computational graph by factors.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">..stream</span> <span class="k">import</span> <span class="n">StreamId</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">Printable</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
 
 
 <div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.node.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="n">Printable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A node in the graph. This consists of a set of streams defined over a set of plates</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">,</span> <span class="n">streams</span><span class="p">,</span> <span class="n">plate_ids</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">,</span> <span class="n">streams</span><span class="p">,</span> <span class="n">plate_ids</span><span class="p">,</span> <span class="n">plate_values</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialise the node</span>
 <span class="sd">        :param node_id: The node id</span>
 <span class="sd">        :param streams: The streams, organised as a nested dictionary with plate objects as keys at the top level,</span>
 <span class="sd">        and then plate values (tuple(sorted(plate_values.items())) as the keys at the next level</span>
 <span class="sd">        :param plate_ids: The plate ids</span>
+<span class="sd">        :param plate_values: The plate values (populated meta data)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">node_id</span> <span class="o">=</span> <span class="n">node_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">streams</span> <span class="o">=</span> <span class="n">streams</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">streams</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">stream</span><span class="o">.</span><span class="n">parent_node</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_factor</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># reference to the factor that defines this node. Required for upstream computation</span>
+
         <span class="c1"># TODO: Remove plate IDs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plate_ids</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">plate_ids</span><span class="p">)</span> <span class="k">if</span> <span class="n">plate_ids</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plate_values</span> <span class="o">=</span> <span class="n">plate_values</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When defining streams, it will be useful to be able to query node objects</span>
@@ -91,21 +107,89 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
-    <span class="c1"># def __iter__(self):</span>
-    <span class="c1">#     return iter(self.streams)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_factor</span>
+
+    <span class="nd">@factor</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_factor</span> <span class="o">=</span> <span class="n">value</span>
 
 <div class="viewcode-block" id="Node.intersection"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.node.Node.intersection">[docs]</a>    <span class="k">def</span> <span class="nf">intersection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meta</span><span class="p">):</span>
-        <span class="c1"># TODO: Why only streams[0] below?</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the intersection between the meta data given and the meta data contained within the plates.</span>
+<span class="sd">        Since all of the streams have the same meta data keys (but differing values) we only need to consider</span>
+<span class="sd">        the first stream.</span>
+<span class="sd">        :param meta: The meta data to compare</span>
+<span class="sd">        :return: A stream id with the intersection between this node&#39;s meta data and the given meta data</span>
+<span class="sd">        :type meta: dict</span>
+<span class="sd">        :rtype: StreamId</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">meta_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">StreamId</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">((</span><span class="n">kk</span><span class="p">,</span> <span class="n">meta</span><span class="p">[</span><span class="n">kk</span><span class="p">])</span> <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">)))</span></div>
 
-<div class="viewcode-block" id="Node.print_head"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.node.Node.print_head">[docs]</a>    <span class="k">def</span> <span class="nf">print_head</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plate_value</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">plate_value</span><span class="p">]</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No data&quot;</span><span class="p">)</span></div></div>
+<div class="viewcode-block" id="Node.print_head"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.node.Node.print_head">[docs]</a>    <span class="k">def</span> <span class="nf">print_head</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent_plate_value</span><span class="p">,</span> <span class="n">plate_values</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">print_func</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print the first n values from the streams in the given time interval.</span>
+<span class="sd">        The parent plate value is the value of the parent plate,</span>
+<span class="sd">        and then the plate values are the values for the plate that are to be printed.</span>
+<span class="sd">         e.g. print_head()</span>
+<span class="sd">        :param parent_plate_value: The (fixed) parent plate value</span>
+<span class="sd">        :param plate_values: The plate values over which to loop</span>
+<span class="sd">        :param interval: The time interval</span>
+<span class="sd">        :param n: The maximum number of elements to print</span>
+<span class="sd">        :param print_func: The function used for printing (e.g. logging.info() or print())</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Deferred import to avoid circular dependence</span>
+        <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Plate</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plate_values</span><span class="p">,</span> <span class="n">Plate</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">print_head</span><span class="p">(</span><span class="n">parent_plate_value</span><span class="p">,</span> <span class="n">plate_values</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">print_func</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">plate_values</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">plate_values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plate_values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">print_head</span><span class="p">(</span><span class="n">parent_plate_value</span><span class="p">,</span> <span class="p">(</span><span class="n">plate_values</span><span class="p">,),</span> <span class="n">interval</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">print_func</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">plate_value</span> <span class="ow">in</span> <span class="n">plate_values</span><span class="p">:</span>
+            <span class="n">combined_plate_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combine_plate_values</span><span class="p">(</span><span class="n">parent_plate_value</span><span class="p">,</span> <span class="n">plate_value</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">combined_plate_value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+                <span class="c1"># This can happen if we have created a compound plate and only certain plate values are valid</span>
+                <span class="k">continue</span>
+
+            <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">print_func</span><span class="p">(</span><span class="s2">&quot;Plate value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">combined_plate_value</span><span class="p">))</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">combined_plate_value</span><span class="p">]</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">print_func</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">print_func</span><span class="p">(</span><span class="s2">&quot;No data&quot;</span><span class="p">)</span>
+            <span class="n">print_func</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+            <span class="n">print_func</span><span class="p">(</span><span class="s2">&quot;No streams found for the given plate values&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Node.combine_plate_values"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.node.Node.combine_plate_values">[docs]</a>    <span class="k">def</span> <span class="nf">combine_plate_values</span><span class="p">(</span><span class="n">parent_plate_value</span><span class="p">,</span> <span class="n">plate_value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Combine the plate value(s) with the parent plate value(s)</span>
+<span class="sd">        :param parent_plate_value: The parent plate value(s)</span>
+<span class="sd">        :param plate_value: The plate value(s)</span>
+<span class="sd">        :return: The combined plate values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">parent_plate_value</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plate_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">unicode</span><span class="p">)):</span>
+                <span class="n">combined_plate_value</span> <span class="o">=</span> <span class="n">parent_plate_value</span> <span class="o">+</span> <span class="p">(</span><span class="n">plate_value</span><span class="p">,)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plate_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">combined_plate_value</span> <span class="o">=</span> <span class="n">parent_plate_value</span> <span class="o">+</span> <span class="n">plate_value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unknown plate value type&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">combined_plate_value</span> <span class="o">=</span> <span class="n">plate_value</span>
+
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">combined_plate_value</span><span class="p">))</span></div></div>
 </pre></div>
 
           </div>
@@ -139,7 +223,7 @@
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
     </div>

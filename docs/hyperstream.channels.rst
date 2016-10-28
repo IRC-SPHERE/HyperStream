@@ -44,14 +44,6 @@ hyperstream.channels.module_channel module
     :undoc-members:
     :show-inheritance:
 
-hyperstream.channels.sphere_channel module
-------------------------------------------
-
-.. automodule:: hyperstream.channels.sphere_channel
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 hyperstream.channels.tool_channel module
 ----------------------------------------
 
