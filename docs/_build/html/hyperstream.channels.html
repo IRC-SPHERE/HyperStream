@@ -23,6 +23,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="index.html" />
     <link rel="up" title="hyperstream package" href="hyperstream.html" />
     <link rel="next" title="hyperstream.itertools2 package" href="hyperstream.itertools2.html" />
@@ -151,6 +153,7 @@ return(f)</dd>
 <code class="descname">get_stream_writer</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/database_channel.html#DatabaseChannel.get_stream_writer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.database_channel.DatabaseChannel.get_stream_writer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets the database channel writer
 The mongoengine model checks whether a stream_id/datetime pair already exists in the DB (unique pairs)
+Should be overridden by users&#8217; personal channels - allows for non-mongo outputs.
 :param stream: The stream
 :return: The stream writer function</p>
 </dd></dl>
@@ -233,9 +236,19 @@ Uses semantic version.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="hyperstream.channels.memory_channel.MemoryChannel.clear_all">
+<code class="descname">clear_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel.clear_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel.clear_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all streams in the channel - use with caution!
+:return: None</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="hyperstream.channels.memory_channel.MemoryChannel.clear_stream">
 <code class="descname">clear_stream</code><span class="sig-paren">(</span><em>stream_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel.clear_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel.clear_stream" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Clears all the data in a given stream
+:param stream_id: The stream id
+:return: None</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.channels.memory_channel.MemoryChannel.create_stream">
@@ -261,6 +274,11 @@ identifier stream_id</p>
 <dl class="method">
 <dt id="hyperstream.channels.memory_channel.MemoryChannel.get_stream_writer">
 <code class="descname">get_stream_writer</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/memory_channel.html#MemoryChannel.get_stream_writer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel.get_stream_writer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.channels.memory_channel.MemoryChannel.non_empty_streams">
+<code class="descname">non_empty_streams</code><a class="headerlink" href="#hyperstream.channels.memory_channel.MemoryChannel.non_empty_streams" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -347,29 +365,6 @@ respective module</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-hyperstream.channels.sphere_channel">
-<span id="hyperstream-channels-sphere-channel-module"></span><h2>hyperstream.channels.sphere_channel module<a class="headerlink" href="#module-hyperstream.channels.sphere_channel" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="hyperstream.channels.sphere_channel.SphereChannel">
-<em class="property">class </em><code class="descclassname">hyperstream.channels.sphere_channel.</code><code class="descname">SphereChannel</code><span class="sig-paren">(</span><em>channel_id</em>, <em>up_to_timestamp=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/sphere_channel.html#SphereChannel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.sphere_channel.SphereChannel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hyperstream.channels.memory_channel.MemoryChannel" title="hyperstream.channels.memory_channel.MemoryChannel"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.channels.memory_channel.MemoryChannel</span></code></a></p>
-<p>SPHERE MongoDB storing the raw sensor data</p>
-<dl class="method">
-<dt id="hyperstream.channels.sphere_channel.SphereChannel.update_streams">
-<code class="descname">update_streams</code><span class="sig-paren">(</span><em>up_to_timestamp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/sphere_channel.html#SphereChannel.update_streams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.sphere_channel.SphereChannel.update_streams" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call this function to report to the system that the SPHERE MongoDB is fully populated until up_to_timestamp</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hyperstream.channels.sphere_channel.SphereDataWindow">
-<em class="property">class </em><code class="descclassname">hyperstream.channels.sphere_channel.</code><code class="descname">SphereDataWindow</code><span class="sig-paren">(</span><em>time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channels/sphere_channel.html#SphereDataWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channels.sphere_channel.SphereDataWindow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sphere_connector_package.sphere_connector.experiment.DataWindow</span></code></p>
-<p>Helper class to use the global sphere_connector object</p>
-</dd></dl>
-
-</div>
 <div class="section" id="module-hyperstream.channels.tool_channel">
 <span id="hyperstream-channels-tool-channel-module"></span><h2>hyperstream.channels.tool_channel module<a class="headerlink" href="#module-hyperstream.channels.tool_channel" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -405,7 +400,6 @@ respective module</p>
 <li><a class="reference internal" href="#module-hyperstream.channels.file_channel">hyperstream.channels.file_channel module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.channels.memory_channel">hyperstream.channels.memory_channel module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.channels.module_channel">hyperstream.channels.module_channel module</a></li>
-<li><a class="reference internal" href="#module-hyperstream.channels.sphere_channel">hyperstream.channels.sphere_channel module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.channels.tool_channel">hyperstream.channels.tool_channel module</a></li>
 <li><a class="reference internal" href="#module-hyperstream.channels">Module contents</a></li>
 </ul>
@@ -447,7 +441,7 @@ respective module</p>
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |

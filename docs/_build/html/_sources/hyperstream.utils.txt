@@ -12,6 +12,14 @@ hyperstream.utils.decorators module
     :undoc-members:
     :show-inheritance:
 
+hyperstream.utils.errors module
+-------------------------------
+
+.. automodule:: hyperstream.utils.errors
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 hyperstream.utils.time_utils module
 -----------------------------------
 

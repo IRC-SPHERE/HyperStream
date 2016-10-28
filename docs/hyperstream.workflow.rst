@@ -28,10 +28,26 @@ hyperstream.workflow.plate module
     :undoc-members:
     :show-inheritance:
 
+hyperstream.workflow.plate_manager module
+-----------------------------------------
+
+.. automodule:: hyperstream.workflow.plate_manager
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 hyperstream.workflow.workflow module
 ------------------------------------
 
 .. automodule:: hyperstream.workflow.workflow
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+hyperstream.workflow.workflow_manager module
+--------------------------------------------
+
+.. automodule:: hyperstream.workflow.workflow_manager
     :members:
     :undoc-members:
     :show-inheritance:

@@ -23,6 +23,8 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" />
    
@@ -63,14 +65,13 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Database channel module.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">base_channel</span> <span class="k">import</span> <span class="n">BaseChannel</span>
-<span class="kn">from</span> <span class="nn">..models</span> <span class="k">import</span> <span class="n">StreamInstanceModel</span>
-<span class="kn">from</span> <span class="nn">..stream</span> <span class="k">import</span> <span class="n">StreamInstance</span><span class="p">,</span> <span class="n">DatabaseStream</span>
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="k">import</span> <span class="n">StreamAlreadyExistsError</span>
-
-<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">mongoengine</span> <span class="k">import</span> <span class="n">NotUniqueError</span>
 <span class="kn">from</span> <span class="nn">mongoengine.context_managers</span> <span class="k">import</span> <span class="n">switch_db</span>
+
+<span class="kn">from</span> <span class="nn">base_channel</span> <span class="k">import</span> <span class="n">BaseChannel</span>
+<span class="kn">from</span> <span class="nn">hyperstream.utils.errors</span> <span class="k">import</span> <span class="n">StreamAlreadyExistsError</span>
+<span class="kn">from</span> <span class="nn">..models</span> <span class="k">import</span> <span class="n">StreamInstanceModel</span>
+<span class="kn">from</span> <span class="nn">..stream</span> <span class="k">import</span> <span class="n">StreamInstance</span><span class="p">,</span> <span class="n">DatabaseStream</span>
 
 
 <div class="viewcode-block" id="DatabaseChannel"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel">[docs]</a><span class="k">class</span> <span class="nc">DatabaseChannel</span><span class="p">(</span><span class="n">BaseChannel</span><span class="p">):</span>
@@ -92,10 +93,6 @@
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
-        <span class="c1"># intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])</span>
-        <span class="c1"># for stream in self.streams:</span>
-        <span class="c1">#     stream.calculated_intervals = intervals</span>
-        <span class="c1"># self.up_to_timestamp = up_to_timestamp</span>
 
 <div class="viewcode-block" id="DatabaseChannel.get_results"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.database_channel.DatabaseChannel.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -130,6 +127,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gets the database channel writer</span>
 <span class="sd">        The mongoengine model checks whether a stream_id/datetime pair already exists in the DB (unique pairs)</span>
+<span class="sd">        Should be overridden by users&#39; personal channels - allows for non-mongo outputs.</span>
 <span class="sd">        :param stream: The stream</span>
 <span class="sd">        :return: The stream writer function</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -137,7 +135,9 @@
         <span class="k">def</span> <span class="nf">writer</span><span class="p">(</span><span class="n">document_collection</span><span class="p">):</span>
             <span class="k">with</span> <span class="n">switch_db</span><span class="p">(</span><span class="n">StreamInstanceModel</span><span class="p">,</span> <span class="s1">&#39;hyperstream&#39;</span><span class="p">):</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">document_collection</span><span class="p">,</span> <span class="n">StreamInstance</span><span class="p">):</span>
-                    <span class="n">t</span><span class="p">,</span> <span class="n">doc</span> <span class="o">=</span> <span class="n">document_collection</span>
+                    <span class="n">document_collection</span> <span class="o">=</span> <span class="p">[</span><span class="n">document_collection</span><span class="p">]</span>
+
+                <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">document_collection</span><span class="p">:</span>
                     <span class="n">instance</span> <span class="o">=</span> <span class="n">StreamInstanceModel</span><span class="p">(</span>
                         <span class="n">stream_id</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
                         <span class="n">datetime</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
@@ -145,26 +145,13 @@
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">instance</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
                     <span class="k">except</span> <span class="n">NotUniqueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                        <span class="c1"># TODO: Should now be fixed</span>
-                        <span class="c1"># pass</span>
-                        <span class="k">raise</span> <span class="n">e</span>
-                        <span class="c1"># logging.warn(e)</span>
-
-                <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># TODO: Presumably this should be overridden by users&#39; personal channels - allows for non-mongo outputs.</span>
-                    <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">document_collection</span><span class="p">:</span>
-                        <span class="n">instance</span> <span class="o">=</span> <span class="n">StreamInstanceModel</span><span class="p">(</span>
-                            <span class="n">stream_id</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
-                            <span class="n">datetime</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
-                            <span class="n">value</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
-                        <span class="k">try</span><span class="p">:</span>
-                            <span class="n">instance</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
-                        <span class="k">except</span> <span class="n">NotUniqueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                            <span class="c1"># TODO: Should now be fixed</span>
-                            <span class="c1"># pass</span>
+                        <span class="c1"># Implies that this has already been written to the database</span>
+                        <span class="c1"># Raise an error if the value differs from that in the database</span>
+                        <span class="n">existing</span> <span class="o">=</span> <span class="n">StreamInstanceModel</span><span class="o">.</span><span class="n">objects</span><span class="p">(</span><span class="n">stream_id</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="n">datetime</span><span class="o">=</span><span class="n">t</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">existing</span><span class="o">.</span><span class="n">value</span> <span class="o">!=</span> <span class="n">doc</span><span class="p">:</span>
                             <span class="k">raise</span> <span class="n">e</span>
-                            <span class="c1"># logging.warn(e)</span>
-            <span class="k">return</span> <span class="n">writer</span></div></div>
+
+        <span class="k">return</span> <span class="n">writer</span></div></div>
 </pre></div>
 
           </div>
@@ -198,7 +185,7 @@
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
     </div>

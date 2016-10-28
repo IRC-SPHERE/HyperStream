@@ -23,9 +23,11 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="index.html" />
     <link rel="up" title="hyperstream package" href="hyperstream.html" />
-    <link rel="next" title="hyperstream.utils package" href="hyperstream.utils.html" />
+    <link rel="next" title="hyperstream.stream package" href="hyperstream.stream.html" />
     <link rel="prev" title="hyperstream.itertools2 package" href="hyperstream.itertools2.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -161,8 +163,15 @@ of the field to be used as a list in the database.</p>
 
 <dl class="attribute">
 <dt id="hyperstream.models.plate.PlateDefinitionModel.objects">
-<code class="descclassname">PlateDefinitionModel.</code><code class="descname">objects</code><em class="property"> = []</em><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel.objects" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">PlateDefinitionModel.</code><code class="descname">objects</code><a class="headerlink" href="#hyperstream.models.plate.PlateDefinitionModel.objects" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default QuerySet Manager.</p>
+<p>Custom QuerySet Manager functions can extend this class and users can
+add extra queryset functionality.  Any custom manager methods must accept a
+<code class="xref py py-class docutils literal"><span class="pre">Document</span></code> class as its first argument, and a
+<code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code> as its second argument.</p>
+<p>The method function should return a <code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code>
+, probably the same one that was passed in, but modified in some way.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="hyperstream.models.plate.PlateDefinitionModel.parent_plate">
@@ -256,8 +265,15 @@ of the field to be used as a list in the database.</p>
 
 <dl class="attribute">
 <dt id="hyperstream.models.stream.StreamDefinitionModel.objects">
-<code class="descclassname">StreamDefinitionModel.</code><code class="descname">objects</code><em class="property"> = []</em><a class="headerlink" href="#hyperstream.models.stream.StreamDefinitionModel.objects" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">StreamDefinitionModel.</code><code class="descname">objects</code><a class="headerlink" href="#hyperstream.models.stream.StreamDefinitionModel.objects" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default QuerySet Manager.</p>
+<p>Custom QuerySet Manager functions can extend this class and users can
+add extra queryset functionality.  Any custom manager methods must accept a
+<code class="xref py py-class docutils literal"><span class="pre">Document</span></code> class as its first argument, and a
+<code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code> as its second argument.</p>
+<p>The method function should return a <code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code>
+, probably the same one that was passed in, but modified in some way.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="hyperstream.models.stream.StreamDefinitionModel.sandbox">
@@ -349,8 +365,15 @@ need accurate microsecond support.</dd>
 
 <dl class="attribute">
 <dt id="hyperstream.models.stream.StreamInstanceModel.objects">
-<code class="descclassname">StreamInstanceModel.</code><code class="descname">objects</code><em class="property"> = []</em><a class="headerlink" href="#hyperstream.models.stream.StreamInstanceModel.objects" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">StreamInstanceModel.</code><code class="descname">objects</code><a class="headerlink" href="#hyperstream.models.stream.StreamInstanceModel.objects" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default QuerySet Manager.</p>
+<p>Custom QuerySet Manager functions can extend this class and users can
+add extra queryset functionality.  Any custom manager methods must accept a
+<code class="xref py py-class docutils literal"><span class="pre">Document</span></code> class as its first argument, and a
+<code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code> as its second argument.</p>
+<p>The method function should return a <code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code>
+, probably the same one that was passed in, but modified in some way.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="hyperstream.models.stream.StreamInstanceModel.stream_id">
@@ -449,8 +472,15 @@ need accurate microsecond support.</dd>
 
 <dl class="attribute">
 <dt id="hyperstream.models.stream.StreamStatusModel.objects">
-<code class="descclassname">StreamStatusModel.</code><code class="descname">objects</code><em class="property"> = []</em><a class="headerlink" href="#hyperstream.models.stream.StreamStatusModel.objects" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">StreamStatusModel.</code><code class="descname">objects</code><a class="headerlink" href="#hyperstream.models.stream.StreamStatusModel.objects" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default QuerySet Manager.</p>
+<p>Custom QuerySet Manager functions can extend this class and users can
+add extra queryset functionality.  Any custom manager methods must accept a
+<code class="xref py py-class docutils literal"><span class="pre">Document</span></code> class as its first argument, and a
+<code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code> as its second argument.</p>
+<p>The method function should return a <code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code>
+, probably the same one that was passed in, but modified in some way.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="hyperstream.models.stream.StreamStatusModel.stream_id">
@@ -625,8 +655,15 @@ embedded documents to provide additional query helpers.</p>
 
 <dl class="attribute">
 <dt id="hyperstream.models.workflow.WorkflowDefinitionModel.objects">
-<code class="descclassname">WorkflowDefinitionModel.</code><code class="descname">objects</code><em class="property"> = []</em><a class="headerlink" href="#hyperstream.models.workflow.WorkflowDefinitionModel.objects" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">WorkflowDefinitionModel.</code><code class="descname">objects</code><a class="headerlink" href="#hyperstream.models.workflow.WorkflowDefinitionModel.objects" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default QuerySet Manager.</p>
+<p>Custom QuerySet Manager functions can extend this class and users can
+add extra queryset functionality.  Any custom manager methods must accept a
+<code class="xref py py-class docutils literal"><span class="pre">Document</span></code> class as its first argument, and a
+<code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code> as its second argument.</p>
+<p>The method function should return a <code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code>
+, probably the same one that was passed in, but modified in some way.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="hyperstream.models.workflow.WorkflowDefinitionModel.owner">
@@ -718,8 +755,15 @@ need accurate microsecond support.</dd>
 
 <dl class="attribute">
 <dt id="hyperstream.models.workflow.WorkflowStatusModel.objects">
-<code class="descclassname">WorkflowStatusModel.</code><code class="descname">objects</code><em class="property"> = []</em><a class="headerlink" href="#hyperstream.models.workflow.WorkflowStatusModel.objects" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">WorkflowStatusModel.</code><code class="descname">objects</code><a class="headerlink" href="#hyperstream.models.workflow.WorkflowStatusModel.objects" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default QuerySet Manager.</p>
+<p>Custom QuerySet Manager functions can extend this class and users can
+add extra queryset functionality.  Any custom manager methods must accept a
+<code class="xref py py-class docutils literal"><span class="pre">Document</span></code> class as its first argument, and a
+<code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code> as its second argument.</p>
+<p>The method function should return a <code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code>
+, probably the same one that was passed in, but modified in some way.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="hyperstream.models.workflow.WorkflowStatusModel.requested_intervals">
@@ -782,7 +826,7 @@ embedded documents to provide additional query helpers.</p>
   <li><a href="index.html">Documentation overview</a><ul>
   <li><a href="hyperstream.html">hyperstream package</a><ul>
       <li>Previous: <a href="hyperstream.itertools2.html" title="previous chapter">hyperstream.itertools2 package</a></li>
-      <li>Next: <a href="hyperstream.utils.html" title="next chapter">hyperstream.utils package</a></li>
+      <li>Next: <a href="hyperstream.stream.html" title="next chapter">hyperstream.stream package</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -812,7 +856,7 @@ embedded documents to provide additional query helpers.</p>
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |

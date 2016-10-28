@@ -23,6 +23,8 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" />
    
@@ -64,8 +66,7 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">pymongo</span>
-<span class="kn">from</span> <span class="nn">mongoengine</span> <span class="k">import</span> <span class="n">connect</span>
-<span class="kn">from</span> <span class="nn">sphere_connector_package.sphere_connector.utils</span> <span class="k">import</span> <span class="n">get_value_safe</span>
+<span class="kn">from</span> <span class="nn">mongoengine</span> <span class="k">import</span> <span class="n">connect</span><span class="p">,</span> <span class="n">connection</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">pymongo.errors</span> <span class="k">import</span> <span class="n">ServerSelectionTimeoutError</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -114,9 +115,16 @@
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;authentication_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;authentication_database&#39;</span><span class="p">]</span>
             <span class="k">del</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;authentication_database&#39;</span><span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">connect</span><span class="p">(</span><span class="n">alias</span><span class="o">=</span><span class="s2">&quot;hyperstream&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">connect</span><span class="p">(</span><span class="n">alias</span><span class="o">=</span><span class="s2">&quot;hyperstream&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span>
+
+        <span class="c1"># TODO: This sets the default connection of mongoengine, but seems to be a bit of a hack</span>
+        <span class="k">if</span> <span class="s2">&quot;default&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">connection</span><span class="o">.</span><span class="n">_connections</span><span class="p">:</span>
+            <span class="n">connection</span><span class="o">.</span><span class="n">_connections</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">_connections</span><span class="p">[</span><span class="s2">&quot;hyperstream&quot;</span><span class="p">]</span>
+            <span class="n">connection</span><span class="o">.</span><span class="n">_connection_settings</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">_connection_settings</span><span class="p">[</span><span class="s2">&quot;hyperstream&quot;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Client.get_config_value"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.client.Client.get_config_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_config_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">get_value_safe</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">d</span> <span class="k">else</span> <span class="n">default</span>
         <span class="k">return</span> <span class="n">get_value_safe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server_config</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span></div></div>
 </pre></div>
 
@@ -151,7 +159,7 @@
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
     </div>
