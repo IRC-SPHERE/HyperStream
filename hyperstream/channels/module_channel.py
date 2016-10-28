@@ -49,12 +49,12 @@ class ModuleChannel(FileChannel):
             with open(module_file, 'rb') as fp:
                 # logging.debug('importing: ' + module_file)
                 module_name = '_'.join(map(lambda pp: sub(r'[^a-zA-Z0-9]', '_', pp), module_file_components))
-                
+
                 module = imp.load_module(
                     module_name, fp, module_file,
                     ('.py', 'rb', imp.PY_SOURCE)
                 )
-                
+
                 return module
-        
+
         return tool_info.version, module_importer

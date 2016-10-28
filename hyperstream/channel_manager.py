@@ -20,51 +20,51 @@
 
 import inspect
 import logging
-from collections import namedtuple
-
+# from collections import namedtuple
 from mongoengine import DoesNotExist, MultipleObjectsReturned
 from mongoengine.context_managers import switch_db
 
-from . import StreamNotFoundError, StreamAlreadyExistsError, ChannelNotFoundError, ToolNotFoundError
 from models import StreamDefinitionModel, StreamStatusModel
 from stream import StreamId, DatabaseStream
 from time_interval import TimeIntervals
-from utils import Printable, utcnow, MIN_DATE
+from utils import Printable, utcnow, MIN_DATE, StreamAlreadyExistsError, ChannelNotFoundError, ToolNotFoundError, \
+    ChannelAlreadyExistsError
+from channels import ToolChannel, MemoryChannel, DatabaseChannel
 
-ChannelCollectionBase = namedtuple("ChannelCollectionBase", "tools sphere memory mongo", verbose=False, rename=False)
 
-
-class ChannelManager(ChannelCollectionBase, Printable):
+class ChannelManager(dict, Printable):
     """
-    Container for the predefined channels.
+    Container for channels.
     """
-    def __new__(cls, tool_path):
-        """
-        This is immutable, so we use new instead of init
-        Note that we use deferred imports to avoid circular dependencies
-        :param tool_path: The tool path
-        :return: the ChannelManager object
-        """
-        from channels import ToolChannel, SphereChannel, MemoryChannel, DatabaseChannel
-        self = super(ChannelManager, cls).__new__(cls,
-                                                  tools=ToolChannel("tools", tool_path, up_to_timestamp=utcnow()),
-                                                  sphere=SphereChannel("sphere"),
-                                                  memory=MemoryChannel("memory"),
-                                                  mongo=DatabaseChannel("mongo"))
+    def __init__(self, plugins, **kwargs):
+        super(ChannelManager, self).__init__(**kwargs)
+
+        # See this answer http://stackoverflow.com/a/14620633 for why we do the following:
+        self.__dict__ = self
+
+        self.tools = ToolChannel("tools", "hyperstream/tools", up_to_timestamp=utcnow())
+        self.memory = MemoryChannel("memory")
+        self.mongo = DatabaseChannel("mongo")
+
+        for plugin in plugins:
+            for channel in plugin.load():
+                if channel.channel_id in self:
+                    raise ChannelAlreadyExistsError(channel.channel_id)
+                self[channel.channel_id] = channel
 
         self.update_channels()
-        return self
 
-    def get_stream(self, stream_id):
-        """
-        Searches all of the channels for a particular stream by id
-        :param stream_id: The stream id
-        :return: The stream reference
-        """
-        for channel in self:
-            if stream_id in channel.streams:
-                return channel.streams[stream_id]
-        raise StreamNotFoundError("{} not found in channels".format(stream_id))
+    @property
+    def tool_channels(self):
+        return [c for c in self.values() if isinstance(c, ToolChannel)]
+
+    @property
+    def memory_channels(self):
+        return [c for c in self.values() if isinstance(c, MemoryChannel)]
+
+    @property
+    def database_channels(self):
+        return [c for c in self.values() if isinstance(c, DatabaseChannel)]
 
     def get_channel(self, channel_id):
         """
@@ -72,10 +72,10 @@ class ChannelManager(ChannelCollectionBase, Printable):
         :param channel_id: The channel id
         :return: The channel object
         """
-        for channel in self:
-            if channel.channel_id == channel_id:
-                return channel
-        raise ChannelNotFoundError("Channel {} not found".format(channel_id))
+        try:
+            return self[channel_id]
+        except KeyError:
+            raise ChannelNotFoundError("Channel {} not found".format(channel_id))
 
     def update_channels(self):
         """
@@ -134,13 +134,29 @@ class ChannelManager(ChannelCollectionBase, Printable):
         else:
             raise TypeError(tool)
 
-        tool_stream_view = self.tools[tool_id].window((MIN_DATE, self.tools.up_to_timestamp))
+        tool_stream_view = None
+
+        # Look in the main tool channel first
+        if tool_id in self.tools:
+            tool_stream_view = self.tools[tool_id].window((MIN_DATE, self.tools.up_to_timestamp))
+        else:
+            # Otherwise look through all the channels in the order they were defined
+            for tool_channel in self.tool_channels:
+                if tool_channel == self.tools:
+                    continue
+                if tool_id in tool_channel:
+                    # noinspection PyTypeChecker
+                    tool_stream_view = tool_channel[tool_id].window((MIN_DATE, self.tools.up_to_timestamp))
+
+        if tool_stream_view is None:
+            raise ToolNotFoundError(tool)
+
         # TODO: Use tool versions - here we just take the latest one
         return tool_stream_view.last().value
 
     def get_tool(self, name, parameters):
         """
-        Gets the tool object from the tool channel, and instantiates it using the tool parameters
+        Gets the tool object from the tool channel(s), and instantiates it using the tool parameters
         :param name: The name or stream id for the tool in the tool channel
         :param parameters: The parameters for the tool
         :return: The instantiated tool object

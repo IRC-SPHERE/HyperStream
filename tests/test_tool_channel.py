@@ -20,7 +20,7 @@
 
 from hyperstream import Stream
 from hyperstream.utils import MIN_DATE, utcnow
-# from hyperstream.modifiers import *
+
 import unittest
 from helpers import *
 
@@ -32,8 +32,11 @@ class TestToolChannel(unittest.TestCase):
         assert(isinstance(clock_stream, Stream))
         # assert(clock_stream.modifier == Last() + IData())
 
-        sphere_silhouette_stream = T.streams[sphere_silhouette]
+        sphere_silhouette_stream = channels["sphere_tools"].streams[sphere_silhouette]
         assert(sphere_silhouette_stream.channel.can_create is False)
 
-        agg_stream_view = T[aggregate].window((MIN_DATE, utcnow()))
-        assert(len(agg_stream_view.items()) > 1)
+        agg = T[aggregate].window((MIN_DATE, utcnow())).items()
+        assert(len(agg) > 0)
+        assert(str(agg[0]) ==
+               "StreamInstance(timestamp=datetime.datetime(2016, 10, 26, 0, 0, tzinfo=<UTC>), "
+               "value=<class 'hyperstream_tools_aggregate_2016_10_26_v0_1_0.Aggregate'>)")

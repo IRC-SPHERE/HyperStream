@@ -17,26 +17,3 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
-
-from hyperstream.tool import Tool, check_input_stream_count
-from hyperstream.channels.sphere_channel import SphereDataWindow
-from hyperstream.stream import StreamInstance
-
-
-def reformat(doc):
-    dt = doc['datetime']
-    del doc['datetime']
-    
-    return StreamInstance(dt, doc)
-
-
-class Sphere(Tool):
-    def __init__(self, modality):
-        super(Sphere, self).__init__(modality=modality)
-        self.modality = modality
-    
-    @check_input_stream_count(0)
-    def _execute(self, sources, alignment_stream, interval):
-        window = SphereDataWindow(interval)
-        source = window.modalities[self.modality]
-        yield map(reformat, source.get_data())

@@ -19,7 +19,8 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.tool import Tool, check_input_stream_count
-from hyperstream.channels.sphere_channel import SphereDataWindow
+
+from plugins.sphere.channels.sphere_channel import SphereDataWindow
 
 
 class SphereSilhouette(Tool):
