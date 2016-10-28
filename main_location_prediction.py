@@ -72,11 +72,13 @@ if __name__ == '__main__':
             lambda x: x['identifier'].split('.')[1].split('_')[1]))
 
     nodes = (
-        ("rss_raw",     M, ["H1"]),                    # Raw RSS data
-        ("rss_aid",     M, ["H1.L"]),                  # RSS by access point id
-        ("rss_aid_uid", M, ["H1.L.W"]),                # RSS by access point id and device id
-        ("rss",         M, ["H1.L.W"]),                # RSS values only (by access point id and device id)
-        ("rss_time",    M, ["H1.L.W", "H1.scripted"])  # RSS values per scripted experiment
+        ("rss_raw",     M, ["H1"]),                       # Raw RSS data
+        ("rss_aid",     M, ["H1.L"]),                     # RSS by access point id
+        ("rss_aid_uid", M, ["H1.L.W"]),                   # RSS by access point id and device id
+        ("rss",         M, ["H1.L.W"]),                   # RSS values only (by access point id and device id)
+        ("rss_time",    M, ["H1.L.W", "H1.scripted"]),    # RSS values per scripted experiment
+        ("rss_train",   M, ["H1.L.W", "H1.scripted_1"]),  # RSS values scripted experiment 1
+        ("rss_test",    M, ["H1.L.W", "H1.scripted_2"]),  # RSS values scripted experiment 2
     )
 
     # Create all of the nodes
@@ -105,7 +107,17 @@ if __name__ == '__main__':
 
     # Now we want to split by time interval onto a time-oriented plate
     # N["rss_time"] = w.create_node(stream_name="rss_time", channel=M, plate_ids=["H.L", "H.scripted"])
-    f = w.create_multi_output_factor(tool=tools.split_time, source=N["rss"], sink=N["rss_time"])
+    w.create_multi_output_factor(tool=tools.split_time, source=N["rss"], sink=N["rss_time"])
+
+    f = w.create_factor(
+        tool=tools.index_of_1,
+        sources=[N["rss_time"]],
+        sink=N["rss_train"])
+
+    # w.create_factor(
+    #     tool=tools.index_of_2,
+    #     sources=[N["rss_time"]],
+    #     sink=N["rss_test"])
 
     # time_interval = scripted_experiments.span
     # time_interval = TimeInterval(scripted_experiments.intervals[0].start,
