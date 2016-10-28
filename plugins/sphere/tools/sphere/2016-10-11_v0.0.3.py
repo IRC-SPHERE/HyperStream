@@ -17,9 +17,31 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
-from base_channel import BaseChannel
-from memory_channel import MemoryChannel, ReadOnlyMemoryChannel
-from tool_channel import ToolChannel
-from file_channel import FileChannel
-from module_channel import ModuleChannel
-from database_channel import DatabaseChannel
+
+from hyperstream.tool import Tool, check_input_stream_count
+from hyperstream.stream import StreamInstance
+
+from plugins.sphere.channels.sphere_channel import SphereDataWindow
+
+
+def reformat(doc):
+    dt = doc['datetime']
+    del doc['datetime']
+    return StreamInstance(dt, doc)
+
+
+class Sphere(Tool):
+    def __init__(self, modality, elements=None, filters=None, rename_keys=False, annotators=None):
+        super(Sphere, self).__init__(modality=modality, elements=elements, filters=filters, rename_keys=rename_keys,
+                                     annotators=annotators)
+        self.modality = modality
+        self.elements = elements
+        self.filters = filters
+        self.rename_keys = rename_keys
+        self.annotators = annotators
+    
+    @check_input_stream_count(0)
+    def _execute(self, sources, alignment_stream, interval):
+        window = SphereExperiment(interval, self.annotators) if self.annotators else SphereDataWindow(interval)
+        source = window.modalities[self.modality]
+        return map(reformat, source.get_data(self.elements, self.filters, self.rename_keys))

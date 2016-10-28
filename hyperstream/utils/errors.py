@@ -39,6 +39,10 @@ class ChannelNotFoundError(Exception):
     pass
 
 
+class ChannelAlreadyExistsError(Exception):
+    pass
+
+
 class IncompatiblePlatesError(Exception):
     pass
 

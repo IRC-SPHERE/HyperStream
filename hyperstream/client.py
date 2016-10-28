@@ -21,8 +21,7 @@
 import sys
 import logging
 import pymongo
-from mongoengine import connect
-from sphere_connector_package.sphere_connector.utils import get_value_safe
+from mongoengine import connect, connection
 try:
     from pymongo.errors import ServerSelectionTimeoutError
 except ImportError:
@@ -73,5 +72,12 @@ class Client(object):
 
         self.session = connect(alias="hyperstream", **d)
 
+        # TODO: This sets the default connection of mongoengine, but seems to be a bit of a hack
+        if "default" not in connection._connections:
+            connection._connections["default"] = connection._connections["hyperstream"]
+            connection._connection_settings["default"] = connection._connection_settings["hyperstream"]
+
     def get_config_value(self, key, default=None):
+        def get_value_safe(d, key, default=None):
+            return d[key] if key in d else default
         return get_value_safe(self.server_config, key, default)

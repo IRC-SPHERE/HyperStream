@@ -89,7 +89,6 @@ class Workflow(Printable):
                 stream_id = StreamId(name=stream_name, meta_data=pv)
 
                 # Now try to locate the stream and add it (raises StreamNotFoundError if not found)
-                # streams.append(self.channels.get_stream(stream_id))
                 streams[pv] = channel.get_or_create_stream(stream_id=stream_id)
 
         else:
@@ -371,8 +370,10 @@ class Workflow(Printable):
         if sink_plate.meta_data_id == source_plate.meta_data_id:
             if all(v in set(source_plate.values) for v in sink_plate.values):
                 return None
-            else:
-                return "Sink plate {} is not a simplification of source plate {}".format(sink_plate, source_plate)
+            if all(any(all(spv in m for spv in v) for m in map(set, source_plate.values)) for v in sink_plate.values):
+                return None
+            return "Sink plate {} is not a simplification of source plate {}".format(
+                sink_plate.plate_id, source_plate.plate_id)
 
         # Also check to see if the meta data differs by only one value
         meta_data_diff = set(source_plate.ancestor_meta_data_ids) - set(sink_plate.ancestor_meta_data_ids)
@@ -383,7 +384,7 @@ class Workflow(Printable):
                        "does not match the diff between source and sink plates ({})".format(
                         tool.aggregation_meta_data, list(meta_data_diff)[0])
         else:
-            return "{} not in source's parent plates".format(sink_plate)
+            return "{} not in source's parent plates".format(sink_plate.plate_id)
 
     @staticmethod
     def check_multi_output_plate_compatibility(source_plates, sink_plate):

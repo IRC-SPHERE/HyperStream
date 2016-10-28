@@ -8,5 +8,11 @@
         "db": "hyperstream",
         "authentication_database": "admin"
     },
-    "tool_path": "hyperstream/tools"
+    "plugins": [
+        {
+            "channel_id_prefix": "sphere",
+            "path": "plugins/sphere",
+            "channel_names": ["sphere_channel"],
+            "has_tools": true
+        }]
 }

@@ -281,7 +281,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
 
 class HyperStreamLogger(Printable):
-    def __init__(self, path='/tmp', filename='sphere_connector', loglevel=logging.DEBUG):
+    def __init__(self, path='/tmp', filename='hyperstream', loglevel=logging.DEBUG):
         # coloredlogs.install(level=loglevel)
         log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
         root_logger = logging.getLogger()
@@ -315,4 +315,4 @@ class HyperStreamLogger(Printable):
         sys.excepthook = handle_exception
 
         # logging.config.dictConfig(LOGGING)
-        logging.debug("Sphere connector version: " + __version__)
+        logging.debug("HyperStream version: " + __version__)

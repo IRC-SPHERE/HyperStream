@@ -18,21 +18,17 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-# TODO: the sphere channel should come out of hyperstream
-
 import os
 from collections import Iterable
-import logging
 
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow, Experiment, ExperimentConfig
 
-from memory_channel import MemoryChannel
-from ..time_interval import TimeIntervals, TimeInterval
-from ..utils import MIN_DATE, MAX_DATE
+from hyperstream.channels.memory_channel import MemoryChannel
+from hyperstream import TimeIntervals, TimeInterval
+from hyperstream.utils import MIN_DATE, MAX_DATE
 
-path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sphere_connector = SphereConnector(
-#    config_filename=os.path.join(path, 'config_strauss.json'),
     config_filename=os.path.join(path, 'config.json'),
     include_mongo=True,
     include_redcap=False,

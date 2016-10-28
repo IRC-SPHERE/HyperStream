@@ -18,35 +18,35 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-import logging
-import simplejson as json
+import imp
 import os
-from utils import Printable
-from plugin_manager import Plugin
+import sys
+from collections import namedtuple
+
+from utils import Printable, utcnow
+from channels import ToolChannel
 
 
-class HyperStreamConfig(Printable):
-    def __init__(self):
-        self.mongo = None
+class Plugin(namedtuple("PluginBase", "channel_id_prefix path channel_names has_tools"), Printable):
+    def load(self):
+        channels = []
 
-        try:
-            with open('hyperstream_config.json', 'r') as f:
-                logging.info('Reading ' + os.path.abspath(f.name))
-                config = json.load(f)
-                self.mongo = config['mongo']
-                self.plugins = [Plugin(**p) for p in config['plugins']]
+        # Try to get channels
+        for channel_name in self.channel_names:
+            channel_path = os.path.join(self.path, "channels")
+            sys.path.append(self.path)
+            mod = imp.load_module(channel_name, *imp.find_module(channel_name, [channel_path]))
+            cls = getattr(mod, channel_name.title().replace("_", ""))
+            channel_id = channel_name.split("_")[0]
+            # TODO: what about up_to_timestamp?
+            channels.append(cls(channel_id, up_to_timestamp=None))
 
-        except (OSError, IOError, TypeError) as e:
-            # raise
-            logging.error("Configuration error: " + str(e))
+        # Try to get tools
+        if self.has_tools:
+            tool_path = os.path.join(self.path, "tools")
+            # Create a tool channel using this path
+            channel_id = self.channel_id_prefix + "_" + "tools"
+            channel = ToolChannel(channel_id, tool_path, up_to_timestamp=utcnow())
+            channels.append(channel)
 
-        try:
-            with open('meta_data.json', 'r') as f:
-                logging.info('Reading ' + os.path.abspath(f.name))
-                config = json.load(f)
-                self.meta_data_lists = config['meta_data_lists']
-                self.meta_data = config['meta_data']
-
-        except (OSError, IOError, TypeError) as e:
-            # raise
-            logging.error("Configuration error: " + str(e))
+        return channels

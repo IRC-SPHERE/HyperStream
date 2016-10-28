@@ -18,28 +18,5 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream.tool import Tool, check_input_stream_count
-from hyperstream.channels.sphere_channel import SphereDataWindow
-from hyperstream.stream import StreamInstance
-
-
-def reformat(doc):
-    dt = doc['datetime']
-    del doc['datetime']
-    
-    return StreamInstance(dt, doc)
-
-
-class Sphere(Tool):
-    def __init__(self, modality, elements=None, filters=None, rename_keys=False):
-        super(Sphere, self).__init__(modality=modality, elements=elements, filters=filters, rename_keys=rename_keys)
-        self.modality = modality
-        self.elements = elements
-        self.filters = filters
-        self.rename_keys = rename_keys
-    
-    @check_input_stream_count(0)
-    def _execute(self, sources, alignment_stream, interval):
-        window = SphereDataWindow(interval)
-        source = window.modalities[self.modality]
-        yield map(reformat, source.get_data(self.elements, self.filters, self.rename_keys))
+import channels
+import tools
