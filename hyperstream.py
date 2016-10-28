@@ -30,7 +30,7 @@ class HyperStream(object):
         self.client = Client(self.config.mongo)
 
         # Define some managers
-        self.channel_manager = ChannelManager(self.config.tool_path)
+        self.channel_manager = ChannelManager(self.config.plugins)
         self.plate_manager = PlateManager(self.config.meta_data)
         self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager,
                                                 plates=self.plate_manager.plates)
