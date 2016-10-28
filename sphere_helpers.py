@@ -223,3 +223,14 @@ class PredefinedTools(object):
             name="splitter_time_aware",
             parameters=dict(time_intervals=scripted_experiments, meta_data_id="scripted")
         )
+
+        # AGGREGATORS
+        self.index_of_1 = channel_manager.get_tool(
+            name="index_of",
+            parameters=dict(index="1", aggregation_meta_data="scripted")
+        )
+
+        self.index_of_2 = channel_manager.get_tool(
+            name="index_of",
+            parameters=dict(index="2", aggregation_meta_data="scripted")
+        )
