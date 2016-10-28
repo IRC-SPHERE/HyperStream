@@ -203,6 +203,7 @@ class Workflow(Printable):
         """
         Creates a factor. Instantiates a single tool for all of the plates, and connects the source and sink nodes with
         that tool.
+
         :param alignment_node:
         :param tool: The tool to use. This is either an instantiated Tool object or a dict with "name" and "parameters"
         Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,
