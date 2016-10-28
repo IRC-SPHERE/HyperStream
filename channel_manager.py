@@ -17,10 +17,13 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+Channel manager module. Defines the ChannelManager - a container for channels, that can load in plugins
+"""
+
 
 import inspect
 import logging
-# from collections import namedtuple
 from mongoengine import DoesNotExist, MultipleObjectsReturned
 from mongoengine.context_managers import switch_db
 
@@ -56,19 +59,29 @@ class ChannelManager(dict, Printable):
 
     @property
     def tool_channels(self):
+        """
+        The tool channels as a list
+        """
         return [c for c in self.values() if isinstance(c, ToolChannel)]
 
     @property
     def memory_channels(self):
+        """
+        The memory channels as a list
+        """
         return [c for c in self.values() if isinstance(c, MemoryChannel)]
 
     @property
     def database_channels(self):
+        """
+        The database channels as a list
+        """
         return [c for c in self.values() if isinstance(c, DatabaseChannel)]
 
     def get_channel(self, channel_id):
         """
         Get the channel by id
+
         :param channel_id: The channel id
         :return: The channel object
         """
@@ -80,7 +93,6 @@ class ChannelManager(dict, Printable):
     def update_channels(self):
         """
         Pulls out all of the stream definitions from the database, and populates the channels with stream references
-        :return: None
         """
         with switch_db(StreamDefinitionModel, 'hyperstream'):
             for s in StreamDefinitionModel.objects():
@@ -122,6 +134,7 @@ class ChannelManager(dict, Printable):
     def get_tool_class(self, tool):
         """
         Gets the actual class which cna then be instantiated with its parameters
+
         :param tool: The tool name or id
         :return: The tool class
         :type tool: str | unicode | StreamId
@@ -153,10 +166,11 @@ class ChannelManager(dict, Printable):
 
         # TODO: Use tool versions - here we just take the latest one
         return tool_stream_view.last().value
-        
+
     def get_tool(self, name, parameters):
         """
         Gets the tool object from the tool channel(s), and instantiates it using the tool parameters
+
         :param name: The name or stream id for the tool in the tool channel
         :param parameters: The parameters for the tool
         :return: The instantiated tool object

@@ -17,11 +17,25 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+Online Engine module. This will be used in the online execution mode.
+"""
 
 
 class OnlineEngine(object):
+    """
+    OnlineEngine class.
+    """
     def __init__(self, hyperstream):
+        """
+        Initialise the engine.
+
+        :param hyperstream: The hyperstream object
+        """
         self.hyperstream = hyperstream
 
     def execute(self):
+        """
+        Execute the engine - currently simple executes all workflows.
+        """
         self.hyperstream.workflows.execute_all()

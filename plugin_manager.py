@@ -17,6 +17,9 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+Plugin manager module for additional user added channels and tools.
+"""
 
 import imp
 import os
@@ -28,7 +31,16 @@ from channels import ToolChannel
 
 
 class Plugin(namedtuple("PluginBase", "channel_id_prefix path channel_names has_tools"), Printable):
+    """
+    Plugin class - simple wrapper over namedtuple
+    """
+
     def load(self):
+        """
+        Loads the channels and tools given the plugin path specified
+
+        :return: The loaded channels, including a tool channel, for the tools found.
+        """
         channels = []
 
         # Try to get channels

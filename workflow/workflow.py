@@ -39,6 +39,7 @@ class Workflow(Printable):
     def __init__(self, channels, plates, workflow_id, name, description, owner):
         """
         Initialise the workflow
+
         :param channels: The channels used by this workflow
         :param plates: All of the plates used by this workflow
         :param workflow_id: The workflow id
@@ -61,6 +62,7 @@ class Workflow(Printable):
     def execute(self, time_interval):
         """
         Here we execute the factors over the streams in the workflow
+
         :return: None
         """
         # TODO: Currently expects the factors to be declared sequentially
@@ -74,6 +76,7 @@ class Workflow(Printable):
     def create_node(self, stream_name, channel, plate_ids):
         """
         Create a node in the graph. Note: assumes that the streams already exist
+
         :param stream_name: The name of the stream
         :param channel: The channel where this stream lives
         :param plate_ids: The plate ids. The stream meta-data will be auto-generated from these
@@ -192,6 +195,7 @@ class Workflow(Printable):
     def cartesian_product(self, plate_ids):
         """
         Gets the plate values that are the cartesian product of the plate values of the lists of plates given
+
         :param plate_ids: The list of plate ids
         :return: The plate values
         :type plate_ids: list[str] | list[unicode] | set[str] | set[unicode]
@@ -204,10 +208,11 @@ class Workflow(Printable):
         Creates a factor. Instantiates a single tool for all of the plates, and connects the source and sink nodes with
         that tool.
 
-        :param alignment_node:
-        :param tool: The tool to use. This is either an instantiated Tool object or a dict with "name" and "parameters"
         Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,
         an extra input stream should be used
+
+        :param alignment_node:
+        :param tool: The tool to use. This is either an instantiated Tool object or a dict with "name" and "parameters"
         :param sources: The source nodes
         :param sink: The sink node
         :return: The factor object
@@ -274,9 +279,11 @@ class Workflow(Printable):
         This takes a single node, applies a MultiOutputTool to create multiple nodes on a new plate
         Instantiates a single tool for all of the input plate values,
         and connects the source and sink nodes with that tool.
-        :param tool: The tool to use. This is either an instantiated Tool object or a dict with "name" and "parameters"
+
         Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,
         an extra input stream should be used
+
+        :param tool: The tool to use. This is either an instantiated Tool object or a dict with "name" and "parameters"
         :param source: The source node
         :param sink: The sink node
         :return: The factor object
@@ -355,6 +362,7 @@ class Workflow(Printable):
     def check_plate_compatibility(tool, source_plate, sink_plate):
         """
         Checks whether the source and sink plate are compatible given the tool
+
         :param tool: The tool
         :param source_plate: The source plate
         :param sink_plate: The sink plate
