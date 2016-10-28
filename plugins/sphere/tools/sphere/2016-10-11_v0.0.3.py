@@ -21,7 +21,7 @@
 from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.stream import StreamInstance
 
-from plugins.sphere.channels.sphere_channel import SphereDataWindow
+from plugins.sphere.channels.sphere_channel import SphereDataWindow, SphereExperiment
 
 
 def reformat(doc):
