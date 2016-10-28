@@ -20,6 +20,7 @@
 """
 Module for dealing with time intervals containing TimeInterval, TimeIntervals, and RelativeTimeInterval
 """
+
 from utils import MIN_DATE, utcnow, UTC, Printable, get_timedelta
 
 from datetime import date, datetime, timedelta
@@ -35,6 +36,7 @@ class TimeIntervals(Printable):
         """
         Initialise the object with the given intervals.
         These should be in a format that can be parsed by parse_time_tuple
+
         :param intervals: The time intervals
         """
         self.intervals = []
@@ -150,6 +152,12 @@ class TimeInterval(object):
     _end = None
     
     def __init__(self, start, end):
+        """
+        Initialise the object with the start and end times
+
+        :param start: The start time
+        :param end: The end time
+        """
         self.start = start
         self.end = end
     
@@ -233,6 +241,12 @@ class RelativeTimeInterval(TimeInterval):
     Thin wrapper around a (start, end) tuple of timedelta objects that provides some validation
     """
     def __init__(self, start, end):
+        """
+        Initialise the object with the start and end times
+
+        :param start: The start time
+        :param end: The end time
+        """
         start = get_timedelta(start)
         end = get_timedelta(end)
 

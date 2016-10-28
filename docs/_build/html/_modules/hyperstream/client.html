@@ -23,8 +23,6 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" />
    
@@ -62,6 +60,11 @@
 <span class="c1">#  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR</span>
 <span class="c1">#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE</span>
 <span class="c1">#  OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The main hyperstream client connection that is used for storing runtime information.</span>
+<span class="sd">Note that this is also used by the default database channel, although other database channels (connecting to different</span>
+<span class="sd">database types) can also be used.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -74,11 +77,20 @@
 
 
 <div class="viewcode-block" id="Client"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.client.Client">[docs]</a><span class="k">class</span> <span class="nc">Client</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The main mongo client</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">client</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">db</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">session</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_config</span><span class="p">,</span> <span class="n">auto_connect</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise the client</span>
+
+<span class="sd">        :param server_config: The server configuration</span>
+<span class="sd">        :param auto_connect: Whether to automatically connect</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">server_config</span> <span class="o">=</span> <span class="n">server_config</span>
 
         <span class="k">if</span> <span class="n">auto_connect</span><span class="p">:</span>
@@ -92,6 +104,11 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">server_config</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Client.connect"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.client.Client.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Connect using the configuration given</span>
+
+<span class="sd">        :param server_config: The server configuration</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s1">&#39;connection_string&#39;</span> <span class="ow">in</span> <span class="n">server_config</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">pymongo</span><span class="o">.</span><span class="n">MongoClient</span><span class="p">(</span><span class="n">server_config</span><span class="p">[</span><span class="s1">&#39;connection_string&#39;</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">[</span><span class="n">server_config</span><span class="p">[</span><span class="s1">&#39;db&#39;</span><span class="p">]]</span>
@@ -123,6 +140,13 @@
             <span class="n">connection</span><span class="o">.</span><span class="n">_connection_settings</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">_connection_settings</span><span class="p">[</span><span class="s2">&quot;hyperstream&quot;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Client.get_config_value"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.client.Client.get_config_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_config_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a specific value from the configuration</span>
+
+<span class="sd">        :param key: The of the item</span>
+<span class="sd">        :param default: A default value if not found</span>
+<span class="sd">        :return: The found value or the default</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">def</span> <span class="nf">get_value_safe</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">d</span> <span class="k">else</span> <span class="n">default</span>
         <span class="k">return</span> <span class="n">get_value_safe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server_config</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span></div></div>
@@ -159,7 +183,7 @@
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
     </div>

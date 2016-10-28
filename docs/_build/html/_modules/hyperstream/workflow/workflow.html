@@ -23,8 +23,6 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" />
    
@@ -84,6 +82,7 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">plates</span><span class="p">,</span> <span class="n">workflow_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialise the workflow</span>
+
 <span class="sd">        :param channels: The channels used by this workflow</span>
 <span class="sd">        :param plates: All of the plates used by this workflow</span>
 <span class="sd">        :param workflow_id: The workflow id</span>
@@ -106,6 +105,7 @@
 <div class="viewcode-block" id="Workflow.execute"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow.Workflow.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Here we execute the factors over the streams in the workflow</span>
+
 <span class="sd">        :return: None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: Currently expects the factors to be declared sequentially</span>
@@ -119,6 +119,7 @@
 <div class="viewcode-block" id="Workflow.create_node"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow.Workflow.create_node">[docs]</a>    <span class="k">def</span> <span class="nf">create_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_name</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">plate_ids</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a node in the graph. Note: assumes that the streams already exist</span>
+
 <span class="sd">        :param stream_name: The name of the stream</span>
 <span class="sd">        :param channel: The channel where this stream lives</span>
 <span class="sd">        :param plate_ids: The plate ids. The stream meta-data will be auto-generated from these</span>
@@ -237,6 +238,7 @@
 <div class="viewcode-block" id="Workflow.cartesian_product"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow.Workflow.cartesian_product">[docs]</a>    <span class="k">def</span> <span class="nf">cartesian_product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plate_ids</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gets the plate values that are the cartesian product of the plate values of the lists of plates given</span>
+
 <span class="sd">        :param plate_ids: The list of plate ids</span>
 <span class="sd">        :return: The plate values</span>
 <span class="sd">        :type plate_ids: list[str] | list[unicode] | set[str] | set[unicode]</span>
@@ -248,10 +250,12 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a factor. Instantiates a single tool for all of the plates, and connects the source and sink nodes with</span>
 <span class="sd">        that tool.</span>
-<span class="sd">        :param alignment_node:</span>
-<span class="sd">        :param tool: The tool to use. This is either an instantiated Tool object or a dict with &quot;name&quot; and &quot;parameters&quot;</span>
+
 <span class="sd">        Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,</span>
 <span class="sd">        an extra input stream should be used</span>
+
+<span class="sd">        :param alignment_node:</span>
+<span class="sd">        :param tool: The tool to use. This is either an instantiated Tool object or a dict with &quot;name&quot; and &quot;parameters&quot;</span>
 <span class="sd">        :param sources: The source nodes</span>
 <span class="sd">        :param sink: The sink node</span>
 <span class="sd">        :return: The factor object</span>
@@ -272,6 +276,7 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">sources</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">FactorDefinitionError</span><span class="p">(</span><span class="s2">&quot;Aggregate tools require a single source node&quot;</span><span class="p">)</span>
 
+                <span class="c1"># TODO: Actually - it should be fine if the plates are all shared, except for the aggregation plate</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plate_ids</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plate_ids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">FactorDefinitionError</span><span class="p">(</span><span class="s2">&quot;Aggregate tools require source node to live on a single plate&quot;</span><span class="p">)</span>
 
@@ -317,9 +322,11 @@
 <span class="sd">        This takes a single node, applies a MultiOutputTool to create multiple nodes on a new plate</span>
 <span class="sd">        Instantiates a single tool for all of the input plate values,</span>
 <span class="sd">        and connects the source and sink nodes with that tool.</span>
-<span class="sd">        :param tool: The tool to use. This is either an instantiated Tool object or a dict with &quot;name&quot; and &quot;parameters&quot;</span>
+
 <span class="sd">        Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,</span>
 <span class="sd">        an extra input stream should be used</span>
+
+<span class="sd">        :param tool: The tool to use. This is either an instantiated Tool object or a dict with &quot;name&quot; and &quot;parameters&quot;</span>
 <span class="sd">        :param source: The source node</span>
 <span class="sd">        :param sink: The sink node</span>
 <span class="sd">        :return: The factor object</span>
@@ -398,9 +405,10 @@
 <div class="viewcode-block" id="Workflow.check_plate_compatibility"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow.Workflow.check_plate_compatibility">[docs]</a>    <span class="k">def</span> <span class="nf">check_plate_compatibility</span><span class="p">(</span><span class="n">tool</span><span class="p">,</span> <span class="n">source_plate</span><span class="p">,</span> <span class="n">sink_plate</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks whether the source and sink plate are compatible given the tool</span>
-<span class="sd">        :param Tool tool: The tool</span>
-<span class="sd">        :param Plate source_plate: The source plate</span>
-<span class="sd">        :param Plate sink_plate: The sink plate</span>
+
+<span class="sd">        :param tool: The tool</span>
+<span class="sd">        :param source_plate: The source plate</span>
+<span class="sd">        :param sink_plate: The sink plate</span>
 <span class="sd">        :return: Either an error, or None</span>
 <span class="sd">        :type tool: Tool</span>
 <span class="sd">        :type source_plate: Plate</span>
@@ -476,7 +484,7 @@
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
     </div>

@@ -23,8 +23,6 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" />
    
@@ -97,6 +95,7 @@
     <span class="k">def</span> <span class="nf">_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">alignment_stream</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Tool implementations should override this function to actually perform computations</span>
+
 <span class="sd">        :param sources: The source streams (possibly None)</span>
 <span class="sd">        :param alignment_stream: The alignment stream</span>
 <span class="sd">        :param interval: The time interval</span>
@@ -111,6 +110,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute the tool over the given time interval.</span>
 <span class="sd">        If an alignment stream is given, the output instances will be aligned to this stream</span>
+
 <span class="sd">        :param sources: The source streams (possibly None)</span>
 <span class="sd">        :param sink: The sink stream</span>
 <span class="sd">        :param alignment_stream: The alignment stream</span>
@@ -175,6 +175,7 @@
     <span class="k">def</span> <span class="nf">_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">output_plate</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Tool implementations should override this function to actually perform computations</span>
+
 <span class="sd">        :param source: The source stream</span>
 <span class="sd">        :param interval: The time interval</span>
 <span class="sd">        :param output_plate: The plate where data is put onto</span>
@@ -188,6 +189,7 @@
 <div class="viewcode-block" id="MultiOutputTool.execute"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.tool.MultiOutputTool.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">sinks</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">input_plate_value</span><span class="p">,</span> <span class="n">output_plate</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute the tool over the given time interval.</span>
+
 <span class="sd">        :param source: The source stream</span>
 <span class="sd">        :param sinks: The sink streams</span>
 <span class="sd">        :param interval: The time interval</span>
@@ -261,6 +263,7 @@
 <div class="viewcode-block" id="check_input_stream_count"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.tool.check_input_stream_count">[docs]</a><span class="k">def</span> <span class="nf">check_input_stream_count</span><span class="p">(</span><span class="n">expected_number_of_streams</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Decorator for Tool._execute that checks the number of input streams</span>
+
 <span class="sd">    :param expected_number_of_streams: The expected number of streams</span>
 <span class="sd">    :return: the decorator</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -314,7 +317,7 @@
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
     </div>

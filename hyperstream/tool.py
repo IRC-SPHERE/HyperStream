@@ -52,6 +52,7 @@ class Tool(Printable, Hashable):
     def _execute(self, sources, alignment_stream, interval):
         """
         Tool implementations should override this function to actually perform computations
+
         :param sources: The source streams (possibly None)
         :param alignment_stream: The alignment stream
         :param interval: The time interval
@@ -66,6 +67,7 @@ class Tool(Printable, Hashable):
         """
         Execute the tool over the given time interval.
         If an alignment stream is given, the output instances will be aligned to this stream
+
         :param sources: The source streams (possibly None)
         :param sink: The sink stream
         :param alignment_stream: The alignment stream
@@ -130,6 +132,7 @@ class MultiOutputTool(Printable, Hashable):
     def _execute(self, source, interval, output_plate):
         """
         Tool implementations should override this function to actually perform computations
+
         :param source: The source stream
         :param interval: The time interval
         :param output_plate: The plate where data is put onto
@@ -143,6 +146,7 @@ class MultiOutputTool(Printable, Hashable):
     def execute(self, source, sinks, interval, input_plate_value, output_plate):
         """
         Execute the tool over the given time interval.
+
         :param source: The source stream
         :param sinks: The sink streams
         :param interval: The time interval
@@ -216,6 +220,7 @@ class AggregateTool(Tool):
 def check_input_stream_count(expected_number_of_streams):
     """
     Decorator for Tool._execute that checks the number of input streams
+
     :param expected_number_of_streams: The expected number of streams
     :return: the decorator
     """

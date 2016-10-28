@@ -23,8 +23,6 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="index.html" />
     <link rel="up" title="hyperstream package" href="hyperstream.html" />
     <link rel="next" title="tests package" href="tests.html" />
@@ -311,10 +309,17 @@ This defines the graph of operations through &#8220;nodes&#8221; and &#8220;fact
 <dl class="method">
 <dt id="hyperstream.workflow.workflow.Workflow.cartesian_product">
 <code class="descname">cartesian_product</code><span class="sig-paren">(</span><em>plate_ids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.cartesian_product"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.cartesian_product" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets the plate values that are the cartesian product of the plate values of the lists of plates given
-:param plate_ids: The list of plate ids
-:return: The plate values
-:type plate_ids: list[str] | list[unicode] | set[str] | set[unicode]</p>
+<dd><p>Gets the plate values that are the cartesian product of the plate values of the lists of plates given</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>plate_ids</strong> (<em>list[str] | list[unicode] | set[str] | set[unicode]</em>) &#8211; The list of plate ids</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The plate values</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -325,34 +330,55 @@ This defines the graph of operations through &#8220;nodes&#8221; and &#8220;fact
 <dl class="staticmethod">
 <dt id="hyperstream.workflow.workflow.Workflow.check_plate_compatibility">
 <em class="property">static </em><code class="descname">check_plate_compatibility</code><span class="sig-paren">(</span><em>tool</em>, <em>source_plate</em>, <em>sink_plate</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.check_plate_compatibility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.check_plate_compatibility" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks whether the source and sink plate are compatible given the tool
-:param Tool tool: The tool
-:param Plate source_plate: The source plate
-:param Plate sink_plate: The sink plate
-:return: Either an error, or None
-:type tool: Tool
-:type source_plate: Plate
-:type sink_plate: Plate
-:rtype: None | str</p>
+<dd><p>Checks whether the source and sink plate are compatible given the tool</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tool</strong> (<a class="reference internal" href="hyperstream.html#hyperstream.tool.Tool" title="hyperstream.tool.Tool"><em>Tool</em></a>) &#8211; The tool</li>
+<li><strong>source_plate</strong> (<a class="reference internal" href="#hyperstream.workflow.plate.Plate" title="hyperstream.workflow.plate.Plate"><em>Plate</em></a>) &#8211; The source plate</li>
+<li><strong>sink_plate</strong> (<a class="reference internal" href="#hyperstream.workflow.plate.Plate" title="hyperstream.workflow.plate.Plate"><em>Plate</em></a>) &#8211; The sink plate</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Either an error, or None</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">None | str</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.workflow.workflow.Workflow.create_factor">
 <code class="descname">create_factor</code><span class="sig-paren">(</span><em>tool</em>, <em>sources</em>, <em>sink</em>, <em>alignment_node=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.create_factor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.create_factor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a factor. Instantiates a single tool for all of the plates, and connects the source and sink nodes with
-that tool.
-:param alignment_node:
-:param tool: The tool to use. This is either an instantiated Tool object or a dict with &#8220;name&#8221; and &#8220;parameters&#8221;
-Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,
-an extra input stream should be used
-:param sources: The source nodes
-:param sink: The sink node
-:return: The factor object
-:type tool: Tool | dict
-:type sources: list[Node] | tuple[Node] | None
-:type sink: Node
-:type alignment_node: Node | None
-:rtype: Factor</p>
+that tool.</p>
+<p>Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,
+an extra input stream should be used</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>alignment_node</strong> (<em>Node | None</em>) &#8211; </li>
+<li><strong>tool</strong> (<em>Tool | dict</em>) &#8211; The tool to use. This is either an instantiated Tool object or a dict with &#8220;name&#8221; and &#8220;parameters&#8221;</li>
+<li><strong>sources</strong> (<em>list[Node] | tuple[Node] | None</em>) &#8211; The source nodes</li>
+<li><strong>sink</strong> (<a class="reference internal" href="#hyperstream.workflow.node.Node" title="hyperstream.workflow.node.Node"><em>Node</em></a>) &#8211; The sink node</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The factor object</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#hyperstream.workflow.factor.Factor" title="hyperstream.workflow.factor.Factor">Factor</a></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -361,34 +387,64 @@ an extra input stream should be used
 <dd><p>Creates a multi-output factor.
 This takes a single node, applies a MultiOutputTool to create multiple nodes on a new plate
 Instantiates a single tool for all of the input plate values,
-and connects the source and sink nodes with that tool.
-:param tool: The tool to use. This is either an instantiated Tool object or a dict with &#8220;name&#8221; and &#8220;parameters&#8221;
-Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,
-an extra input stream should be used
-:param source: The source node
-:param sink: The sink node
-:return: The factor object
-:type tool: MultiOutputTool | dict
-:type source: Node
-:type sink: Node
-:rtype: Factor</p>
+and connects the source and sink nodes with that tool.</p>
+<p>Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,
+an extra input stream should be used</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tool</strong> (<em>MultiOutputTool | dict</em>) &#8211; The tool to use. This is either an instantiated Tool object or a dict with &#8220;name&#8221; and &#8220;parameters&#8221;</li>
+<li><strong>source</strong> (<a class="reference internal" href="#hyperstream.workflow.node.Node" title="hyperstream.workflow.node.Node"><em>Node</em></a>) &#8211; The source node</li>
+<li><strong>sink</strong> (<a class="reference internal" href="#hyperstream.workflow.node.Node" title="hyperstream.workflow.node.Node"><em>Node</em></a>) &#8211; The sink node</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The factor object</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#hyperstream.workflow.factor.Factor" title="hyperstream.workflow.factor.Factor">Factor</a></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.workflow.workflow.Workflow.create_node">
 <code class="descname">create_node</code><span class="sig-paren">(</span><em>stream_name</em>, <em>channel</em>, <em>plate_ids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.create_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.create_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a node in the graph. Note: assumes that the streams already exist
-:param stream_name: The name of the stream
-:param channel: The channel where this stream lives
-:param plate_ids: The plate ids. The stream meta-data will be auto-generated from these
-:return: The streams associated with this node</p>
+<dd><p>Create a node in the graph. Note: assumes that the streams already exist</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stream_name</strong> &#8211; The name of the stream</li>
+<li><strong>channel</strong> &#8211; The channel where this stream lives</li>
+<li><strong>plate_ids</strong> &#8211; The plate ids. The stream meta-data will be auto-generated from these</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The streams associated with this node</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.workflow.workflow.Workflow.execute">
 <code class="descname">execute</code><span class="sig-paren">(</span><em>time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.execute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Here we execute the factors over the streams in the workflow
-:return: None</p>
+<dd><p>Here we execute the factors over the streams in the workflow</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -541,7 +597,7 @@ workflows</p>
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |

@@ -23,8 +23,6 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" />
    
@@ -62,10 +60,13 @@
 <span class="c1">#  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR</span>
 <span class="c1">#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE</span>
 <span class="c1">#  OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Channel manager module. Defines the ChannelManager - a container for channels, that can load in plugins</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="c1"># from collections import namedtuple</span>
 <span class="kn">from</span> <span class="nn">mongoengine</span> <span class="k">import</span> <span class="n">DoesNotExist</span><span class="p">,</span> <span class="n">MultipleObjectsReturned</span>
 <span class="kn">from</span> <span class="nn">mongoengine.context_managers</span> <span class="k">import</span> <span class="n">switch_db</span>
 
@@ -101,19 +102,29 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tool_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The tool channels as a list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">ToolChannel</span><span class="p">)]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">memory_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The memory channels as a list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">MemoryChannel</span><span class="p">)]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">database_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The database channels as a list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">DatabaseChannel</span><span class="p">)]</span>
 
 <div class="viewcode-block" id="ChannelManager.get_channel"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.channel_manager.ChannelManager.get_channel">[docs]</a>    <span class="k">def</span> <span class="nf">get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the channel by id</span>
+
 <span class="sd">        :param channel_id: The channel id</span>
 <span class="sd">        :return: The channel object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -125,7 +136,6 @@
 <div class="viewcode-block" id="ChannelManager.update_channels"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.channel_manager.ChannelManager.update_channels">[docs]</a>    <span class="k">def</span> <span class="nf">update_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Pulls out all of the stream definitions from the database, and populates the channels with stream references</span>
-<span class="sd">        :return: None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="n">switch_db</span><span class="p">(</span><span class="n">StreamDefinitionModel</span><span class="p">,</span> <span class="s1">&#39;hyperstream&#39;</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">StreamDefinitionModel</span><span class="o">.</span><span class="n">objects</span><span class="p">():</span>
@@ -167,6 +177,7 @@
 <div class="viewcode-block" id="ChannelManager.get_tool_class"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.channel_manager.ChannelManager.get_tool_class">[docs]</a>    <span class="k">def</span> <span class="nf">get_tool_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tool</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gets the actual class which cna then be instantiated with its parameters</span>
+
 <span class="sd">        :param tool: The tool name or id</span>
 <span class="sd">        :return: The tool class</span>
 <span class="sd">        :type tool: str | unicode | StreamId</span>
@@ -191,7 +202,7 @@
                     <span class="k">continue</span>
                 <span class="k">if</span> <span class="n">tool_id</span> <span class="ow">in</span> <span class="n">tool_channel</span><span class="p">:</span>
                     <span class="c1"># noinspection PyTypeChecker</span>
-                    <span class="n">tool_stream_view</span> <span class="o">=</span> <span class="n">tool_channel</span><span class="p">[</span><span class="n">tool_id</span><span class="p">]</span><span class="o">.</span><span class="n">window</span><span class="p">((</span><span class="n">MIN_DATE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">up_to_timestamp</span><span class="p">))</span>
+                    <span class="n">tool_stream_view</span> <span class="o">=</span> <span class="n">tool_channel</span><span class="p">[</span><span class="n">tool_id</span><span class="p">]</span><span class="o">.</span><span class="n">window</span><span class="p">((</span><span class="n">MIN_DATE</span><span class="p">,</span> <span class="n">tool_channel</span><span class="o">.</span><span class="n">up_to_timestamp</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">tool_stream_view</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ToolNotFoundError</span><span class="p">(</span><span class="n">tool</span><span class="p">)</span>
@@ -202,6 +213,7 @@
 <div class="viewcode-block" id="ChannelManager.get_tool"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.channel_manager.ChannelManager.get_tool">[docs]</a>    <span class="k">def</span> <span class="nf">get_tool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gets the tool object from the tool channel(s), and instantiates it using the tool parameters</span>
+
 <span class="sd">        :param name: The name or stream id for the tool in the tool channel</span>
 <span class="sd">        :param parameters: The parameters for the tool</span>
 <span class="sd">        :return: The instantiated tool object</span>
@@ -261,7 +273,7 @@
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
     </div>

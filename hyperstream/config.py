@@ -17,6 +17,9 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+HyperStream configuration module.
+"""
 
 import logging
 import simplejson as json
@@ -26,7 +29,13 @@ from plugin_manager import Plugin
 
 
 class HyperStreamConfig(Printable):
+    """
+    Wrapper around the hyperstream configuration files (hyperstream_config.json and meta_data.json)
+    """
     def __init__(self):
+        """
+        Initialise the configuration - currently uses fixed file names (hyperstream_config.json and meta_data.json)
+        """
         self.mongo = None
 
         try:
