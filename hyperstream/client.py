@@ -17,6 +17,11 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+The main hyperstream client connection that is used for storing runtime information.
+Note that this is also used by the default database channel, although other database channels (connecting to different
+database types) can also be used.
+"""
 
 import sys
 import logging
@@ -29,11 +34,20 @@ except ImportError:
 
 
 class Client(object):
+    """
+    The main mongo client
+    """
     client = None
     db = None
     session = None
 
     def __init__(self, server_config, auto_connect=True):
+        """
+        Initialise the client
+
+        :param server_config: The server configuration
+        :param auto_connect: Whether to automatically connect
+        """
         self.server_config = server_config
 
         if auto_connect:
@@ -47,6 +61,11 @@ class Client(object):
                 self.connect(server_config)
 
     def connect(self, server_config):
+        """
+        Connect using the configuration given
+
+        :param server_config: The server configuration
+        """
         if 'connection_string' in server_config:
             self.client = pymongo.MongoClient(server_config['connection_string'])
             self.db = self.client[server_config['db']]
@@ -78,6 +97,13 @@ class Client(object):
             connection._connection_settings["default"] = connection._connection_settings["hyperstream"]
 
     def get_config_value(self, key, default=None):
+        """
+        Get a specific value from the configuration
+
+        :param key: The of the item
+        :param default: A default value if not found
+        :return: The found value or the default
+        """
         def get_value_safe(d, key, default=None):
             return d[key] if key in d else default
         return get_value_safe(self.server_config, key, default)

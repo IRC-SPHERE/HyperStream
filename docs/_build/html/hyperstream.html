@@ -23,8 +23,6 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="index.html" />
     <link rel="next" title="hyperstream.channels package" href="hyperstream.channels.html" />
     <link rel="prev" title="Welcome to HyperStream’s documentation!" href="index.html" />
@@ -116,6 +114,7 @@
 </div>
 <div class="section" id="module-hyperstream.channel_manager">
 <span id="hyperstream-channel-manager-module"></span><h2>hyperstream.channel_manager module<a class="headerlink" href="#module-hyperstream.channel_manager" title="Permalink to this headline">¶</a></h2>
+<p>Channel manager module. Defines the ChannelManager - a container for channels, that can load in plugins</p>
 <dl class="class">
 <dt id="hyperstream.channel_manager.ChannelManager">
 <em class="property">class </em><code class="descclassname">hyperstream.channel_manager.</code><code class="descname">ChannelManager</code><span class="sig-paren">(</span><em>plugins</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel_manager.html#ChannelManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager" title="Permalink to this definition">¶</a></dt>
@@ -124,50 +123,79 @@
 <dl class="attribute">
 <dt id="hyperstream.channel_manager.ChannelManager.database_channels">
 <code class="descname">database_channels</code><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager.database_channels" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>The database channels as a list</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.channel_manager.ChannelManager.get_channel">
 <code class="descname">get_channel</code><span class="sig-paren">(</span><em>channel_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel_manager.html#ChannelManager.get_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager.get_channel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the channel by id
-:param channel_id: The channel id
-:return: The channel object</p>
+<dd><p>Get the channel by id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>channel_id</strong> &#8211; The channel id</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The channel object</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.channel_manager.ChannelManager.get_tool">
 <code class="descname">get_tool</code><span class="sig-paren">(</span><em>name</em>, <em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel_manager.html#ChannelManager.get_tool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager.get_tool" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets the tool object from the tool channel(s), and instantiates it using the tool parameters
-:param name: The name or stream id for the tool in the tool channel
-:param parameters: The parameters for the tool
-:return: The instantiated tool object</p>
+<dd><p>Gets the tool object from the tool channel(s), and instantiates it using the tool parameters</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> &#8211; The name or stream id for the tool in the tool channel</li>
+<li><strong>parameters</strong> &#8211; The parameters for the tool</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The instantiated tool object</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.channel_manager.ChannelManager.get_tool_class">
 <code class="descname">get_tool_class</code><span class="sig-paren">(</span><em>tool</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel_manager.html#ChannelManager.get_tool_class"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager.get_tool_class" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets the actual class which cna then be instantiated with its parameters
-:param tool: The tool name or id
-:return: The tool class
-:type tool: str | unicode | StreamId
-:rtype Tool | MultiOutputTool</p>
+<dd><p>Gets the actual class which cna then be instantiated with its parameters</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tool</strong> (<em>str | unicode | StreamId</em>) &#8211; The tool name or id</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The tool class</td>
+</tr>
+</tbody>
+</table>
+<p>:rtype Tool | MultiOutputTool</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="hyperstream.channel_manager.ChannelManager.memory_channels">
 <code class="descname">memory_channels</code><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager.memory_channels" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>The memory channels as a list</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="hyperstream.channel_manager.ChannelManager.tool_channels">
 <code class="descname">tool_channels</code><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager.tool_channels" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>The tool channels as a list</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="hyperstream.channel_manager.ChannelManager.update_channels">
 <code class="descname">update_channels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/channel_manager.html#ChannelManager.update_channels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.channel_manager.ChannelManager.update_channels" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pulls out all of the stream definitions from the database, and populates the channels with stream references
-:return: None</p>
+<dd><p>Pulls out all of the stream definitions from the database, and populates the channels with stream references</p>
 </dd></dl>
 
 </dd></dl>
@@ -175,10 +203,14 @@
 </div>
 <div class="section" id="module-hyperstream.client">
 <span id="hyperstream-client-module"></span><h2>hyperstream.client module<a class="headerlink" href="#module-hyperstream.client" title="Permalink to this headline">¶</a></h2>
+<p>The main hyperstream client connection that is used for storing runtime information.
+Note that this is also used by the default database channel, although other database channels (connecting to different
+database types) can also be used.</p>
 <dl class="class">
 <dt id="hyperstream.client.Client">
 <em class="property">class </em><code class="descclassname">hyperstream.client.</code><code class="descname">Client</code><span class="sig-paren">(</span><em>server_config</em>, <em>auto_connect=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/client.html#Client"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.client.Client" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>The main mongo client</p>
 <dl class="attribute">
 <dt id="hyperstream.client.Client.client">
 <code class="descname">client</code><em class="property"> = None</em><a class="headerlink" href="#hyperstream.client.Client.client" title="Permalink to this definition">¶</a></dt>
@@ -187,7 +219,16 @@
 <dl class="method">
 <dt id="hyperstream.client.Client.connect">
 <code class="descname">connect</code><span class="sig-paren">(</span><em>server_config</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/client.html#Client.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.client.Client.connect" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Connect using the configuration given</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>server_config</strong> &#8211; The server configuration</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="hyperstream.client.Client.db">
@@ -197,7 +238,23 @@
 <dl class="method">
 <dt id="hyperstream.client.Client.get_config_value">
 <code class="descname">get_config_value</code><span class="sig-paren">(</span><em>key</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/client.html#Client.get_config_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.client.Client.get_config_value" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get a specific value from the configuration</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key</strong> &#8211; The of the item</li>
+<li><strong>default</strong> &#8211; A default value if not found</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The found value or the default</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="hyperstream.client.Client.session">
@@ -209,51 +266,87 @@
 </div>
 <div class="section" id="module-hyperstream.config">
 <span id="hyperstream-config-module"></span><h2>hyperstream.config module<a class="headerlink" href="#module-hyperstream.config" title="Permalink to this headline">¶</a></h2>
+<p>HyperStream configuration module.</p>
 <dl class="class">
 <dt id="hyperstream.config.HyperStreamConfig">
 <em class="property">class </em><code class="descclassname">hyperstream.config.</code><code class="descname">HyperStreamConfig</code><a class="reference internal" href="_modules/hyperstream/config.html#HyperStreamConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.config.HyperStreamConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
+<p>Wrapper around the hyperstream configuration files (hyperstream_config.json and meta_data.json)</p>
 </dd></dl>
 
 </div>
 <div class="section" id="module-hyperstream.hyperstream">
 <span id="hyperstream-hyperstream-module"></span><h2>hyperstream.hyperstream module<a class="headerlink" href="#module-hyperstream.hyperstream" title="Permalink to this headline">¶</a></h2>
+<p>Main HyperStream class</p>
 <dl class="class">
 <dt id="hyperstream.hyperstream.HyperStream">
 <em class="property">class </em><code class="descclassname">hyperstream.hyperstream.</code><code class="descname">HyperStream</code><a class="reference internal" href="_modules/hyperstream/hyperstream.html#HyperStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.hyperstream.HyperStream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>HyperStream class: can be instantiated simply with hyperstream = HyperStream() for default operation</p>
 <dl class="method">
 <dt id="hyperstream.hyperstream.HyperStream.create_workflow">
 <code class="descname">create_workflow</code><span class="sig-paren">(</span><em>workflow_id</em>, <em>name</em>, <em>owner</em>, <em>description</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/hyperstream.html#HyperStream.create_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.hyperstream.HyperStream.create_workflow" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Create a new workflow. Simple wrapper for creating a workflow and adding it to the workflow manager.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>workflow_id</strong> &#8211; The workflow id</li>
+<li><strong>name</strong> &#8211; The workflow name</li>
+<li><strong>owner</strong> &#8211; The owner/creator of the workflow</li>
+<li><strong>description</strong> &#8211; A human readable description</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The workflow</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-hyperstream.online_engine">
 <span id="hyperstream-online-engine-module"></span><h2>hyperstream.online_engine module<a class="headerlink" href="#module-hyperstream.online_engine" title="Permalink to this headline">¶</a></h2>
+<p>Online Engine module. This will be used in the online execution mode.</p>
 <dl class="class">
 <dt id="hyperstream.online_engine.OnlineEngine">
 <em class="property">class </em><code class="descclassname">hyperstream.online_engine.</code><code class="descname">OnlineEngine</code><span class="sig-paren">(</span><em>hyperstream</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/online_engine.html#OnlineEngine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.online_engine.OnlineEngine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>OnlineEngine class.</p>
 <dl class="method">
 <dt id="hyperstream.online_engine.OnlineEngine.execute">
 <code class="descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/online_engine.html#OnlineEngine.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.online_engine.OnlineEngine.execute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Execute the engine - currently simple executes all workflows.</p>
+</dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-hyperstream.plugin_manager">
 <span id="hyperstream-plugin-manager-module"></span><h2>hyperstream.plugin_manager module<a class="headerlink" href="#module-hyperstream.plugin_manager" title="Permalink to this headline">¶</a></h2>
+<p>Plugin manager module for additional user added channels and tools.</p>
 <dl class="class">
 <dt id="hyperstream.plugin_manager.Plugin">
 <em class="property">class </em><code class="descclassname">hyperstream.plugin_manager.</code><code class="descname">Plugin</code><a class="reference internal" href="_modules/hyperstream/plugin_manager.html#Plugin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.plugin_manager.Plugin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">hyperstream.plugin_manager.PluginBase</span></code>, <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
+<p>Plugin class - simple wrapper over namedtuple</p>
 <dl class="method">
 <dt id="hyperstream.plugin_manager.Plugin.load">
 <code class="descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/plugin_manager.html#Plugin.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.plugin_manager.Plugin.load" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Loads the channels and tools given the plugin path specified</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The loaded channels, including a tool channel, for the tools found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -388,18 +481,25 @@ Also note that we don&#8217;t subclass Tool due to different calling signatures<
 <dl class="method">
 <dt id="hyperstream.tool.MultiOutputTool.execute">
 <code class="descname">execute</code><span class="sig-paren">(</span><em>source</em>, <em>sinks</em>, <em>interval</em>, <em>input_plate_value</em>, <em>output_plate</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/tool.html#MultiOutputTool.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.tool.MultiOutputTool.execute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute the tool over the given time interval.
-:param source: The source stream
-:param sinks: The sink streams
-:param interval: The time interval
-:param input_plate_value: The value of the plate where data comes from (can be None)
-:param output_plate: The plate where data is put onto
-:type source: Stream
-:type sinks: list[Stream] | tuple[Stream]
-:type interval: TimeInterval
-:type input_plate_value: tuple[tuple[str, str]] | None
-:type output_plate: Plate
-:return: None</p>
+<dd><p>Execute the tool over the given time interval.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>source</strong> (<a class="reference internal" href="hyperstream.stream.html#hyperstream.stream.stream.Stream" title="hyperstream.stream.stream.Stream"><em>Stream</em></a>) &#8211; The source stream</li>
+<li><strong>sinks</strong> (<em>list[Stream] | tuple[Stream]</em>) &#8211; The sink streams</li>
+<li><strong>interval</strong> (<a class="reference internal" href="#hyperstream.time_interval.TimeInterval" title="hyperstream.time_interval.TimeInterval"><em>TimeInterval</em></a>) &#8211; The time interval</li>
+<li><strong>input_plate_value</strong> (<em>tuple[tuple[str, str]] | None</em>) &#8211; The value of the plate where data comes from (can be None)</li>
+<li><strong>output_plate</strong> (<a class="reference internal" href="hyperstream.workflow.html#hyperstream.workflow.plate.Plate" title="hyperstream.workflow.plate.Plate"><em>Plate</em></a>) &#8211; The plate where data is put onto</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -423,16 +523,24 @@ Also note that we don&#8217;t subclass Tool due to different calling signatures<
 <dt id="hyperstream.tool.Tool.execute">
 <code class="descname">execute</code><span class="sig-paren">(</span><em>sources</em>, <em>sink</em>, <em>alignment_stream</em>, <em>interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/tool.html#Tool.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.tool.Tool.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the tool over the given time interval.
-If an alignment stream is given, the output instances will be aligned to this stream
-:param sources: The source streams (possibly None)
-:param sink: The sink stream
-:param alignment_stream: The alignment stream
-:param interval: The time interval
-:type sources: list[Stream] | tuple[Stream] | None
-:type sink: Stream
-:type alignment_stream: Stream | None
-:type interval: TimeInterval
-:return: None</p>
+If an alignment stream is given, the output instances will be aligned to this stream</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sources</strong> (<em>list[Stream] | tuple[Stream] | None</em>) &#8211; The source streams (possibly None)</li>
+<li><strong>sink</strong> (<a class="reference internal" href="hyperstream.stream.html#hyperstream.stream.stream.Stream" title="hyperstream.stream.stream.Stream"><em>Stream</em></a>) &#8211; The sink stream</li>
+<li><strong>alignment_stream</strong> (<em>Stream | None</em>) &#8211; The alignment stream</li>
+<li><strong>interval</strong> (<a class="reference internal" href="#hyperstream.time_interval.TimeInterval" title="hyperstream.time_interval.TimeInterval"><em>TimeInterval</em></a>) &#8211; The time interval</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -450,9 +558,17 @@ If an alignment stream is given, the output instances will be aligned to this st
 <dl class="function">
 <dt id="hyperstream.tool.check_input_stream_count">
 <code class="descclassname">hyperstream.tool.</code><code class="descname">check_input_stream_count</code><span class="sig-paren">(</span><em>expected_number_of_streams</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/tool.html#check_input_stream_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.tool.check_input_stream_count" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decorator for Tool._execute that checks the number of input streams
-:param expected_number_of_streams: The expected number of streams
-:return: the decorator</p>
+<dd><p>Decorator for Tool._execute that checks the number of input streams</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>expected_number_of_streams</strong> &#8211; The expected number of streams</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the decorator</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -522,7 +638,7 @@ If an alignment stream is given, the output instances will be aligned to this st
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |

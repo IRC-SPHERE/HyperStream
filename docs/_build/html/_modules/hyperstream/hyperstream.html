@@ -23,8 +23,6 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
     <link rel="top" title="HyperStream 1.0 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" />
    
@@ -63,13 +61,24 @@
 <span class="c1"># DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR</span>
 <span class="c1"># OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE</span>
 <span class="c1"># OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Main HyperStream class</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">ChannelManager</span><span class="p">,</span> <span class="n">HyperStreamConfig</span><span class="p">,</span> <span class="n">PlateManager</span><span class="p">,</span> <span class="n">WorkflowManager</span><span class="p">,</span> <span class="n">Client</span><span class="p">,</span> <span class="n">Workflow</span><span class="p">,</span> <span class="n">HyperStreamLogger</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 
 
 <div class="viewcode-block" id="HyperStream"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.hyperstream.HyperStream">[docs]</a><span class="k">class</span> <span class="nc">HyperStream</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    HyperStream class: can be instantiated simply with hyperstream = HyperStream() for default operation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise the HyperStream class. This starts the logger, loads the config files, connects to the main mongodb,</span>
+<span class="sd">        and initialises the managers (channels, plates, workflows).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">HyperStreamLogger</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;/tmp&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;hyperstream&#39;</span><span class="p">,</span> <span class="n">loglevel</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">HyperStreamConfig</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">mongo</span><span class="p">)</span>
@@ -81,6 +90,15 @@
                                                 <span class="n">plates</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">plate_manager</span><span class="o">.</span><span class="n">plates</span><span class="p">)</span>
 
 <div class="viewcode-block" id="HyperStream.create_workflow"><a class="viewcode-back" href="../../hyperstream.html#hyperstream.hyperstream.HyperStream.create_workflow">[docs]</a>    <span class="k">def</span> <span class="nf">create_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">description</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new workflow. Simple wrapper for creating a workflow and adding it to the workflow manager.</span>
+
+<span class="sd">        :param workflow_id: The workflow id</span>
+<span class="sd">        :param name: The workflow name</span>
+<span class="sd">        :param owner: The owner/creator of the workflow</span>
+<span class="sd">        :param description: A human readable description</span>
+<span class="sd">        :return: The workflow</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">w</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span>
             <span class="n">channels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_manager</span><span class="p">,</span>
             <span class="n">plates</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">plate_manager</span><span class="o">.</span><span class="n">plates</span><span class="p">,</span>
@@ -126,7 +144,7 @@
       &copy;2016, SPHERE WP5.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
     </div>

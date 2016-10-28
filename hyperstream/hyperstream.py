@@ -18,13 +18,24 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+Main HyperStream class
+"""
+
 from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, Client, Workflow, HyperStreamLogger
 
 import logging
 
 
 class HyperStream(object):
+    """
+    HyperStream class: can be instantiated simply with hyperstream = HyperStream() for default operation
+    """
     def __init__(self):
+        """
+        Initialise the HyperStream class. This starts the logger, loads the config files, connects to the main mongodb,
+        and initialises the managers (channels, plates, workflows).
+        """
         self.logger = HyperStreamLogger(path='/tmp', filename='hyperstream', loglevel=logging.DEBUG)
         self.config = HyperStreamConfig()
         self.client = Client(self.config.mongo)
@@ -36,6 +47,15 @@ class HyperStream(object):
                                                 plates=self.plate_manager.plates)
 
     def create_workflow(self, workflow_id, name, owner, description):
+        """
+        Create a new workflow. Simple wrapper for creating a workflow and adding it to the workflow manager.
+
+        :param workflow_id: The workflow id
+        :param name: The workflow name
+        :param owner: The owner/creator of the workflow
+        :param description: A human readable description
+        :return: The workflow
+        """
         w = Workflow(
             channels=self.channel_manager,
             plates=self.plate_manager.plates,
