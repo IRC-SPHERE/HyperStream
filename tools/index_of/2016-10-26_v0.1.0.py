@@ -18,27 +18,22 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream.tool import AggregateTool
+from hyperstream.tool import SelectorTool
+from hyperstream.stream import StreamMetaInstance
 
 
-class IndexOf(AggregateTool):
+class IndexOf(SelectorTool):
     """
     This tool selects a single stream from a node, and places it on the appropriate plate
     """
-    def __init__(self, index, aggregation_meta_data):
-        super(IndexOf, self).__init__(index=index, aggregation_meta_data=aggregation_meta_data)
+    def __init__(self, index, selector_meta_data):
+        super(IndexOf, self).__init__(index=index, selector_meta_data=selector_meta_data)
         self.index = index
 
-    def _execute(self, sources, alignment_stream, interval):
+    def _execute(self, sources, interval):
 
-        source = None
-        for s in sources:
-            if (self.aggregation_meta_data, self.index) in s.stream_id.meta_data:
-                source = s
-                break
+        for source in sources:
+            if (self.selector_meta_data, self.index) in source.stream_id.meta_data:
+                return map(lambda x: StreamMetaInstance(x, source.stream_id.meta_data), source.window(interval))
 
-        if not source:
-            raise IndexError("Index {} not found in sources".format(self.index))
-
-        return source.window(interval, force_calculation=True)
-
+        raise IndexError("Index {} not found in sources".format(self.index))

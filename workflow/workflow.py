@@ -28,7 +28,7 @@ from collections import deque
 from factor import Factor, MultiOutputFactor
 from node import Node
 from ..stream import StreamId
-from ..tool import Tool, MultiOutputTool, AggregateTool
+from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool
 from ..utils import Printable, TypedFrozenKeyDict, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError
 
 
@@ -103,7 +103,7 @@ class Workflow(Printable):
         if not streams:
             raise NodeDefinitionError("No streams created for node with id {}".format(stream_name))
 
-        node = Node(stream_name, streams, plate_ids, plate_values)
+        node = Node(stream_name, streams, [self.plates[p] for p in plate_ids] if plate_ids else None)
         self.nodes[stream_name] = node
         logging.info("Added node with id {}".format(stream_name))
 
@@ -226,31 +226,29 @@ class Workflow(Printable):
         if isinstance(tool, dict):
             tool = self.channels.get_tool(**tool)
 
-        if not isinstance(tool, Tool):
+        if not isinstance(tool, BaseTool):
             raise ValueError("Expected Tool, got {}".format(type(tool)))
 
-        if sink.plate_ids:
-            if isinstance(tool, AggregateTool):
+        if sink.plates:
+            if isinstance(tool, (AggregateTool, SelectorTool)):
                 if not sources or len(sources) != 1:
                     raise FactorDefinitionError("Aggregate tools require a single source node")
 
-                if not sources[0].plate_ids:
+                if not sources[0].plates:
                     raise FactorDefinitionError("Aggregate tool source must live on a plate")
 
-                if len(sources[0].plate_ids) != 1:
+                if len(sources[0].plates) != 1:
                     # Make sure that there are exactly two plates that don't match: one from each side
-                    difference = (tuple(set(sources[0].plate_ids) - set(sink.plate_ids)),
-                                  tuple(set(sink.plate_ids) - set(sources[0].plate_ids)))
-                    if map(len, difference) == [1, 1]:
-                        if not self.plates[difference[0][0]].is_sub_plate(self.plates[difference[1][0]]):
+                    diff, counts, is_sub_plate = sources[0].difference(sink)
+                    if counts == [1, 1]:
+                        if not is_sub_plate:
                             raise IncompatiblePlatesError("Sink plate is not a simplification of source plate")
                     else:
-                        raise IncompatiblePlatesError("Aggregate tool can only have a single plate that differs")
-
+                        raise IncompatiblePlatesError("Sink plate is not a simplification of source plate")
                 else:
                     # Check if the parent plate is valid instead
-                    source_plate = self.plates[sources[0].plate_ids[0]]
-                    sink_plate = self.plates[sink.plate_ids[0]]
+                    source_plate = sources[0].plates[0]
+                    sink_plate = sink.plates[0]
 
                     error = self.check_plate_compatibility(tool, source_plate, sink_plate)
                     if error is not None:

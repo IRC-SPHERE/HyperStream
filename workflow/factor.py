@@ -20,7 +20,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 from ..utils import Printable
 from node import Node
-from ..tool import Tool, MultiOutputTool, AggregateTool
+from ..tool import BaseTool, MultiOutputTool, AggregateTool, SelectorTool
 from plate import Plate
 from ..time_interval import TimeIntervals
 
@@ -44,7 +44,7 @@ class Factor(Printable):
         :type alignment_node: Node | None
         :type plates: list[Plate] | tuple[Plate]
         """
-        if not isinstance(tool, Tool):
+        if not isinstance(tool, BaseTool):
             raise ValueError("Expected tool, got {}".format(type(tool)))
         self.tool = tool
         if source_nodes:
@@ -62,7 +62,7 @@ class Factor(Printable):
         if alignment_node and not isinstance(alignment_node, Node):
             raise ValueError("Expected node, got {}".format(type(alignment_node)))
 
-        if alignment_node and alignment_node.plate_ids:
+        if alignment_node and alignment_node.plates:
             # TODO: Need to implement alignment nodes that live inside plates
             raise NotImplementedError("Currently only alignment nodes outside of plates are supported")
 
@@ -76,7 +76,6 @@ class Factor(Printable):
         """
         if self.plates:
             if isinstance(self.tool, AggregateTool):
-                # TODO: These checks should be done at factor creation time rather than now
                 if len(self.sources) != 1:
                     raise ValueError("Currently only a single source node is valid for an Aggregate Tool")
                 if self.alignment_node:
@@ -91,7 +90,20 @@ class Factor(Printable):
                     sources = [all_sources.streams[s] for s in all_sources.streams if all([v in s for v in pv])]
                     sink = self.sink.streams[pv]
                     self.tool.execute(sources=sources, sink=sink, interval=time_interval, alignment_stream=None)
+            elif isinstance(self.tool, SelectorTool):
+                if len(self.sources) != 1:
+                    raise ValueError("Currently only a single source node is valid for an Aggregate Tool")
+                if self.alignment_node:
+                    raise ValueError("Currently an alignment node cannot be used with an Aggregate Tool")
 
+                diff, counts, is_sub_plate = self.sources[0].difference(self.sink)
+                if is_sub_plate:
+                    # Special case of tools that are performing sub-selection
+                    self.tool.execute(sources=self.sources[0].streams.values(),
+                                      sinks=self.sink.streams.values(),
+                                      interval=time_interval)
+                else:
+                    raise ValueError("Source and sink plates do not match")
             else:
                 # TODO: This loop over plates is probably not correct:
                 # What we probably want is to take the cartesian product of plate values
