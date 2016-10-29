@@ -72,16 +72,20 @@ class PlateDefinitionError(Exception):
     message = "Empty values in plate definition and complement=False"
 
 
-class FactorDefinitionError(Exception):
-    pass
-
-
 class LinkageError(Exception):
     pass
 
 
 class NodeAlreadyExistsError(Exception):
     message = "Cannot have duplicate nodes"
+
+
+class NodeDefinitionError(Exception):
+    pass
+
+
+class FactorDefinitionError(Exception):
+    pass
 
 
 class FactorAlreadyExistsError(Exception):

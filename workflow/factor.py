@@ -78,7 +78,7 @@ class Factor(Printable):
             if isinstance(self.tool, AggregateTool):
                 # TODO: These checks should be done at factor creation time rather than now
                 if len(self.sources) != 1:
-                    raise ValueError("Currently only a single source node is valid for an AggregateTool")
+                    raise ValueError("Currently only a single source node is valid for an Aggregate Tool")
                 if self.alignment_node:
                     raise ValueError("Currently an alignment node cannot be used with an Aggregate Tool")
 

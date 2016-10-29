@@ -20,12 +20,13 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
+import itertools
 from mongoengine.context_managers import switch_db
 
 from . import Workflow
-from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel
+from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, ToolModel
 from ..utils import Printable, FrozenKeyDict, StreamNotFoundError
-
+from ..tool import MultiOutputTool
 
 class WorkflowManager(Printable):
     """
@@ -125,15 +126,25 @@ class WorkflowManager(Printable):
 
         workflow = self.workflows[workflow_id]
 
-        workflow_definition = WorkflowDefinitionModel(
-            workflow_id=workflow.workflow_id,
-            name=workflow.name,
-            description=workflow.description,
-            nodes=[NodeDefinitionModel(stream_name=n.stream_name, plate_ids=n.plate_ids) for n in workflow.nodes],
-            factors=[FactorDefinitionModel(tool=f.tool, sources=[s.stream_id for s in f.sources], sink=f.sink.stream_id)
-                     for f in workflow.factors],
-            owner=workflow.owner
-        )
+        with switch_db(WorkflowDefinitionModel, "hyperstream"):
+            factors = []
+            for f in itertools.chain(*workflow.factor_collections.values()):
+                tool = ToolModel(name=f.tool.name, version="", parameters=f.tool.parameters)
+                raise NotImplementedError("sources and sinks should actually just be references to the nodes by node id")
+                if isinstance(f.tool, MultiOutputTool):
+                    factor = FactorDefinitionModel(tool=tool, sources=f.sources, sinks=f.sinks)
+                else:
+                    factor = FactorDefinitionModel(tool=tool, sources=f.sources, sinks=[f.sink])
+                factors.append(factor)
+
+            workflow_definition = WorkflowDefinitionModel(
+                workflow_id=workflow.workflow_id,
+                name=workflow.name,
+                description=workflow.description,
+                nodes=[NodeDefinitionModel(stream_name=n.node_id, plate_ids=n.plate_ids) for n in workflow.nodes.values()],
+                factors=factors,
+                owner=workflow.owner
+            )
 
         workflow_definition.save()
         self.uncommitted_workflows.remove(workflow_id)

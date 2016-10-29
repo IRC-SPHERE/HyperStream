@@ -25,4 +25,4 @@ from tool import ToolModel
 class FactorDefinitionModel(EmbeddedDocument):
     tool = EmbeddedDocumentField(document_type=ToolModel, required=True)
     sources = ListField(field=StringField(min_length=1, max_length=512), required=False)
-    sink = StringField(min_length=1, max_length=512, required=False)
+    sinks = StringField(min_length=1, max_length=512, required=False)
