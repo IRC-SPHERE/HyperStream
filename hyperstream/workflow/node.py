@@ -28,20 +28,26 @@ from ..stream import StreamId
 from ..utils import Printable
 
 import logging
+import itertools
 
 
 class Node(Printable):
     """
     A node in the graph. This consists of a set of streams defined over a set of plates
     """
-    def __init__(self, node_id, streams, plate_ids, plate_values):
+    def __init__(self, node_id, streams, plates):
         """
         Initialise the node
+
+        When defining streams, it will be useful to be able to query node objects
+        to determine the streams that have metadata of a particular value.
+        Use Node.reverse_lookup as follows:
+            meta_data = {'a': 1, 'b': 1}
+
         :param node_id: The node id
         :param streams: The streams, organised as a nested dictionary with plate objects as keys at the top level,
         and then plate values (tuple(sorted(plate_values.items())) as the keys at the next level
-        :param plate_ids: The plate ids
-        :param plate_values: The plate values (populated meta data)
+        :param plates: The plates over which this node is defined
         """
         self.node_id = node_id
         self.streams = streams
@@ -49,18 +55,15 @@ class Node(Printable):
             stream.parent_node = self
 
         self._factor = None  # reference to the factor that defines this node. Required for upstream computation
+        self.plates = plates if plates else []
 
-        # TODO: Remove plate IDs
-        self.plate_ids = tuple(plate_ids) if plate_ids else tuple()
-        self.plate_values = plate_values
+    @property
+    def plate_ids(self):
+        return [p.plate_id for p in self.plates]
 
-        """
-        When defining streams, it will be useful to be able to query node objects
-        to determine the streams that have metadata of a particular value.
-        Use Node.reverse_lookup as follows:
-            meta_data = {'a': 1, 'b': 1}
-
-        """
+    @property
+    def plate_values(self):
+        return list(itertools.chain(*[p.values for p in self.plates]))
 
     @property
     def factor(self):
@@ -82,6 +85,19 @@ class Node(Printable):
         """
         keys = self.streams[0].stream_id.meta_data.keys()
         return StreamId(self.node_id, dict(*zip((kk, meta[kk]) for kk in keys)))
+
+    def difference(self, other):
+        """
+        Summarise the differences between this node and the other node.
+
+        :param other: The other node
+        :return: A tuple containing the diff, the counts of the diff, and whether this plate is a sub-plate of the other
+        :type other: Node
+        """
+        diff = (tuple(set(self.plates) - set(other.plates)), tuple(set(other.plates) - set(self.plates)))
+        counts = map(len, diff)
+        is_sub_plate = counts == [1, 1] and diff[1][0].is_sub_plate(diff[0][0])
+        return diff, counts, is_sub_plate
 
     def print_head(self, parent_plate_value, plate_values, interval, n=10, print_func=logging.info):
         """
@@ -145,3 +161,4 @@ class Node(Printable):
             combined_plate_value = plate_value
 
         return tuple(sorted(combined_plate_value))
+

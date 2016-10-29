@@ -226,7 +226,7 @@ class HyperStreamAggregatorTests(unittest.TestCase):
 
         aggregate_loc = channels.get_tool(
             name="index_of",
-            parameters=dict(index="kitchen", aggregation_meta_data="location")
+            parameters=dict(index="kitchen", selector_meta_data="location")
         )
 
         N = w.nodes
