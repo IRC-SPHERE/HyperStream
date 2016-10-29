@@ -24,6 +24,6 @@ from decorators import timeit, check_output_format, check_tool_defined
 from errors import StreamNotAvailableError, StreamAlreadyExistsError, StreamDataNotAvailableError, \
     StreamNotFoundError, IncompatiblePlatesError, ToolNotFoundError, ChannelNotFoundError, ToolExecutionError, \
     PlateEmptyError, PlateDefinitionError, LinkageError, FactorAlreadyExistsError, NodeAlreadyExistsError, \
-    FactorDefinitionError, ChannelAlreadyExistsError
+    FactorDefinitionError, ChannelAlreadyExistsError, NodeDefinitionError
 
 

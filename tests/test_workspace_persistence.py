@@ -36,6 +36,11 @@ def basic_workflow(workflow_id):
     w = hyperstream.create_workflow(workflow_id=workflow_id, name="Test", owner="Tests", description="")
     N = w.nodes
 
+    aggregate_dev = channels.get_tool(
+        name="aggregate",
+        parameters=dict(func=online_average, aggregation_meta_data="wearable")
+    )
+
     nodes = (
         ("rss_raw", M, ["H1"]),  # Raw RSS data
         ("rss_aid", M, ["H1.L"]),  # RSS by access point id
@@ -87,6 +92,12 @@ def basic_workflow(workflow_id):
         tool=tools.wearable_rss_values,
         sources=[N["rss_aid_uid"]],
         sink=N["rss"])
+
+    w.create_factor(
+        tool=aggregate_dev,
+        sources=[N["rss"]],
+        sink=N["rss_dev_avg"]
+    )
 
     return w
 
@@ -162,88 +173,26 @@ RSS_LOC_AVG = {
 
 
 # noinspection PyMethodMayBeStatic
-class HyperStreamAggregatorTests(unittest.TestCase):
-    def test_basic_aggregator(self):
+class HyperStreamWorkspacePersistenceTests(unittest.TestCase):
+    def test_save_workspace(self):
         w = basic_workflow(sys._getframe().f_code.co_name)
-
-        aggregate_dev = channels.get_tool(
-            name="aggregate",
-            parameters=dict(func=online_average, aggregation_meta_data="wearable")
-        )
-
-        N = w.nodes
-        w.create_factor(
-            tool=aggregate_dev,
-            sources=[N["rss"]],
-            sink=N["rss_dev_avg"]
-        )
-
         time_interval = TimeInterval(scripted_experiments[0].start, scripted_experiments[0].start + 2 * minute)
         w.execute(time_interval)
+
+        wid = w.workflow_id
+
+        hyperstream.workflow_manager.commit_workflow(wid)
+
+        del w
+
+        w = hyperstream.workflow_manager.load_workflow(wid)
 
         print_head(w, "rss", h1 + wA, locs, time_interval, 10, print)
         print_head(w, "rss_dev_avg", h1, locs, time_interval, 10, print)
 
+        N = w.nodes
         assert all(list(N["rss_dev_avg"].streams[k].window(time_interval).head(10)) == v
                    for k, v in RSS_DEV_AVG.items())
-
-    def test_off_plate_aggregator(self):
-        """
-        This is a test for aggregation where the aggregate is up the tree, but the destination plate is not in the
-        ancestry. For example:
-         source plate: H1.L.W
-         aggregate:    L
-         destination:  H1.W
-
-        Note here that H1.W is not an ancestor of H1.L.W (only H1 and H1.L are), so we have to figure out that H1.W is
-        a valid destination, based on the fact that all but one of the meta data id's are shared.
-        """
-        w = basic_workflow(sys._getframe().f_code.co_name)
-
-        aggregate_loc = channels.get_tool(
-            name="aggregate",
-            parameters=dict(func=online_average, aggregation_meta_data="location")
-        )
-
-        N = w.nodes
-        w.create_factor(
-            tool=aggregate_loc,
-            sources=[N["rss"]],
-            sink=N["rss_loc_avg"]
-        )
-
-        time_interval = TimeInterval(scripted_experiments[0].start, scripted_experiments[0].start + 2 * minute)
-        w.execute(time_interval)
-
-        print_head(w, "rss", h1 + wA, locs, time_interval, 10, print)
-        print_head(w, "rss_loc_avg", h1, wA, time_interval, 10, print)
-
-        assert all(list(N["rss_loc_avg"].streams[k].window(time_interval).head(10)) == v
-                   for k, v in RSS_LOC_AVG.items())
-
-    def test_index_of(self):
-        w = basic_workflow(sys._getframe().f_code.co_name)
-
-        aggregate_loc = channels.get_tool(
-            name="index_of",
-            parameters=dict(index="kitchen", aggregation_meta_data="location")
-        )
-
-        N = w.nodes
-        w.create_factor(
-            tool=aggregate_loc,
-            sources=[N["rss"]],
-            sink=N["rss_kitchen"]
-        )
-
-        time_interval = TimeInterval(scripted_experiments[0].start, scripted_experiments[0].start + 2 * minute)
-        w.execute(time_interval)
-
-        key = h1 + (('location', 'kitchen'),) + wA
-
-        assert all(a == b for a, b in zip(N['rss_kitchen'].streams[key].window(time_interval).head(10),
-                                          N['rss'].streams[key].window(time_interval).head(10)))
-
 
 if __name__ == '__main__':
     unittest.main()

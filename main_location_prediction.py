@@ -71,14 +71,40 @@ if __name__ == '__main__':
             (m for m in hyperstream.config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
             lambda x: x['identifier'].split('.')[1].split('_')[1]))
 
+    # Create necessary plates
+    for i, time_interval in enumerate(scripted_experiments[:2]):
+        time_interval.end = time_interval.start + minute
+
+        experiment_id = str(i + 1)
+        annotator_ids = experiment_id_to_annotator_ids[experiment_id]
+        # anns = [("annotator", ann) for ann in annotator_ids]
+
+        hyperstream.plate_manager.create_plate(
+            plate_id="H1.S{}".format(experiment_id),
+            description="Scripted experiment {} in SPHERE house".format(experiment_id),
+            meta_data_id="scripted",
+            values=[],
+            complement=True,
+            parent_plate="H1"
+        )
+
+        hyperstream.plate_manager.create_plate(
+            plate_id="H1.S{}.A".format(experiment_id),
+            description="All annotators for scripted experiment {} in SPHERE house".format(experiment_id),
+            meta_data_id="annotator",
+            values=[],
+            complement=True,
+            parent_plate="H1.S{}".format(experiment_id)
+        )
+
     nodes = (
-        ("rss_raw",     M, ["H1"]),                       # Raw RSS data
-        ("rss_aid",     M, ["H1.L"]),                     # RSS by access point id
-        ("rss_aid_uid", M, ["H1.L.W"]),                   # RSS by access point id and device id
-        ("rss",         M, ["H1.L.W"]),                   # RSS values only (by access point id and device id)
-        ("rss_time",    M, ["H1.L.W", "H1.scripted"]),    # RSS values per scripted experiment
-        ("rss_train",   M, ["H1.L.W", "H1.scripted_1"]),  # RSS values scripted experiment 1
-        ("rss_test",    M, ["H1.L.W", "H1.scripted_2"]),  # RSS values scripted experiment 2
+        ("rss_raw",     M, ["H1"]),               # Raw RSS data
+        ("rss_aid",     M, ["H1.L"]),             # RSS by access point id
+        ("rss_aid_uid", M, ["H1.L.W"]),           # RSS by access point id and device id
+        ("rss",         M, ["H1.L.W"]),           # RSS values only (by access point id and device id)
+        ("rss_time",    M, ["H1.L.W", "H1.S"]),   # RSS values per scripted experiment
+        ("rss_train",   M, ["H1.L.W", "H1.S1"]),  # RSS values scripted experiment 1
+        ("rss_test",    M, ["H1.L.W", "H1.S2"]),  # RSS values scripted experiment 2
     )
 
     # Create all of the nodes
@@ -137,6 +163,7 @@ if __name__ == '__main__':
     print_head("rss_aid_uid",   h1 + wA,    locs,       time_interval, 10, print)
     print_head("rss",           h1 + wA,    locs,       time_interval, 10, print)
     print_head("rss_time",      h1 + wA,    locs_eids,  time_interval, 10, print)
+    print_head("rss_train",     h1 + wA,    locs_eids,  time_interval, 10, print)
 
     # TODO: Example of training on one set of data and testing on another
     # TODO: Example of training on several sets of data and testing on other sets
@@ -159,7 +186,7 @@ if __name__ == '__main__':
             meta_data_id="annotator",
             values=[],
             complement=True,
-            parent_plate="H1.scripted"
+            parent_plate="H1"
         )
 
         if False:

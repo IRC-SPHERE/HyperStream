@@ -23,12 +23,13 @@ Workflow and WorkflowManager definitions.
 
 import itertools
 import logging
+from collections import deque
 
 from factor import Factor, MultiOutputFactor
 from node import Node
 from ..stream import StreamId
 from ..tool import Tool, MultiOutputTool, AggregateTool
-from ..utils import Printable, TypedFrozenKeyDict, IncompatiblePlatesError, FactorDefinitionError
+from ..utils import Printable, TypedFrozenKeyDict, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError
 
 
 class Workflow(Printable):
@@ -87,6 +88,8 @@ class Workflow(Printable):
         plate_values = self.get_overlapping_plate_values(plate_ids)
 
         if plate_ids:
+            if not plate_values:
+                raise NodeDefinitionError("No overlapping plate values found")
             for pv in plate_values:
                 # Construct stream id
                 stream_id = StreamId(name=stream_name, meta_data=pv)
@@ -96,6 +99,9 @@ class Workflow(Printable):
 
         else:
             streams[None] = channel.get_or_create_stream(stream_id=StreamId(name=stream_name))
+
+        if not streams:
+            raise NodeDefinitionError("No streams created for node with id {}".format(stream_name))
 
         node = Node(stream_name, streams, plate_ids, plate_values)
         self.nodes[stream_name] = node
@@ -142,66 +148,61 @@ class Workflow(Printable):
         if len(plate_ids) > 2:
             raise NotImplementedError
 
-        # Need to walk up the tree from each plate to find a matching position (possibly the root)
-        s0 = set(self.plates[plate_ids[0]].ancestor_plate_ids)
-        s1 = self.plates[plate_ids[1]].ancestor_plate_ids
-        intersection = list(s0.intersection(s1))
-        difference = list(s0.symmetric_difference(s1))
+        # get the actual plate objects
+        plates = [self.plates[p] for p in plate_ids]
 
-        if len(intersection) == 0:
-            # No match, so we simply take the cartesian product
-            return self.cartesian_product(plate_ids)
+        # Get all of the ancestors zipped together, padded with None
+        ancestors = deque(itertools.izip_longest(*(p.ancestor_plates for p in plates)))
 
-        for i, p in enumerate(intersection):
-            for plate_id in plate_ids:
-                # First of all check that the intersection is at the beginning of the lists,
-                # otherwise something has gone wrong
-                if p != self.plates[plate_id].ancestor_plate_ids[i]:
-                    raise ValueError("Error in plate specification. Intersection between plates is not valid.")
+        last_values = []
+        while len(ancestors) > 0:
+            current = ancestors.popleft()
+            if current[0] == current[1]:
+                # Plates are identical, take all values valid for matching parents
+                if last_values:
+                    raise NotImplementedError
+                else:
+                    last_values.extend(current[0].values)
 
-        # Now we need the cartesian product of all of the intersection values
-        intersection_plate_values = self.cartesian_product(intersection)
+            elif current[0] is not None and current[1] is not None \
+                    and current[0].meta_data_id == current[1].meta_data_id:
+                # Not identical, but same meta data id. Take all overlapping values valid for matching parents
+                if last_values:
+                    raise NotImplementedError
+                else:
+                    raise NotImplementedError
+            else:
+                # Different plates, take cartesian product of values with matching parents.
+                # Note that one of them may be none
+                if last_values:
+                    tmp = []
+                    for v in last_values:
+                        # Get the valid ones based on v
+                        valid = [filter(lambda x: all(xx in v for xx in x[:-1]), c.values)
+                                 for c in current if c is not None]
 
-        # The expected cardinality will be the length of the intersection values,
-        # plus the sum of the difference values
-        intersection_cardinality = len(intersection_plate_values)
-        difference_cardinality = sum(map(lambda x: self.plates[x].cardinality - intersection_cardinality, plate_ids))
-        expected_cardinality = difference_cardinality + intersection_cardinality
+                        # Strip out v from the valid ones
+                        stripped = [map(lambda y: tuple(itertools.chain(*(yy for yy in y if yy not in v))), val)
+                                    for val in valid]
 
-        plate_values = set()
+                        # Get the cartesian product. Note that this still works if one of the current is None
+                        prod = list(itertools.product(*stripped))
 
-        for ipv in intersection_plate_values:
-            # We want to create the cartesian product for the plate values that are valid for this intersected
-            # plate value.
-            for d in difference:
-                for v in self.plates[d].values:
-                    if all(vv in v for vv in ipv):
-                        # Here we have a plate value on the difference that is also on the intersection
-                        # Next we get the complement of this
-                        separate_values = [self.plates[dd].values for dd in set(difference).difference([d])]
-                        difference_values = list(x for x in itertools.chain.from_iterable(separate_values)
-                                                 if len(x) == difference_cardinality)
-                        for dv in difference_values:
-                            if all(vv in dv for vv in ipv):
-                                # This complement is also on the intersection, now we can add a plate value
-                                plate_value = sorted(set(itertools.chain.from_iterable(itertools.product(v, dv))))
-                                if len(set(x[0] for x in plate_value)) != expected_cardinality:
-                                    # raise ValueError("Incorrect cardinality")
-                                    continue
-                                plate_values.add(tuple(plate_value))
+                        # Now update the last values be the product with v put back in
+                        new_values = [v + p for p in prod]
+                        if new_values:
+                            tmp.append(new_values)
 
-        return tuple(plate_values)
+                    last_values = list(itertools.chain(*tmp))
+                    if not last_values:
+                        raise Exception
+                else:
+                    raise NotImplementedError
 
-    def cartesian_product(self, plate_ids):
-        """
-        Gets the plate values that are the cartesian product of the plate values of the lists of plates given
+        if not last_values:
+            raise ValueError("Plate value computation failed - possibly there were no shared plate values")
 
-        :param plate_ids: The list of plate ids
-        :return: The plate values
-        :type plate_ids: list[str] | list[unicode] | set[str] | set[unicode]
-        """
-        return [tuple(itertools.chain(*pv)) for pv in
-                itertools.product(*(sorted(set(self.plates[p].values)) for p in plate_ids))]
+        return last_values
 
     def create_factor(self, tool, sources, sink, alignment_node=None):
         """
@@ -233,20 +234,27 @@ class Workflow(Printable):
                 if not sources or len(sources) != 1:
                     raise FactorDefinitionError("Aggregate tools require a single source node")
 
-                # TODO: Actually - it should be fine if the plates are all shared, except for the aggregation plate
-                if not sources[0].plate_ids or len(sources[0].plate_ids) != 1:
-                    raise FactorDefinitionError("Aggregate tools require source node to live on a single plate")
+                if not sources[0].plate_ids:
+                    raise FactorDefinitionError("Aggregate tool source must live on a plate")
 
-                if len(sink.plate_ids) != 1:
-                    raise FactorDefinitionError("Aggregate tools require sink node to live on a single plate")
+                if len(sources[0].plate_ids) != 1:
+                    # Make sure that there are exactly two plates that don't match: one from each side
+                    difference = (tuple(set(sources[0].plate_ids) - set(sink.plate_ids)),
+                                  tuple(set(sink.plate_ids) - set(sources[0].plate_ids)))
+                    if map(len, difference) == [1, 1]:
+                        if not self.plates[difference[0][0]].is_sub_plate(self.plates[difference[1][0]]):
+                            raise IncompatiblePlatesError("Sink plate is not a simplification of source plate")
+                    else:
+                        raise IncompatiblePlatesError("Aggregate tool can only have a single plate that differs")
 
-                # Check if the parent plate is valid instead
-                source_plate = self.plates[sources[0].plate_ids[0]]
-                sink_plate = self.plates[sink.plate_ids[0]]
+                else:
+                    # Check if the parent plate is valid instead
+                    source_plate = self.plates[sources[0].plate_ids[0]]
+                    sink_plate = self.plates[sink.plate_ids[0]]
 
-                error = self.check_plate_compatibility(tool, source_plate, sink_plate)
-                if error is not None:
-                    raise IncompatiblePlatesError(error)
+                    error = self.check_plate_compatibility(tool, source_plate, sink_plate)
+                    if error is not None:
+                        raise IncompatiblePlatesError(error)
             else:
                 if sources:
                     # Check that the plates are compatible
@@ -378,9 +386,7 @@ class Workflow(Printable):
         # could be that they have the same meta data, but the sink plate is a simplification of the source
         # plate (e.g. when using IndexOf tool)
         if sink_plate.meta_data_id == source_plate.meta_data_id:
-            if all(v in set(source_plate.values) for v in sink_plate.values):
-                return None
-            if all(any(all(spv in m for spv in v) for m in map(set, source_plate.values)) for v in sink_plate.values):
+            if sink_plate.is_sub_plate(source_plate):
                 return None
             return "Sink plate {} is not a simplification of source plate {}".format(
                 sink_plate.plate_id, source_plate.plate_id)

@@ -33,10 +33,7 @@ class IndexOf(AggregateTool):
 
         source = None
         for s in sources:
-            if s.stream_id.meta_data == self.index:
-                source = s
-                break
-            if all(v in s.stream_id.meta_data for v in self.index):
+            if (self.aggregation_meta_data, self.index) in s.stream_id.meta_data:
                 source = s
                 break
 
