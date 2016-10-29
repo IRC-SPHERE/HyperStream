@@ -53,7 +53,6 @@ class HyperStreamConfig(Printable):
             with open('meta_data.json', 'r') as f:
                 logging.info('Reading ' + os.path.abspath(f.name))
                 config = json.load(f)
-                self.meta_data_lists = config['meta_data_lists']
                 self.meta_data = config['meta_data']
 
         except (OSError, IOError, TypeError) as e:
