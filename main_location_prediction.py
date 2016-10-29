@@ -135,15 +135,15 @@ if __name__ == '__main__':
     # N["rss_time"] = w.create_node(stream_name="rss_time", channel=M, plate_ids=["H.L", "H.scripted"])
     w.create_multi_output_factor(tool=tools.split_time, source=N["rss"], sink=N["rss_time"])
 
-    f = w.create_factor(
+    w.create_factor(
         tool=tools.index_of_1,
         sources=[N["rss_time"]],
         sink=N["rss_train"])
 
-    # w.create_factor(
-    #     tool=tools.index_of_2,
-    #     sources=[N["rss_time"]],
-    #     sink=N["rss_test"])
+    w.create_factor(
+        tool=tools.index_of_2,
+        sources=[N["rss_time"]],
+        sink=N["rss_test"])
 
     # time_interval = scripted_experiments.span
     # time_interval = TimeInterval(scripted_experiments.intervals[0].start,
@@ -151,8 +151,7 @@ if __name__ == '__main__':
     # time_interval = scripted_experiments[0] + (-1, 0)
     time_interval = scripted_experiments[0:2].span + (-1, 0)
 
-    f.execute(time_interval)
-    # w.execute(time_interval)
+    w.execute(time_interval)
 
     def print_head(node_id, parent_plate_values, plate_values, interval, n=10, print_func=print):
         print_func("Node: {}".format(node_id))
@@ -164,6 +163,7 @@ if __name__ == '__main__':
     print_head("rss",           h1 + wA,    locs,       time_interval, 10, print)
     print_head("rss_time",      h1 + wA,    locs_eids,  time_interval, 10, print)
     print_head("rss_train",     h1 + wA,    locs_eids,  time_interval, 10, print)
+    print_head("rss_test",      h1 + wA,    locs_eids,  time_interval, 10, print)
 
     # TODO: Example of training on one set of data and testing on another
     # TODO: Example of training on several sets of data and testing on other sets

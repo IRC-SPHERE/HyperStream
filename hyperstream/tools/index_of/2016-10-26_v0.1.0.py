@@ -24,7 +24,8 @@ from hyperstream.stream import StreamMetaInstance
 
 class IndexOf(SelectorTool):
     """
-    This tool selects a single stream from a node, and places it on the appropriate plate
+    This tool selects a single plate value from a node (which may consist of multiple streams),
+    and places the stream(s) on the appropriate plate
     """
     def __init__(self, index, selector_meta_data):
         super(IndexOf, self).__init__(index=index, selector_meta_data=selector_meta_data)
@@ -32,9 +33,13 @@ class IndexOf(SelectorTool):
 
     def _execute(self, sources, interval):
 
+        found_data = False
         for source in sources:
             if (self.selector_meta_data, self.index) in source.stream_id.meta_data:
-                return map(lambda x: StreamMetaInstance(x, source.stream_id.meta_data),
-                           source.window(interval, force_calculation=True))
+                for item in map(lambda x: StreamMetaInstance(x, source.stream_id.meta_data),
+                                source.window(interval, force_calculation=True)):
+                    found_data = True
+                    yield item
 
-        raise IndexError("Index {} not found in sources".format(self.index))
+        if not found_data:
+            raise IndexError("Index {} not found in sources".format(self.index))

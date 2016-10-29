@@ -66,12 +66,12 @@ class Workflow(Printable):
         :return: None
         """
         # TODO: Currently expects the factors to be declared sequentially
-        # for factor_collection in self.factor_collections.values()[::-1]:
-        #     for factor in factor_collection:
-        for tool in self.execution_order:
-            for factor in self.factor_collections[tool.name]:
-                logging.debug("Executing factor {}".format(factor))
-                factor.execute(time_interval)
+        # for tool in self.execution_order:
+        #     for factor in self.factor_collections[tool.name]:
+        #         logging.debug("Executing factor {}".format(factor))
+        #         factor.execute(time_interval)
+        if len(self.execution_order) > 1:
+            self.factor_collections[self.execution_order[-1].name][-1].execute(time_interval)
             
     def create_node(self, stream_name, channel, plate_ids):
         """
