@@ -1,16 +1,4 @@
 {
-    "meta_data_lists" : {
-        "house": {
-            "1" : {
-                "location": ["kitchen", "lounge", "bedroom 1", "bedroom 2", "bathroom", "toilet", "study", "hallway", "stairs"],
-                "resident": ["1", "2", "3"]
-            },
-            "2" : {
-                "location": ["kitchen", "lounge", "bedroom 1", "bathroom", "toilet", "hallway"],
-                "resident": ["4", "5"]
-            }
-        }
-    },
     "meta_data": [
         {"identifier": "root"},
         {"identifier": "1", "tag": "house", "data": "1", "parent": "root"},
