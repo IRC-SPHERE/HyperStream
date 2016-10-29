@@ -64,3 +64,30 @@ def check_tool_defined(func):
             raise RuntimeError("Tool not yet defined")
         return func(*args)
     return func_wrapper
+
+
+def check_input_stream_count(expected_number_of_streams):
+    """
+    Decorator for Tool._execute that checks the number of input streams
+
+    :param expected_number_of_streams: The expected number of streams
+    :return: the decorator
+    """
+
+    def stream_count_decorator(func):
+        def func_wrapper(*args, **kwargs):
+            self = args[0]
+            sources = kwargs['sources'] if 'sources' in kwargs else args[1]
+            if expected_number_of_streams == 0:
+                if sources:
+                    raise ValueError("No input streams expected")
+            else:
+                given_number_of_streams = len(sources) if sources else 0
+                if given_number_of_streams != expected_number_of_streams:
+                    raise ValueError("{} tool takes {} stream(s) as input ({} given)".format(
+                        self.__class__.__name__, expected_number_of_streams, given_number_of_streams))
+            return func(*args, **kwargs)
+
+        return func_wrapper
+
+    return stream_count_decorator

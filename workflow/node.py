@@ -29,6 +29,7 @@ from ..utils import Printable
 
 import logging
 import itertools
+from collections import deque
 
 
 class Node(Printable):
@@ -63,7 +64,8 @@ class Node(Printable):
 
     @property
     def plate_values(self):
-        return list(itertools.chain(*[p.values for p in self.plates]))
+        # return list(itertools.chain(*[p.values for p in self.plates]))
+        return get_overlapping_plate_values(self.plates)
 
     @property
     def factor(self):
@@ -162,3 +164,95 @@ class Node(Printable):
 
         return tuple(sorted(combined_plate_value))
 
+
+def get_overlapping_plate_values(plates):
+    """
+    Need to find where in the tree the two plates intersect, e.g.
+
+    We are given as input plates D, E, whose positions in the tree are:
+
+    root -> A -> B -> C -> D
+    root -> A -> B -> E
+
+    The results should then be the cartesian product between C, D, E looped over A and B
+
+    If there's a shared plate in the hierarchy, we need to join on this shared plate, e.g.:
+
+    [self.plates[p].values for p in plate_ids][0] =
+      [(('house', '1'), ('location', 'hallway'), ('wearable', 'A')),
+       (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'))]
+    [self.plates[p].values for p in plate_ids][1] =
+      [(('house', '1'), ('scripted', '15')),
+       (('house', '1'), ('scripted', '13'))]
+
+    Result should be one stream for each of:
+      [(('house', '1'), ('location', 'hallway'), ('wearable', 'A'), ('scripted', '15)),
+       (('house', '1'), ('location', 'hallway'), ('wearable', 'A'), ('scripted', '13)),
+       (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'), ('scripted', '15)),
+       (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'), ('scripted', '13))]
+
+    :param plates: The input plates
+    :return: The plate values
+    :type plates: list[Plate] | list[Plate]
+    """
+    if not plates:
+        return None
+
+    if len(plates) == 1:
+        return plates[0].values
+
+    if len(plates) > 2:
+        raise NotImplementedError
+
+    # Get all of the ancestors zipped together, padded with None
+    ancestors = deque(itertools.izip_longest(*(p.ancestor_plates for p in plates)))
+
+    last_values = []
+    while len(ancestors) > 0:
+        current = ancestors.popleft()
+        if current[0] == current[1]:
+            # Plates are identical, take all values valid for matching parents
+            if last_values:
+                raise NotImplementedError
+            else:
+                last_values.extend(current[0].values)
+
+        elif current[0] is not None and current[1] is not None \
+                and current[0].meta_data_id == current[1].meta_data_id:
+            # Not identical, but same meta data id. Take all overlapping values valid for matching parents
+            if last_values:
+                raise NotImplementedError
+            else:
+                raise NotImplementedError
+        else:
+            # Different plates, take cartesian product of values with matching parents.
+            # Note that one of them may be none
+            if last_values:
+                tmp = []
+                for v in last_values:
+                    # Get the valid ones based on v
+                    valid = [filter(lambda x: all(xx in v for xx in x[:-1]), c.values)
+                             for c in current if c is not None]
+
+                    # Strip out v from the valid ones
+                    stripped = [map(lambda y: tuple(itertools.chain(*(yy for yy in y if yy not in v))), val)
+                                for val in valid]
+
+                    # Get the cartesian product. Note that this still works if one of the current is None
+                    prod = list(itertools.product(*stripped))
+
+                    # Now update the last values be the product with v put back in
+                    new_values = [v + p for p in prod]
+                    if new_values:
+                        tmp.append(new_values)
+
+                last_values = list(itertools.chain(*tmp))
+                if not last_values:
+                    raise Exception
+            else:
+                raise NotImplementedError
+
+    if not last_values:
+        raise ValueError("Plate value computation failed - possibly there were no shared plate values")
+
+    return last_values

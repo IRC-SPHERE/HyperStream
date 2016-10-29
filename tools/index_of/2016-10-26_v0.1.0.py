@@ -34,6 +34,7 @@ class IndexOf(SelectorTool):
 
         for source in sources:
             if (self.selector_meta_data, self.index) in source.stream_id.meta_data:
-                return map(lambda x: StreamMetaInstance(x, source.stream_id.meta_data), source.window(interval))
+                return map(lambda x: StreamMetaInstance(x, source.stream_id.meta_data),
+                           source.window(interval, force_calculation=True))
 
         raise IndexError("Index {} not found in sources".format(self.index))

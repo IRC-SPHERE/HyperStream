@@ -17,13 +17,15 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+Tool package. Defines Tool, MultiOutputTool and SelectorTool base classes.
+"""
 
-from utils import MetaDataTree, Hashable, Printable, TypedBiDict, FrozenKeyDict, TypedFrozenKeyDict, HyperStreamLogger
-from time_utils import UTC, MIN_DATE, MAX_DATE, utcnow, get_timedelta
-from decorators import timeit, check_output_format, check_tool_defined, check_input_stream_count
-from errors import StreamNotAvailableError, StreamAlreadyExistsError, StreamDataNotAvailableError, \
-    StreamNotFoundError, IncompatiblePlatesError, ToolNotFoundError, ChannelNotFoundError, ToolExecutionError, \
-    PlateEmptyError, PlateDefinitionError, LinkageError, FactorAlreadyExistsError, NodeAlreadyExistsError, \
-    FactorDefinitionError, ChannelAlreadyExistsError, NodeDefinitionError
+from base_tool import BaseTool
+from tool import Tool
+from aggregate_tool import AggregateTool
+from multi_output_tool import MultiOutputTool
+from selector_tool import SelectorTool
 
-
+# The following import is for backwards compatibility: this has been moved into the utils package
+from ..utils import check_input_stream_count
