@@ -62,16 +62,18 @@ class Workflow(Printable):
     def execute(self, time_interval):
         """
         Here we execute the factors over the streams in the workflow
+        Execute the factors in reverse order. We can't just execute the last factor because there may be multiple
+        "leaf" factors that aren't triggered by upstream computations.
 
-        :return: None
+        :param time_interval: The time interval to execute this workflow over
         """
-        # TODO: Currently expects the factors to be declared sequentially
-        # for tool in self.execution_order:
-        #     for factor in self.factor_collections[tool.name]:
-        #         logging.debug("Executing factor {}".format(factor))
-        #         factor.execute(time_interval)
         if len(self.execution_order) > 1:
-            self.factor_collections[self.execution_order[-1].name][-1].execute(time_interval)
+            for tool in self.execution_order[::-1]:
+                for factor in self.factor_collections[tool.name]:
+                    if factor.sink.is_leaf:
+                        # Only execute the factor if its sink a leaf node
+                        # TODO: What if the leaf nodes have different time intervals?
+                        factor.execute(time_interval)
             
     def create_node(self, stream_name, channel, plate_ids):
         """

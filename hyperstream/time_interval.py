@@ -142,6 +142,9 @@ class TimeIntervals(Printable):
 
     __nonzero__ = __bool__
 
+    def __len__(self):
+        return len(self.intervals)
+
 
 class TimeInterval(object):
     """
