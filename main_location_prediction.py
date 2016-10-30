@@ -91,14 +91,14 @@ if __name__ == '__main__':
         )
 
     nodes = (
-        ("rss_raw",     M, ["H1"]),                 # Raw RSS data
+        ("rss_raw",     S, ["H1"]),                 # Raw RSS data
         ("rss_aid",     M, ["H1.L"]),               # RSS by access point id
         ("rss_aid_uid", M, ["H1.L.W"]),             # RSS by access point id and device id
         ("rss",         M, ["H1.L.W"]),             # RSS values only (by access point id and device id)
         ("rss_time",    M, ["H1.L.W", "H1.S"]),     # RSS values per scripted experiment
         ("rss_train",   M, ["H1.L.W", "H1.S1"]),    # RSS values scripted experiment 1
         ("rss_test",    M, ["H1.L.W", "H1.S2"]),    # RSS values scripted experiment 2
-        ("ann",         M, ["H1"]),                 # Annotations
+        ("ann",         S, ["H1"]),                 # Annotations
         ("ann_time",    M, ["H1.S"]),               # Annotations per scripted experiment
         ("ann_train",   M, ["H1.S1"]),              # Annotations for scripted experiment 1
         ("ann_test",    M, ["H1.S2"]),              # Annotations for scripted experiment 1
