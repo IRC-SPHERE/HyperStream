@@ -38,7 +38,7 @@ from sphere_helpers import PredefinedTools, scripted_experiments, second, minute
 if __name__ == '__main__':
     hyperstream = HyperStream()
 
-    tools = PredefinedTools(hyperstream.channel_manager)
+    tools = PredefinedTools(hyperstream)
 
     # Various channel managers
     M = hyperstream.channel_manager.memory
@@ -64,19 +64,12 @@ if __name__ == '__main__':
     eids = tuple(("scripted", str(i + 1)) for i in range(0, len(scripted_experiments.intervals)))
     locs_eids = tuple(itertools.product(locs, eids))
 
-    # get a dict of experiment_id => annotator_id mappings
-    experiment_id_to_annotator_ids = dict(
-        (k, [a['data'] for a in g])
-        for k, g in itertools.groupby(
-            (m for m in hyperstream.config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
-            lambda x: x['identifier'].split('.')[1].split('_')[1]))
-
     # Create necessary plates
     for i, time_interval in enumerate(scripted_experiments[:2]):
         time_interval.end = time_interval.start + minute
 
         experiment_id = str(i + 1)
-        annotator_ids = experiment_id_to_annotator_ids[experiment_id]
+        annotator_ids = tools.experiment_id_to_annotator_ids[experiment_id]
         # anns = [("annotator", ann) for ann in annotator_ids]
 
         hyperstream.plate_manager.create_plate(
@@ -98,18 +91,42 @@ if __name__ == '__main__':
         )
 
     nodes = (
-        ("rss_raw",     M, ["H1"]),               # Raw RSS data
-        ("rss_aid",     M, ["H1.L"]),             # RSS by access point id
-        ("rss_aid_uid", M, ["H1.L.W"]),           # RSS by access point id and device id
-        ("rss",         M, ["H1.L.W"]),           # RSS values only (by access point id and device id)
-        ("rss_time",    M, ["H1.L.W", "H1.S"]),   # RSS values per scripted experiment
-        ("rss_train",   M, ["H1.L.W", "H1.S1"]),  # RSS values scripted experiment 1
-        ("rss_test",    M, ["H1.L.W", "H1.S2"]),  # RSS values scripted experiment 2
+        ("rss_raw",     M, ["H1"]),                 # Raw RSS data
+        ("rss_aid",     M, ["H1.L"]),               # RSS by access point id
+        ("rss_aid_uid", M, ["H1.L.W"]),             # RSS by access point id and device id
+        ("rss",         M, ["H1.L.W"]),             # RSS values only (by access point id and device id)
+        ("rss_time",    M, ["H1.L.W", "H1.S"]),     # RSS values per scripted experiment
+        ("rss_train",   M, ["H1.L.W", "H1.S1"]),    # RSS values scripted experiment 1
+        ("rss_test",    M, ["H1.L.W", "H1.S2"]),    # RSS values scripted experiment 2
+        ("ann",         M, ["H1"]),                 # Annotations
+        ("ann_time",    M, ["H1.S"]),               # Annotations per scripted experiment
+        ("ann_train",   M, ["H1.S1"]),              # Annotations for scripted experiment 1
+        ("ann_test",    M, ["H1.S2"]),              # Annotations for scripted experiment 1
     )
 
     # Create all of the nodes
     for stream_name, channel, plate_ids in nodes:
         w.create_node(stream_name, channel, plate_ids)
+
+    w.create_factor(
+        tool=tools.annotations_location,
+        sources=None,
+        sink=N["ann"])
+
+    w.create_multi_output_factor(
+        tool=tools.split_time,
+        source=N["ann"],
+        sink=N["ann_time"])
+
+    f = w.create_factor(
+        tool=tools.index_of_1,
+        sources=[N["ann_time"]],
+        sink=N["ann_train"])
+
+    w.create_factor(
+        tool=tools.index_of_2,
+        sources=[N["ann_time"]],
+        sink=N["ann_test"])
 
     w.create_factor(
         tool=tools.wearable_rss,
@@ -132,9 +149,12 @@ if __name__ == '__main__':
         sink=N["rss"])
 
     # Now we want to split by time interval onto a time-oriented plate
-    # N["rss_time"] = w.create_node(stream_name="rss_time", channel=M, plate_ids=["H.L", "H.scripted"])
-    w.create_multi_output_factor(tool=tools.split_time, source=N["rss"], sink=N["rss_time"])
+    w.create_multi_output_factor(
+        tool=tools.split_time,
+        source=N["rss"],
+        sink=N["rss_time"])
 
+    # Now separate this onto single plates for train and test
     w.create_factor(
         tool=tools.index_of_1,
         sources=[N["rss_time"]],
@@ -151,19 +171,22 @@ if __name__ == '__main__':
     # time_interval = scripted_experiments[0] + (-1, 0)
     time_interval = scripted_experiments[0:2].span + (-1, 0)
 
-    w.execute(time_interval)
+    f.execute(time_interval)
 
     def print_head(node_id, parent_plate_values, plate_values, interval, n=10, print_func=print):
         print_func("Node: {}".format(node_id))
         N[node_id].print_head(parent_plate_values, plate_values, interval, n, print_func)
 
-    print_head("rss_raw",       None,       h1,         time_interval, 10, print)
-    print_head("rss_aid",       h1,         locs,       time_interval, 10, print)
-    print_head("rss_aid_uid",   h1 + wA,    locs,       time_interval, 10, print)
-    print_head("rss",           h1 + wA,    locs,       time_interval, 10, print)
-    print_head("rss_time",      h1 + wA,    locs_eids,  time_interval, 10, print)
-    print_head("rss_train",     h1 + wA,    locs_eids,  time_interval, 10, print)
-    print_head("rss_test",      h1 + wA,    locs_eids,  time_interval, 10, print)
+    print_head("annotations",   None,       h1,         time_interval, 10, print)
+    # print_head("rss_raw",       None,       h1,         time_interval, 10, print)
+    # print_head("rss_aid",       h1,         locs,       time_interval, 10, print)
+    # print_head("rss_aid_uid",   h1 + wA,    locs,       time_interval, 10, print)
+    # print_head("rss",           h1 + wA,    locs,       time_interval, 10, print)
+    # print_head("rss_time",      h1 + wA,    locs_eids,  time_interval, 10, print)
+    # print_head("rss_train",     h1 + wA,    locs_eids,  time_interval, 10, print)
+    # print_head("rss_test",      h1 + wA,    locs_eids,  time_interval, 10, print)
+
+    # TODO: Get the annotations for the same time periods
 
     # TODO: Example of training on one set of data and testing on another
     # TODO: Example of training on several sets of data and testing on other sets

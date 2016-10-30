@@ -31,6 +31,7 @@ from datetime import timedelta, datetime
 from scipy import integrate
 import numpy as np
 import sys
+import itertools
 
 second = timedelta(seconds=1)
 minute = timedelta(minutes=1)
@@ -82,6 +83,7 @@ scripted_experiments = TimeIntervals((
     TimeInterval(datetime(2015, 10, 23, 11, 49, 21, 606000, UTC), datetime(2015, 10, 23, 12, 17,  7, 378000, UTC))
 ))
 
+
 # annotator_ids = set(a for e in scripted_experiments for a in e[1])
 
 # Mapping from access point to location, and wearable uid to wearable name
@@ -128,7 +130,14 @@ eps = sys.float_info.epsilon
 
 
 class PredefinedTools(object):
-    def __init__(self, channel_manager):
+    def __init__(self, hyperstream):
+        channel_manager = hyperstream.channel_manager
+
+        # get a dict of experiment_id => annotator_id mappings
+        self.experiment_id_to_annotator_ids = dict((k, [a['data'] for a in g])
+                                                   for k, g in itertools.groupby(
+            (m for m in hyperstream.config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
+            lambda x: x['identifier'].split('.')[1].split('_')[1]))
 
         # ENVIRONMENTAL
         self.environmental = channel_manager.get_tool(
@@ -164,12 +173,15 @@ class PredefinedTools(object):
             parameters=dict(key="wearable-rss"),
         )
 
+        annotator_ids = set(a for i in range(len(scripted_experiments))
+                            for a in self.experiment_id_to_annotator_ids[str(i + 1)])
+
         # ANNOTATIONS
-        # self.annotations_location = channel_manager.get_tool(
-        #     name="sphere",
-        #     parameters=dict(modality="annotations", annotators=annotator_ids, elements={"Location"},
-        #                     filters={"trigger": 1})
-        # )
+        self.annotations_location = channel_manager.get_tool(
+            name="sphere",
+            parameters=dict(modality="annotations", annotators=annotator_ids,
+                            elements={"Location"}, filters={"trigger": 1})
+        )
 
         self.annotations_label = channel_manager.get_tool(
             name="component",

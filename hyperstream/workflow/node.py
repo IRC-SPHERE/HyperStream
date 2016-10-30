@@ -75,6 +75,10 @@ class Node(Printable):
     def factor(self, value):
         self._factor = value
 
+    @property
+    def is_leaf(self):
+        return not self.factor
+
     def intersection(self, meta):
         """
         Get the intersection between the meta data given and the meta data contained within the plates.
