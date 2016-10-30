@@ -98,10 +98,12 @@ if __name__ == '__main__':
         ("rss_time",    M, ["H1.L.W", "H1.S"]),     # RSS values per scripted experiment
         ("rss_train",   M, ["H1.L.W", "H1.S1"]),    # RSS values scripted experiment 1
         ("rss_test",    M, ["H1.L.W", "H1.S2"]),    # RSS values scripted experiment 2
-        ("ann",         S, ["H1"]),                 # Annotations
+        ("ann_raw",     S, ["H1"]),                 # Annotations (raw format)
         ("ann_time",    M, ["H1.S"]),               # Annotations per scripted experiment
-        ("ann_train",   M, ["H1.S1"]),              # Annotations for scripted experiment 1
-        ("ann_test",    M, ["H1.S2"]),              # Annotations for scripted experiment 1
+        ("ann_raw_trn", M, ["H1.S1"]),              # Annotations for scripted experiment 1
+        ("ann_raw_tst", M, ["H1.S2"]),              # Annotations for scripted experiment 1
+        ("ann_train",   M, ["H1.S1.A"]),            # Annotations for scripted experiment 1 by annotator
+        ("ann_test",    M, ["H1.S2.A"]),            # Annotations for scripted experiment 2 by annotator
     )
 
     # Create all of the nodes
@@ -111,21 +113,31 @@ if __name__ == '__main__':
     w.create_factor(
         tool=tools.annotations_location,
         sources=None,
-        sink=N["ann"])
+        sink=N["ann_raw"])
 
     w.create_multi_output_factor(
         tool=tools.split_time,
-        source=N["ann"],
+        source=N["ann_raw"],
         sink=N["ann_time"])
 
     f = w.create_factor(
         tool=tools.index_of_1,
         sources=[N["ann_time"]],
-        sink=N["ann_train"])
+        sink=N["ann_raw_trn"])
 
     w.create_factor(
         tool=tools.index_of_2,
         sources=[N["ann_time"]],
+        sink=N["ann_raw_tst"])
+
+    w.create_multi_output_factor(
+        tool=tools.split_annotator,
+        source=N["ann_raw_trn"],
+        sink=N["ann_train"])
+
+    w.create_multi_output_factor(
+        tool=tools.split_annotator,
+        source=N["ann_raw_tst"],
         sink=N["ann_test"])
 
     w.create_factor(
@@ -177,7 +189,8 @@ if __name__ == '__main__':
         print_func("Node: {}".format(node_id))
         N[node_id].print_head(parent_plate_values, plate_values, interval, n, print_func)
 
-    print_head("annotations",   None,       h1,         time_interval, 10, print)
+    print_head("ann_train",     None,       h1,         time_interval, 10, print)
+    print_head("ann_test",      None,       h1,         time_interval, 10, print)
     # print_head("rss_raw",       None,       h1,         time_interval, 10, print)
     # print_head("rss_aid",       h1,         locs,       time_interval, 10, print)
     # print_head("rss_aid_uid",   h1 + wA,    locs,       time_interval, 10, print)
