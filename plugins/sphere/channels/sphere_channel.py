@@ -20,11 +20,13 @@
 
 import os
 from collections import Iterable
+import logging
+from datetime import timedelta
 
 from sphere_connector_package.sphere_connector import SphereConnector, DataWindow, Experiment, ExperimentConfig
 
 from hyperstream.channels.memory_channel import MemoryChannel
-from hyperstream import TimeIntervals, TimeInterval
+from hyperstream import TimeIntervals, TimeInterval, StreamInstance
 from hyperstream.utils import MIN_DATE, MAX_DATE
 
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
@@ -87,3 +89,27 @@ class SphereChannel(MemoryChannel):
         for stream_id in self.streams:
             self.streams[stream_id].calculated_intervals = TimeIntervals([(MIN_DATE, up_to_timestamp)])
         self.up_to_timestamp = up_to_timestamp
+
+    def get_stream_writer(self, stream):
+        def writer(document_collection):
+            if stream.stream_id not in self.data:
+                raise RuntimeError("Data slot does not exist for {}, perhaps create_stream was not used?"
+                                   .format(stream))
+            if isinstance(document_collection, StreamInstance):
+                try:
+                    self.data[stream.stream_id].append(document_collection)
+                except KeyError as e:
+                    # Deal with the duplicate error by adding microseconds to the time until we succeed
+                    logging.warn(e.message)
+                    doc = StreamInstance(
+                        timestamp=document_collection.timestamp + timedelta(microseconds=1),
+                        value=document_collection.value)
+                    return writer(doc)
+            elif isinstance(document_collection, list):
+                for d in document_collection:
+                    writer(d)
+            else:
+                raise TypeError('Expected: [StreamInstance, list<StreamInstance>], got {}. '
+                                .format(type(document_collection)))
+
+        return writer
