@@ -51,6 +51,7 @@ class Factor(Printable):
             for source in source_nodes:
                 if not isinstance(source, Node):
                     raise ValueError("Expected node, got {}".format(type(source)))
+                source.is_leaf = False
         self.sources = source_nodes
         if not isinstance(sink_node, Node):
             raise ValueError("Expected node, got {}".format(type(sink_node)))
