@@ -64,6 +64,15 @@ if __name__ == '__main__':
     eids = tuple(("scripted", str(i + 1)) for i in range(0, len(scripted_experiments.intervals)))
     locs_eids = tuple(itertools.product(locs, eids))
 
+    hyperstream.plate_manager.create_plate(
+        plate_id="H1.S_1,2",
+        description="Scripted experiments 1 and 2 in SPHERE house",
+        meta_data_id="scripted",
+        values=["1", "2"],
+        complement=False,
+        parent_plate="H1"
+    )
+
     # Create necessary plates
     for i, time_interval in enumerate(scripted_experiments[:2]):
         time_interval.end = time_interval.start + minute
@@ -76,8 +85,8 @@ if __name__ == '__main__':
             plate_id="H1.S{}".format(experiment_id),
             description="Scripted experiment {} in SPHERE house".format(experiment_id),
             meta_data_id="scripted",
-            values=[],
-            complement=True,
+            values=[experiment_id],
+            complement=False,
             parent_plate="H1"
         )
 
@@ -95,11 +104,13 @@ if __name__ == '__main__':
         ("rss_aid",     M, ["H1.L"]),               # RSS by access point id
         ("rss_aid_uid", M, ["H1.L.W"]),             # RSS by access point id and device id
         ("rss",         M, ["H1.L.W"]),             # RSS values only (by access point id and device id)
-        ("rss_time",    M, ["H1.L.W", "H1.S"]),     # RSS values per scripted experiment
+        # ("rss_time",    M, ["H1.L.W", "H1.S"]),     # RSS values per scripted experiment
+        ("rss_time",    M, ["H1.L.W", "H1.S_1,2"]),  # RSS values per scripted experiment (just experiments 1, 2)
         ("rss_train",   M, ["H1.L.W", "H1.S1"]),    # RSS values scripted experiment 1
         ("rss_test",    M, ["H1.L.W", "H1.S2"]),    # RSS values scripted experiment 2
         ("ann_raw",     S, ["H1"]),                 # Annotations (raw format)
-        ("ann_time",    M, ["H1.S"]),               # Annotations per scripted experiment
+        # ("ann_time",    M, ["H1.S"]),               # Annotations per scripted experiment
+        ("ann_time",    M, ["H1.S_1,2"]),           # Annotations per scripted experiment (just experiments 1, 2)
         ("ann_raw_trn", M, ["H1.S1"]),              # Annotations for scripted experiment 1
         ("ann_raw_tst", M, ["H1.S2"]),              # Annotations for scripted experiment 1
         ("ann_train",   M, ["H1.S1.A"]),            # Annotations for scripted experiment 1 by annotator

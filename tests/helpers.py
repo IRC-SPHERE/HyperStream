@@ -54,7 +54,7 @@ T = hyperstream.channel_manager.tools
 D = hyperstream.channel_manager.mongo
 
 # Some predefined tools
-tools = PredefinedTools(hyperstream.channel_manager)
+tools = PredefinedTools(hyperstream)
 
 # Some useful Stream IDs
 environmental = StreamId('environmental', meta_data={'house': '1'})
