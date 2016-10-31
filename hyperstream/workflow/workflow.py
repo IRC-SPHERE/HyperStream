@@ -108,7 +108,7 @@ class Workflow(Printable):
 
         node = Node(stream_name, streams, plates)
         self.nodes[stream_name] = node
-        logging.info("Added node with id {}".format(stream_name))
+        logging.info("Added node with id {} containing {} streams".format(stream_name, len(streams)))
 
         return node
 

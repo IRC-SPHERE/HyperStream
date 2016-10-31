@@ -45,7 +45,7 @@ def unix2datetime(u):
 if __name__ == '__main__':
     hyperstream = HyperStream()
 
-    tools = PredefinedTools(hyperstream.channel_manager)
+    tools = PredefinedTools(hyperstream)
 
     wearable3 = hyperstream.channel_manager.get_tool(
         name="sphere",

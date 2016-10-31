@@ -173,7 +173,10 @@ class PredefinedTools(object):
             parameters=dict(key="wearable-rss"),
         )
 
-        annotator_ids = set(a for i in range(len(scripted_experiments))
+        # annotator_ids = set(a for i in range(len(scripted_experiments))
+        #                     for a in self.experiment_id_to_annotator_ids[str(i + 1)])
+
+        annotator_ids = set(a for i in [0, 1]
                             for a in self.experiment_id_to_annotator_ids[str(i + 1)])
 
         # ANNOTATIONS

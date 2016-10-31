@@ -32,7 +32,7 @@ from hyperstream.utils.time_utils import MIN_DATE
 
 if __name__ == '__main__':
     hyperstream = HyperStream()
-    tools = PredefinedTools(hyperstream.channel_manager)
+    tools = PredefinedTools(hyperstream)
 
     # Various channels
     M = hyperstream.channel_manager.memory

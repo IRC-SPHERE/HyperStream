@@ -42,7 +42,7 @@ motion_sensors = {
 
 if __name__ == '__main__':
     hyperstream = HyperStream()
-    tools = PredefinedTools(hyperstream.channel_manager)
+    tools = PredefinedTools(hyperstream)
 
     # Various constants
     t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
