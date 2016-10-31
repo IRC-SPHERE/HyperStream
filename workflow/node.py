@@ -57,6 +57,7 @@ class Node(Printable):
 
         self._factor = None  # reference to the factor that defines this node. Required for upstream computation
         self.plates = plates if plates else []
+        self._is_leaf = True  # All nodes are leaf nodes until they are declared as a source node in a factor
 
     @property
     def plate_ids(self):
@@ -77,7 +78,12 @@ class Node(Printable):
 
     @property
     def is_leaf(self):
-        return not self.factor
+        # return not self.factor
+        return self._is_leaf
+
+    @is_leaf.setter
+    def is_leaf(self, value):
+        self._is_leaf = value
 
     def intersection(self, meta):
         """
