@@ -168,7 +168,7 @@ if __name__ == '__main__':
         sources=[N["rss_time"]],
         sink=N["rss_test"])
 
-    if False:
+    if True:
         w.create_factor(
             tool=hyperstream.channel_manager.get_tool("location_predictor", parameters=dict()),
             sources=[N["rss_train"], N["ann_train"]],
