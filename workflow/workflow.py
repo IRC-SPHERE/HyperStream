@@ -67,7 +67,7 @@ class Workflow(Printable):
 
         :param time_interval: The time interval to execute this workflow over
         """
-        if len(self.execution_order) > 1:
+        if len(self.execution_order) > 0:
             for tool in self.execution_order[::-1]:
                 for factor in self.factor_collections[tool.name]:
                     if factor.sink.is_leaf:
