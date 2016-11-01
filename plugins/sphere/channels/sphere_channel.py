@@ -64,7 +64,7 @@ class SphereExperiment(Experiment):
             raise TypeError
         annotations = dict((annotator_id, {'filename': None}) for annotator_id in annotators)
         experiment_config = ExperimentConfig(experiment_start=start, experiment_end=end, annotations=annotations)
-        super(SphereExperiment, self).__init__(sphere_connector, experiment_config)
+        super(SphereExperiment, self).__init__(sphere_connector, experiment_config, auto_initialise=False)
 
 
 class SphereChannel(MemoryChannel):

@@ -81,7 +81,7 @@ scripted_experiments = TimeIntervals((
     TimeInterval(datetime(2015, 10, 23,  9, 54, 12, 941000, UTC), datetime(2015, 10, 23, 10, 24, 58, 627000, UTC)),
     TimeInterval(datetime(2015, 10, 23, 11, 10, 14, 341000, UTC), datetime(2015, 10, 23, 11, 40, 13,  42000, UTC)),
     TimeInterval(datetime(2015, 10, 23, 11, 49, 21, 606000, UTC), datetime(2015, 10, 23, 12, 17,  7, 378000, UTC))
-))
+))[0:2]
 
 
 # annotator_ids = set(a for e in scripted_experiments for a in e[1])
@@ -173,11 +173,9 @@ class PredefinedTools(object):
             parameters=dict(key="wearable-rss"),
         )
 
-        # annotator_ids = set(a for i in range(len(scripted_experiments))
-        #                     for a in self.experiment_id_to_annotator_ids[str(i + 1)])
-
-        annotator_ids = set(a for i in [0, 1]
+        annotator_ids = set(a for i in range(len(scripted_experiments))
                             for a in self.experiment_id_to_annotator_ids[str(i + 1)])
+
 
         # ANNOTATIONS
         self.annotations_location = channel_manager.get_tool(
@@ -221,7 +219,7 @@ class PredefinedTools(object):
         # SPLITTERS
         self.split_annotator = channel_manager.get_tool(
             name="splitter",
-            parameters=dict(element="annotator", mapping=None)  # mappings["annotator"])
+            parameters=dict(element="annotator", mapping=dict((x, x) for x in annotator_ids))  # mappings["annotator"])
         )
 
         self.split_aid = channel_manager.get_tool(

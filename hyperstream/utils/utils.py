@@ -250,7 +250,9 @@ class FrozenKeyDict(dict):
                         continue
                     self[key][k] = value[k]
             else:
-                raise KeyError("Key {} has already been set with value {}, new value {}".format(key, self[key], value))
+                if self[key] != value:
+                    raise KeyError("Key {} has already been set with value {}, new value {}".format(
+                                   key, self[key], value))
             return
         super(FrozenKeyDict, self).__setitem__(key, value)
 
