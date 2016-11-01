@@ -127,17 +127,17 @@ if __name__ == '__main__':
         exp_times = exp_times + TimeIntervals([TimeInterval(unix2datetime(row.first_occurrence-1),unix2datetime(row.last_occurrence))])
     print(exp_times)
 
-    wearable = hyperstream.channel_manager.get_tool(
+    wearable4 = hyperstream.channel_manager.get_tool(
         name="sphere",
-        parameters=dict(modality="wearable"))
-    f1 = w.create_factor(tool=wearable, sources=None, sink=N["rss_raw"])
+        parameters=dict(modality="wearable4"))
+    f1 = w.create_factor(tool=wearable4, sources=None, sink=N["rss_raw"])
 
 #    w.execute(exp_times.span)
     ti_start = datetime.datetime(year=2016,month=10,day=19,hour=13,tzinfo=pytz.UTC)
     time_interval = TimeInterval(ti_start,ti_start+datetime.timedelta(seconds=5))
 
-    w.execute(time_interval)
-#    f1.execute(time_interval)
+#    w.execute(time_interval)
+    f1.execute(time_interval)
 #    w.execute(
 
     print('number of non_empty_streams: {}'.format(len(M.non_empty_streams)))

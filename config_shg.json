@@ -60,6 +60,18 @@
                     "bt": 1
                 }
             },
+            "wearable4": {
+                "collection": "WEARABLE-ISO-TIME",
+                "date_time_field": "wts",
+                "event": "m",
+                "fields": {
+                    "wts": 1,
+                    "uid": 1,
+                    "aid": 1,
+                    "m": 1,
+                    "rss": 1
+                }
+            },
             "video": {
                 "collection": "VIDEO",
                 "date_time_field": "dt",
