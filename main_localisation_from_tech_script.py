@@ -100,7 +100,7 @@ if __name__ == '__main__':
     nodes = (
         ("every_2s",    M, ["H1"]),                    # sliding windows one every minute
         ("rss_raw",     S, ["H1"]),                    # Raw RSS data
-        ("anno_raw",    M, ["H1"]),                    # Raw annotation data
+        ("anno_raw",    S, ["H1"]),                    # Raw annotation data
         ("rss_2s",    M, ["H1"]),                    # Raw annotation data
         # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
         # ("rss_uid",     M, ["H1.W"]),                  # RSS by wearable id
