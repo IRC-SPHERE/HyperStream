@@ -60,6 +60,8 @@ if __name__ == '__main__':
     # Some plate values for display purposes
     h1 = (('house', '1'),)
     wA = (('wearable', 'A'),)
+    s1 = (('scripted', '1'),)
+    s2 = (('scripted', '2'),)
     locs = tuple(("location", loc) for loc in ["kitchen", "hallway", "lounge"])
     eids = tuple(("scripted", str(i + 1)) for i in range(0, len(scripted_experiments.intervals)))
     locs_eids = tuple(itertools.product(locs, eids))
@@ -73,13 +75,15 @@ if __name__ == '__main__':
         parent_plate="H1"
     )
 
+    anns = []
+
     # Create necessary plates
     for i, time_interval in enumerate(scripted_experiments[:2]):
         # time_interval.end = time_interval.start + minute
 
         experiment_id = str(i + 1)
         annotator_ids = tools.experiment_id_to_annotator_ids[experiment_id]
-        # anns = [("annotator", ann) for ann in annotator_ids]
+        anns.append(tuple(("annotator", ann) for ann in annotator_ids))
 
         hyperstream.plate_manager.create_plate(
             plate_id="H1.S{}".format(experiment_id),
@@ -115,6 +119,7 @@ if __name__ == '__main__':
         ("ann_raw_tst", M, ["H1.S2"]),              # Annotations for scripted experiment 1
         ("ann_train",   M, ["H1.S1.A"]),            # Annotations for scripted experiment 1 by annotator
         ("ann_test",    M, ["H1.S2.A"]),            # Annotations for scripted experiment 2 by annotator
+        ("model",       M, ["H1.S1"]),              # Outputs of model trained on scripted experiment 1
     )
 
     # Create all of the nodes
@@ -188,6 +193,12 @@ if __name__ == '__main__':
         sources=[N["rss_time"]],
         sink=N["rss_test"])
 
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool("location_predictor", parameters=dict()),
+        sources=[N["rss_train"], N["ann_train"]],
+        sink=N["model"]
+    )
+
     # time_interval = TimeInterval(scripted_experiments.intervals[0].start,
     #                              scripted_experiments.intervals[0].start + second)
     # time_interval = scripted_experiments[0] + (-1, 0)
@@ -199,21 +210,18 @@ if __name__ == '__main__':
         print_func("Node: {}".format(node_id))
         N[node_id].print_head(parent_plate_values, plate_values, interval, n, print_func)
 
-    print_head("ann_train",     None,       h1,         time_interval, 10, print)
-    print_head("ann_test",      None,       h1,         time_interval, 10, print)
+    print_head("ann_train",     h1 + s1,    anns[0],    time_interval, 10, print)
+    print_head("ann_test",      h1 + s2,    anns[1],    time_interval, 10, print)
     # print_head("rss_raw",       None,       h1,         time_interval, 10, print)
     # print_head("rss_aid",       h1,         locs,       time_interval, 10, print)
     # print_head("rss_aid_uid",   h1 + wA,    locs,       time_interval, 10, print)
     # print_head("rss",           h1 + wA,    locs,       time_interval, 10, print)
     # print_head("rss_time",      h1 + wA,    locs_eids,  time_interval, 10, print)
-    # print_head("rss_train",     h1 + wA,    locs_eids,  time_interval, 10, print)
-    # print_head("rss_test",      h1 + wA,    locs_eids,  time_interval, 10, print)
-
-    # TODO: Get the annotations for the same time periods
+    print_head("rss_train",     h1 + wA,    locs_eids,  time_interval, 10, print)
+    print_head("rss_test",      h1 + wA,    locs_eids,  time_interval, 10, print)
 
     # TODO: Example of training on one set of data and testing on another
     # TODO: Example of training on several sets of data and testing on other sets
-    raise NotImplementedError
 
     exit(0)
 
