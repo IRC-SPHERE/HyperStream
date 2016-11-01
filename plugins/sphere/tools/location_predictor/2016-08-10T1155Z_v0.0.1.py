@@ -22,6 +22,9 @@ from hyperstream.tool import Tool, check_input_stream_count
 
 
 class LocationPredictor(Tool):
-    @check_input_stream_count(1)
+    def __index__(self):
+        super(LocationPredictor, self).__init__()
+
+    @check_input_stream_count(2)
     def _execute(self, sources, alignment_stream, interval):
         raise NotImplementedError
