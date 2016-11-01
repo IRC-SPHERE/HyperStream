@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
     # Create necessary plates
     for i, time_interval in enumerate(scripted_experiments[:2]):
-        time_interval.end = time_interval.start + minute
+        # time_interval.end = time_interval.start + minute
 
         experiment_id = str(i + 1)
         annotator_ids = tools.experiment_id_to_annotator_ids[experiment_id]
@@ -188,13 +188,12 @@ if __name__ == '__main__':
         sources=[N["rss_time"]],
         sink=N["rss_test"])
 
-    # time_interval = scripted_experiments.span
     # time_interval = TimeInterval(scripted_experiments.intervals[0].start,
     #                              scripted_experiments.intervals[0].start + second)
     # time_interval = scripted_experiments[0] + (-1, 0)
-    time_interval = scripted_experiments[0:2].span + (-1, 0)
+    time_interval = scripted_experiments.span + (-1, 0)
 
-    f.execute(time_interval)
+    w.execute(time_interval)
 
     def print_head(node_id, parent_plate_values, plate_values, interval, n=10, print_func=print):
         print_func("Node: {}".format(node_id))

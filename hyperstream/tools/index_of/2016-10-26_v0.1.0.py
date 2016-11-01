@@ -34,12 +34,18 @@ class IndexOf(SelectorTool):
     def _execute(self, sources, interval):
 
         found_source = False
+        found_data_in_source = False
         for source in sources:
             if (self.selector_meta_data, self.index) in source.stream_id.meta_data:
                 found_source = True
                 for item in map(lambda x: StreamMetaInstance(x, source.stream_id.meta_data),
                                 source.window(interval, force_calculation=True)):
+                    found_data_in_source = True
                     yield item
 
         if not found_source:
             raise IndexError("Index {} not found in sources".format(self.index))
+
+        if not found_data_in_source:
+            # raise ValueError("No data for index {} in sources".format(self.index))
+            pass
