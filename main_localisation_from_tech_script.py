@@ -99,7 +99,8 @@ if __name__ == '__main__':
 
     nodes = (
         ("every_min",   M, ["H1.W"]),                    # sliding windows one every minute
-        ("rss_raw",     M, ["H1"]),                    # Raw RSS data
+        ("rss_raw",     S, ["H1"]),                    # Raw RSS data
+        ("anno_raw",    M, ["H1"]),                    # Raw annotation data
         ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
         ("rss_uid",     M, ["H1.W"]),                  # RSS by wearable id
         ("vidloc_uid",  M, ["H1.W"]),                  # RSS by wearable id
@@ -127,17 +128,31 @@ if __name__ == '__main__':
         exp_times = exp_times + TimeIntervals([TimeInterval(unix2datetime(row.first_occurrence-1),unix2datetime(row.last_occurrence))])
     print(exp_times)
 
-    wearable4 = hyperstream.channel_manager.get_tool(
-        name="sphere",
-        parameters=dict(modality="wearable4"))
-    f1 = w.create_factor(tool=wearable4, sources=None, sink=N["rss_raw"])
+    # w.create_factor(
+    #     tool=hyperstream.channel_manager.get_tool(
+    #         name="sphere",
+    #         parameters=dict(modality="wearable4")
+    #     ),
+    #     sources=None,
+    #     sink=N["rss_raw"]
+    # )
 
-#    w.execute(exp_times.span)
-    ti_start = datetime.datetime(year=2016,month=10,day=19,hour=13,tzinfo=pytz.UTC)
-    time_interval = TimeInterval(ti_start,ti_start+datetime.timedelta(seconds=5))
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="sphere",
+#            parameters=dict(modality="annotations",annotators=["WebApp_Technician"],elements={"Location","Location_Fine"},filters={"trigger":1})
+            parameters=dict(modality="annotations",annotators=[0],elements={"Location"},filters={"trigger":1})
+        ),
+        sources=None,
+        sink=N["anno_raw"]
+    )
 
-#    w.execute(time_interval)
-    f1.execute(time_interval)
+    #    w.execute(exp_times.span)
+    ti_start = datetime.datetime(year=2016,month=10,day=18,hour=10,minute=40,tzinfo=pytz.UTC)
+    time_interval = TimeInterval(ti_start,ti_start+datetime.timedelta(minutes=360))
+
+    w.execute(time_interval)
+#    f1.execute(time_interval)
 #    w.execute(
 
     print('number of non_empty_streams: {}'.format(len(M.non_empty_streams)))
