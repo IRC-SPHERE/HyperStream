@@ -87,33 +87,34 @@ if __name__ == '__main__':
     # )
 
     #    locs = tuple(("location", loc) for loc in ["kitchen", "hallway", "lounge"])
-#    eids = tuple(("scripted", i + 1) for i in range(0, len(scripted_experiments.intervals)))
-#    locs_eids = tuple(itertools.product(locs, eids))
+    #    eids = tuple(("scripted", i + 1) for i in range(0, len(scripted_experiments.intervals)))
+    #    locs_eids = tuple(itertools.product(locs, eids))
 
     # get a dict of experiment_id => annotator_id mappings
-#    experiment_id_to_annotator_ids = dict(
-#        (k, [a['data'] for a in g])
-#        for k, g in itertools.groupby(
-#            (m for m in hyperstream.config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
-#            lambda x: x['identifier'].split('.')[1].split('_')[1]))
+    #    experiment_id_to_annotator_ids = dict(
+    #        (k, [a['data'] for a in g])
+    #        for k, g in itertools.groupby(
+    #            (m for m in hyperstream.config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
+    #            lambda x: x['identifier'].split('.')[1].split('_')[1]))
 
     nodes = (
-        ("every_min",   M, ["H1.W"]),                    # sliding windows one every minute
+        ("every_2s",    M, ["H1"]),                    # sliding windows one every minute
         ("rss_raw",     S, ["H1"]),                    # Raw RSS data
         ("anno_raw",    M, ["H1"]),                    # Raw annotation data
-        ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
-        ("rss_uid",     M, ["H1.W"]),                  # RSS by wearable id
-        ("vidloc_uid",  M, ["H1.W"]),                  # RSS by wearable id
-        ("vidloc_uid_align",  M, ["H1.W"]),                  # RSS by wearable id
-        ("vidloc_rss",  M, ["H1.W"]),                  # RSS by wearable id
-        ("vidloc_rss_anno",  M, ["H1.W"]),                  # RSS by wearable id
-        ("vidloc_rss_anno_dict",  M, ["H1.W"]),                  # RSS by wearable id
-        ("rss_vec",     M, ["H1.W"]),                  # RSS by wearable id
-        ("rss_counter", M, ["H1.W"]),                  # RSS by wearable id
-        ("rss_aid",     M, ["H1.L"]),                  # RSS by access point id
-        ("rss_aid_uid", M, ["H1.L.W"]),                # RSS by access point id and device id
-        ("rss",         M, ["H1.L.W"]),                # RSS values only (by access point id and device id)
-        ("rss_time",    M, ["H1.L.W", "H1.multiresident_experiments"])  # RSS values per experiment
+        ("rss_2s",    M, ["H1"]),                    # Raw annotation data
+        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
+        # ("rss_uid",     M, ["H1.W"]),                  # RSS by wearable id
+        # ("vidloc_uid",  M, ["H1.W"]),                  # RSS by wearable id
+        # ("vidloc_uid_align",  M, ["H1.W"]),                  # RSS by wearable id
+        # ("vidloc_rss",  M, ["H1.W"]),                  # RSS by wearable id
+        # ("vidloc_rss_anno",  M, ["H1.W"]),                  # RSS by wearable id
+        # ("vidloc_rss_anno_dict",  M, ["H1.W"]),                  # RSS by wearable id
+        # ("rss_vec",     M, ["H1.W"]),                  # RSS by wearable id
+        # ("rss_counter", M, ["H1.W"]),                  # RSS by wearable id
+        # ("rss_aid",     M, ["H1.L"]),                  # RSS by access point id
+        # ("rss_aid_uid", M, ["H1.L.W"]),                # RSS by access point id and device id
+        # ("rss",         M, ["H1.L.W"]),                # RSS values only (by access point id and device id)
+        # ("rss_time",    M, ["H1.L.W", "H1.multiresident_experiments"])  # RSS values per experiment
     )
 
     # Create all of the nodes
@@ -128,32 +129,61 @@ if __name__ == '__main__':
         exp_times = exp_times + TimeIntervals([TimeInterval(unix2datetime(row.first_occurrence-1),unix2datetime(row.last_occurrence))])
     print(exp_times)
 
-    # w.create_factor(
-    #     tool=hyperstream.channel_manager.get_tool(
-    #         name="sphere",
-    #         parameters=dict(modality="wearable4")
-    #     ),
-    #     sources=None,
-    #     sink=N["rss_raw"]
-    # )
-
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
-#            parameters=dict(modality="annotations",annotators=["WebApp_Technician"],elements={"Location","Location_Fine"},filters={"trigger":1})
-            parameters=dict(modality="annotations",annotators=[0],elements={"Location"},filters={"trigger":1})
+            parameters=dict(modality="wearable4")
         ),
         sources=None,
-        sink=N["anno_raw"]
+        sink=N["rss_raw"]
+    )
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="sliding_window",
+            parameters=dict(lower=datetime.timedelta(seconds=-2), upper=datetime.timedelta(seconds=0),
+                            increment=datetime.timedelta(seconds=2))
+        ),
+        sources=None,
+        sink=N["every_2s"]
     )
 
+
+    def component_wise_max(init_value={},id_field='aid',value_field='rss'):
+        def func(data):
+            result = init_value
+            for (time, value) in data:
+                if result.has_key(value[id_field]):
+                    result[value[id_field]] = max(result[value[id_field]],value[value_field])
+                else:
+                    result[value[id_field]] = value[value_field]
+            return result
+        return func
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="sliding_apply",
+            parameters=dict(func=component_wise_max())
+        ),
+        sources=[N["every_2s"], N["rss_raw"]],
+        sink=N["rss_2s"]
+    )
+
+    #     w.create_factor(
+    #         tool=hyperstream.channel_manager.get_tool(
+    #             name="sphere",
+    # #            parameters=dict(modality="annotations",annotators=["WebApp_Technician"],elements={"Location","Location_Fine"},filters={"trigger":1})
+    #             parameters=dict(modality="annotations",annotators=[0],elements={"Location"},filters={"trigger":1})
+    #         ),
+    #         sources=None,
+    #         sink=N["anno_raw"]
+    #     )
+
     #    w.execute(exp_times.span)
-    ti_start = datetime.datetime(year=2016,month=10,day=18,hour=10,minute=40,tzinfo=pytz.UTC)
-    time_interval = TimeInterval(ti_start,ti_start+datetime.timedelta(minutes=360))
+    ti_start = datetime.datetime(year=2016,month=10,day=18,hour=13,minute=40,tzinfo=pytz.UTC)
+    time_interval = TimeInterval(ti_start,ti_start+datetime.timedelta(minutes=10))
 
     w.execute(time_interval)
-#    f1.execute(time_interval)
-#    w.execute(
+    #    f1.execute(time_interval)
+    #    w.execute(
 
     print('number of non_empty_streams: {}'.format(len(M.non_empty_streams)))
 
@@ -208,7 +238,7 @@ if __name__ == '__main__':
             # Put these on to an annotators plate
             N["annotations_split"] = w.create_node(stream_name="annotations_split", channel=M, plate_ids=[plate_id])
             w.create_multi_output_factor(
-                tool=tools.split_annotator, source=N["annotations_flat"], sink=N["annotations_split"])\
+                tool=tools.split_annotator, source=N["annotations_flat"], sink=N["annotations_split"]) \
                 .execute(time_interval)
             N["annotations_split"].print_head(h1, anns, time_interval)
 
@@ -224,12 +254,12 @@ if __name__ == '__main__':
         N["rss_flat"].print_head(None, h1, time_interval, 10, print)
 
         N["rss_aid"] = w.create_node(stream_name="rss_aid", channel=M, plate_ids=["H1.L"])
-        w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_flat"], sink=N["rss_aid"])\
+        w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_flat"], sink=N["rss_aid"]) \
             .execute(time_interval)
         N["rss_aid"].print_head(h1, locs, time_interval)
 
         N["rss_aid_uid"] = w.create_node(stream_name="rss_aid_uid", channel=M, plate_ids=["H1.L.W"])
-        w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_aid"], sink=N["rss_aid_uid"])\
+        w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_aid"], sink=N["rss_aid_uid"]) \
             .execute(time_interval)
         N["rss_aid_uid"].print_head(h1 + wA, locs, time_interval)
 
