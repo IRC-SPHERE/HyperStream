@@ -189,6 +189,11 @@ class PredefinedTools(object):
             parameters=dict(key="label")
         )
 
+        self.annotations_components = channel_manager.get_tool(
+            name="component_set",
+            parameters=dict(keys={"annotator", "label"})
+        )
+
         # CLOCKS
         self.clock_10s = channel_manager.get_tool(
             name="clock",
