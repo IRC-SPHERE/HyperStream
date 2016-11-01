@@ -76,6 +76,12 @@ class StreamView(Printable):
     def iteritems(self):
         return iter(self)
 
+    def dict_iteritems(self, flat=True):
+        return map(lambda x: x.as_dict(flat=flat), self)
+
+    def dict_items(self, flat=True):
+        return list(self.dict_iteritems(flat))
+
     def timestamps(self):
         return list(self.itertimestamps())
 
