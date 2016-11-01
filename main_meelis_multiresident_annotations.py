@@ -138,7 +138,7 @@ if __name__ == '__main__':
     N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
 
 #    w.create_factor(tool=tools.wearable_rss, sources=None, sink=N["rss_raw"])
-    w.create_factor(tool=wearable3, sources=None, sink=N["rss_raw"])
+    f = w.create_factor(tool=wearable3, sources=None, sink=N["rss_raw"])
 #    w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_raw"], sink=N["rss_aid"])
 
 #    w.create_multi_output_factor(tool=split_aid, source=N["rss_raw"], sink=N["rss_aid"])
@@ -239,7 +239,7 @@ if __name__ == '__main__':
 #    time_interval = scripted_experiments.intervals[0] + (-1, 0)
 
 #    w.execute(exp_times.span)
-    w.execute(TimeInterval(exp_times.start,exp_times.start+datetime.timedelta(minutes=5)))
+    f.execute(TimeInterval(exp_times.start,exp_times.start+datetime.timedelta(minutes=5)))
 #    w.execute(TimeInterval(exp_times.start,exp_times.start+datetime.timedelta(hours=48)))
 
 ###    file = open("vidloc_rss_anno.csv","w")
