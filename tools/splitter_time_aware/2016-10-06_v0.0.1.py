@@ -67,5 +67,10 @@ class SplitterTimeAware(MultiOutputTool):
             raise TypeError("Expected [tuple, list, TimeIntervals], got{}".format(type(self.time_intervals)))
 
         for pv, ti in mapping.items():
+            found_data = False
             for instance in source.window(ti, force_calculation=True):
+                found_data = True
                 yield StreamMetaInstance(instance, (self.meta_data_id, pv))
+            if not found_data:
+                logging.debug("SplitterTimeAware: no data for source {} with plate value {} and time interval {}"
+                              .format(source, pv, ti))
