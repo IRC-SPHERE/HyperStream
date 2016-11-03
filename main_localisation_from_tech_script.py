@@ -101,8 +101,10 @@ if __name__ == '__main__':
         ("every_2s",    M, ["H1"]),                    # sliding windows one every minute
         ("rss_raw",     S, ["H1"]),                    # Raw RSS data
         ("anno_raw",    S, ["H1"]),                    # Raw annotation data
-        ("rss_2s",    M, ["H1"]),                    # Raw annotation data
-        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
+        ("rss_2s",    M, ["H1"]),                    # max RSS per access point in past 2s of RSS data
+        ("anno_state",    M, ["H1"]),                    # Current annotation data in 2s windows
+        ("anno_state_2s_windows",    M, ["H1"]),                    # Current annotation data in 2s windows        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
+        ("merged_2s",    M, ["H1"]),                    # Current annotation data in 2s windows        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
         # ("rss_uid",     M, ["H1.W"]),                  # RSS by wearable id
         # ("vidloc_uid",  M, ["H1.W"]),                  # RSS by wearable id
         # ("vidloc_uid_align",  M, ["H1.W"]),                  # RSS by wearable id
@@ -146,8 +148,35 @@ if __name__ == '__main__':
         sources=None,
         sink=N["every_2s"]
     )
+    #
+    #
 
 
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="sphere",
+    #            parameters=dict(modality="annotations",annotators=["WebApp_Technician"],elements={"Location","Location_Fine"},filters={"trigger":1})
+            parameters=dict(modality="annotations",annotators=[0],elements={"Location"},filters={})
+        ),
+        sources=None,
+        sink=N["anno_raw"]
+    )
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="anno_state",
+            parameters=dict(start_time=datetime.datetime(year=2016,month=10,day=18,hour=1,tzinfo=pytz.UTC))
+        ),
+        sources=[N["every_2s"],N["anno_raw"]],
+        sink=N["anno_state"]
+    )
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="aligning_window",
+            parameters=dict(lower=datetime.timedelta(seconds=-2),upper=datetime.timedelta(0))
+        ),
+        sources=[N["anno_state"]],
+        sink=N["anno_state_2s_windows"]
+    )
     def component_wise_max(init_value={},id_field='aid',value_field='rss'):
         def func(data):
             result = init_value
@@ -163,23 +192,20 @@ if __name__ == '__main__':
             name="sliding_apply",
             parameters=dict(func=component_wise_max())
         ),
-        sources=[N["every_2s"], N["rss_raw"]],
+        sources=[N["anno_state_2s_windows"], N["rss_raw"]],
         sink=N["rss_2s"]
     )
-
-    #     w.create_factor(
-    #         tool=hyperstream.channel_manager.get_tool(
-    #             name="sphere",
-    # #            parameters=dict(modality="annotations",annotators=["WebApp_Technician"],elements={"Location","Location_Fine"},filters={"trigger":1})
-    #             parameters=dict(modality="annotations",annotators=[0],elements={"Location"},filters={"trigger":1})
-    #         ),
-    #         sources=None,
-    #         sink=N["anno_raw"]
-    #     )
-
-    #    w.execute(exp_times.span)
-    ti_start = datetime.datetime(year=2016,month=10,day=18,hour=13,minute=40,tzinfo=pytz.UTC)
-    time_interval = TimeInterval(ti_start,ti_start+datetime.timedelta(minutes=10))
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="aligned_merge",
+            parameters=dict(names=["anno","rssi"])
+        ),
+        sources=[N["anno_state"],N["rss_2s"]],
+        sink=N["merged_2s"]
+    )
+# #       w.execute(exp_times.span)
+    ti_start = datetime.datetime(year=2016,month=10,day=19,hour=12,minute=30,tzinfo=pytz.UTC)
+    time_interval = TimeInterval(ti_start,ti_start+datetime.timedelta(minutes=12))
 
     w.execute(time_interval)
     #    f1.execute(time_interval)
@@ -187,6 +213,9 @@ if __name__ == '__main__':
 
     print('number of non_empty_streams: {}'.format(len(M.non_empty_streams)))
 
+    stream = M.data[StreamId(name="anno_state",meta_data=(("house","1"),))]
+    for t in sorted(stream):
+        print('{} : {}'.format(t,stream[t]))
 
     exit(0)
 
