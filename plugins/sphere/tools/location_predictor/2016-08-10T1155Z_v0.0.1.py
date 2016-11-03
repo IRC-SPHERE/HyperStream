@@ -20,6 +20,8 @@
 
 from hyperstream.tool import Tool, check_input_stream_count
 
+import pandas as pd
+
 
 class LocationPredictor(Tool):
     def __index__(self):
@@ -27,4 +29,9 @@ class LocationPredictor(Tool):
 
     @check_input_stream_count(2)
     def _execute(self, sources, alignment_stream, interval):
-        raise NotImplementedError
+        rss = sources[0].window(interval, force_calculation=True)
+        ann = sources[1].window(interval, force_calculation=True)
+
+        df = pd.DataFrame(rss.dict_iteritems() + ann.dict_iteritems())
+        df.set_index('timestamp', verify_integrity=True, inplace=True)
+        pass
