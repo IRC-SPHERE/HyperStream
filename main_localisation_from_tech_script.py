@@ -105,6 +105,7 @@ if __name__ == '__main__':
         ("anno_state",    M, ["H1"]),                    # Current annotation data in 2s windows
         ("anno_state_2s_windows",    M, ["H1"]),                    # Current annotation data in 2s windows        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
         ("merged_2s",    M, ["H1"]),                    # Current annotation data in 2s windows        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
+        ("dataframe",    M, ["H1"]),                    # Current annotation data in 2s windows        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
         # ("rss_uid",     M, ["H1.W"]),                  # RSS by wearable id
         # ("vidloc_uid",  M, ["H1.W"]),                  # RSS by wearable id
         # ("vidloc_uid_align",  M, ["H1.W"]),                  # RSS by wearable id
@@ -161,10 +162,16 @@ if __name__ == '__main__':
         sources=None,
         sink=N["anno_raw"]
     )
+    start_time = datetime.datetime(year=2016,month=10,day=18,hour=1,tzinfo=pytz.UTC)
+    ti_start = datetime.datetime(year=2016,month=10,day=19,hour=12,minute=30,tzinfo=pytz.UTC)
+    duration = datetime.timedelta(minutes=12)
+    end_time = ti_start+duration
+    #    end_time = datetime.datetime(year=2016,month=10,day=19,hour=23,tzinfo=pytz.UTC)
+    time_interval = TimeInterval(ti_start,end_time)
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="anno_state",
-            parameters=dict(start_time=datetime.datetime(year=2016,month=10,day=18,hour=1,tzinfo=pytz.UTC))
+            parameters=dict(start_time=start_time)
         ),
         sources=[N["every_2s"],N["anno_raw"]],
         sink=N["anno_state"]
@@ -203,9 +210,17 @@ if __name__ == '__main__':
         sources=[N["anno_state"],N["rss_2s"]],
         sink=N["merged_2s"]
     )
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="dallan_dataframe_builder",
+            parameters=dict(time_interval=TimeInterval(start_time,end_time))
+        ),
+        sources=[N["merged_2s"]],
+        sink=N["dataframe"]
+    )
+
+
 # #       w.execute(exp_times.span)
-    ti_start = datetime.datetime(year=2016,month=10,day=19,hour=12,minute=30,tzinfo=pytz.UTC)
-    time_interval = TimeInterval(ti_start,ti_start+datetime.timedelta(minutes=12))
 
     w.execute(time_interval)
     #    f1.execute(time_interval)
