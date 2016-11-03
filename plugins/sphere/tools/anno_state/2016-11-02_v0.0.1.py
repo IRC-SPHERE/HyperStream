@@ -47,6 +47,7 @@ class AnnoState(Tool):
         win_future = []
         data_future = []
         anno = {}
+        last_experiment = 0
 
         while True:
             if len(data_future)==0:
@@ -74,7 +75,9 @@ class AnnoState(Tool):
                 label = dd['label']
                 if label=="Experiment Time":
                     tier = "Experiment"
-                    label = "on"
+                    if trigger==+1:
+                        last_experiment = last_experiment + 1
+                    label = last_experiment
                 if not anno.has_key(tier):
                     anno[tier] = set()
                 if trigger==1:
@@ -92,6 +95,6 @@ class AnnoState(Tool):
                 else:
                     win_anno[tier] = anno[tier].copy()
             else: # must yield a window because it has been finished
-                if win_anno.has_key("Experiment") and win_anno["Experiment"]=={"on"}:
+                if win_anno.has_key("Experiment") and len(win_anno["Experiment"])>0:
                     yield StreamInstance(win_end,win_anno)
                 win_future.pop(0)
