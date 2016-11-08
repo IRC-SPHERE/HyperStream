@@ -19,14 +19,14 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from ..utils import Printable, MetaDataTree, PlateEmptyError, PlateDefinitionError
-from ..models import PlateDefinitionModel, MetaDataModel
+from ..utils import Printable, PlateEmptyError, PlateDefinitionError
+from ..models import PlateDefinitionModel
 from plate import Plate
+from meta_data_manager import MetaDataManager
 
 import logging
 from mongoengine.context_managers import switch_db
 from mongoengine import DoesNotExist, MultipleObjectsReturned
-from treelib.tree import NodeIDAbsentError
 
 
 class PlateManager(Printable):
@@ -59,34 +59,8 @@ class PlateManager(Printable):
           {'house': '2': 'resident': '1'}
         }
         """
-
-        # Get the global meta data, which will be stored in a tree structure
-        with switch_db(MetaDataModel, 'hyperstream'):
-            global_meta_data1 = sorted(map(lambda x: x.to_dict(), MetaDataModel.objects),
-                                       key=lambda x: len(x['identifier'].split('.')),
-                                       reverse=True)
-
         self.plates = {}
-        self.global_plate_definitions = MetaDataTree()
-
-        to_be_added = dict((i, d) for i, d, in enumerate(global_meta_data1))
-        passes = 0
-
-        # Populate the global plate definitions from dict given in the database
-        while len(to_be_added) > 0:
-            passes += 1
-            if passes > 1000:
-                raise NodeIDAbsentError("Nodes absent for ids {}"
-                                        .format(", ".join(map(lambda x: x['identifier'], to_be_added.values()))))
-            for i, item in to_be_added.items():
-                try:
-                    self.global_plate_definitions.create_node(**item)
-                    del to_be_added[i]
-                except NodeIDAbsentError:
-                    pass
-
-        logging.info("Global plate definitions: ")
-        logging.info(self.global_plate_definitions)
+        self.meta_data_manager = MetaDataManager()
 
         # Plate definitions (arrays of streams)
         with switch_db(PlateDefinitionModel, db_alias="hyperstream"):
@@ -162,22 +136,25 @@ class PlateManager(Printable):
             raise PlateDefinitionError()
 
         values = []
-        for n in self.global_plate_definitions.all_nodes():
+        for n in self.meta_data_manager.global_plate_definitions.all_nodes():
             if n.tag == plate_definition.meta_data_id:
                 if not plate_definition.values or n.data in plate_definition.values:
                     if plate_definition.parent_plate:
                         # This plate has parent plates, so we need to get parent data for the node
-                        parent_plate_value = self.get_parent_plate_value(self.global_plate_definitions, n)
+                        parent_plate_value = self.get_parent_plate_value(
+                            self.meta_data_manager.global_plate_definitions, n)
                         if tuple(parent_plate_value) not in self.plates[plate_definition.parent_plate].values:
                             continue
-                        values.insert(0, self.get_parent_data(self.global_plate_definitions, n, {n.tag: n.data}))
+                        values.insert(0, self.get_parent_data(
+                            self.meta_data_manager.global_plate_definitions, n, {n.tag: n.data}))
                     else:
                         values.insert(0, {n.tag: n.data})
         if not values:
             raise PlateEmptyError(plate_definition.plate_id)
         return values
 
-    def get_parent_plate_value(self, tree, node, value=None):
+    @staticmethod
+    def get_parent_plate_value(tree, node, value=None):
         """
         Recurse up the tree getting parent plate values
         :param tree: The tree
@@ -191,7 +168,7 @@ class PlateManager(Printable):
         if parent.is_root():
             # value.append((parent.tag, parent.identifier))
             return value
-        value = self.get_parent_plate_value(tree, parent, value)
+        value = PlateManager.get_parent_plate_value(tree, parent, value)
         if "." in parent.identifier:
             pass
         value.append((parent.tag, parent.data))

@@ -31,7 +31,6 @@ from datetime import timedelta, datetime
 from scipy import integrate
 import numpy as np
 import sys
-import itertools
 
 second = timedelta(seconds=1)
 minute = timedelta(minutes=1)
@@ -136,7 +135,8 @@ class PredefinedTools(object):
         # get a dict of experiment_id => annotator_id mappings
         self.experiment_id_to_annotator_ids = \
             dict((n.identifier.split('.')[1].split('_')[1], n.data)
-                 for n in hyperstream.plate_manager.global_plate_definitions.nodes.values() if n.tag == 'annotator')
+                 for n in hyperstream.plate_manager.meta_data_manager.global_plate_definitions.nodes.values()
+                 if n.tag == 'annotator')
 
         # ENVIRONMENTAL
         self.environmental = channel_manager.get_tool(
@@ -223,7 +223,7 @@ class PredefinedTools(object):
         # SPLITTERS
         self.split_annotator = channel_manager.get_tool(
             name="splitter",
-            parameters=dict(element="annotator", mapping=dict((x, x) for x in annotator_ids))  # mappings["annotator"])
+            parameters=dict(element="annotator", mapping=dict((x, x) for x in annotator_ids))
         )
 
         self.split_aid = channel_manager.get_tool(
