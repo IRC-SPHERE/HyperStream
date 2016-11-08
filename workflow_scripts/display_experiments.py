@@ -109,7 +109,7 @@ if __name__ == '__main__':
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
     #            parameters=dict(modality="annotations",annotators=["WebApp_Technician"],elements={"Location","Location_Fine"},filters={"trigger":1})
-            parameters=dict(modality="annotations",annotators=[0],elements={"Location"},filters={})
+            parameters=dict(modality="annotations",annotators=[0],elements={"Experiment"},filters={})
         ),
         sources=None,
         sink=N["anno_raw"]

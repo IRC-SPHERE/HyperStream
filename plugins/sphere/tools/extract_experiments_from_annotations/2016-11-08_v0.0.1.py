@@ -37,13 +37,29 @@ class ExtractExperimentsFromAnnotations(Tool):
     # noinspection PyCompatibility
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
-        interval2 = TimeInterval(MIN_DATE,interval.end)
-        data = iter(sources[1].window(interval2, force_calculation=True))
-        exp_list = []
-        for doc in data:
-            if doc.tier=="Experiment":
-                exp_list.append(doc)
-        for i in range(len(exp_list)):
-            doc = exp_list[i]
-            if (doc.end<=interval.end) and (doc.start>=interval.start):
-                yield StreamInstance(doc.end,doc)
+        max_interval = TimeInterval(MIN_DATE, interval.end)
+        exp_list = {}
+        for timestamp, value in sources[0].window(max_interval, force_calculation=True):
+            if value['tier'] != "Experiment":
+                continue
+            d = deepcopy(value)
+            mongo_id = d.pop('_id')
+            trigger = d.pop('trigger')
+            if trigger == 1:
+                u = {'start': timestamp}
+            else:
+                u = {'end': timestamp}
+
+            if mongo_id in exp_list:
+                if u.keys()[0] in exp_list[mongo_id]:
+                    raise ValueError("Duplicate {} triggers found for timestamp {}".format(trigger, timestamp))
+                exp_list[mongo_id].update(u)
+            else:
+                d.update(u)
+                exp_list[mongo_id] = d
+
+        for i, doc in enumerate(exp_list.values()):
+            if TimeInterval(doc['start'], doc['end']) in max_interval:
+                yield StreamInstance(doc['end'], doc)
+            # if (doc.value['end'] <= interval.end) and (doc.value['start'] >= interval.start):
+            #     yield StreamInstance(doc.value['end'], doc)
