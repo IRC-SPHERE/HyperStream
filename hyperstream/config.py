@@ -48,13 +48,3 @@ class HyperStreamConfig(Printable):
         except (OSError, IOError, TypeError) as e:
             # raise
             logging.error("Configuration error: " + str(e))
-
-        try:
-            with open('meta_data.json', 'r') as f:
-                logging.info('Reading ' + os.path.abspath(f.name))
-                config = json.load(f)
-                self.meta_data = config['meta_data']
-
-        except (OSError, IOError, TypeError) as e:
-            # raise
-            logging.error("Configuration error: " + str(e))

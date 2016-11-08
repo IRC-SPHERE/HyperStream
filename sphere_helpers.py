@@ -134,10 +134,9 @@ class PredefinedTools(object):
         channel_manager = hyperstream.channel_manager
 
         # get a dict of experiment_id => annotator_id mappings
-        self.experiment_id_to_annotator_ids = dict((k, [a['data'] for a in g])
-                                                   for k, g in itertools.groupby(
-            (m for m in hyperstream.config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
-            lambda x: x['identifier'].split('.')[1].split('_')[1]))
+        self.experiment_id_to_annotator_ids = \
+            dict((n.identifier.split('.')[1].split('_')[1], n.data)
+                 for n in hyperstream.plate_manager.global_plate_definitions.nodes.values() if n.tag == 'annotator')
 
         # ENVIRONMENTAL
         self.environmental = channel_manager.get_tool(
