@@ -26,6 +26,7 @@ import pytz
 
 from hyperstream import HyperStream, TimeInterval, TimeIntervals
 from hyperstream.stream import StreamId
+from hyperstream.utils import unix2datetime
 
 from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
 
@@ -38,9 +39,6 @@ from sphere_helpers import PredefinedTools, scripted_experiments, second, minute
 # Mongo query: db.annotations.find({tier: 'Location', start: {$gt: ISODate('2015-08-06T13:35:36.035000Z')},
 # end: {$lte: ISODate('2015-08-06T14:12:22.008000Z')}})
 
-
-def unix2datetime(u):
-    return datetime.datetime.fromtimestamp(u/1000.0,tz=pytz.UTC)+datetime.timedelta(hours=0)
 
 if __name__ == '__main__':
     hyperstream = HyperStream()
