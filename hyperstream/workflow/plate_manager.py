@@ -20,19 +20,20 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from ..utils import Printable, MetaDataTree, PlateEmptyError, PlateDefinitionError
-from ..models import PlateDefinitionModel
+from ..models import PlateDefinitionModel, MetaDataModel
 from plate import Plate
 
 import logging
 from mongoengine.context_managers import switch_db
 from mongoengine import DoesNotExist, MultipleObjectsReturned
+from treelib.tree import NodeIDAbsentError
 
 
 class PlateManager(Printable):
     """
     Plate manager. Manages the mapping between plates defined in the database with the global meta data definition.
     """
-    def __init__(self, global_meta_data):
+    def __init__(self):
         """
         Initialise the manager
 
@@ -57,16 +58,32 @@ class PlateManager(Printable):
           {'house': '1': 'resident': '2'},
           {'house': '2': 'resident': '1'}
         }
-
-        :param global_meta_data: The global meta data, which will be stored in a tree structure
         """
-        self.plates = {}
 
+        # Get the global meta data, which will be stored in a tree structure
+        with switch_db(MetaDataModel, 'hyperstream'):
+            global_meta_data1 = sorted(map(lambda x: x.to_dict(), MetaDataModel.objects),
+                                       key=lambda x: len(x['identifier'].split('.')),
+                                       reverse=True)
+
+        self.plates = {}
         self.global_plate_definitions = MetaDataTree()
 
-        # Populate the global plate definitions from dict given in the config file
-        for item in global_meta_data:
-            self.global_plate_definitions.create_node(**item)
+        to_be_added = dict((i, d) for i, d, in enumerate(global_meta_data1))
+        passes = 0
+
+        # Populate the global plate definitions from dict given in the database
+        while len(to_be_added) > 0:
+            passes += 1
+            if passes > 1000:
+                raise NodeIDAbsentError("Nodes absent for ids {}"
+                                        .format(", ".join(map(lambda x: x['identifier'], to_be_added.values()))))
+            for i, item in to_be_added.items():
+                try:
+                    self.global_plate_definitions.create_node(**item)
+                    del to_be_added[i]
+                except NodeIDAbsentError:
+                    pass
 
         logging.info("Global plate definitions: ")
         logging.info(self.global_plate_definitions)

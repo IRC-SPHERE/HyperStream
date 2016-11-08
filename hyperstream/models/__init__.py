@@ -25,3 +25,4 @@ from node import NodeDefinitionModel
 from factor import FactorDefinitionModel
 from tool import ToolModel
 from time_interval import TimeIntervalModel
+from meta_data import MetaDataModel
