@@ -164,7 +164,9 @@ if __name__ == '__main__':
     )
     start_time = datetime.datetime(year=2016,month=10,day=18,hour=1,tzinfo=pytz.UTC)
     ti_start = datetime.datetime(year=2016,month=10,day=19,hour=12,minute=30,tzinfo=pytz.UTC)
+    ti_start = datetime.datetime(year=2016,month=10,day=19,hour=12,minute=28,tzinfo=pytz.UTC)
     duration = datetime.timedelta(minutes=12)
+    duration = datetime.timedelta(minutes=72)
     end_time = ti_start+duration
     #    end_time = datetime.datetime(year=2016,month=10,day=19,hour=23,tzinfo=pytz.UTC)
     time_interval = TimeInterval(ti_start,end_time)
@@ -186,7 +188,7 @@ if __name__ == '__main__':
     )
     def component_wise_max(init_value={},id_field='aid',value_field='rss'):
         def func(data):
-            result = init_value
+            result = init_value.copy()
             for (time, value) in data:
                 if result.has_key(value[id_field]):
                     result[value[id_field]] = max(result[value[id_field]],value[value_field])
@@ -231,6 +233,11 @@ if __name__ == '__main__':
     stream = M.data[StreamId(name="anno_state",meta_data=(("house","1"),))]
     for t in sorted(stream):
         print('{} : {}'.format(t,stream[t]))
+
+    stream2 = M.data[StreamId(name="dataframe",meta_data=(("house","1"),))]
+    df = stream2[stream2.keys()[0]]
+
+    df.to_csv("dallan_loc_dataframe.csv",sep="\t")
 
     exit(0)
 
