@@ -42,3 +42,7 @@ def get_timedelta(value):
         return value
     else:
         raise ValueError("Expected int, float, or timedelta, got {}".format(type(value)))
+
+
+def unix2datetime(u):
+    return datetime.datetime.fromtimestamp(u/1000.0, tz=UTC) + timedelta(hours=0)
