@@ -38,19 +38,13 @@ from sphere_helpers import PredefinedTools, scripted_experiments, second, minute
 # Mongo query: db.annotations.find({tier: 'Location', start: {$gt: ISODate('2015-08-06T13:35:36.035000Z')},
 # end: {$lte: ISODate('2015-08-06T14:12:22.008000Z')}})
 
-def unix2datetime(u):
-    return datetime.datetime.fromtimestamp(u/1000.0,tz=pytz.UTC)+datetime.timedelta(hours=0)
-
-
 
 if __name__ == '__main__':
     hyperstream = HyperStream()
 
     tools = PredefinedTools(hyperstream)
 
-
-
-    # Various channel managers
+    # Various channels
     M = hyperstream.channel_manager.memory
     S = hyperstream.channel_manager.sphere
     T = hyperstream.channel_manager.tools
@@ -90,13 +84,6 @@ if __name__ == '__main__':
     #    eids = tuple(("scripted", i + 1) for i in range(0, len(scripted_experiments.intervals)))
     #    locs_eids = tuple(itertools.product(locs, eids))
 
-    # get a dict of experiment_id => annotator_id mappings
-    #    experiment_id_to_annotator_ids = dict(
-    #        (k, [a['data'] for a in g])
-    #        for k, g in itertools.groupby(
-    #            (m for m in hyperstream.config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
-    #            lambda x: x['identifier'].split('.')[1].split('_')[1]))
-
     nodes = (
         ("anno_raw",    S, ["H1"]),                    # Raw annotation data
         ("experiments_list",    M, ["H1"]),                    # Current annotation data in 2s windows
@@ -108,8 +95,7 @@ if __name__ == '__main__':
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
-    #            parameters=dict(modality="annotations",annotators=["WebApp_Technician"],elements={"Location","Location_Fine"},filters={"trigger":1})
-            parameters=dict(modality="annotations",annotators=[0],elements={"Experiment"},filters={})
+            parameters=dict(modality="annotations", annotators=[0], elements={"Experiment"}, filters={})
         ),
         sources=None,
         sink=N["anno_raw"]
@@ -133,7 +119,8 @@ if __name__ == '__main__':
     #    f1.execute(time_interval)
     #    w.execute(
 
-    print('number of non_empty_streams: {}'.format(len(M.non_empty_streams)))
+    print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))
+    print('number of memory non_empty_streams: {}'.format(len(M.non_empty_streams)))
 
 #    stream = M.data[StreamId(name="anno_state",meta_data=(("house","1"),))]
 #    for t in sorted(stream):

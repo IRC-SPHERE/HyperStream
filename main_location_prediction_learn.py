@@ -23,12 +23,9 @@ import pytz
 
 from hyperstream import HyperStream, TimeInterval, TimeIntervals
 from hyperstream.stream import StreamId
+from hyperstream.utils import unix2datetime
 
 from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
-
-
-def unix2datetime(u):
-    return datetime.datetime.fromtimestamp(u / 1000.0, tz=pytz.UTC) + datetime.timedelta(hours=0)
 
 
 if __name__ == '__main__':
