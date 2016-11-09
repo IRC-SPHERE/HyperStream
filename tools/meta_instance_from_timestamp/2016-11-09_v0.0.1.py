@@ -17,17 +17,32 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
-"""
-Tool package. Defines Tool, MultiOutputTool and SelectorTool base classes.
-"""
 
-from base_tool import BaseTool
-from tool import Tool
-from aggregate_tool import AggregateTool
-from multi_output_tool import MultiOutputTool
-from selector_tool import SelectorTool
-from node_creation_tool import NodeCreationTool
+from hyperstream.stream import StreamInstance, StreamMetaInstance
+from hyperstream.tool import NodeCreationTool, check_input_stream_count
+from copy import deepcopy
 
-# The following import is for backwards compatibility: this has been moved into the utils package
-# noinspection PyUnresolvedReferences
-from ..utils import check_input_stream_count
+
+class MetaInstanceFromTimestamp(NodeCreationTool):
+    def __init__(self, key):
+        """
+        Meta instance output tool.
+        """
+        super(MetaInstanceFromTimestamp, self).__init__(key=key)
+        self.key = key
+
+    def message(self, interval):
+        return '{} running from {} to {} with stride {}'.format(
+            self.__class__.__name__, str(interval.start), str(interval.end), str(self.stride))
+
+    @check_input_stream_count(0)
+    def _execute(self, sources, alignment_stream, interval):
+        if alignment_stream is not None:
+            raise NotImplementedError
+
+        for timestamp, value in sources[0].window(interval):
+            v = deepcopy(value)
+            if self.key not in v:
+                continue
+            meta = (self.key, v.pop(self.key))
+            yield StreamMetaInstance(StreamInstance(timestamp, v), meta)

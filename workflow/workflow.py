@@ -27,7 +27,7 @@ import logging
 from factor import Factor, MultiOutputFactor
 from node import Node, get_overlapping_plate_values
 from ..stream import StreamId
-from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool
+from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool, NodeCreationTool
 from ..utils import Printable, TypedFrozenKeyDict, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError
 
 
@@ -271,6 +271,32 @@ class Workflow(Printable):
         self.execution_order.append(tool)
 
         return factor
+
+    def create_node_creation_factor(self, tool, source):
+        """
+        Creates a factor that itself creates an output node, and ensures that the plate for the output node exists
+        along with all relevant meta-data
+        :param tool: The tool
+        :param source: The source node
+        :return: The
+        """
+        if isinstance(tool, dict):
+            tool = self.channels.get_tool(name=tool["name"], parameters=["parameters"])
+
+        if not isinstance(tool, NodeCreationTool):
+            raise ValueError("Expected MultiOutputTool, got {}".format(type(tool)))
+
+        input_plates = [self.plates[plate_id] for plate_id in source.plate_ids]
+
+        if len(input_plates) > 1:
+            raise NotImplementedError
+
+        # Execute the tool to product the output plate values
+
+        # Ensure that the output plate values exist
+
+        # Create the output node
+
 
     @staticmethod
     def check_plate_compatibility(tool, source_plate, sink_plate):
