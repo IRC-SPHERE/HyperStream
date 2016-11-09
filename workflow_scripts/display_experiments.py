@@ -19,13 +19,10 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from __future__ import print_function
-import itertools
-import logging
-import datetime
+from datetime import datetime
 import pytz
 
-from hyperstream import HyperStream, TimeInterval, TimeIntervals
-from hyperstream.stream import StreamId
+from hyperstream import HyperStream, TimeInterval, UTC
 
 from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
 
@@ -110,17 +107,26 @@ if __name__ == '__main__':
         sink=N["experiments_list"]
     )
 
+    w.create_node_creation_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="meta_instance_from_timestamp",
+            parameters=dict(key="")
+        )
+    )
+
 # #       w.execute(exp_times.span)
 
-    start_time = datetime.datetime(year=2000,month=1,day=1,hour=1,tzinfo=pytz.UTC)
-    end_time = datetime.datetime(year=2100,month=1,day=1,hour=1,tzinfo=pytz.UTC)
-    time_interval = TimeInterval(start_time,end_time)
+    start_time = datetime(2000, 1, 1, 1, 0, 0, tzinfo=UTC)
+    end_time = datetime(2100, 1, 1, 1, 0, 0, tzinfo=UTC)
+    time_interval = TimeInterval(start_time, end_time)
     w.execute(time_interval)
     #    f1.execute(time_interval)
     #    w.execute(
 
     print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))
     print('number of memory non_empty_streams: {}'.format(len(M.non_empty_streams)))
+
+    experiment_data = sorted(M.data.items(), key=lambda x: x[0].name)[6][1]
 
 #    stream = M.data[StreamId(name="anno_state",meta_data=(("house","1"),))]
 #    for t in sorted(stream):
