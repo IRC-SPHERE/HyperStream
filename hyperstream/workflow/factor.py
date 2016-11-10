@@ -31,6 +31,7 @@ class Factor(Printable):
     """
     A factor in the graph. This defines the element of computation: the tool along with the source and sink nodes.
     """
+    
     def __init__(self, tool, source_nodes, sink_node, alignment_node, plates):
         """
         Initialise this factor
@@ -57,18 +58,18 @@ class Factor(Printable):
             raise ValueError("Expected node, got {}".format(type(sink_node)))
         self.sink = sink_node
         sink_node._factor = self
-
+        
         self.plates = plates
-
+        
         if alignment_node and not isinstance(alignment_node, Node):
             raise ValueError("Expected node, got {}".format(type(alignment_node)))
-
+        
         if alignment_node and alignment_node.plates:
             # TODO: Need to implement alignment nodes that live inside plates
             raise NotImplementedError("Currently only alignment nodes outside of plates are supported")
-
+        
         self.alignment_node = alignment_node
-
+    
     def execute(self, time_interval):
         """
         Execute the factor over the given time interval
@@ -81,9 +82,9 @@ class Factor(Printable):
                     raise ValueError("Currently only a single source node is valid for an Aggregate Tool")
                 if self.alignment_node:
                     raise ValueError("Currently an alignment node cannot be used with an Aggregate Tool")
-
+                
                 all_sources = self.sources[0]
-
+                
                 # Here we should loop through the plate values of the sink, and get the sources that are appropriate for
                 # that given plate value, and pass only those sources to the tool. This is cleaner than making the tool
                 # deal with all of the sources
@@ -96,7 +97,7 @@ class Factor(Printable):
                     raise ValueError("Currently only a single source node is valid for an Aggregate Tool")
                 if self.alignment_node:
                     raise ValueError("Currently an alignment node cannot be used with an Aggregate Tool")
-
+                
                 diff, counts, is_sub_plate = self.sources[0].difference(self.sink)
                 if is_sub_plate:
                     # Special case of tools that are performing sub-selection
@@ -117,14 +118,14 @@ class Factor(Printable):
         else:
             if isinstance(self.tool, AggregateTool):
                 raise ValueError("Cannot execute an AggregateTool if no plates are defined for the factor")
-
+            
             # sources = [source.streams[None] for source in self.sources] if self.sources else None
             sources = self.get_global_sources()
             sink = self.sink.streams[None]
             self.tool.execute(sources=sources, sink=sink, interval=time_interval, alignment_stream=
-                              self.get_alignment_stream(None, None))
+            self.get_alignment_stream(None, None))
         return self
-
+    
     def get_sources(self, plate, plate_value, sources=None):
         """
         Gets the source streams for a given plate value on a plate.
@@ -140,26 +141,27 @@ class Factor(Printable):
         """
         if sources is None:
             sources = []
-
+        
         if self.sources:
-            for source in self.sources:
+            for si, source in enumerate(self.sources):
                 if len(source.streams) == 1 and None in source.streams:
                     sources.append(source.streams[None])
                 elif plate_value in source.streams:
                     sources.append(source.streams[plate_value])
                 else:
+                    # TODO - determine whether this should raise an exception or not
                     logging.warn("Plate {} with value {} not valid for source {}"
                                  .format(plate, plate_value, source))
-
+        
         if not plate.is_root:
             # Populate with sources defined on parent plate
             parent_plate_value = tuple(pv for pv in plate_value if pv[0] != plate.meta_data_id)
             sources = self.get_sources(plate.parent, parent_plate_value, sources)
-
+        
         # sources.extend(self.get_global_sources())
-
+        
         return sources
-
+    
     def get_global_sources(self):
         """
         Gets streams that live outside of the plates
@@ -171,7 +173,7 @@ class Factor(Printable):
                 if None in source.streams:
                     sources.append(source.streams[None])
         return sources
-
+    
     def get_alignment_stream(self, plate=None, plate_value=None):
         """
         Gets the alignment stream for a particular plate value
@@ -194,6 +196,7 @@ class MultiOutputFactor(Printable):
     multiple plates.
     Note there is no concept of an alignment node here.
     """
+    
     def __init__(self, tool, source_node, sink_node, input_plate, output_plates):
         """
         Initialise this factor
@@ -210,24 +213,24 @@ class MultiOutputFactor(Printable):
         if not isinstance(tool, MultiOutputTool):
             raise ValueError("Expected tool, got {}".format(type(tool)))
         self.tool = tool
-
+        
         if not isinstance(source_node, Node):
             raise ValueError("Expected node, got {}".format(type(source_node)))
         self.source = source_node
-
+        
         if not isinstance(sink_node, Node):
             raise ValueError("Expected node, got {}".format(type(sink_node)))
         self.sink = sink_node
         sink_node.factor = self
-
+        
         # TODO: The input plate should be a parent of the output plate
         self.input_plate = input_plate
-
+        
         if isinstance(output_plates, Plate):
-            output_plates = (output_plates, )
-
+            output_plates = (output_plates,)
+        
         self.output_plates = output_plates
-
+    
     def execute(self, time_interval):
         """
         Execute the factor over the given time interval. Note that this is normally done by the workspace,
@@ -237,7 +240,7 @@ class MultiOutputFactor(Printable):
         """
         output_plate_values = self.sink.plate_values
         sinks = [self.sink.streams[opv] for opv in output_plate_values]
-
+        
         if self.input_plate:
             for ipv in self.input_plate.values:
                 if ipv in self.source.streams:
@@ -246,7 +249,7 @@ class MultiOutputFactor(Printable):
                     logging.warn("Plate {} with value {} not valid for source {}".format(
                         self.input_plate, ipv, self.source))
                     continue
-
+                
                 if len(self.output_plates) == 1:
                     if self.output_plates[0].parent.plate_id == self.input_plate.plate_id:
                         pass
@@ -255,7 +258,7 @@ class MultiOutputFactor(Printable):
                     else:
                         # ipv = output_plate_values
                         raise NotImplementedError
-
+                
                 self.tool.execute(source=source, sinks=sinks, interval=time_interval,
                                   input_plate_value=ipv, output_plate=self.output_plates[-1])
         else:
@@ -264,7 +267,7 @@ class MultiOutputFactor(Printable):
                 raise ValueError("Should be a single output plate if there is no input plate")
             self.tool.execute(source=sources, sinks=sinks, interval=time_interval,
                               input_plate_value=None, output_plate=self.output_plates[0])
-
+        
         # Update computed intervals
         for sink in sinks:
             sink.calculated_intervals += TimeIntervals([time_interval])
@@ -272,7 +275,7 @@ class MultiOutputFactor(Printable):
             if not required_intervals.is_empty:
                 raise RuntimeError('Tool execution did not cover the time interval {}.'.format(required_intervals))
         return self
-
+    
     def get_alignment_stream(self, plate=None, plate_value=None):
         """
         Gets the alignment stream for a particular plate value
