@@ -19,32 +19,24 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.stream import StreamMetaInstance  # StreamInstance
-from hyperstream.tool import NodeCreationTool, check_input_stream_count
+from hyperstream.tool import PlateCreationTool
 # from copy import deepcopy
 
 
-class MetaInstanceFromTimestamp(NodeCreationTool):
+class MetaInstance(PlateCreationTool):
     def __init__(self, func):
         """
         Meta instance output tool.
         """
-        super(MetaInstanceFromTimestamp, self).__init__(func=func)
+        super(MetaInstance, self).__init__(func=func)
         self.func = func
 
-    def message(self, interval):
-        return '{} running from {} to {} with stride {}'.format(
-            self.__class__.__name__, str(interval.start), str(interval.end), str(self.stride))
-
-    @check_input_stream_count(0)
-    def _execute(self, sources, alignment_stream, interval):
-        if alignment_stream is not None:
-            raise NotImplementedError
-
-        for instance in sources[0].window(interval):
+    def _execute(self, source, interval):
+        for instance in source.window(interval, force_calculation=True):
             yield StreamMetaInstance(instance, self.func(instance))
 
         # At some point, do a version that looks for the meta data inside the instances too, like so:
-        # for timestamp, value in sources[0].window(interval):
+        # for timestamp, value in sources[0].window(interval, force_calculation=True):
             # v = deepcopy(value)
             # if self.key not in v:
             #     continue
