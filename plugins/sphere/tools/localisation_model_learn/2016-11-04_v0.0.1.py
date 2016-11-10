@@ -26,7 +26,7 @@ from hyperstream.tool import Tool, check_input_stream_count
 import numpy as np
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.pipeline import Pipeline
@@ -67,6 +67,7 @@ class LocalisationModelLearn(Tool):
             'vectorisation': DictVectorizer(sparse=False),
             'fill_missing': FillZeros(-110),
             'classifier': LinearDiscriminantAnalysis(),
+            'calibration': CalibratedClassifierCV('sigmoid'),
             'label_encoder': label_encoder
         }
         
