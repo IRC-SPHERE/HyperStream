@@ -219,6 +219,9 @@ class MultiOutputFactor(Printable):
             raise ValueError("Expected node, got {}".format(type(source_node)))
         self.source = source_node
 
+        if source_node:
+            source_node.is_leaf = False
+
         if splitting_node and not isinstance(splitting_node, Node):
             raise ValueError("Expected node, got {}".format(type(splitting_node)))
         self.splitting_node = splitting_node

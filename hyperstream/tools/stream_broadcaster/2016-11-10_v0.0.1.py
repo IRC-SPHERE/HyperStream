@@ -30,7 +30,10 @@ class StreamBroadcaster(MultiOutputTool):
         super(StreamBroadcaster, self).__init__(mapping=mapping)
         self.mapping = mapping
     
-    def _execute(self, source, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, output_plate):
+        if splitting_stream is not None:
+            raise NotImplementedError("Splitting stream not supported for this tool")
+
         # TODO: This factor is currently used to pull out the parameters of a localisation model, and as such does \
         #   use the time interval, but only pulls the last instance in the stream. Will need to change this in \
         #   future instances

@@ -91,5 +91,9 @@ class SlidingApply(Tool):
             # print
             
             value = self.func(iter(window))
-            if len(value):
+            try:
+                if len(value) > 0:
+                    yield StreamInstance(time, value)
+            except TypeError:
+                # Not iterable
                 yield StreamInstance(time, value)
