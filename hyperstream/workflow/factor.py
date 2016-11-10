@@ -20,7 +20,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 from ..utils import Printable
 from node import Node
-from ..tool import BaseTool, MultiOutputTool, AggregateTool, SelectorTool
+from ..tool import BaseTool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
 from plate import Plate
 from ..time_interval import TimeIntervals
 
@@ -289,4 +289,50 @@ class MultiOutputFactor(Printable):
 
 
 class PlateCreationFactor(Printable):
-    pass
+    def __init__(self, tool, source_node, input_plate):
+        """
+        Initialise this factor
+        :param tool: The tool
+        :param source_node: The source node
+        :param input_plate: The plate over which this factor is defined
+        :type tool: PlateOutputTool
+        :type input_plate: Plate | None
+        """
+        if not isinstance(tool, PlateCreationTool):
+            raise ValueError("Expected tool, got {}".format(type(tool)))
+        self.tool = tool
+
+        if not isinstance(source_node, Node):
+            raise ValueError("Expected node, got {}".format(type(source_node)))
+
+        if input_plate is not None and not isinstance(input_plate, Plate):
+            raise ValueError("Expected plate, got {}".format(type(source_node)))
+
+        self.source = source_node
+        self.sink = None
+        self.input_plate = input_plate
+
+    def execute(self, time_interval):
+        """
+        Execute the factor over the given time interval. Note that this is normally done by the workspace,
+        but can also be done on the factor directly
+        :param time_interval: The time interval
+        :return: self (for chaining)
+        """
+        # Execute the tool to produce the output plate values
+        if self.input_plate:
+            for ipv in self.input_plate.values:
+                if ipv in self.source.streams:
+                    source = self.source.streams[ipv]
+                else:
+                    logging.warn("Plate {} with value {} not valid for source {}".format(
+                        self.input_plate, ipv, self.source))
+                    continue
+
+                self.tool.execute(source=source, interval=time_interval, input_plate_value=ipv)
+
+        # Ensure that the output plate values exist
+
+        # Create the output node
+        raise NotImplementedError
+        return self

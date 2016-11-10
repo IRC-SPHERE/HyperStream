@@ -111,6 +111,17 @@ if __name__ == '__main__':
         sink=N["experiments_list"]
     )
 
+    def func(instance):
+        return construct_experiment_id(TimeInterval(instance.value["start"], instance.value["end"]))
+
+    w.create_node_creation_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="meta_instance",
+            parameters=dict(func=func)
+        ),
+        source=N["experiments_list"]
+    )
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="experiments_dataframe_builder",
@@ -120,21 +131,8 @@ if __name__ == '__main__':
         sink=N["experiments_dataframe"]
     )
 
-    # w.create_node_creation_factor(
-    #     tool=hyperstream.channel_manager.get_tool(
-    #         name="meta_instance_from_timestamp",
-    #         parameters=dict(func=construct_experiment_id)
-    #     )
-    # )
-
-# #       w.execute(exp_times.span)
-
-    # start_time = datetime(2000, 1, 1, 1, 0, 0, tzinfo=UTC)
-    # end_time = datetime(2100, 1, 1, 1, 0, 0, tzinfo=UTC)
-    # time_interval = TimeInterval(start_time, end_time)
     w.execute(all_time())
     #    f1.execute(time_interval)
-    #    w.execute(
 
     print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))
     print('number of memory non_empty_streams: {}'.format(len(M.non_empty_streams)))
