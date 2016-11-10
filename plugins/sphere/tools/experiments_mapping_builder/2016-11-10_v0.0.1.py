@@ -22,7 +22,6 @@ from hyperstream import TimeInterval
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.utils.time_utils import construct_experiment_id
-import pandas as pd
 
 
 class ExperimentsMappingBuilder(Tool):
@@ -35,12 +34,12 @@ class ExperimentsMappingBuilder(Tool):
 
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
-        data = list(sources[0].window(interval, force_calculation=True))
+        data = sources[0].window(interval, force_calculation=True)
         mapping = map(lambda x: (
-            construct_experiment_id(TimeInterval(x.value['start'],x.value['end'])),
-            TimeInterval(x.value['start'],x.value['end'])
+            construct_experiment_id(TimeInterval(x.value['start'], x.value['end'])),
+            TimeInterval(x.value['start'], x.value['end'])
             )
-            ,data)
+            , data)
         mapping = [mapping[i-1] for i in self.exp_ids]
-        yield StreamInstance(interval.end,mapping)
+        yield StreamInstance(interval.end, mapping)
 

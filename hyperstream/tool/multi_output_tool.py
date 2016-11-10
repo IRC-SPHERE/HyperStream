@@ -33,12 +33,13 @@ class MultiOutputTool(BaseTool):
     Note that no alignment stream is required here.
     Also note that we don't subclass Tool due to different calling signatures
     """
-    def _execute(self, source, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, output_plate):
         """
         Tool implementations should override this function to actually perform computations
 
         :param source: The source stream
-        :param interval: The time interval
+        :param splitting_stream: The stream over which to split
+        :param interval: The time interval over which to calculate
         :param output_plate: The plate where data is put onto
         :type source: Stream
         :type interval: TimeInterval
@@ -47,11 +48,12 @@ class MultiOutputTool(BaseTool):
         """
         raise NotImplementedError
 
-    def execute(self, source, sinks, interval, input_plate_value, output_plate):
+    def execute(self, source, splitting_stream, sinks, interval, input_plate_value, output_plate):
         """
         Execute the tool over the given time interval.
 
         :param source: The source stream
+        :param splitting_stream: The stream over which to split
         :param sinks: The sink streams
         :param interval: The time interval
         :param input_plate_value: The value of the plate where data comes from (can be None)
@@ -89,7 +91,8 @@ class MultiOutputTool(BaseTool):
             produced_data = False
 
             for interval in required_intervals:
-                for item in self._execute(source=source, interval=interval, output_plate=output_plate):
+                for item in self._execute(source=source, splitting_stream=splitting_stream,
+                                          interval=interval, output_plate=output_plate):
                     # Join the output meta data with the parent plate meta data
                     meta_data = input_plate_value + (item.meta_data,)
                     try:

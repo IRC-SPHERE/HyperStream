@@ -189,7 +189,7 @@ class Workflow(Printable):
         self._add_factor(factor)
         return factor
 
-    def create_multi_output_factor(self, tool, source, sink):
+    def create_multi_output_factor(self, tool, source, splitting_node, sink):
         """
         Creates a multi-output factor.
         This takes a single node, applies a MultiOutputTool to create multiple nodes on a new plate
@@ -201,6 +201,7 @@ class Workflow(Printable):
 
         :param tool: The tool to use. This is either an instantiated Tool object or a dict with "name" and "parameters"
         :param source: The source node
+        :param splitting_node: The node over which to split
         :param sink: The sink node
         :return: The factor object
         :type tool: MultiOutputTool | dict
@@ -228,7 +229,7 @@ class Workflow(Printable):
             if not self.check_multi_output_plate_compatibility(input_plates, output_plates[0]):
                 raise IncompatiblePlatesError("Parent plate does not match input plate")
 
-            factor = MultiOutputFactor(tool=tool, source_node=source, sink_node=sink,
+            factor = MultiOutputFactor(tool=tool, source_node=source, splitting_node=splitting_node, sink_node=sink,
                                        input_plate=input_plates[0], output_plates=output_plates[0])
         else:
             # The output plates should be the same as the input plates, except for one

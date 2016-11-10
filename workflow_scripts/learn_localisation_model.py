@@ -23,7 +23,7 @@ import pytz
 
 from hyperstream import HyperStream, TimeInterval, TimeIntervals
 from hyperstream.stream import StreamId
-from hyperstream.utils import unix2datetime
+from hyperstream.utils import unix2datetime, all_time
 
 from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
 
@@ -58,6 +58,7 @@ if __name__ == '__main__':
         ("experiments_mapping", M, ["H1"]),  # Current annotation data in 2s windows
         ("every_2s", hyperstream.channel_manager.memory, ["H1"]),  # sliding windows one every minute
         ("rss_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw RSS data
+        ("rss_time", hyperstream.channel_manager.sphere, ["H1.LocalisationExperiment"]),  # RSS data split by experiment
         ("anno_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw annotation data
         ("rss_2s", hyperstream.channel_manager.memory, ["H1"]),  # max RSS per access point in past 2s of RSS data
         ("anno_state", hyperstream.channel_manager.memory, ["H1"]),  # Current annotation data in 2s windows
@@ -124,12 +125,13 @@ if __name__ == '__main__':
         sources=None,
         sink=N["rss_raw"])
 
-    w.create_factor(
+    w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
-            name="splitter_time_aware",
+            name="splitter_time_aware_from_stream",
             parameters = dict(meta_data_id="localisation-experiment")
         ),
-        sources=[N["rss_raw"],N["experiments_mapping"]],
+        source=N["rss_raw"],
+        splitting_node=N["experiments_mapping"],
         sink=N["rss_time"])
 
 
@@ -223,7 +225,7 @@ if __name__ == '__main__':
     #     sources=[N["merged_2s"]],
     #     sink=N["location_prediction_lda_mk1"])
     #
-    w.execute(time_interval)
+    w.execute(all_time())
     
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))
