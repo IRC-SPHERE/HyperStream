@@ -26,6 +26,7 @@ import pytz
 
 from hyperstream import HyperStream, TimeInterval, TimeIntervals
 from hyperstream.stream import StreamId
+from hyperstream.utils import unix2datetime
 
 from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
 
@@ -38,9 +39,6 @@ from sphere_helpers import PredefinedTools, scripted_experiments, second, minute
 # Mongo query: db.annotations.find({tier: 'Location', start: {$gt: ISODate('2015-08-06T13:35:36.035000Z')},
 # end: {$lte: ISODate('2015-08-06T14:12:22.008000Z')}})
 
-
-def unix2datetime(u):
-    return datetime.datetime.fromtimestamp(u/1000.0,tz=pytz.UTC)+datetime.timedelta(hours=0)
 
 if __name__ == '__main__':
     hyperstream = HyperStream()
@@ -108,13 +106,6 @@ if __name__ == '__main__':
     #    locs = tuple(("location", loc) for loc in ["kitchen", "hallway", "lounge"])
 #    eids = tuple(("scripted", i + 1) for i in range(0, len(scripted_experiments.intervals)))
 #    locs_eids = tuple(itertools.product(locs, eids))
-
-    # get a dict of experiment_id => annotator_id mappings
-#    experiment_id_to_annotator_ids = dict(
-#        (k, [a['data'] for a in g])
-#        for k, g in itertools.groupby(
-#            (m for m in hyperstream.config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
-#            lambda x: x['identifier'].split('.')[1].split('_')[1]))
 
     nodes = (
         ("every_min",   M, ["H1.W"]),                    # sliding windows one every minute

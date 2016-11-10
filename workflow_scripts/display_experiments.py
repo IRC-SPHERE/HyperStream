@@ -19,13 +19,10 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from __future__ import print_function
-import itertools
-import logging
-import datetime
+from datetime import datetime
 import pytz
 
-from hyperstream import HyperStream, TimeInterval, TimeIntervals
-from hyperstream.stream import StreamId
+from hyperstream import HyperStream, TimeInterval, UTC
 
 from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
 
@@ -38,19 +35,13 @@ from sphere_helpers import PredefinedTools, scripted_experiments, second, minute
 # Mongo query: db.annotations.find({tier: 'Location', start: {$gt: ISODate('2015-08-06T13:35:36.035000Z')},
 # end: {$lte: ISODate('2015-08-06T14:12:22.008000Z')}})
 
-def unix2datetime(u):
-    return datetime.datetime.fromtimestamp(u/1000.0,tz=pytz.UTC)+datetime.timedelta(hours=0)
-
-
 
 if __name__ == '__main__':
     hyperstream = HyperStream()
 
     tools = PredefinedTools(hyperstream)
 
-
-
-    # Various channel managers
+    # Various channels
     M = hyperstream.channel_manager.memory
     S = hyperstream.channel_manager.sphere
     T = hyperstream.channel_manager.tools
@@ -90,154 +81,57 @@ if __name__ == '__main__':
     #    eids = tuple(("scripted", i + 1) for i in range(0, len(scripted_experiments.intervals)))
     #    locs_eids = tuple(itertools.product(locs, eids))
 
-    # get a dict of experiment_id => annotator_id mappings
-    #    experiment_id_to_annotator_ids = dict(
-    #        (k, [a['data'] for a in g])
-    #        for k, g in itertools.groupby(
-    #            (m for m in hyperstream.config.meta_data if 'tag' in m and m['tag'] == 'annotator'),
-    #            lambda x: x['identifier'].split('.')[1].split('_')[1]))
-
     nodes = (
-        ("every_2s",    M, ["H1"]),                    # sliding windows one every minute
-        ("rss_raw",     S, ["H1"]),                    # Raw RSS data
         ("anno_raw",    S, ["H1"]),                    # Raw annotation data
-        ("rss_2s",    M, ["H1"]),                    # max RSS per access point in past 2s of RSS data
-        ("anno_state",    M, ["H1"]),                    # Current annotation data in 2s windows
-        ("anno_state_2s_windows",    M, ["H1"]),                    # Current annotation data in 2s windows        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
-        ("merged_2s",    M, ["H1"]),                    # Current annotation data in 2s windows        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
-        ("dataframe",    M, ["H1"]),                    # Current annotation data in 2s windows        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
-        # ("rss_uid",     M, ["H1.W"]),                  # RSS by wearable id
-        # ("vidloc_uid",  M, ["H1.W"]),                  # RSS by wearable id
-        # ("vidloc_uid_align",  M, ["H1.W"]),                  # RSS by wearable id
-        # ("vidloc_rss",  M, ["H1.W"]),                  # RSS by wearable id
-        # ("vidloc_rss_anno",  M, ["H1.W"]),                  # RSS by wearable id
-        # ("vidloc_rss_anno_dict",  M, ["H1.W"]),                  # RSS by wearable id
-        # ("rss_vec",     M, ["H1.W"]),                  # RSS by wearable id
-        # ("rss_counter", M, ["H1.W"]),                  # RSS by wearable id
-        # ("rss_aid",     M, ["H1.L"]),                  # RSS by access point id
-        # ("rss_aid_uid", M, ["H1.L.W"]),                # RSS by access point id and device id
-        # ("rss",         M, ["H1.L.W"]),                # RSS values only (by access point id and device id)
-        # ("rss_time",    M, ["H1.L.W", "H1.multiresident_experiments"])  # RSS values per experiment
+        ("experiments_list",    M, ["H1"]),                    # Current annotation data in 2s windows
     )
 
     # Create all of the nodes
     N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
 
-    multires_importer = hyperstream.channel_manager.get_tool(
-        name="multiresident_experiment_importer",
-        parameters=dict())
-    exp_meta = multires_importer.experiment_metadata
-    exp_times = TimeIntervals()
-    for (i,row) in exp_meta.iterrows():
-        exp_times = exp_times + TimeIntervals([TimeInterval(unix2datetime(row.first_occurrence-1),unix2datetime(row.last_occurrence))])
-    print(exp_times)
-
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
-            parameters=dict(modality="wearable4")
-        ),
-        sources=None,
-        sink=N["rss_raw"]
-    )
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="sliding_window",
-            parameters=dict(lower=datetime.timedelta(seconds=-2), upper=datetime.timedelta(seconds=0),
-                            increment=datetime.timedelta(seconds=2))
-        ),
-        sources=None,
-        sink=N["every_2s"]
-    )
-    #
-    #
-
-
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="sphere",
-    #            parameters=dict(modality="annotations",annotators=["WebApp_Technician"],elements={"Location","Location_Fine"},filters={"trigger":1})
-            parameters=dict(modality="annotations",annotators=[0],elements={"Location"},filters={})
+            parameters=dict(modality="annotations", annotators=[0], elements={"Experiment"}, filters={})
         ),
         sources=None,
         sink=N["anno_raw"]
     )
-    start_time = datetime.datetime(year=2016,month=10,day=18,hour=1,tzinfo=pytz.UTC)
-    ti_start = datetime.datetime(year=2016,month=10,day=19,hour=12,minute=30,tzinfo=pytz.UTC)
-    ti_start = datetime.datetime(year=2016,month=10,day=19,hour=12,minute=28,tzinfo=pytz.UTC)
-    duration = datetime.timedelta(minutes=12)
-    duration = datetime.timedelta(minutes=72)
-    end_time = ti_start+duration
-    #    end_time = datetime.datetime(year=2016,month=10,day=19,hour=23,tzinfo=pytz.UTC)
-    time_interval = TimeInterval(ti_start,end_time)
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
-            name="anno_state",
-            parameters=dict(start_time=start_time)
+            name="extract_experiments_from_annotations",
+            parameters=dict()
         ),
-        sources=[N["every_2s"],N["anno_raw"]],
-        sink=N["anno_state"]
-    )
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="aligning_window",
-            parameters=dict(lower=datetime.timedelta(seconds=-2),upper=datetime.timedelta(0))
-        ),
-        sources=[N["anno_state"]],
-        sink=N["anno_state_2s_windows"]
-    )
-    def component_wise_max(init_value={},id_field='aid',value_field='rss'):
-        def func(data):
-            result = init_value.copy()
-            for (time, value) in data:
-                if result.has_key(value[id_field]):
-                    result[value[id_field]] = max(result[value[id_field]],value[value_field])
-                else:
-                    result[value[id_field]] = value[value_field]
-            return result
-        return func
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="sliding_apply",
-            parameters=dict(func=component_wise_max())
-        ),
-        sources=[N["anno_state_2s_windows"], N["rss_raw"]],
-        sink=N["rss_2s"]
-    )
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="aligned_merge",
-            parameters=dict(names=["anno","rssi"])
-        ),
-        sources=[N["anno_state"],N["rss_2s"]],
-        sink=N["merged_2s"]
-    )
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="dallan_dataframe_builder",
-            parameters=dict(time_interval=TimeInterval(start_time,end_time))
-        ),
-        sources=[N["merged_2s"]],
-        sink=N["dataframe"]
+        sources=[N["anno_raw"]],
+        sink=N["experiments_list"]
     )
 
+    w.create_node_creation_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="meta_instance_from_timestamp",
+            parameters=dict(key="")
+        )
+    )
 
 # #       w.execute(exp_times.span)
 
+    start_time = datetime(2000, 1, 1, 1, 0, 0, tzinfo=UTC)
+    end_time = datetime(2100, 1, 1, 1, 0, 0, tzinfo=UTC)
+    time_interval = TimeInterval(start_time, end_time)
     w.execute(time_interval)
     #    f1.execute(time_interval)
     #    w.execute(
 
-    print('number of non_empty_streams: {}'.format(len(M.non_empty_streams)))
+    print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))
+    print('number of memory non_empty_streams: {}'.format(len(M.non_empty_streams)))
 
-    stream = M.data[StreamId(name="anno_state",meta_data=(("house","1"),))]
-    for t in sorted(stream):
-        print('{} : {}'.format(t,stream[t]))
+    experiment_data = sorted(M.data.items(), key=lambda x: x[0].name)[6][1]
 
-    stream2 = M.data[StreamId(name="dataframe",meta_data=(("house","1"),))]
-    df = stream2[stream2.keys()[0]]
+#    stream = M.data[StreamId(name="anno_state",meta_data=(("house","1"),))]
+#    for t in sorted(stream):
+#        print('{} : {}'.format(t,stream[t]))
 
-    df.to_csv("dallan_loc_dataframe.csv",sep="\t")
 
     exit(0)
 

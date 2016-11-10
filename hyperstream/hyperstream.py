@@ -42,7 +42,7 @@ class HyperStream(object):
 
         # Define some managers
         self.channel_manager = ChannelManager(self.config.plugins)
-        self.plate_manager = PlateManager(self.config.meta_data)
+        self.plate_manager = PlateManager()
         self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager,
                                                 plates=self.plate_manager.plates)
 

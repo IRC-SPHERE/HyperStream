@@ -26,6 +26,8 @@ from tool import Tool
 from aggregate_tool import AggregateTool
 from multi_output_tool import MultiOutputTool
 from selector_tool import SelectorTool
+from node_creation_tool import NodeCreationTool
 
 # The following import is for backwards compatibility: this has been moved into the utils package
+# noinspection PyUnresolvedReferences
 from ..utils import check_input_stream_count
