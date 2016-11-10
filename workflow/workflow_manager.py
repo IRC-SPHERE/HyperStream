@@ -28,6 +28,7 @@ from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinit
 from ..utils import Printable, FrozenKeyDict, StreamNotFoundError
 from ..tool import MultiOutputTool
 
+
 class WorkflowManager(Printable):
     """
     Workflow manager. Responsible for reading and writing workflows to the database, and can execute all of the
