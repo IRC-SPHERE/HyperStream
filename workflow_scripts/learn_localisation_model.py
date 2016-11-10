@@ -100,7 +100,7 @@ if __name__ == '__main__':
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="experiments_mapping_builder",
-            parameters=dict()
+            parameters=dict(exp_ids={17,21})
         ),
         sources=[N["experiments_list"]],
         sink=N["experiments_mapping"]
