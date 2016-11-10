@@ -289,19 +289,17 @@ class MultiOutputFactor(Printable):
 
 
 class PlateCreationFactor(Printable):
-    def __init__(self, tool, source_node, input_plate, output_plate_name, output_plate_meta_data_id, plate_manager):
+    def __init__(self, tool, source_node, input_plate, output_plate, plate_manager):
         """
         Initialise this factor
         :param tool: The tool
         :param source_node: The source node
         :param input_plate: The plate over which this factor is defined
-        :param output_plate_name: The name of the plate that will be created
-        :param output_plate_meta_data_id: The meta data id for the plate
+        :param output_plate: The details of the plate that will be created (dict)
         :param plate_manager: The hyperstream plate manager
         :type tool: PlateOutputTool
         :type input_plate: Plate | None
-        :type output_plate_name: str | unicode
-        :type output_plate_meta_data_id: str | unicode
+        :type output_plate: dict
         :type plate_manager: PlateManager
         """
         if not isinstance(tool, PlateCreationTool):
@@ -317,8 +315,7 @@ class PlateCreationFactor(Printable):
         self.source = source_node
         self.sink = None
         self.input_plate = input_plate
-        self.output_plate_name = output_plate_name
-        self.output_plate_meta_data_id = output_plate_meta_data_id
+        self.output_plate = output_plate
         self._plate_manager = plate_manager
         self._meta_data_manager = plate_manager.meta_data_manager
 
@@ -345,11 +342,31 @@ class PlateCreationFactor(Printable):
 
         # Ensure that the output plate values exist
         for ipv, opv in output_plate_values.items():
-            prefix = ".".join(v[1] for v in ipv)
+            input_plate_value = ipv[-1][1]
             for pv in opv:
-                identifier = prefix + "." + pv
-                self._meta_data_manager.contains(identifier)
+                identifier = input_plate_value + "." + self.output_plate["meta_data_id"] + "_" + pv
+                if not self._meta_data_manager.contains(identifier):
+                    self._meta_data_manager.insert(
+                        tag=self.output_plate["meta_data_id"],
+                        identifier=identifier,
+                        parent=input_plate_value,
+                        data=pv
+                    )
 
-        # Create the output plate
+        if self.output_plate["use_provided_values"]:
+            raise NotImplementedError("Currently only support using empty set and complement=True for the new plate")
+
+        if self.output_plate["plate_id"] not in self._plate_manager.plates:
+            # Create the output plate
+            self._plate_manager.create_plate(
+                plate_id=self.output_plate["plate_id"],
+                description=self.output_plate["description"],
+                meta_data_id=self.output_plate["meta_data_id"],
+                values=[],
+                complement=True,
+                parent_plate=self.input_plate.plate_id
+            )
+
+            logging.info("Plate with ID {} created".format(self.output_plate["plate_id"]))
 
         return self

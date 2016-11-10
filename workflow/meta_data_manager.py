@@ -65,9 +65,22 @@ class MetaDataManager(Printable):
                           reverse=True)
 
     def contains(self, identifier):
+        """
+        Determines if the meta data with the given identifier is in the database
+        :param identifier: The identifier
+        :return: Whether the identifier is present
+        """
         return self.global_plate_definitions.contains(identifier)
 
     def insert(self, tag, identifier, parent, data):
+        """
+        Insert the given meta data into the database
+        :param tag: The tag (equates to meta_data_id)
+        :param identifier: The identifier (a combination of the meta_data_id and the plate value)
+        :param parent: The parent plate identifier
+        :param data: The data (plate value)
+        :return: None
+        """
         # First try to add it into the tree
         if self.global_plate_definitions.contains(identifier):
             raise KeyError("Identifier {} already exists in tree".format(identifier))
@@ -80,6 +93,11 @@ class MetaDataManager(Printable):
             meta_data.save()
 
     def delete(self, identifier):
+        """
+        Delete the meta data with the given identifier from the database
+        :param identifier: The identifier
+        :return: None
+        """
         self.global_plate_definitions.remove_node(identifier)
 
         with switch_db(MetaDataModel, 'hyperstream'):
