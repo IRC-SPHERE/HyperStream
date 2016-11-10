@@ -45,4 +45,4 @@ def get_timedelta(value):
 
 
 def unix2datetime(u):
-    return datetime.datetime.fromtimestamp(u/1000.0, tz=UTC) + timedelta(hours=0)
+    return datetime.fromtimestamp(u/1000.0, tz=UTC) + timedelta(hours=0)
