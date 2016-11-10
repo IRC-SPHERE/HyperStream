@@ -23,10 +23,9 @@ import pytz
 
 from hyperstream import HyperStream, TimeInterval, TimeIntervals
 from hyperstream.stream import StreamId
-from hyperstream.utils import unix2datetime
+from hyperstream.utils import unix2datetime, MIN_DATE, MAX_DATE
 
-from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
-
+from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour, mappings
 
 if __name__ == '__main__':
     hyperstream = HyperStream()
@@ -42,40 +41,28 @@ if __name__ == '__main__':
                     "visualise and mine the results")
     
     # Some plate values for display purposes
-    h1 = (('house', '1'),)
-    wA = (('wearable', 'A'),)
-    
     S = hyperstream.channel_manager.sphere
     M = hyperstream.channel_manager.memory
     
     nodes = (
-        ("every_2s", hyperstream.channel_manager.memory, ["H1"]),  # sliding windows one every minute
-        ("rss_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw RSS data
-        ("rss_per_uid", hyperstream.channel_manager.memory, ["H1.W"]),  # Raw RSS data
-        ("rss_per_uid_2s", hyperstream.channel_manager.memory, ["H1.W"]),  # max RSS per access point in past 2s of RSS data
-        ("location_prediction_models", hyperstream.channel_manager.memory, ["H1"]),
-        ("predicted_locations_1", hyperstream.channel_manager.memory, ["H1.W"]),
+        ("rss_raw", hyperstream.channel_manager.sphere, ["H1"]),
+        ("location_prediction_models", hyperstream.channel_manager.mongo, ["H1"]),
+        ("every_2s", hyperstream.channel_manager.memory, ["H1.W"]),
+        ("rss_per_uid", hyperstream.channel_manager.memory, ["H1.W"]),
+        ("rss_per_uid_2s", hyperstream.channel_manager.memory, ["H1.W"]),
+        ("location_prediction_models_broadcasted", hyperstream.channel_manager.memory, ["H1.W"]),
+        ("predicted_locations_broadcasted", hyperstream.channel_manager.memory, ["H1.W"]),
     )
     
     # Set times for execution
     start_time = datetime.datetime(year=2016, month=10, day=19, hour=12, minute=28, tzinfo=pytz.UTC)
-    duration = datetime.timedelta(seconds=20)
+    duration = datetime.timedelta(minutes=1)
     
     end_time = start_time + duration
     time_interval = TimeInterval(start_time, end_time)
     
     # Create all of the nodes
     N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
-    
-    multires_importer = hyperstream.channel_manager.get_tool(
-        name="multiresident_experiment_importer",
-        parameters=dict())
-    exp_meta = multires_importer.experiment_metadata
-    exp_times = TimeIntervals()
-    for (i, row) in exp_meta.iterrows():
-        exp_times = exp_times + TimeIntervals(
-            [TimeInterval(unix2datetime(row.first_occurrence - 1), unix2datetime(row.last_occurrence))])
-    print(exp_times)
 
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
@@ -84,13 +71,14 @@ if __name__ == '__main__':
         ),
         sources=None,
         sink=N["rss_raw"])
-
+    
     w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="splitter",
             parameters=dict(
                 element="uid",
-                mapping={'a0e6f8ad8504': 'A'})
+                mapping=mappings['uid']
+            )
         ),
         source=N["rss_raw"],
         sink=N["rss_per_uid"])
@@ -104,6 +92,7 @@ if __name__ == '__main__':
         ),
         sources=None,
         sink=N["every_2s"])
+    
     
     def component_wise_max(init_value=None, id_field='aid', value_field='rss'):
         if init_value is None:
@@ -128,25 +117,28 @@ if __name__ == '__main__':
         ),
         sources=[N["every_2s"], N["rss_per_uid"]],
         sink=N["rss_per_uid_2s"])
-
-    w.execute(time_interval)
     
-    sid = StreamId(name='rss_per_uid_2s', meta_data=(('house', '1'), ('wearable', 'A')))
-    for doc in M[sid].window(time_interval):
-        print doc
-
-    exit()
+    w.create_multi_output_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="stream_broadcaster",
+            parameters=dict(
+                mapping=mappings['uid']
+            )
+        ),
+        source=N["location_prediction_models"],
+        sink=N["location_prediction_models_broadcasted"])
     
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="localisation_model_predict",
             parameters=dict()
         ),
-        sources=[N['location_prediction_models'], N["rss_2s"]],
-        sink=N["predicted_locations_1"])
+        sources=[N['location_prediction_models_broadcasted'], N["rss_per_uid_2s"]],
+        sink=N["predicted_locations_broadcasted"])
     
     w.execute(time_interval)
-    
-    sid = StreamId('predicted_locations', h1)
-    for doc in hyperstream.channel_manager.mongo[sid].window(time_interval):
-        print doc
+    for wearable in 'ABCD':
+        sid = StreamId('predicted_locations_broadcasted', dict(house=1, wearable=wearable))
+        print sid
+        print len(list(M[sid].window(time_interval)))
+        print '\n\n'

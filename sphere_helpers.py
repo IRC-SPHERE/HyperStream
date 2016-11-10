@@ -113,10 +113,15 @@ mappings = {
         "a0:e6:f8:ad:8a:04": "A",
         "a0:e6:f8:ad:83:85": "B",
         "a0:e6:f8:ad:94:81": "C",
-        "a0:e6:f8:ad:87:84": "D"
+        "a0:e6:f8:ad:87:84": "D",
+        "a0:e6:f8:ad:85:04": "A",
+        "a0e6f8ad8504": "A",
     },
     # 'annotator': dict((x, x) for x in annotator_ids)
 }
+
+for key in mappings['uid'].keys():
+    mappings['uid'][key.replace(':', '')] = mappings['uid'][key]
 
 
 def diff(x):

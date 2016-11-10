@@ -46,6 +46,9 @@ class LocalisationModelPredict(Tool):
     @check_input_stream_count(2)
     def _execute(self, sources, alignment_stream, interval):
         param_doc = sources[0].window(TimeInterval(MIN_DATE, MAX_DATE), force_calculation=True).last()
+        if param_doc is None:
+            return
+            
         param_dict = param_doc.value
         
         data = sources[1].window(interval, force_calculation=True)
