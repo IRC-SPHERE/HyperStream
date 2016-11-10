@@ -151,9 +151,12 @@ if __name__ == '__main__':
     df = M[StreamId('experiments_dataframe', dict(house=1))].window(all_time()).values()[0]
 #    arrow.get(x).humanize()
 #    df['start'] = df['start'].map('{:%Y-%m-%d %H:%M:%S}'.format)
+    df['duration'] = df['end']-df['start']
     df['start'] = map(lambda x:'{:%Y-%m-%d %H:%M:%S}'.format(x),df['start'])
     df['end'] = map(lambda x:'{:%Y-%m-%d %H:%M:%S}'.format(x),df['end'])
-    print(df[['id', 'start', 'end', 'direction', 'annotator']])
+    df['start_as_text'] = map(lambda x:arrow.get(x).humanize(),df['start'])
+#    df['duration_as_text'] = map(lambda x:arrow.get(x).humanize(),df['duration'])
+    print(df[['id', 'start_as_text', 'duration', 'start', 'end', 'direction', 'annotator']])
 
     exit(0)
 
