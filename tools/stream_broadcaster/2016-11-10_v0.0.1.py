@@ -21,26 +21,21 @@
 
 from hyperstream.tool import MultiOutputTool
 from hyperstream.stream import StreamMetaInstance
-import logging
-from copy import deepcopy
-from numpy.random import choice
+from hyperstream.time_interval import TimeInterval
+from hyperstream.utils import MIN_DATE, MAX_DATE
 
 
-class Splitter(MultiOutputTool):
-    def __init__(self, element, mapping):
-        super(Splitter, self).__init__(element=element, mapping=mapping)
-        self.element = element
+class StreamBroadcaster(MultiOutputTool):
+    def __init__(self, mapping):
+        super(StreamBroadcaster, self).__init__(mapping=mapping)
         self.mapping = mapping
-
+    
     def _execute(self, source, interval, output_plate):
-        for timestamp, value in source.window(interval, force_calculation=True):
-            if self.element not in value:
-                logging.debug("Mapping element {} not in instance".format(self.element))
-                continue
-            value = deepcopy(value)
-            meta_data = str(value.pop(self.element))
-            if meta_data not in self.mapping:
-                logging.warn("Unknown value {} for meta data {}".format(meta_data, self.element))
-                continue
-            plate_value = self.mapping[meta_data]
-            yield StreamMetaInstance((timestamp, value), (output_plate.meta_data_id, plate_value))
+        # TODO: This factor is currently used to pull out the parameters of a localisation model, and as such does \
+        #   use the time interval, but only pulls the last instance in the stream. Will need to change this in \
+        #   future instances
+        param_doc = source.window(TimeInterval(MIN_DATE, MAX_DATE), force_calculation=True).last()
+        
+        for kk, vv in self.mapping.iteritems():
+            yield StreamMetaInstance(
+                (param_doc.timestamp, param_doc.value), (output_plate.meta_data_id, str(vv)))
