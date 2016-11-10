@@ -31,6 +31,18 @@ MIN_DATE = datetime.min.replace(tzinfo=UTC)
 MAX_DATE = datetime.max.replace(tzinfo=UTC)
 
 
+def all_time():
+    """
+    All time constant. Defined as a function to avoid circular references
+    :return:
+    """
+    from ..time_interval import TimeInterval
+    return TimeInterval(MIN_DATE, MAX_DATE)
+
+
+# ALL_TIME = all_time()
+
+
 def utcnow():
     return datetime.utcnow().replace(tzinfo=UTC)
 
@@ -46,3 +58,18 @@ def get_timedelta(value):
 
 def unix2datetime(u):
     return datetime.datetime.fromtimestamp(u/1000.0, tz=UTC) + timedelta(hours=0)
+
+
+def construct_experiment_id(instance):
+    """
+    Construct an experiment id from a time interval
+    :param instance:
+    :return: The experiment id
+    :type instance: StreamInstance
+    :rtype: str
+    """
+    # Construct id based on unix epoch timestamps
+    epoch = datetime.utcfromtimestamp(0).replace(tzinfo=UTC)
+    start = int((instance.timestamp.start - epoch).total_seconds() * 1000.0)
+    end = int((instance.timestamp.end - epoch).total_seconds() * 1000.0)
+    return "%d-%d".format(start, end)
