@@ -117,13 +117,16 @@ if __name__ == '__main__':
     def func(instance):
         return construct_experiment_id(TimeInterval(instance.value["start"], instance.value["end"]))
 
-    # w.create_node_creation_factor(
-    #     tool=hyperstream.channel_manager.get_tool(
-    #         name="meta_instance",
-    #         parameters=dict(func=func)
-    #     ),
-    #     source=N["experiments_list"]
-    # )
+    w.create_node_creation_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="meta_instance",
+            parameters=dict(func=func)
+        ),
+        source=N["experiments_list"],
+        output_plate_name="H1.LocalisationExperiment",
+        output_plate_meta_data_id="localisation-experiment",
+        plate_manager=hyperstream.plate_manager
+    )
 
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
