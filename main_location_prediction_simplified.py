@@ -111,6 +111,7 @@ if __name__ == '__main__':
         ("ann_raw",     S, ["H1"]),                 # Annotations (raw format)
         ("ann",         M, ["H1"]),                 # Annotations (clean format)
         ("ann_time",    M, ["H1.S_1,2"]),           # Annotations per scripted experiment (just experiments 1, 2)
+        ("ann_time1",   M, ["H1.S_1,2"]),           # Annotations per scripted experiment (just experiments 1, 2)
         ("ann_train",   M, ["H1.S1"]),              # Annotations for scripted experiment 1
         ("ann_test",    M, ["H1.S2"]),              # Annotations for scripted experiment 1
         ("model",       M, ["H1.S1"]),              # Outputs of model trained on scripted experiment 1
@@ -134,6 +135,7 @@ if __name__ == '__main__':
     w.create_multi_output_factor(
         tool=tools.split_time,
         source=N["ann"],
+        splitting_node=None,
         sink=N["ann_time"])
 
     w.create_factor(
@@ -155,6 +157,7 @@ if __name__ == '__main__':
     w.create_multi_output_factor(
         tool=tools.split_time,
         source=N["rss_raw"],
+        splitting_node=None,
         sink=N["rss_time"])
 
     # Now separate this onto single plates for train and test

@@ -197,11 +197,12 @@ class MultiOutputFactor(Printable):
     Note there is no concept of an alignment node here.
     """
     
-    def __init__(self, tool, source_node, sink_node, input_plate, output_plates):
+    def __init__(self, tool, source_node, splitting_node, sink_node, input_plate, output_plates):
         """
         Initialise this factor
         :param tool: The tool
         :param source_node: The source node
+        :param splitting_node: The node over which to split
         :param sink_node: The sink nodes
         :param input_plate: The plate over which this factor is defined
         :param output_plates: The plates, the last of which will be the new one created
@@ -217,7 +218,11 @@ class MultiOutputFactor(Printable):
         if not isinstance(source_node, Node):
             raise ValueError("Expected node, got {}".format(type(source_node)))
         self.source = source_node
-        
+
+        if splitting_node and not isinstance(splitting_node, Node):
+            raise ValueError("Expected node, got {}".format(type(splitting_node)))
+        self.splitting_node = splitting_node
+
         if not isinstance(sink_node, Node):
             raise ValueError("Expected node, got {}".format(type(sink_node)))
         self.sink = sink_node
@@ -258,14 +263,36 @@ class MultiOutputFactor(Printable):
                     else:
                         # ipv = output_plate_values
                         raise NotImplementedError
-                
-                self.tool.execute(source=source, sinks=sinks, interval=time_interval,
+
+                if self.splitting_node:
+                    if len(self.splitting_node.plates) > 1:
+                        raise ValueError("Splitting node cannot live on multiple plates")
+                    if len(self.splitting_node.plates) == 1:
+                        if self.input_plate != self.splitting_node.plates[0]:
+                            raise NotImplementedError("Splitting node plate does not match input plate")
+                        # Use matching plate value
+                        splitting_stream = self.splitting_node.streams[ipv]
+                    else:
+                        # Use global plate value
+                        splitting_stream = self.splitting_node.streams[None]
+                else:
+                    splitting_stream = None
+
+                self.tool.execute(source=source, sinks=sinks, interval=time_interval, splitting_stream=splitting_stream,
                                   input_plate_value=ipv, output_plate=self.output_plates[-1])
         else:
             sources = self.source.streams[None]
             if len(self.output_plates) != 1:
                 raise ValueError("Should be a single output plate if there is no input plate")
-            self.tool.execute(source=sources, sinks=sinks, interval=time_interval,
+
+            if self.splitting_node:
+                if len(self.splitting_node.plates) > 0:
+                    raise ValueError("Splitting node cannot live on a plate if there is no input plate")
+                splitting_stream = self.splitting_node.streams[None]
+            else:
+                splitting_stream = None
+
+            self.tool.execute(source=sources, sinks=sinks, interval=time_interval, splitting_stream=splitting_stream,
                               input_plate_value=None, output_plate=self.output_plates[0])
         
         # Update computed intervals
