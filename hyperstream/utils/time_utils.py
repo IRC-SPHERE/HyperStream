@@ -60,16 +60,16 @@ def unix2datetime(u):
     return datetime.fromtimestamp(u/1000.0, tz=UTC) + timedelta(hours=0)
 
 
-def construct_experiment_id(instance):
+def construct_experiment_id(time_interval):
     """
     Construct an experiment id from a time interval
     :param instance:
     :return: The experiment id
-    :type instance: StreamInstance
+    :type time_interval: TimeInterval
     :rtype: str
     """
     # Construct id based on unix epoch timestamps
     epoch = datetime.utcfromtimestamp(0).replace(tzinfo=UTC)
-    start = int((instance.timestamp.start - epoch).total_seconds() * 1000.0)
-    end = int((instance.timestamp.end - epoch).total_seconds() * 1000.0)
-    return "%d-%d".format(start, end)
+    start = int((time_interval.start - epoch).total_seconds() * 1000.0)
+    end = int((time_interval.end - epoch).total_seconds() * 1000.0)
+    return "{}-{}".format(start, end)
