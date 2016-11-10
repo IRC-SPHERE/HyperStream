@@ -32,7 +32,10 @@ class Splitter(MultiOutputTool):
         self.element = element
         self.mapping = mapping
 
-    def _execute(self, source, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, output_plate):
+        if splitting_stream is not None:
+            raise NotImplementedError("Splitting stream not supported for this tool")
+
         for timestamp, value in source.window(interval, force_calculation=True):
             if self.element not in value:
                 logging.debug("Mapping element {} not in instance".format(self.element))

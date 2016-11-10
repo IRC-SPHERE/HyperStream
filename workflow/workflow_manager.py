@@ -128,7 +128,7 @@ class WorkflowManager(Printable):
 
         with switch_db(WorkflowDefinitionModel, "hyperstream"):
             factors = []
-            for f in itertools.chain(*workflow.factor_collections.values()):
+            for f in itertools.chain(*workflow.factors):
                 tool = ToolModel(name=f.tool.name, version="", parameters=f.tool.parameters)
                 raise NotImplementedError("sources and sinks should actually just be references to the nodes by node id")
                 if isinstance(f.tool, MultiOutputTool):
