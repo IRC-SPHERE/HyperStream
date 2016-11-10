@@ -123,8 +123,12 @@ if __name__ == '__main__':
             parameters=dict(func=func)
         ),
         source=N["experiments_list"],
-        output_plate_name="H1.LocalisationExperiment",
-        output_plate_meta_data_id="localisation-experiment",
+        output_plate=dict(
+            plate_id="H1.LocalisationExperiment",
+            meta_data_id="localisation-experiment",
+            description="Technician localisation walk-around",
+            use_provided_values=False
+        ),
         plate_manager=hyperstream.plate_manager
     )
 
