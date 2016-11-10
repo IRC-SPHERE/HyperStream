@@ -59,7 +59,8 @@ if __name__ == '__main__':
         ("every_2s", hyperstream.channel_manager.memory, ["H1"]),  # sliding windows one every minute
         ("rss_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw RSS data
         ("rss_time", hyperstream.channel_manager.sphere, ["H1.LocalisationExperiment"]),  # RSS data split by experiment
-        ("anno_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw annotation data
+        ("anno_raw_locations", hyperstream.channel_manager.sphere, ["H1"]),  # Raw annotation data
+        ("anno_time", hyperstream.channel_manager.sphere, ["H1.LocalisationExperiment"]),  # RSS data split by experiment
         ("rss_2s", hyperstream.channel_manager.memory, ["H1"]),  # max RSS per access point in past 2s of RSS data
         ("anno_state", hyperstream.channel_manager.memory, ["H1"]),  # Current annotation data in 2s windows
         ("anno_state_2s_windows", hyperstream.channel_manager.memory, ["H1"]),
@@ -134,6 +135,25 @@ if __name__ == '__main__':
         splitting_node=N["experiments_mapping"],
         sink=N["rss_time"])
 
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="sphere",
+            parameters=dict(modality="annotations",
+                            annotators=[0],
+                            elements={"Location"},
+                            filters={})
+        ),
+        sources=None,
+        sink=N["anno_raw_locations"])
+
+    w.create_multi_output_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="splitter_time_aware_from_stream",
+            parameters = dict(meta_data_id="localisation-experiment")
+        ),
+        source=N["anno_raw_locations"],
+        splitting_node=N["experiments_mapping"],
+        sink=N["anno_time"])
 
     # w.create_factor(
     #     tool=hyperstream.channel_manager.get_tool(
@@ -145,16 +165,7 @@ if __name__ == '__main__':
     #     sources=None,
     #     sink=N["every_2s"])
     #
-    # w.create_factor(
-    #     tool=hyperstream.channel_manager.get_tool(
-    #         name="sphere",
-    #         parameters=dict(modality="annotations",
-    #                         annotators=[0],
-    #                         elements={"Location"},
-    #                         filters={})
-    #     ),
-    #     sources=None,
-    #     sink=N["anno_raw"])
+
     #
     # w.create_factor(
     #     tool=hyperstream.channel_manager.get_tool(
