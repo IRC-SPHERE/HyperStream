@@ -55,6 +55,7 @@ if __name__ == '__main__':
         ("anno_raw_experiments", S, ["H1"]),  # Raw annotation data
         ("experiments_list", M, ["H1"]),  # Current annotation data in 2s windows
         ("experiments_dataframe", M, ["H1"]),  # Current annotation data in 2s windows
+        ("experiments_mapping", M, ["H1"]),  # Current annotation data in 2s windows
         ("every_2s", hyperstream.channel_manager.memory, ["H1"]),  # sliding windows one every minute
         ("rss_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw RSS data
         ("anno_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw annotation data
@@ -96,12 +97,22 @@ if __name__ == '__main__':
         sink=N["experiments_dataframe"]
     )
 
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="experiments_mapping_builder",
+            parameters=dict()
+        ),
+        sources=[N["experiments_list"]],
+        sink=N["experiments_mapping"]
+    )
+
     # Set times for execution
     start_time = datetime.datetime(year=2016, month=10, day=18, hour=1, tzinfo=pytz.UTC)
     
     ti_start = datetime.datetime(year=2016, month=10, day=19, hour=12, minute=28, tzinfo=pytz.UTC)
     duration = datetime.timedelta(minutes=72)
-    
+    duration = datetime.timedelta(days=2)
+
     end_time = ti_start + duration
     time_interval = TimeInterval(ti_start, end_time)
 
@@ -112,97 +123,106 @@ if __name__ == '__main__':
         ),
         sources=None,
         sink=N["rss_raw"])
-    
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
-            name="sliding_window",
-            parameters=dict(lower=datetime.timedelta(seconds=-2),
-                            upper=datetime.timedelta(seconds=0),
-                            increment=datetime.timedelta(seconds=2))
+            name="splitter_time_aware",
+            parameters = dict(meta_data_id="localisation-experiment")
         ),
-        sources=None,
-        sink=N["every_2s"])
-    
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="sphere",
-            parameters=dict(modality="annotations",
-                            annotators=[0],
-                            elements={"Location"},
-                            filters={})
-        ),
-        sources=None,
-        sink=N["anno_raw"])
-    
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="anno_state",
-            parameters=dict(start_time=start_time)
-        ),
-        sources=[N["every_2s"], N["anno_raw"]],
-        sink=N["anno_state"])
-    
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="aligning_window",
-            parameters=dict(lower=datetime.timedelta(seconds=-2),
-                            upper=datetime.timedelta(0))
-        ),
-        sources=[N["anno_state"]],
-        sink=N["anno_state_2s_windows"])
-    
-    
-    def component_wise_max(init_value=None, id_field='aid', value_field='rss'):
-        if init_value is None:
-            init_value = {}
-        
-        def func(data):
-            result = init_value.copy()
-            for (time, value) in data:
-                if result.has_key(value[id_field]):
-                    result[value[id_field]] = max(result[value[id_field]], value[value_field])
-                else:
-                    result[value[id_field]] = value[value_field]
-            return result
-        
-        return func
-    
-    
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="sliding_apply",
-            parameters=dict(func=component_wise_max())
-        ),
-        sources=[N["anno_state_2s_windows"], N["rss_raw"]],
-        sink=N["rss_2s"])
-    
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="aligned_merge",
-            parameters=dict(names=["anno", "rssi"])
-        ),
-        sources=[N["anno_state"], N["rss_2s"]],
-        sink=N["merged_2s"])
-    
-    # from NT: removed the necessity for this by adding a DictVectoriser to the classifier pipeline - makes
-    #   classifier more robust to differing sensor contexts
+        sources=[N["rss_raw"],N["experiments_mapping"]],
+        sink=N["rss_time"])
+
+
     # w.create_factor(
     #     tool=hyperstream.channel_manager.get_tool(
-    #         name="dallan_dataframe_builder",
-    #         parameters=dict(time_interval=TimeInterval(start_time, end_time))
+    #         name="sliding_window",
+    #         parameters=dict(lower=datetime.timedelta(seconds=-2),
+    #                         upper=datetime.timedelta(seconds=0),
+    #                         increment=datetime.timedelta(seconds=2))
+    #     ),
+    #     sources=None,
+    #     sink=N["every_2s"])
+    #
+    # w.create_factor(
+    #     tool=hyperstream.channel_manager.get_tool(
+    #         name="sphere",
+    #         parameters=dict(modality="annotations",
+    #                         annotators=[0],
+    #                         elements={"Location"},
+    #                         filters={})
+    #     ),
+    #     sources=None,
+    #     sink=N["anno_raw"])
+    #
+    # w.create_factor(
+    #     tool=hyperstream.channel_manager.get_tool(
+    #         name="anno_state",
+    #         parameters=dict(start_time=start_time)
+    #     ),
+    #     sources=[N["every_2s"], N["anno_raw"]],
+    #     sink=N["anno_state"])
+    #
+    # w.create_factor(
+    #     tool=hyperstream.channel_manager.get_tool(
+    #         name="aligning_window",
+    #         parameters=dict(lower=datetime.timedelta(seconds=-2),
+    #                         upper=datetime.timedelta(0))
+    #     ),
+    #     sources=[N["anno_state"]],
+    #     sink=N["anno_state_2s_windows"])
+    #
+    #
+    # def component_wise_max(init_value=None, id_field='aid', value_field='rss'):
+    #     if init_value is None:
+    #         init_value = {}
+    #
+    #     def func(data):
+    #         result = init_value.copy()
+    #         for (time, value) in data:
+    #             if result.has_key(value[id_field]):
+    #                 result[value[id_field]] = max(result[value[id_field]], value[value_field])
+    #             else:
+    #                 result[value[id_field]] = value[value_field]
+    #         return result
+    #
+    #     return func
+    #
+    #
+    # w.create_factor(
+    #     tool=hyperstream.channel_manager.get_tool(
+    #         name="sliding_apply",
+    #         parameters=dict(func=component_wise_max())
+    #     ),
+    #     sources=[N["anno_state_2s_windows"], N["rss_raw"]],
+    #     sink=N["rss_2s"])
+    #
+    # w.create_factor(
+    #     tool=hyperstream.channel_manager.get_tool(
+    #         name="aligned_merge",
+    #         parameters=dict(names=["anno", "rssi"])
+    #     ),
+    #     sources=[N["anno_state"], N["rss_2s"]],
+    #     sink=N["merged_2s"])
+    #
+    # # from NT: removed the necessity for this by adding a DictVectoriser to the classifier pipeline - makes
+    # #   classifier more robust to differing sensor contexts
+    # # w.create_factor(
+    # #     tool=hyperstream.channel_manager.get_tool(
+    # #         name="dallan_dataframe_builder",
+    # #         parameters=dict(time_interval=TimeInterval(start_time, end_time))
+    # #     ),
+    # #     sources=[N["merged_2s"]],
+    # #     sink=N["dataframe"])
+    #
+    # w.create_factor(
+    #     tool=hyperstream.channel_manager.get_tool(
+    #         name="localisation_model_learn",
+    #         parameters=dict(nan_value=-110,
+    #         folds={17, 21})
     #     ),
     #     sources=[N["merged_2s"]],
-    #     sink=N["dataframe"])
-    
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="localisation_model_learn",
-            parameters=dict(nan_value=-110,
-            folds={17, 21})
-        ),
-        sources=[N["merged_2s"]],
-        sink=N["location_prediction_lda_mk1"])
-    
+    #     sink=N["location_prediction_lda_mk1"])
+    #
     w.execute(time_interval)
     
     print('number of non_empty_streams: {}'.format(
