@@ -107,12 +107,12 @@ if __name__ == '__main__':
         sink=N["experiments_list"]
     )
 
-    w.create_node_creation_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="meta_instance_from_timestamp",
-            parameters=dict(key="")
-        )
-    )
+#    w.create_node_creation_factor(
+#        tool=hyperstream.channel_manager.get_tool(
+#            name="meta_instance_from_timestamp",
+#            parameters=dict(key="")
+#        )
+#    )
 
 # #       w.execute(exp_times.span)
 
@@ -126,12 +126,15 @@ if __name__ == '__main__':
     print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))
     print('number of memory non_empty_streams: {}'.format(len(M.non_empty_streams)))
 
+
+
     experiment_data = sorted(M.data.items(), key=lambda x: x[0].name)[6][1]
 
 #    stream = M.data[StreamId(name="anno_state",meta_data=(("house","1"),))]
 #    for t in sorted(stream):
 #        print('{} : {}'.format(t,stream[t]))
 
+    experiment_data = M[StreamId('experiments_list', dict(house=1))].window(ALL_TIME).values()
 
     exit(0)
 
