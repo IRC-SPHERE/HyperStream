@@ -24,6 +24,8 @@ import pytz
 
 from hyperstream import HyperStream, TimeInterval, UTC, StreamId
 from hyperstream.utils import construct_experiment_id, all_time
+import arrow
+import pandas as pd
 
 from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
 
@@ -85,6 +87,7 @@ if __name__ == '__main__':
     nodes = (
         ("anno_raw",    S, ["H1"]),                    # Raw annotation data
         ("experiments_list",    M, ["H1"]),                    # Current annotation data in 2s windows
+        ("experiments_dataframe",    M, ["H1"]),                    # Current annotation data in 2s windows
     )
 
     # Create all of the nodes
@@ -119,19 +122,36 @@ if __name__ == '__main__':
         source=N["experiments_list"]
     )
 
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="experiments_dataframe_builder",
+            parameters=dict()
+        ),
+        sources=[N["experiments_list"]],
+        sink=N["experiments_dataframe"]
+    )
+
     w.execute(all_time())
     #    f1.execute(time_interval)
 
     print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))
     print('number of memory non_empty_streams: {}'.format(len(M.non_empty_streams)))
 
-    experiment_data = sorted(M.data.items(), key=lambda x: x[0].name)[6][1]
+
+
+#    experiment_data = sorted(M.data.items(), key=lambda x: x[0].name)[6][1]
 
 #    stream = M.data[StreamId(name="anno_state",meta_data=(("house","1"),))]
 #    for t in sorted(stream):
 #        print('{} : {}'.format(t,stream[t]))
 
     experiment_data = M[StreamId('experiments_list', dict(house=1))].window(all_time()).values()
+    df = M[StreamId('experiments_dataframe', dict(house=1))].window(all_time()).values()[0]
+#    arrow.get(x).humanize()
+#    df['start'] = df['start'].map('{:%Y-%m-%d %H:%M:%S}'.format)
+    df['start'] = map(lambda x:'{:%Y-%m-%d %H:%M:%S}'.format(x),df['start'])
+    df['end'] = map(lambda x:'{:%Y-%m-%d %H:%M:%S}'.format(x),df['end'])
+    print(df[['id', 'start', 'end', 'direction', 'annotator']])
 
     exit(0)
 
