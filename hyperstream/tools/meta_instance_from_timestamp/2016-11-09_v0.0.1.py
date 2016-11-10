@@ -18,11 +18,31 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from stream import StreamStatusModel, StreamDefinitionModel, StreamInstanceModel, StreamIdField
-from workflow import WorkflowDefinitionModel, WorkflowStatusModel
-from plate import PlateDefinitionModel
-from node import NodeDefinitionModel
-from factor import FactorDefinitionModel
-from tool import ToolModel
-from time_interval import TimeIntervalModel
-from meta_data import MetaDataModel
+from hyperstream.stream import StreamInstance, StreamMetaInstance
+from hyperstream.tool import NodeCreationTool, check_input_stream_count
+from copy import deepcopy
+
+
+class MetaInstanceFromTimestamp(NodeCreationTool):
+    def __init__(self, key):
+        """
+        Meta instance output tool.
+        """
+        super(MetaInstanceFromTimestamp, self).__init__(key=key)
+        self.key = key
+
+    def message(self, interval):
+        return '{} running from {} to {} with stride {}'.format(
+            self.__class__.__name__, str(interval.start), str(interval.end), str(self.stride))
+
+    @check_input_stream_count(0)
+    def _execute(self, sources, alignment_stream, interval):
+        if alignment_stream is not None:
+            raise NotImplementedError
+
+        for timestamp, value in sources[0].window(interval):
+            v = deepcopy(value)
+            if self.key not in v:
+                continue
+            meta = (self.key, v.pop(self.key))
+            yield StreamMetaInstance(StreamInstance(timestamp, v), meta)

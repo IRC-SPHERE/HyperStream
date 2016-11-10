@@ -22,6 +22,7 @@ import pandas as pd
 import os
 from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.stream import StreamInstance
+from hyperstream.utils import unix2datetime
 import hyperstream  # just to get the path out of it
 import datetime
 import pytz
@@ -30,9 +31,6 @@ import pytz
 DATA_PATH = '../data/2016_10_17_multiresident_annotations_from_sion_anonymised/location_annotations_unique_dt.csv'
 META_PATH = '../data/2016_10_17_multiresident_annotations_from_sion_anonymised/occurrence_times_manually.txt'
 
-
-def unix2datetime(u):
-    return datetime.datetime.fromtimestamp(u/1000.0,tz=pytz.UTC)+datetime.timedelta(hours=0)
 
 def reformat(doc):
     dt = unix2datetime(doc['dt'])
