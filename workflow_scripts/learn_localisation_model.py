@@ -20,6 +20,7 @@
 
 import datetime
 import pytz
+import logging
 
 from hyperstream import HyperStream, TimeInterval, TimeIntervals
 from hyperstream.stream import StreamId
@@ -27,9 +28,8 @@ from hyperstream.utils import unix2datetime, all_time
 
 from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
 
-
 if __name__ == '__main__':
-    hyperstream = HyperStream()
+    hyperstream = HyperStream(loglevel=logging.INFO)
     tools = PredefinedTools(hyperstream)
     
     # Create a simple one step workflow for querying

@@ -54,8 +54,7 @@ class Workflow(Printable):
         self.description = description
         self.owner = owner
         self.nodes = {}
-        self.execution_order = []
-        self.factor_collections = TypedFrozenKeyDict(str)
+        self.factors = []
 
         logging.info("New workflow created with id {}".format(workflow_id))
     
@@ -67,14 +66,20 @@ class Workflow(Printable):
 
         :param time_interval: The time interval to execute this workflow over
         """
-        if len(self.execution_order) > 0:
-            for tool in self.execution_order[::-1]:
-                for factor in self.factor_collections[tool.name]:
-                    if factor.sink is None or factor.sink.is_leaf:
-                        # Only execute the factor if its sink a leaf node
-                        # TODO: What if the leaf nodes have different time intervals?
-                        factor.execute(time_interval)
-            
+        # TODO: What if the leaf nodes have different time intervals?
+
+        for factor in self.factors[::-1]:
+            if factor.sink is None or factor.sink.is_leaf:
+                factor.execute(time_interval)
+
+    def _add_node(self, node):
+        self.nodes[node.node_id] = node
+        logging.info("Added node with id {} containing {} streams".format(node.node_id, len(node.streams)))
+
+    def _add_factor(self, factor):
+        self.factors.append(factor)
+        logging.info("Added factor with tool {} ".format(factor.tool))
+
     def create_node(self, stream_name, channel, plate_ids):
         """
         Create a node in the graph. Note: assumes that the streams already exist
@@ -107,17 +112,8 @@ class Workflow(Printable):
             raise NodeDefinitionError("No streams created for node with id {}".format(stream_name))
 
         node = Node(stream_name, streams, plates)
-        self.nodes[stream_name] = node
-        logging.info("Added node with id {} containing {} streams".format(stream_name, len(streams)))
-
+        self._add_node(node)
         return node
-
-    def _add_factor(self, factor):
-        if factor.tool.name not in self.factor_collections:
-            self.factor_collections[factor.tool.name] = []
-
-        self.factor_collections[factor.tool.name].append(factor)
-        self.execution_order.append(factor.tool)
 
     def create_factor(self, tool, sources, sink, alignment_node=None):
         """

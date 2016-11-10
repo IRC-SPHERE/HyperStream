@@ -114,6 +114,7 @@ if __name__ == '__main__':
         ("ann_time1",   M, ["H1.S_1,2"]),           # Annotations per scripted experiment (just experiments 1, 2)
         ("ann_train",   M, ["H1.S1"]),              # Annotations for scripted experiment 1
         ("ann_test",    M, ["H1.S2"]),              # Annotations for scripted experiment 1
+        ("ann_train_test", M, ["H1"]),              # Annotations for
         ("model",       M, ["H1.S1"]),              # Outputs of model trained on scripted experiment 1
     )
 
@@ -149,6 +150,15 @@ if __name__ == '__main__':
         sink=N["ann_test"])
 
     w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="aggregate",
+            parameters=dict(
+                func=
+            )
+        )
+    )
+
+    w.create_factor(
         tool=tools.wearable_rss,
         sources=None,
         sink=N["rss_raw"])
@@ -170,6 +180,8 @@ if __name__ == '__main__':
         tool=tools.index_of_2,
         sources=[N["rss_time"]],
         sink=N["rss_test"])
+
+    w.create_factor()
 
     if True:
         w.create_factor(

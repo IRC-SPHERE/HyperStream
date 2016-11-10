@@ -32,7 +32,10 @@ class SplitterWithUnlist(MultiOutputTool):
         self.subelement = subelement
         self.mapping = mapping
 
-    def _execute(self, source, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, output_plate):
+        if splitting_stream is not None:
+            raise NotImplementedError("Splitting stream not supported for this tool")
+
         for timestamp, value in source.window(interval, force_calculation=True):
             value = deepcopy(value)
             if self.element not in value:
