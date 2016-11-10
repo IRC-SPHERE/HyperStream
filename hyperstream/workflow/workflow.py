@@ -27,7 +27,7 @@ import logging
 from factor import Factor, MultiOutputFactor, PlateCreationFactor
 from node import Node, get_overlapping_plate_values
 from ..stream import StreamId
-from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool, NodeCreationTool
+from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
 from ..utils import Printable, TypedFrozenKeyDict, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError
 
 
@@ -70,7 +70,7 @@ class Workflow(Printable):
         if len(self.execution_order) > 0:
             for tool in self.execution_order[::-1]:
                 for factor in self.factor_collections[tool.name]:
-                    if factor.sink.is_leaf:
+                    if factor.sink is None or factor.sink.is_leaf:
                         # Only execute the factor if its sink a leaf node
                         # TODO: What if the leaf nodes have different time intervals?
                         factor.execute(time_interval)
@@ -111,6 +111,13 @@ class Workflow(Printable):
         logging.info("Added node with id {} containing {} streams".format(stream_name, len(streams)))
 
         return node
+
+    def _add_factor(self, factor):
+        if factor.tool.name not in self.factor_collections:
+            self.factor_collections[factor.tool.name] = []
+
+        self.factor_collections[factor.tool.name].append(factor)
+        self.execution_order.append(factor.tool)
 
     def create_factor(self, tool, sources, sink, alignment_node=None):
         """
@@ -179,12 +186,7 @@ class Workflow(Printable):
                         sink_node=sink, alignment_node=alignment_node,
                         plates=plates)
 
-        if tool.name not in self.factor_collections:
-            self.factor_collections[tool.name] = []
-
-        self.factor_collections[tool.name].append(factor)
-        self.execution_order.append(tool)
-
+        self._add_factor(factor)
         return factor
 
     def create_multi_output_factor(self, tool, source, sink):
@@ -264,12 +266,7 @@ class Workflow(Printable):
                 tool=tool, source_node=source, sink_node=sink,
                 input_plate=input_plates[0], output_plates=output_plates)
 
-        if tool.name not in self.factor_collections:
-            self.factor_collections[tool.name] = []
-
-        self.factor_collections[tool.name].append(factor)
-        self.execution_order.append(tool)
-
+        self._add_factor(factor)
         return factor
 
     def create_node_creation_factor(self, tool, source):
@@ -283,7 +280,7 @@ class Workflow(Printable):
         if isinstance(tool, dict):
             tool = self.channels.get_tool(name=tool["name"], parameters=["parameters"])
 
-        if not isinstance(tool, NodeCreationTool):
+        if not isinstance(tool, PlateCreationTool):
             raise ValueError("Expected MultiOutputTool, got {}".format(type(tool)))
 
         input_plates = [self.plates[plate_id] for plate_id in source.plate_ids]
@@ -291,13 +288,14 @@ class Workflow(Printable):
         if len(input_plates) > 1:
             raise NotImplementedError
 
-        # Execute the tool to product the output plate values
-        factor = Plate
+        factor = PlateCreationFactor(
+            tool=tool,
+            source_node=source,
+            input_plate=input_plates[0]
+        )
 
-        # Ensure that the output plate values exist
-
-        # Create the output node
-
+        self._add_factor(factor)
+        return factor
 
     @staticmethod
     def check_plate_compatibility(tool, source_plate, sink_plate):
