@@ -1,3 +1,4 @@
+arrow
 bidict
 future
 datadiff
