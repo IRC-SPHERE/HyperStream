@@ -100,7 +100,7 @@ class SphereChannel(MemoryChannel):
                     self.data[stream.stream_id].append(document_collection)
                 except KeyError as e:
                     # Deal with the duplicate error by adding microseconds to the time until we succeed
-                    logging.warn(e.message)
+                    logging.debug(e.message)
                     doc = StreamInstance(
                         timestamp=document_collection.timestamp + timedelta(microseconds=1),
                         value=document_collection.value)
