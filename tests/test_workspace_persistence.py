@@ -81,11 +81,13 @@ def basic_workflow(workflow_id):
     w.create_multi_output_factor(
         tool=tools.split_aid,
         source=N["rss_raw"],
+        splitting_node=None,
         sink=N["rss_aid"])
 
     w.create_multi_output_factor(
         tool=tools.split_uid,
         source=N["rss_aid"],
+        splitting_node=None,
         sink=N["rss_aid_uid"])
 
     w.create_factor(

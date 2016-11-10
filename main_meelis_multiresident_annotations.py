@@ -130,12 +130,12 @@ if __name__ == '__main__':
 
 #    w.create_factor(tool=tools.wearable_rss, sources=None, sink=N["rss_raw"])
     f = w.create_factor(tool=wearable3, sources=None, sink=N["rss_raw"])
-#    w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_raw"], sink=N["rss_aid"])
+#    w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_raw"], splitting_node=None, sink=N["rss_aid"])
 
-#    w.create_multi_output_factor(tool=split_aid, source=N["rss_raw"], sink=N["rss_aid"])
-#    w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_aid"], sink=N["rss_aid_uid"])
+#    w.create_multi_output_factor(tool=split_aid, source=N["rss_raw"], splitting_node=None, sink=N["rss_aid"])
+#    w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_aid"], splitting_node=None, sink=N["rss_aid_uid"])
 
-    w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_raw"], sink=N["rss_uid"])
+    w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_raw"], splitting_node=None, sink=N["rss_uid"])
 
  #    N["rss_vec"] = w.create_node("rss_vec",M,"H1.W")
     w.create_factor(
@@ -168,6 +168,7 @@ if __name__ == '__main__':
             name="splitter",
             parameters=dict(element="wearable_id",mapping=dict(A="A",B="B",C="C",D="D"))
         ),
+        splitting_node=None,
         source=N["vidloc_raw"],
         sink=N["vidloc_uid"]
     )
@@ -222,7 +223,7 @@ if __name__ == '__main__':
 
     # Now we want to split by time interval onto a time-oriented plate
     # N["rss_time"] = w.create_node(stream_name="rss_time", channel=M, plate_ids=["H.L", "H.scripted"])
-#    w.create_multi_output_factor(tool=split_time_by_exp, source=N["rss"], sink=N["rss_time"])
+#    w.create_multi_output_factor(tool=split_time_by_exp, source=N["rss"], splitting_node=None, sink=N["rss_time"])
 
     # time_interval = scripted_experiments.span
     # time_interval = TimeInterval(scripted_experiments.intervals[0].start,
@@ -296,8 +297,8 @@ if __name__ == '__main__':
             # Put these on to an annotators plate
             N["annotations_split"] = w.create_node(stream_name="annotations_split", channel=M, plate_ids=[plate_id])
             w.create_multi_output_factor(
-                tool=tools.split_annotator, source=N["annotations_flat"], sink=N["annotations_split"])\
-                .execute(time_interval)
+                tool=tools.split_annotator, source=N["annotations_flat"], splitting_node=None,
+                sink=N["annotations_split"]).execute(time_interval)
             N["annotations_split"].print_head(h1, anns, time_interval)
 
             # Pull out the label
@@ -312,13 +313,13 @@ if __name__ == '__main__':
         N["rss_flat"].print_head(None, h1, time_interval, 10, print)
 
         N["rss_aid"] = w.create_node(stream_name="rss_aid", channel=M, plate_ids=["H1.L"])
-        w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_flat"], sink=N["rss_aid"])\
-            .execute(time_interval)
+        w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_flat"],
+                                     splitting_node=None, sink=N["rss_aid"]).execute(time_interval)
         N["rss_aid"].print_head(h1, locs, time_interval)
 
         N["rss_aid_uid"] = w.create_node(stream_name="rss_aid_uid", channel=M, plate_ids=["H1.L.W"])
-        w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_aid"], sink=N["rss_aid_uid"])\
-            .execute(time_interval)
+        w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_aid"],
+                                     splitting_node=None, sink=N["rss_aid_uid"]).execute(time_interval)
         N["rss_aid_uid"].print_head(h1 + wA, locs, time_interval)
 
         N["rss"] = w.create_node(stream_name="rss", channel=D, plate_ids=["H1.L.W"])
