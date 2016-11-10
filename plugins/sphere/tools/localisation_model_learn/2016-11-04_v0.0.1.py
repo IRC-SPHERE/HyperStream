@@ -39,7 +39,7 @@ class LocalisationModelLearn(Tool):
     Given a dataframe of
     """
     
-    def __init__(self, folds=None, nan_value=-110):
+    def __init__(self, folds, nan_value=-110):
         super(LocalisationModelLearn, self).__init__(nan_value=nan_value, folds=folds)
         self.nan_value = nan_value
         self.folds = folds
@@ -54,7 +54,7 @@ class LocalisationModelLearn(Tool):
             loc = dd['anno']['Location']
             
             if 'MIX' not in exp and 'MIX' not in loc:
-                if self.folds and exp in self.folds:
+                if exp in self.folds:
                     keep_inds.append(di)
         
         train_x = [data[ii][1]['rssi'] for ii in keep_inds]
@@ -67,6 +67,7 @@ class LocalisationModelLearn(Tool):
             'vectorisation': DictVectorizer(sparse=False),
             'fill_missing': FillZeros(-110),
             'classifier': LinearDiscriminantAnalysis(),
+            'calibration': CalibratedClassifierCV('sigmoid'),
             'label_encoder': label_encoder
         }
         
@@ -85,7 +86,7 @@ class LocalisationModelLearn(Tool):
                         step_dict[kk] = vv.tolist()
                     elif isinstance(vv, (dict, str, list, bool)) and not isinstance(vv, type):
                         step_dict[kk] = vv
-                
+                        
                 except Exception as ex:
                     raise ex
             

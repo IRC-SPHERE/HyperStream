@@ -90,4 +90,6 @@ class SlidingApply(Tool):
             # print '\t', self.func(execute)
             # print
             
-            yield StreamInstance(time, self.func(iter(window)))
+            value = self.func(iter(window))
+            if len(value):
+                yield StreamInstance(time, value)
