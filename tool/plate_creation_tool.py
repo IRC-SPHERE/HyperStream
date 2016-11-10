@@ -60,14 +60,16 @@ class PlateCreationTool(BaseTool):
             raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
         logging.info(self.message(interval))
 
-        produced_data = False
+        output_plate_values = set()
 
         for item in self._execute(source=source, interval=interval):
             # Join the output meta data with the parent plate meta data
-            meta_data = input_plate_value + (item.meta_data,)
+            # meta_data = input_plate_value + (item.meta_data,)
             # sink.writer(item.stream_instance)
-            produced_data = True
+            output_plate_values.add(item.meta_data, )
 
-        if not produced_data:
+        if not output_plate_values:
             logging.warn("{} did not produce any data for time interval {} on stream {}".format(
                 self.name, interval, source))
+
+        return output_plate_values
