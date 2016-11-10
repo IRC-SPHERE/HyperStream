@@ -52,6 +52,9 @@ if __name__ == '__main__':
     D = hyperstream.channel_manager.mongo
 
     nodes = (
+        ("anno_raw_experiments", S, ["H1"]),  # Raw annotation data
+        ("experiments_list", M, ["H1"]),  # Current annotation data in 2s windows
+        ("experiments_dataframe", M, ["H1"]),  # Current annotation data in 2s windows
         ("every_2s", hyperstream.channel_manager.memory, ["H1"]),  # sliding windows one every minute
         ("rss_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw RSS data
         ("anno_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw annotation data
@@ -60,9 +63,39 @@ if __name__ == '__main__':
         ("anno_state_2s_windows", hyperstream.channel_manager.memory, ["H1"]),
         ("merged_2s", hyperstream.channel_manager.memory, ["H1"]),
         ("dataframe", hyperstream.channel_manager.memory, ["H1"]),
-        ("location_prediction_models", hyperstream.channel_manager.mongo, ["H1"]),
+        ("location_prediction_lda_mk1", hyperstream.channel_manager.mongo, ["H1"]),
     )
-    
+
+    # Create all of the nodes
+    N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
+
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="sphere",
+            parameters=dict(modality="annotations", annotators=[0], elements={"Experiment"}, filters={})
+        ),
+        sources=None,
+        sink=N["anno_raw_experiments"]
+    )
+
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="extract_experiments_from_annotations",
+            parameters=dict()
+        ),
+        sources=[N["anno_raw_experiments"]],
+        sink=N["experiments_list"]
+    )
+
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="experiments_dataframe_builder",
+            parameters=dict()
+        ),
+        sources=[N["experiments_list"]],
+        sink=N["experiments_dataframe"]
+    )
+
     # Set times for execution
     start_time = datetime.datetime(year=2016, month=10, day=18, hour=1, tzinfo=pytz.UTC)
     
@@ -71,20 +104,7 @@ if __name__ == '__main__':
     
     end_time = ti_start + duration
     time_interval = TimeInterval(ti_start, end_time)
-    
-    # Create all of the nodes
-    N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
-    
-    multires_importer = hyperstream.channel_manager.get_tool(
-        name="multiresident_experiment_importer",
-        parameters=dict())
-    exp_meta = multires_importer.experiment_metadata
-    exp_times = TimeIntervals()
-    for (i, row) in exp_meta.iterrows():
-        exp_times = exp_times + TimeIntervals(
-            [TimeInterval(unix2datetime(row.first_occurrence - 1), unix2datetime(row.last_occurrence))])
-    print(exp_times)
-    
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
@@ -181,7 +201,7 @@ if __name__ == '__main__':
             folds={17, 21})
         ),
         sources=[N["merged_2s"]],
-        sink=N["location_prediction_models"])
+        sink=N["location_prediction_lda_mk1"])
     
     w.execute(time_interval)
     
