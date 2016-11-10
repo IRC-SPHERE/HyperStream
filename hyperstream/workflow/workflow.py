@@ -269,13 +269,19 @@ class Workflow(Printable):
         self._add_factor(factor)
         return factor
 
-    def create_node_creation_factor(self, tool, source):
+    def create_node_creation_factor(self, tool, source, output_plate_name, output_plate_meta_data_id, plate_manager):
         """
         Creates a factor that itself creates an output node, and ensures that the plate for the output node exists
         along with all relevant meta-data
         :param tool: The tool
         :param source: The source node
-        :return: The
+        :param output_plate_name: The name of the plate that will be created
+        :param output_plate_meta_data_id: The meta id for the created plate
+        :param plate_manager: The hyperstream plate manager
+        :type output_plate_name: str | unicode
+        :type output_plate_meta_data_id: str | unicode
+        :type plate_manager: PlateManager
+        :return: The created factor
         """
         if isinstance(tool, dict):
             tool = self.channels.get_tool(name=tool["name"], parameters=["parameters"])
@@ -291,7 +297,10 @@ class Workflow(Printable):
         factor = PlateCreationFactor(
             tool=tool,
             source_node=source,
-            input_plate=input_plates[0]
+            input_plate=input_plates[0],
+            output_plate_name=output_plate_name,
+            output_plate_meta_data_id=output_plate_meta_data_id,
+            plate_manager=plate_manager
         )
 
         self._add_factor(factor)
