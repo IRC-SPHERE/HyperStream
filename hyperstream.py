@@ -31,12 +31,12 @@ class HyperStream(object):
     """
     HyperStream class: can be instantiated simply with hyperstream = HyperStream() for default operation
     """
-    def __init__(self):
+    def __init__(self, loglevel=logging.DEBUG):
         """
         Initialise the HyperStream class. This starts the logger, loads the config files, connects to the main mongodb,
         and initialises the managers (channels, plates, workflows).
         """
-        self.logger = HyperStreamLogger(path='/tmp', filename='hyperstream', loglevel=logging.DEBUG)
+        self.logger = HyperStreamLogger(path='/tmp', filename='hyperstream', loglevel=loglevel)
         self.config = HyperStreamConfig()
         self.client = Client(self.config.mongo)
 
