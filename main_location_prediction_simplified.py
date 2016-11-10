@@ -153,7 +153,7 @@ if __name__ == '__main__':
         tool=hyperstream.channel_manager.get_tool(
             name="aggregate",
             parameters=dict(
-                func=
+                func=None
             )
         )
     )
@@ -247,8 +247,8 @@ if __name__ == '__main__':
             # Put these on to an annotators plate
             N["annotations_split"] = w.create_node(stream_name="annotations_split", channel=M, plate_ids=[plate_id])
             w.create_multi_output_factor(
-                tool=tools.split_annotator, source=N["annotations_flat"], sink=N["annotations_split"])\
-                .execute(time_interval)
+                tool=tools.split_annotator, source=N["annotations_flat"],
+                splitting_node=None, sink=N["annotations_split"]).execute(time_interval)
             N["annotations_split"].print_head(h1, anns, time_interval)
 
             # Pull out the label
@@ -263,13 +263,13 @@ if __name__ == '__main__':
         N["rss_flat"].print_head(None, h1, time_interval, 10, print)
 
         N["rss_aid"] = w.create_node(stream_name="rss_aid", channel=M, plate_ids=["H1.L"])
-        w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_flat"], sink=N["rss_aid"])\
-            .execute(time_interval)
+        w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_flat"],
+                                     splitting_node=None, sink=N["rss_aid"]).execute(time_interval)
         N["rss_aid"].print_head(h1, locs, time_interval)
 
         N["rss_aid_uid"] = w.create_node(stream_name="rss_aid_uid", channel=M, plate_ids=["H1.L.W"])
-        w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_aid"], sink=N["rss_aid_uid"])\
-            .execute(time_interval)
+        w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_aid"],
+                                     splitting_node=None, sink=N["rss_aid_uid"]).execute(time_interval)
         N["rss_aid_uid"].print_head(h1 + wA, locs, time_interval)
 
         N["rss"] = w.create_node(stream_name="rss", channel=D, plate_ids=["H1.L.W"])

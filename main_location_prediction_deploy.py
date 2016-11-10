@@ -81,6 +81,7 @@ if __name__ == '__main__':
             )
         ),
         source=N["rss_raw"],
+        splitting_node=None,
         sink=N["rss_per_uid"])
     
     w.create_factor(
@@ -126,6 +127,7 @@ if __name__ == '__main__':
             )
         ),
         source=N["location_prediction_models"],
+        splitting_node=None,
         sink=N["location_prediction_models_broadcasted"])
     
     w.create_factor(
