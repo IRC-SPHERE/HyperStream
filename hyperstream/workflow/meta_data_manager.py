@@ -64,6 +64,9 @@ class MetaDataManager(Printable):
                           key=lambda x: len(x['identifier'].split('.')),
                           reverse=True)
 
+    def contains(self, identifier):
+        return self.global_plate_definitions.contains(identifier)
+
     def insert(self, tag, identifier, parent, data):
         # First try to add it into the tree
         if self.global_plate_definitions.contains(identifier):
