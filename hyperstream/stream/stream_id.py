@@ -31,7 +31,8 @@ class StreamId(Hashable):
         self.name = name
         if meta_data:
             if isinstance(meta_data, dict):
-                self.meta_data = tuple(sorted(meta_data.items()))
+                keys = sorted(meta_data.keys())
+                self.meta_data = tuple(map(lambda key: (key, str(meta_data[key])), keys))
             elif isinstance(meta_data, tuple):
                 self.meta_data = meta_data
             else:
