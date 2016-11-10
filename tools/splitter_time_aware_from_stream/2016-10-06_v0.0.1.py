@@ -27,24 +27,22 @@ from hyperstream import IncompatiblePlatesError
 import logging
 
 
-class SplitterTimeAware(MultiOutputTool):
-    def __init__(self, time_intervals, meta_data_id):
-        super(SplitterTimeAware, self).__init__(time_intervals=time_intervals, meta_data_id=meta_data_id)
-        self.time_intervals = time_intervals
+class SplitterTimeAwareFromStream(MultiOutputTool):
+    def __init__(self, meta_data_id):
+        super(SplitterTimeAwareFromStream, self).__init__(meta_data_id=meta_data_id)
         self.meta_data_id = meta_data_id
 
     def _execute(self, source, splitting_stream, interval, output_plate):
-        if splitting_stream is not None:
-            raise NotImplementedError("This tool expects the splitting to be provided as a parameter")
-
         # time intervals could be a TimeIntervals object, a list of TimeInterval objects,
         # or a list of tuples of plate ids and TimeInterval objects
         if output_plate.meta_data_id != self.meta_data_id:
             raise IncompatiblePlatesError("Output plate does not match the specified meta data id")
 
+        time_intervals = splitting_stream.window(interval, force_calculation=True).last().value
+
         mapping = {}
-        if isinstance(self.time_intervals, (tuple, list, TimeIntervals)):
-            for i, el in enumerate(self.time_intervals):
+        if isinstance(time_intervals, (tuple, list, TimeIntervals)):
+            for i, el in enumerate(time_intervals):
                 if isinstance(el, TimeInterval):
                     pv = str(i + 1)
                     ti = el
@@ -67,7 +65,7 @@ class SplitterTimeAware(MultiOutputTool):
 
                 mapping[pv] = ti
         else:
-            raise TypeError("Expected [tuple, list, TimeIntervals], got{}".format(type(self.time_intervals)))
+            raise TypeError("Expected [tuple, list, TimeIntervals], got{}".format(type(time_intervals)))
 
         for pv, ti in mapping.items():
             found_data = False
