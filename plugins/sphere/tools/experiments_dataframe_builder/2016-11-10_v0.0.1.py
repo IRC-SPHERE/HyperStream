@@ -17,17 +17,31 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
-"""
-Tool package. Defines Tool, MultiOutputTool and SelectorTool base classes.
-"""
 
-from base_tool import BaseTool
-from tool import Tool
-from aggregate_tool import AggregateTool
-from multi_output_tool import MultiOutputTool
-from selector_tool import SelectorTool
-from plate_creation_tool import PlateCreationTool
+from hyperstream import TimeInterval
+from hyperstream.stream import StreamInstance
+from hyperstream.tool import Tool, check_input_stream_count
+from hyperstream.utils.time_utils import construct_experiment_id
+import pandas as pd
 
-# The following import is for backwards compatibility: this has been moved into the utils package
-# noinspection PyUnresolvedReferences
-from ..utils import check_input_stream_count
+
+class ExperimentsDataframeBuilder(Tool):
+    """
+    Converts the value part of the stream instances to json format
+    """
+    def __init__(self):
+        super(ExperimentsDataframeBuilder, self).__init__()
+
+    @check_input_stream_count(1)
+    def _execute(self, sources, alignment_stream, interval):
+        data = list(sources[0].window(interval, force_calculation=True))
+        flattened = map(lambda x: dict(dict(
+            experiment_id = construct_experiment_id(TimeInterval(x.value['start'],x.value['end'])),
+            start=x.value['start'],
+            end=x.value['end'],
+            annotator=x.value['annotator']
+            ),**(x.value['notes'])),data)
+        df = pd.DataFrame(flattened)
+        df['id'] = range(1,len(df)+1)
+        yield StreamInstance(interval.end,df)
+

@@ -20,7 +20,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 from ..utils import Printable
 from node import Node
-from ..tool import BaseTool, MultiOutputTool, AggregateTool, SelectorTool
+from ..tool import BaseTool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
 from plate import Plate
 from ..time_interval import TimeIntervals
 
@@ -289,3 +289,70 @@ class MultiOutputFactor(Printable):
             # TODO: Need to implement alignment nodes that live inside plates
             raise NotImplementedError("Currently only alignment nodes outside of plates are supported")
         return self.alignment_node.streams[plate]
+
+
+class PlateCreationFactor(Printable):
+    def __init__(self, tool, source_node, input_plate, output_plate_name, output_plate_meta_data_id, plate_manager):
+        """
+        Initialise this factor
+        :param tool: The tool
+        :param source_node: The source node
+        :param input_plate: The plate over which this factor is defined
+        :param output_plate_name: The name of the plate that will be created
+        :param output_plate_meta_data_id: The meta data id for the plate
+        :param plate_manager: The hyperstream plate manager
+        :type tool: PlateOutputTool
+        :type input_plate: Plate | None
+        :type output_plate_name: str | unicode
+        :type output_plate_meta_data_id: str | unicode
+        :type plate_manager: PlateManager
+        """
+        if not isinstance(tool, PlateCreationTool):
+            raise ValueError("Expected tool, got {}".format(type(tool)))
+        self.tool = tool
+
+        if not isinstance(source_node, Node):
+            raise ValueError("Expected node, got {}".format(type(source_node)))
+
+        if input_plate is not None and not isinstance(input_plate, Plate):
+            raise ValueError("Expected plate, got {}".format(type(source_node)))
+
+        self.source = source_node
+        self.sink = None
+        self.input_plate = input_plate
+        self.output_plate_name = output_plate_name
+        self.output_plate_meta_data_id = output_plate_meta_data_id
+        self._plate_manager = plate_manager
+        self._meta_data_manager = plate_manager.meta_data_manager
+
+    def execute(self, time_interval):
+        """
+        Execute the factor over the given time interval. Note that this is normally done by the workspace,
+        but can also be done on the factor directly
+        :param time_interval: The time interval
+        :return: self (for chaining)
+        """
+        # Execute the tool to produce the output plate values
+        output_plate_values = {}
+        if self.input_plate:
+            for ipv in self.input_plate.values:
+                if ipv in self.source.streams:
+                    source = self.source.streams[ipv]
+                else:
+                    logging.warn("Plate {} with value {} not valid for source {}".format(
+                        self.input_plate, ipv, self.source))
+                    continue
+
+                output_plate_values[ipv] = self.tool.execute(
+                    source=source, interval=time_interval, input_plate_value=ipv)
+
+        # Ensure that the output plate values exist
+        for ipv, opv in output_plate_values.items():
+            prefix = ".".join(v[1] for v in ipv)
+            for pv in opv:
+                identifier = prefix + "." + pv
+                self._meta_data_manager.contains(identifier)
+
+        # Create the output plate
+
+        return self
