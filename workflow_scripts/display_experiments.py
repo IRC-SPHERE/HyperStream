@@ -40,7 +40,10 @@ from sphere_helpers import PredefinedTools, scripted_experiments, second, minute
 
 
 if __name__ == '__main__':
+
     hyperstream = HyperStream()
+
+
 
     tools = PredefinedTools(hyperstream)
 
@@ -114,13 +117,13 @@ if __name__ == '__main__':
     def func(instance):
         return construct_experiment_id(TimeInterval(instance.value["start"], instance.value["end"]))
 
-    w.create_node_creation_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="meta_instance",
-            parameters=dict(func=func)
-        ),
-        source=N["experiments_list"]
-    )
+    # w.create_node_creation_factor(
+    #     tool=hyperstream.channel_manager.get_tool(
+    #         name="meta_instance",
+    #         parameters=dict(func=func)
+    #     ),
+    #     source=N["experiments_list"]
+    # )
 
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
@@ -152,9 +155,15 @@ if __name__ == '__main__':
     df['duration'] = df['end']-df['start']
     df['start'] = map(lambda x:'{:%Y-%m-%d %H:%M:%S}'.format(x),df['start'])
     df['end'] = map(lambda x:'{:%Y-%m-%d %H:%M:%S}'.format(x),df['end'])
+    #    df['duration'] = map(lambda x:'{:%Mmin %Ssec}'.format(x),df['duration'])
+
+    def duration2str(x):
+        minutes, seconds = divmod(x.total_seconds(), 60)
+        return '{} min {} sec'.format(int(minutes),int(seconds))
+
     df['start_as_text'] = map(lambda x:arrow.get(x).humanize(),df['start'])
-#    df['duration_as_text'] = map(lambda x:arrow.get(x).humanize(),df['duration'])
-    print(df[['id', 'start_as_text', 'duration', 'start', 'end', 'direction', 'annotator']])
+    df['duration_as_text'] = map(lambda x:duration2str(x),df['duration'])
+    print(df[['id', 'start_as_text', 'duration_as_text', 'start', 'end', 'direction', 'annotator']])
 
     exit(0)
 
