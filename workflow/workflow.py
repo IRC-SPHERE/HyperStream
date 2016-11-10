@@ -261,7 +261,7 @@ class Workflow(Printable):
 
             factor = MultiOutputFactor(
                 tool=tool, source_node=source, sink_node=sink,
-                input_plate=input_plates[0], output_plates=output_plates)
+                splitting_node=splitting_node, input_plate=input_plates[0], output_plates=output_plates)
 
         self._add_factor(factor)
         return factor
