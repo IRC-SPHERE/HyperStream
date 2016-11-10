@@ -286,3 +286,7 @@ class MultiOutputFactor(Printable):
             # TODO: Need to implement alignment nodes that live inside plates
             raise NotImplementedError("Currently only alignment nodes outside of plates are supported")
         return self.alignment_node.streams[plate]
+
+
+class PlateCreationFactor(Printable):
+    pass

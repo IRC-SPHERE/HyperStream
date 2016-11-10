@@ -29,6 +29,7 @@ from bidict import bidict, ValueDuplicationError
 import logging
 import os
 import sys
+from datetime import datetime
 # import coloredlogs
 
 from .. import __version__
@@ -318,3 +319,4 @@ class HyperStreamLogger(Printable):
 
         # logging.config.dictConfig(LOGGING)
         logging.debug("HyperStream version: " + __version__)
+
