@@ -24,7 +24,7 @@ Workflow and WorkflowManager definitions.
 import itertools
 import logging
 
-from factor import Factor, MultiOutputFactor
+from factor import Factor, MultiOutputFactor, PlateCreationFactor
 from node import Node, get_overlapping_plate_values
 from ..stream import StreamId
 from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool, NodeCreationTool
@@ -292,6 +292,7 @@ class Workflow(Printable):
             raise NotImplementedError
 
         # Execute the tool to product the output plate values
+        factor = Plate
 
         # Ensure that the output plate values exist
 

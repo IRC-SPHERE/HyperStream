@@ -18,18 +18,18 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream.stream import StreamInstance, StreamMetaInstance
+from hyperstream.stream import StreamMetaInstance  # StreamInstance
 from hyperstream.tool import NodeCreationTool, check_input_stream_count
-from copy import deepcopy
+# from copy import deepcopy
 
 
 class MetaInstanceFromTimestamp(NodeCreationTool):
-    def __init__(self, key):
+    def __init__(self, func):
         """
         Meta instance output tool.
         """
-        super(MetaInstanceFromTimestamp, self).__init__(key=key)
-        self.key = key
+        super(MetaInstanceFromTimestamp, self).__init__(func=func)
+        self.func = func
 
     def message(self, interval):
         return '{} running from {} to {} with stride {}'.format(
@@ -40,9 +40,13 @@ class MetaInstanceFromTimestamp(NodeCreationTool):
         if alignment_stream is not None:
             raise NotImplementedError
 
-        for timestamp, value in sources[0].window(interval):
-            v = deepcopy(value)
-            if self.key not in v:
-                continue
-            meta = (self.key, v.pop(self.key))
-            yield StreamMetaInstance(StreamInstance(timestamp, v), meta)
+        for instance in sources[0].window(interval):
+            yield StreamMetaInstance(instance, self.func(instance))
+
+        # At some point, do a version that looks for the meta data inside the instances too, like so:
+        # for timestamp, value in sources[0].window(interval):
+            # v = deepcopy(value)
+            # if self.key not in v:
+            #     continue
+            # meta = (self.key, v.pop(self.key))
+            # yield StreamMetaInstance(StreamInstance(timestamp, v), meta)

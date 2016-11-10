@@ -23,6 +23,7 @@ from datetime import datetime
 import pytz
 
 from hyperstream import HyperStream, TimeInterval, UTC
+from hyperstream.utils import construct_experiment_id, all_time
 
 from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
 
@@ -110,16 +111,16 @@ if __name__ == '__main__':
     w.create_node_creation_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="meta_instance_from_timestamp",
-            parameters=dict(key="")
+            parameters=dict(func=construct_experiment_id)
         )
     )
 
 # #       w.execute(exp_times.span)
 
-    start_time = datetime(2000, 1, 1, 1, 0, 0, tzinfo=UTC)
-    end_time = datetime(2100, 1, 1, 1, 0, 0, tzinfo=UTC)
-    time_interval = TimeInterval(start_time, end_time)
-    w.execute(time_interval)
+    # start_time = datetime(2000, 1, 1, 1, 0, 0, tzinfo=UTC)
+    # end_time = datetime(2100, 1, 1, 1, 0, 0, tzinfo=UTC)
+    # time_interval = TimeInterval(start_time, end_time)
+    w.execute(all_time())
     #    f1.execute(time_interval)
     #    w.execute(
 
