@@ -18,9 +18,6 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from __future__ import print_function
-import itertools
-import logging
 import datetime
 import pytz
 
@@ -31,294 +28,246 @@ from hyperstream.utils import unix2datetime
 from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
 
 
-# Analysis of data from:
-# http://10.70.18.138/data_viewer/scripted/001/2/Location/
-# Experiment id: 001   Start: 2015-08-06T13:35:36.035000Z   End: 2015-08-06T14:12:22.008000Z
-# Offsets: 0:01:06, 0:01:06, 0:01:06   Annotators: 2, 3, 5
-# Annotation files: [ S1060001_jdl.eaf | S1060001_ac.eaf | S1060001_ks.eaf ]
-# Mongo query: db.annotations.find({tier: 'Location', start: {$gt: ISODate('2015-08-06T13:35:36.035000Z')},
-# end: {$lte: ISODate('2015-08-06T14:12:22.008000Z')}})
-
-
 if __name__ == '__main__':
     hyperstream = HyperStream()
-
     tools = PredefinedTools(hyperstream)
+    
+    # Create a simple one step workflow for querying
+    w = hyperstream.create_workflow(
+        workflow_id="localisation_prediction",
+        name="localisation from technician's scripted walk through the house, annotation locations",
+        owner="NT",
+        description="Get the annotations and RSSIs;"
+                    "train a localisation model; test the model;"
+                    "visualise and mine the results")
+    
+    # Some plate values for display purposes
+    h1 = (('house', '1'),)
+    wA = (('wearable', 'A'),)
 
-
-
-    # Various channel managers
+    # Various channels
     M = hyperstream.channel_manager.memory
     S = hyperstream.channel_manager.sphere
     T = hyperstream.channel_manager.tools
     D = hyperstream.channel_manager.mongo
 
-    # Create a simple one step workflow for querying
-    w = hyperstream.create_workflow(
-        workflow_id="localisation_from_tech_script",
-        name="localisation from technician's scripted walk through the house, annotation locations",
-        owner="MK",
-        description="Get the annotations and RSSIs;"
-                    "train a localisation model; test the model;"
-                    "visualise and mine the results")
-
-    # Some plate values for display purposes
-    h1 = (('house', '1'),)
-    wA = (('wearable', 'A'),)
-
-    # hyperstream.plate_manager.create_plate(
-    #     plate_id="H1.multiresident_experiments",
-    #     description="Multiresident experiments",
-    #     meta_data_id="multiresident_experiment",
-    #     values=[],
-    #     complement=True,
-    #     parent_plate="H1"
-    # )
-    # hyperstream.plate_manager.create_plate(
-    #     plate_id="H1.W",
-    #     description="Wearables in house 1",
-    #     meta_data_id="wearable",
-    #     values=[],
-    #     complement=True,
-    #     parent_plate="H1"
-    # )
-
-    #    locs = tuple(("location", loc) for loc in ["kitchen", "hallway", "lounge"])
-    #    eids = tuple(("scripted", i + 1) for i in range(0, len(scripted_experiments.intervals)))
-    #    locs_eids = tuple(itertools.product(locs, eids))
-
     nodes = (
-        ("every_2s",    M, ["H1"]),                    # sliding windows one every minute
-        ("rss_raw",     S, ["H1"]),                    # Raw RSS data
-        ("anno_raw",    S, ["H1"]),                    # Raw annotation data
-        ("rss_2s",    M, ["H1"]),                    # max RSS per access point in past 2s of RSS data
-        ("anno_state",    M, ["H1"]),                    # Current annotation data in 2s windows
-        ("anno_state_2s_windows",    M, ["H1"]),                    # Current annotation data in 2s windows        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
-        ("merged_2s",    M, ["H1"]),                    # Current annotation data in 2s windows        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
-        ("dataframe",    M, ["H1"]),                    # Current annotation data in 2s windows        # ("vidloc_raw",  M, ["H1"]),                    # Raw video location annotation data
-        # ("rss_uid",     M, ["H1.W"]),                  # RSS by wearable id
-        # ("vidloc_uid",  M, ["H1.W"]),                  # RSS by wearable id
-        # ("vidloc_uid_align",  M, ["H1.W"]),                  # RSS by wearable id
-        # ("vidloc_rss",  M, ["H1.W"]),                  # RSS by wearable id
-        # ("vidloc_rss_anno",  M, ["H1.W"]),                  # RSS by wearable id
-        # ("vidloc_rss_anno_dict",  M, ["H1.W"]),                  # RSS by wearable id
-        # ("rss_vec",     M, ["H1.W"]),                  # RSS by wearable id
-        # ("rss_counter", M, ["H1.W"]),                  # RSS by wearable id
-        # ("rss_aid",     M, ["H1.L"]),                  # RSS by access point id
-        # ("rss_aid_uid", M, ["H1.L.W"]),                # RSS by access point id and device id
-        # ("rss",         M, ["H1.L.W"]),                # RSS values only (by access point id and device id)
-        # ("rss_time",    M, ["H1.L.W", "H1.multiresident_experiments"])  # RSS values per experiment
+        ("every_2s", hyperstream.channel_manager.memory, ["H1"]),  # sliding windows one every minute
+        ("rss_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw RSS data
+        ("anno_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw annotation data
+        ("rss_2s", hyperstream.channel_manager.memory, ["H1"]),  # max RSS per access point in past 2s of RSS data
+        ("anno_state", hyperstream.channel_manager.memory, ["H1"]),  # Current annotation data in 2s windows
+        ("anno_state_2s_windows", hyperstream.channel_manager.memory, ["H1"]),
+        ("merged_2s", hyperstream.channel_manager.memory, ["H1"]),
+        ("dataframe", hyperstream.channel_manager.memory, ["H1"]),
+        ("location_prediction_models", hyperstream.channel_manager.mongo, ["H1"]),
     )
-
+    
+    # Set times for execution
+    start_time = datetime.datetime(year=2016, month=10, day=18, hour=1, tzinfo=pytz.UTC)
+    
+    ti_start = datetime.datetime(year=2016, month=10, day=19, hour=12, minute=28, tzinfo=pytz.UTC)
+    duration = datetime.timedelta(minutes=72)
+    
+    end_time = ti_start + duration
+    time_interval = TimeInterval(ti_start, end_time)
+    
     # Create all of the nodes
     N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
-
+    
     multires_importer = hyperstream.channel_manager.get_tool(
         name="multiresident_experiment_importer",
         parameters=dict())
     exp_meta = multires_importer.experiment_metadata
     exp_times = TimeIntervals()
-    for (i,row) in exp_meta.iterrows():
-        exp_times = exp_times + TimeIntervals([TimeInterval(unix2datetime(row.first_occurrence-1),unix2datetime(row.last_occurrence))])
+    for (i, row) in exp_meta.iterrows():
+        exp_times = exp_times + TimeIntervals(
+            [TimeInterval(unix2datetime(row.first_occurrence - 1), unix2datetime(row.last_occurrence))])
     print(exp_times)
-
+    
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
             parameters=dict(modality="wearable4")
         ),
         sources=None,
-        sink=N["rss_raw"]
-    )
+        sink=N["rss_raw"])
+    
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sliding_window",
-            parameters=dict(lower=datetime.timedelta(seconds=-2), upper=datetime.timedelta(seconds=0),
+            parameters=dict(lower=datetime.timedelta(seconds=-2),
+                            upper=datetime.timedelta(seconds=0),
                             increment=datetime.timedelta(seconds=2))
         ),
         sources=None,
-        sink=N["every_2s"]
-    )
-    #
-    #
-
-
+        sink=N["every_2s"])
+    
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
-    #            parameters=dict(modality="annotations",annotators=["WebApp_Technician"],elements={"Location","Location_Fine"},filters={"trigger":1})
-            parameters=dict(modality="annotations",annotators=[0],elements={"Location"},filters={})
+            parameters=dict(modality="annotations",
+                            annotators=[0],
+                            elements={"Location"},
+                            filters={})
         ),
         sources=None,
-        sink=N["anno_raw"]
-    )
-    start_time = datetime.datetime(year=2016,month=10,day=18,hour=1,tzinfo=pytz.UTC)
-    ti_start = datetime.datetime(year=2016,month=10,day=19,hour=12,minute=30,tzinfo=pytz.UTC)
-    ti_start = datetime.datetime(year=2016,month=10,day=19,hour=12,minute=28,tzinfo=pytz.UTC)
-    duration = datetime.timedelta(minutes=12)
-    duration = datetime.timedelta(minutes=72)
-    end_time = ti_start+duration
-    #    end_time = datetime.datetime(year=2016,month=10,day=19,hour=23,tzinfo=pytz.UTC)
-    time_interval = TimeInterval(ti_start,end_time)
+        sink=N["anno_raw"])
+    
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="anno_state",
             parameters=dict(start_time=start_time)
         ),
-        sources=[N["every_2s"],N["anno_raw"]],
-        sink=N["anno_state"]
-    )
+        sources=[N["every_2s"], N["anno_raw"]],
+        sink=N["anno_state"])
+    
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="aligning_window",
-            parameters=dict(lower=datetime.timedelta(seconds=-2),upper=datetime.timedelta(0))
+            parameters=dict(lower=datetime.timedelta(seconds=-2),
+                            upper=datetime.timedelta(0))
         ),
         sources=[N["anno_state"]],
-        sink=N["anno_state_2s_windows"]
-    )
-    def component_wise_max(init_value={},id_field='aid',value_field='rss'):
+        sink=N["anno_state_2s_windows"])
+    
+    
+    def component_wise_max(init_value=None, id_field='aid', value_field='rss'):
+        if init_value is None:
+            init_value = {}
+        
         def func(data):
             result = init_value.copy()
             for (time, value) in data:
                 if result.has_key(value[id_field]):
-                    result[value[id_field]] = max(result[value[id_field]],value[value_field])
+                    result[value[id_field]] = max(result[value[id_field]], value[value_field])
                 else:
                     result[value[id_field]] = value[value_field]
             return result
+        
         return func
+    
+    
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sliding_apply",
             parameters=dict(func=component_wise_max())
         ),
         sources=[N["anno_state_2s_windows"], N["rss_raw"]],
-        sink=N["rss_2s"]
-    )
+        sink=N["rss_2s"])
+    
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="aligned_merge",
-            parameters=dict(names=["anno","rssi"])
+            parameters=dict(names=["anno", "rssi"])
         ),
-        sources=[N["anno_state"],N["rss_2s"]],
-        sink=N["merged_2s"]
-    )
+        sources=[N["anno_state"], N["rss_2s"]],
+        sink=N["merged_2s"])
+    
+    # from NT: removed the necessity for this by adding a DictVectoriser to the classifier pipeline - makes
+    #   classifier more robust to differing sensor contexts
+    # w.create_factor(
+    #     tool=hyperstream.channel_manager.get_tool(
+    #         name="dallan_dataframe_builder",
+    #         parameters=dict(time_interval=TimeInterval(start_time, end_time))
+    #     ),
+    #     sources=[N["merged_2s"]],
+    #     sink=N["dataframe"])
+    
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
-            name="dallan_dataframe_builder",
-            parameters=dict(time_interval=TimeInterval(start_time,end_time))
+            name="localisation_model_learn",
+            parameters=dict(nan_value=-110,
+            folds={17, 21})
         ),
         sources=[N["merged_2s"]],
-        sink=N["dataframe"]
-    )
-
-
-# #       w.execute(exp_times.span)
-
+        sink=N["location_prediction_models"])
+    
     w.execute(time_interval)
-    #    f1.execute(time_interval)
-    #    w.execute(
-
-    print('number of non_empty_streams: {}'.format(len(M.non_empty_streams)))
-
-    stream = M.data[StreamId(name="anno_state",meta_data=(("house","1"),))]
+    
+    print('number of non_empty_streams: {}'.format(
+        len(hyperstream.channel_manager.memory.non_empty_streams)))
+    
+    exit()
+    
+    sid = StreamId(name='dataframe', meta_data=(('house', '1'),))
+    df = hyperstream.channel_manager.memory.data[sid][end_time]
+    
+    stream = hyperstream.channel_manager.memory.data[StreamId(name="anno_state", meta_data=(("house", "1"),))]
     for t in sorted(stream):
-        print('{} : {}'.format(t,stream[t]))
-
-    stream2 = M.data[StreamId(name="dataframe",meta_data=(("house","1"),))]
-    df = stream2[stream2.keys()[0]]
-
-    df.to_csv("dallan_loc_dataframe.csv",sep="\t")
-
-    exit(0)
-
-    def print_head(node_id, parent_plate_values, plate_values, interval, n=10, print_func=print):
-        print_func("Node: {}".format(node_id))
-        N[node_id].print_head(parent_plate_values, plate_values, interval, n, print_func)
-
-    print_head("rss_raw",       None,       h1,         time_interval, 10, print)
-    print_head("rss_aid",       h1,         locs,       time_interval, 10, print)
-    print_head("rss_aid_uid",   wA,         locs,       time_interval, 10, print)
-    print_head("rss",           h1 + wA,    locs,       time_interval, 10, print)
-    print_head("rss_time",      h1 + wA,    locs_eids,  time_interval, 10, print)
-
-    exit(0)
-
-    # TODO just two for now
-    # for i, (time_interval, annotator_ids) in enumerate(scripted_experiments[:2]):
-    for i, time_interval in enumerate(scripted_experiments[:2]):
-        time_interval.end = time_interval.start + minute
-
-        experiment_id = str(i + 1)
-        annotator_ids = experiment_id_to_annotator_ids[experiment_id]
-        anns = [("annotator", ann) for ann in annotator_ids]
-
-        hyperstream.plate_manager.create_plate(
-            plate_id="H1.scripted_{}".format(experiment_id),
-            description="Annotators for scripted experiment {} in SPHERE house".format(experiment_id),
-            meta_data_id="annotator",
-            values=[],
-            complement=True,
-            parent_plate="H1.scripted"
-        )
-
-        if False:
-            # Load in annotations from the same time period
-            N["annotations_flat"] = w.create_node(stream_name="annotations_flat", channel=M, plate_ids=["H1.scripted"])
-
-            annotations_location = hyperstream.channel_manager.get_tool(
-                name="sphere",
-                parameters=dict(modality="annotations", annotators=annotator_ids, elements={"Location"},
-                                filters={"trigger": 1})
-            )
-
-            w.create_factor(
-                tool=annotations_location, sources=None, sink=N["annotations_flat"]).execute(time_interval) \
-                .sink.print_head(None, (("house", "1"), ('scripted', str(i + 1))), time_interval)
-
-            plate_id = "H1.scripted_{}".format(i + 1)
-            # Put these on to an annotators plate
-            N["annotations_split"] = w.create_node(stream_name="annotations_split", channel=M, plate_ids=[plate_id])
-            w.create_multi_output_factor(
-                tool=tools.split_annotator, source=N["annotations_flat"], sink=N["annotations_split"]) \
-                .execute(time_interval)
-            N["annotations_split"].print_head(h1, anns, time_interval)
-
-            # Pull out the label
-            N["annotations"] = w.create_node(stream_name="annotations", channel=M, plate_ids=[plate_id])
-            w.create_factor(tool=tools.annotations_label, sources=[N["annotations_split"]],
-                            sink=N["annotations"]).execute(time_interval)
-            N["annotations"].print_head(h1, anns, time_interval)
-
-        # Here we used the splitter tool over the RSS data to generate the plate
-        N["rss_flat"] = w.create_node(stream_name="rss", channel=S, plate_ids=["H1"])
-        w.create_factor(tool=tools.wearable_rss, sources=None, sink=N["rss_flat"]).execute(time_interval)
-        N["rss_flat"].print_head(None, h1, time_interval, 10, print)
-
-        N["rss_aid"] = w.create_node(stream_name="rss_aid", channel=M, plate_ids=["H1.L"])
-        w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_flat"], sink=N["rss_aid"]) \
-            .execute(time_interval)
-        N["rss_aid"].print_head(h1, locs, time_interval)
-
-        N["rss_aid_uid"] = w.create_node(stream_name="rss_aid_uid", channel=M, plate_ids=["H1.L.W"])
-        w.create_multi_output_factor(tool=tools.split_uid, source=N["rss_aid"], sink=N["rss_aid_uid"]) \
-            .execute(time_interval)
-        N["rss_aid_uid"].print_head(h1 + wA, locs, time_interval)
-
-        N["rss"] = w.create_node(stream_name="rss", channel=D, plate_ids=["H1.L.W"])
-        w.create_factor(tool=tools.wearable_rss_values, sources=[N["rss_aid_uid"]],
-                        sink=N["rss"], alignment_node=None).execute(time_interval)
-        N["rss"].print_head(h1 + wA, locs, time_interval)
-
-    exit(0)
-
-    # PIR sensor plate
-
-    # Stream to get motion sensor data
-    N["pir"] = w.create_node(stream_name="environmental_db", channel=D, plate_ids=["H1"])
-    f_pir = w.create_factor(tool=tools.environmental_motion, sources=None, sink=N["pir"], alignment_node=None)
-
-    # Execute the workflow
-    w.execute(time_interval)
-
-    print(N["pir"].streams[('house', '1'), ].window(time_interval).values()[0:5])
-    print(N["rss_aid"].streams[('house', '1'), ].window(time_interval).values()[0:5])
+        print('{} : {}'.format(t, stream[t]))
+    
+    from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+    from sklearn.model_selection import PredefinedSplit
+    from sklearn.preprocessing import LabelEncoder, LabelBinarizer, Imputer
+    import numpy as np
+    
+    feature_columns = ['b827eb128626', 'b827eb1eecd0', 'b827eb1f4617', 'b827eb30ee27',
+                       'b827eb541227', 'b827eb5b2fdd', 'b827eb5ca171', 'b827eb5ceb88',
+                       'b827eb65c7d5', 'b827eb8ec558', 'b827eba3d9a7', 'b827ebaef0a3',
+                       'b827ebbb08be', 'b827ebc375f1', 'b827ebceb75e', 'b827ebd107f0',
+                       'b827ebd91657', 'b827ebdfd545']
+    label_column = 'location'
+    fold_column = 'fold'
+    
+    
+    def print_cm(cm, labels, hide_zeroes=False, hide_diagonal=False, hide_threshold=None):
+        """pretty print for confusion matrixes"""
+        columnwidth = max([len(x) for x in labels] + [5])  # 5 is value length
+        empty_cell = " " * columnwidth
+        # Print header
+        print "    " + empty_cell,
+        for label in labels:
+            print "%{0}s".format(columnwidth) % label,
+        print
+        # Print rows
+        for i, label1 in enumerate(labels):
+            print "    %{0}s".format(columnwidth) % label1,
+            for j in range(len(labels)):
+                cell = "%{0}.1f".format(columnwidth) % cm[i, j]
+                if hide_zeroes:
+                    cell = cell if float(cm[i, j]) != 0 else empty_cell
+                if hide_diagonal:
+                    cell = cell if i != j else empty_cell
+                if hide_threshold:
+                    cell = cell if cm[i, j] > hide_threshold else empty_cell
+                print cell,
+            print
+    
+    
+    from sklearn.preprocessing import MinMaxScaler
+    from sklearn.pipeline import Pipeline
+    
+    from sklearn import metrics
+    from sklearn.metrics import confusion_matrix
+    
+    keep_inds = np.c_[df.fold != 'MIX', df.location != 'MIX', np.c_[df.fold == 17, df.fold == 21].any(axis=1)].all(
+        axis=1)
+    df = df[keep_inds]
+    fold_encoder = LabelEncoder()
+    fold_inds = fold_encoder.fit_transform(df[fold_column])
+    folds = PredefinedSplit(fold_inds)
+    for train_inds, test_inds in folds.split():
+        train_x = np.asarray(df[feature_columns].iloc[train_inds])
+        test_x = np.asarray(df[feature_columns].iloc[test_inds])
+        train_y = np.asarray(df[label_column].iloc[train_inds])
+        test_y = np.asarray(df[label_column].iloc[test_inds])
+        
+        train_x[np.isnan(train_x)] = -110
+        test_x[np.isnan(test_x)] = -110
+        
+        # Convert labels to required form
+        lb = LabelEncoder()
+        lb.fit(train_y)
+        train_y = lb.transform(train_y)
+        test_y = lb.transform(test_y)
+        
+        # Learn the model
+        clf = Pipeline([
+            # ('scale', MinMaxScaler()),
+            ('clf', LinearDiscriminantAnalysis())
+        ])
+        clf.fit(train_x, train_y)
+        print metrics.accuracy_score(train_y, clf.predict(train_x))
+        print metrics.accuracy_score(test_y, clf.predict(test_x))
+        print
