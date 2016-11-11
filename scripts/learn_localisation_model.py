@@ -19,6 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
+import sys
 
 from hyperstream import HyperStream, StreamId
 from hyperstream.utils import all_time
@@ -28,8 +29,16 @@ from workflows.display_experiments import create_workflow_list_technicians_walka
 from workflows.learn_localisation_model import create_workflow_lda_localisation_model_learner
 
 if __name__ == '__main__':
+    if len(sys.argv) != 3:
+        print("Expected two integer ids")
+        exit(0)
 
-    technicians_selection = {17,21}
+    try:
+        technicians_selection = map(int, sys.argv[1:])
+    except ValueError:
+        print("Expected two integer ids")
+        exit(0)
+
     # ToDo: input technicians_selection from the user, for example using command-line arguments
 
     hyperstream = HyperStream(loglevel=logging.INFO)
@@ -43,6 +52,7 @@ if __name__ == '__main__':
 
     w0 = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
     w0.execute(all_time())
+
     df = M[StreamId('experiments_dataframe', dict(house=1))].window(all_time()).values()[0]
     exp_ids = set([df['experiment_id'][i-1] for i in technicians_selection])
 
