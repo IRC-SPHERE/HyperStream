@@ -48,17 +48,21 @@ class LocalisationModelLearn(Tool):
     def _execute(self, sources, alignment_stream, interval):
         data = list(sources[0].window(interval, force_calculation=True))
         
+        yy_key = 'anno'
+        xx_key = 'rssi'
+        ex_key = 'localisation-experiment'
+        
+        # TODO: change data to go from ['anno']['Location'] to just ['anno'}
         keep_inds = []
         for di, (tt, dd) in enumerate(data):
-            exp = dd['anno']['Experiment']
-            loc = dd['anno']['Location']
+            exp = dd[ex_key]
+            loc = dd[yy_key]['Location']
             
-            if 'MIX' not in exp and 'MIX' not in loc:
-                if exp in self.folds:
-                    keep_inds.append(di)
+            if len(loc) != 1 or 'MIX' not in {exp} | loc:
+                keep_inds.append(di)
         
-        train_x = [data[ii][1]['rssi'] for ii in keep_inds]
-        train_y = [list(data[ii][1]['anno']['Location'])[0] for ii in keep_inds]
+        train_x = [data[ii][1][xx_key] for ii in keep_inds]
+        train_y = [list(data[ii][1][yy_key]['Location'])[0] for ii in keep_inds]
         
         label_encoder = LabelEncoder()
         train_y_trans = label_encoder.fit_transform(train_y)
@@ -67,24 +71,24 @@ class LocalisationModelLearn(Tool):
             'vectorisation': DictVectorizer(sparse=False),
             'fill_missing': FillZeros(-110),
             'classifier': LinearDiscriminantAnalysis(),
-            'calibration': CalibratedClassifierCV('sigmoid'),
             'label_encoder': label_encoder
         }
         
         clf = Pipeline([(kk, param_dict[kk]) for kk in ('vectorisation', 'fill_missing', 'classifier')])
         clf.fit(train_x, train_y_trans)
-        
+
+        # TODO: look into using get_params/set_params as an alternative to this
         for step_name, step_model in param_dict.iteritems():
             step_dict = {}
             for kk, vv in step_model.__dict__.iteritems():
-                print step_name, kk, type(vv), vv
+                # print step_name, kk, type(vv), vv
                 
                 try:
                     if vv is None:
                         step_dict[kk] = None
                     elif type(vv).__module__ == np.__name__:
                         step_dict[kk] = vv.tolist()
-                    elif isinstance(vv, (dict, str, list, bool)) and not isinstance(vv, type):
+                    elif isinstance(vv, (dict, str, list, bool, int, float)) and not isinstance(vv, type):
                         step_dict[kk] = vv
                         
                 except Exception as ex:

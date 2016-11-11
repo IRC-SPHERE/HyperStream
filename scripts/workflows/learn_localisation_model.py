@@ -176,26 +176,14 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
             parameters=dict(aggregation_meta_data="localisation-experiment")
         ),
         sources=[N["merged_2s"]],
-        sink=N["merged_2s_flat"]
-    )
-
-    # # from NT: removed the necessity for this by adding a DictVectoriser to the classifier pipeline - makes
-    # #   classifier more robust to differing sensor contexts
-    # # w.create_factor(
-    # #     tool=hyperstream.channel_manager.get_tool(
-    # #         name="dallan_dataframe_builder",
-    # #         parameters=dict(time_interval=TimeInterval(start_time, end_time))
-    # #     ),
-    # #     sources=[N["merged_2s"]],
-    # #     sink=N["dataframe"])
-    #
-    # w.create_factor(
-    #     tool=hyperstream.channel_manager.get_tool(
-    #         name="localisation_model_learn",
-    #         parameters=dict(nan_value=-110,
-    #         folds={17, 21})
-    #     ),
-    #     sources=[N["merged_2s"]],
-    #     sink=N["location_prediction_lda_mk1"])
+        sink=N["merged_2s_flat"])
+    
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="localisation_model_learn",
+            parameters=dict(nan_value=-110.0, folds=None)
+        ),
+        sources=[N["merged_2s_flat"]],
+        sink=N["location_prediction_lda_mk1"])
 
     return w
