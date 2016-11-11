@@ -24,6 +24,7 @@ from ..time_interval import TimeInterval, TimeIntervals
 from ..stream import Stream
 from ..utils import StreamNotAvailableError, ToolExecutionError
 
+from datetime import timedelta
 import logging
 
 
@@ -67,6 +68,9 @@ class Tool(BaseTool):
 
         if interval.end > sink.channel.up_to_timestamp:
             raise StreamNotAvailableError(self.up_to_timestamp)
+
+        if interval.width < timedelta(seconds=1):
+            raise Exception
 
         required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
 

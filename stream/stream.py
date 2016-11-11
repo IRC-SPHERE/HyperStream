@@ -129,7 +129,7 @@ class Stream(Hashable):
         :return: a stream view object
         """
         if isinstance(time_interval, TimeInterval):
-            pass
+            time_interval = TimeInterval(time_interval.start, time_interval.end)
         elif isinstance(time_interval, Iterable):
             time_interval = parse_time_tuple(*time_interval)
             if isinstance(time_interval, RelativeTimeInterval):
