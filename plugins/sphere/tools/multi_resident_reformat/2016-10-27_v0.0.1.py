@@ -20,38 +20,29 @@
 
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
-import pandas as pd
 
 
-class DallanDataframeBuilder(Tool):
+class MultiResidentReformat(Tool):
     """
     Converts the value part of the stream instances to json format
     """
-    def __init__(self, time_interval):
-        super(DallanDataframeBuilder, self).__init__(time_interval=time_interval)
-        self.time_interval = time_interval
+
+    def __init__(self):
+        super(MultiResidentReformat, self).__init__()
 
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
-        data = list(sources[0].window(interval, force_calculation=True))
-        flattened = map(lambda x: dict(dict(
-            timestamp=x.timestamp,
-            fold=next(iter(x.value['anno']['Experiment']),None),
-            location=next(iter(x.value['anno']['Location']),None)
-            ),**(x.value['rssi'])),data)
-        df = pd.DataFrame(flattened)
-        yield StreamInstance(interval.end,df)
-            # anno = data['anno']
-            # rssi = data['rssi']
-            # yield StreamInstance(time, dict(
-            #     camera=anno['camera_id'],
-            #     exper=anno['exper_id'],
-            #     person=anno['person_id'],
-            #     rssi1=rssi[0],
-            #     rssi2=rssi[1],
-            #     rssi3=rssi[2],
-            #     na1=(1 if rssi[0]==-120 else 0),
-            #     na2=(1 if rssi[1]==-120 else 0),
-            #     na3=(1 if rssi[2]==-120 else 0)
-            # ))
-
+        for time, data in sources[0].window(interval, force_calculation=True):
+            annotation = data['annotation']
+            rssi = data['rssi']
+            yield StreamInstance(time, dict(
+                camera=annotation['camera_id'],
+                exper=annotation['exper_id'],
+                person=annotation['person_id'],
+                rssi1=rssi[0],
+                rssi2=rssi[1],
+                rssi3=rssi[2],
+                na1=(1 if rssi[0] == -120 else 0),
+                na2=(1 if rssi[1] == -120 else 0),
+                na3=(1 if rssi[2] == -120 else 0)
+            ))

@@ -36,28 +36,19 @@ def run(selection):
     w0.execute(all_time())
 
     df = M[StreamId('experiments_dataframe', dict(house=1))].window(all_time()).values()[0]
-    exp_ids = set([df['experiment_id'][i - 1] for i in selection])
+    experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
 
     hyperstream.plate_manager.create_plate(
         plate_id="H1.SelectedLocalisationExperiment",
         description="Localisation experiments selected by the technician in SPHERE house",
         meta_data_id="localisation-experiment",
-        values=exp_ids,
+        values=experiment_ids,
         complement=False,
         parent_plate="H1"
     )
 
-    w = create_workflow_lda_localisation_model_learner(hyperstream, exp_ids=exp_ids, safe=False)
+    w = create_workflow_lda_localisation_model_learner(hyperstream, experiment_ids=experiment_ids, safe=False)
     w.execute(all_time())
-
-    # stream = M[StreamId('merged_2s', {'house': '1', 'localisation-experiment': '1476880283000-1476880901000'})]
-    # for (kk, vv) in stream.window(all_time()):
-    #     print(kk)
-    #     print(vv)
-    # stream = M[StreamId('merged_2s', {'house': '1', 'localisation-experiment': '1476884148117-1476884362837'})]
-    # for (kk, vv) in stream.window(all_time()):
-    #     print(kk)
-    #     print(vv)
 
     stream = M[StreamId('merged_2s_flat', {'house': '1'})]
     for (kk, vv) in stream.window(all_time()):

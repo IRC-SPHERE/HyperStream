@@ -28,18 +28,18 @@ class ExperimentsMappingBuilder(Tool):
     """
     Converts the value part of the stream instances to json format
     """
-    def __init__(self,exp_ids):
-        super(ExperimentsMappingBuilder, self).__init__(exp_ids=exp_ids)
-        self.exp_ids = exp_ids
+    def __init__(self, experiment_ids):
+        super(ExperimentsMappingBuilder, self).__init__(experiment_ids=experiment_ids)
+        self.experiment_ids = experiment_ids
 
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
         data = sources[0].window(interval, force_calculation=True)
-        mapping = list()
+        mappings = []
         for x in data:
-            exp_interval = TimeInterval(x.value['start'], x.value['end'])
-            experiment_id = construct_experiment_id(exp_interval)
-            if experiment_id in self.exp_ids:
-                mapping.append( (experiment_id,exp_interval) )
-        yield StreamInstance(interval.end, mapping)
+            experiment_interval = TimeInterval(x.value['start'], x.value['end'])
+            experiment_id = construct_experiment_id(experiment_interval)
+            if experiment_id in self.experiment_ids:
+                mappings.append((experiment_id, experiment_interval))
+        yield StreamInstance(interval.end, mappings)
 

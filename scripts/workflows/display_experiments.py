@@ -46,7 +46,7 @@ def create_workflow_list_technicians_walkarounds(hyperstream, safe=True):
             return hyperstream.workflow_manager.workflows[workflow_id]
 
     nodes = (
-        ("anno_raw",                S, ["H1"]),                    # Raw annotation data
+        ("annotations_raw",         S, ["H1"]),                    # Raw annotation data
         ("experiments_list",        M, ["H1"]),                    # Current annotation data in 2s windows
         ("experiments_dataframe",   M, ["H1"]),                    # Current annotation data in 2s windows
     )
@@ -60,7 +60,7 @@ def create_workflow_list_technicians_walkarounds(hyperstream, safe=True):
             parameters=dict(modality="annotations", annotators=[0], elements={"Experiment"}, filters={})
         ),
         sources=None,
-        sink=N["anno_raw"]
+        sink=N["annotations_raw"]
     )
 
     w.create_factor(
@@ -68,7 +68,7 @@ def create_workflow_list_technicians_walkarounds(hyperstream, safe=True):
             name="extract_experiments_from_annotations",
             parameters=dict()
         ),
-        sources=[N["anno_raw"]],
+        sources=[N["annotations_raw"]],
         sink=N["experiments_list"]
     )
 
@@ -92,7 +92,7 @@ def create_workflow_list_technicians_walkarounds(hyperstream, safe=True):
 
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
-            name="experiments_dataframe_builder",
+            name="experiments_data_frame_builder",
             parameters=dict()
         ),
         sources=[N["experiments_list"]],

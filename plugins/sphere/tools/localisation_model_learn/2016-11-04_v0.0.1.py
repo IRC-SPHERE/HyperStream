@@ -50,15 +50,15 @@ class LocalisationModelLearn(Tool):
         
         keep_inds = []
         for di, (tt, dd) in enumerate(data):
-            exp = dd['anno']['Experiment']
-            loc = dd['anno']['Location']
+            exp = dd['annotations']['Experiment']
+            loc = dd['annotatinos']['Location']
             
             if 'MIX' not in exp and 'MIX' not in loc:
                 if exp in self.folds:
                     keep_inds.append(di)
         
         train_x = [data[ii][1]['rssi'] for ii in keep_inds]
-        train_y = [list(data[ii][1]['anno']['Location'])[0] for ii in keep_inds]
+        train_y = [list(data[ii][1]['annotations']['Location'])[0] for ii in keep_inds]
         
         label_encoder = LabelEncoder()
         train_y_trans = label_encoder.fit_transform(train_y)
