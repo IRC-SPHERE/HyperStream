@@ -21,8 +21,7 @@
 import logging
 import sys
 
-from hyperstream import HyperStream, StreamId
-from hyperstream.utils import all_time
+from hyperstream import HyperStream, StreamId, TimeInterval
 
 from workflows.display_experiments import create_workflow_list_technicians_walkarounds
 from workflows.learn_localisation_model import create_workflow_lda_localisation_model_learner
@@ -33,9 +32,9 @@ def run(selection):
     M = hyperstream.channel_manager.memory
 
     w0 = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
-    w0.execute(all_time())
+    w0.execute(TimeInterval.all_time())
 
-    df = M[StreamId('experiments_dataframe', dict(house=1))].window(all_time()).values()[0]
+    df = M[StreamId('experiments_dataframe', dict(house=1))].window(TimeInterval.all_time()).values()[0]
     experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
 
     hyperstream.plate_manager.create_plate(
@@ -47,13 +46,12 @@ def run(selection):
         parent_plate="H1"
     )
 
-    w = create_workflow_lda_localisation_model_learner(hyperstream, experiment_ids=experiment_ids, safe=False)
-    w.execute(all_time())
+    # Ensure the model is overwritten if it's already there
+    hyperstream.channel_manager.mongo.purge_stream(
+            StreamId(name="location_prediction_lda_mk1", meta_data=dict(house=1)))
 
-    stream = M[StreamId('merged_2s_flat', {'house': '1'})]
-    for (kk, vv) in stream.window(all_time()):
-        print(kk)
-        print(vv)
+    w = create_workflow_lda_localisation_model_learner(hyperstream, experiment_ids=experiment_ids, safe=False)
+    w.execute(TimeInterval.all_time())
 
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))

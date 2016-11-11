@@ -28,19 +28,7 @@ class UTC(pytz.UTC):
 
 
 MIN_DATE = datetime.min.replace(tzinfo=UTC)
-MAX_DATE = datetime.max.replace(tzinfo=UTC)
-
-
-def all_time():
-    """
-    All time constant. Defined as a function to avoid circular references
-    :return:
-    """
-    from ..time_interval import TimeInterval
-    return TimeInterval(MIN_DATE, MAX_DATE)
-
-
-# ALL_TIME = all_time()
+MAX_DATE = datetime.max.replace(tzinfo=UTC).replace(microsecond=0)
 
 
 def utcnow():

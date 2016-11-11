@@ -34,12 +34,14 @@ class StreamId(Hashable):
                 keys = sorted(meta_data.keys())
                 self.meta_data = tuple(map(lambda key: (key, str(meta_data[key])), keys))
             elif isinstance(meta_data, tuple):
-                self.meta_data = meta_data
+                if not all(isinstance(x[1], (str, unicode)) for x in meta_data):
+                    self.__init__(name, dict(meta_data))
+                else:
+                    self.meta_data = meta_data
             else:
                 raise ValueError("Expected dict or tuple, got {}".format(type(meta_data)))
         else:
             self.meta_data = tuple()
-            # self.meta_data = meta_data if meta_data else {}
 
     def __str__(self):
         if self.meta_data:
