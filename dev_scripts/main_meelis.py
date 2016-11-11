@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 
 from hyperstream import HyperStream, StreamId, TimeInterval, UTC, MIN_DATE
 from hyperstream.itertools2 import count as online_count
-from sphere_helpers import PredefinedTools
+from plugins.sphere.utils.sphere_helpers import PredefinedTools
 
 
 if __name__ == '__main__':

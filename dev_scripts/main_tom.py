@@ -18,13 +18,11 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-import logging
 from datetime import datetime, timedelta
 
 from hyperstream import HyperStream, StreamId, TimeInterval
 from hyperstream.utils import UTC
-
-from sphere_helpers import PredefinedTools
+from plugins.sphere.utils.sphere_helpers import PredefinedTools
 
 
 motion_sensors = {

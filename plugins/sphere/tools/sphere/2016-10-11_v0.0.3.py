@@ -18,11 +18,9 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.stream import StreamInstance
-
+from hyperstream.tool import Tool, check_input_stream_count
 from plugins.sphere.channels.sphere_channel import SphereDataWindow, SphereExperiment
-from sphere_helpers import mappings
 
 
 def reformat(doc):

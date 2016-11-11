@@ -19,14 +19,13 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 import datetime
+
 import pytz
 
 from hyperstream import HyperStream, TimeInterval, TimeIntervals
 from hyperstream.stream import StreamId
 from hyperstream.utils import unix2datetime
-
-from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
-
+from plugins.sphere.utils.sphere_helpers import PredefinedTools
 
 if __name__ == '__main__':
     hyperstream = HyperStream()
@@ -193,7 +192,7 @@ if __name__ == '__main__':
     
     from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
     from sklearn.model_selection import PredefinedSplit
-    from sklearn.preprocessing import LabelEncoder, LabelBinarizer, Imputer
+    from sklearn.preprocessing import LabelEncoder
     import numpy as np
     
     feature_columns = ['b827eb128626', 'b827eb1eecd0', 'b827eb1f4617', 'b827eb30ee27',
@@ -227,14 +226,12 @@ if __name__ == '__main__':
                     cell = cell if cm[i, j] > hide_threshold else empty_cell
                 print cell,
             print
-    
-    
-    from sklearn.preprocessing import MinMaxScaler
+
+
     from sklearn.pipeline import Pipeline
     
     from sklearn import metrics
-    from sklearn.metrics import confusion_matrix
-    
+
     keep_inds = np.c_[df.fold != 'MIX', df.location != 'MIX', np.c_[df.fold == 17, df.fold == 21].any(axis=1)].all(
         axis=1)
     df = df[keep_inds]
