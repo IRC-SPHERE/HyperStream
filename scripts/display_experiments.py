@@ -21,42 +21,39 @@
 from __future__ import print_function
 
 from hyperstream import HyperStream, StreamId
-from hyperstream.utils import all_time
+from hyperstream.utils import all_time, duration2str
 import arrow
 import logging
+import pandas as pd
 
 from workflows.display_experiments import create_workflow_list_technicians_walkarounds
 
-
 if __name__ == '__main__':
-
     hyperstream = HyperStream(loglevel=logging.INFO)
-
+    
     # Various channels
     M = hyperstream.channel_manager.memory
     S = hyperstream.channel_manager.sphere
     T = hyperstream.channel_manager.tools
     D = hyperstream.channel_manager.mongo
-
+    
     w = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
     w.execute(all_time())
-
+    
     print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))
     print('number of memory non_empty_streams: {}'.format(len(M.non_empty_streams)))
-
+    
     experiment_data = M[StreamId('experiments_list', dict(house=1))].window(all_time()).values()
     df = M[StreamId('experiments_dataframe', dict(house=1))].window(all_time()).values()[0]
     # arrow.get(x).humanize()
     # df['start'] = df['start'].map('{:%Y-%m-%d %H:%M:%S}'.format)
-    df['duration'] = df['end']-df['start']
-    df['start'] = map(lambda x:'{:%Y-%m-%d %H:%M:%S}'.format(x), df['start'])
-    df['end'] = map(lambda x:'{:%Y-%m-%d %H:%M:%S}'.format(x), df['end'])
+    df['duration'] = df['end'] - df['start']
+    df['start'] = map(lambda x: '{:%Y-%m-%d %H:%M:%S}'.format(x), df['start'])
+    df['end'] = map(lambda x: '{:%Y-%m-%d %H:%M:%S}'.format(x), df['end'])
     # df['duration'] = map(lambda x:'{:%Mmin %Ssec}'.format(x),df['duration'])
-
-    def duration2str(x):
-        minutes, seconds = divmod(x.total_seconds(), 60)
-        return '{} min {} sec'.format(int(minutes), int(seconds))
-
-    df['start_as_text'] = map(lambda x:arrow.get(x).humanize(), df['start'])
-    df['duration_as_text'] = map(lambda x:duration2str(x), df['duration'])
-    print(df[['id', 'start_as_text', 'duration_as_text', 'start', 'end', 'direction', 'annotator']])
+    
+    df['start_as_text'] = map(lambda x: arrow.get(x).humanize(), df['start'])
+    df['duration_as_text'] = map(lambda x: duration2str(x), df['duration'])
+    
+    pd.set_option('display.width', 1000)
+    print(df[['id', 'start_as_text', 'duration_as_text', 'start', 'end', 'annotator']].to_string(index=False))
