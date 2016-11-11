@@ -21,7 +21,7 @@
 Module for dealing with time intervals containing TimeInterval, TimeIntervals, and RelativeTimeInterval
 """
 
-from utils import MIN_DATE, utcnow, UTC, Printable, get_timedelta
+from utils import MIN_DATE, MAX_DATE, utcnow, UTC, Printable, get_timedelta
 
 from datetime import date, datetime, timedelta
 from dateutil.parser import parse
@@ -46,7 +46,9 @@ class TimeIntervals(Printable):
                     if len(v) != 2:
                         raise TypeError()
                     v = parse_time_tuple(*v)
-                elif not isinstance(v, TimeInterval):
+                elif isinstance(v, TimeInterval):
+                    v = TimeInterval(v.start, v.end)
+                else:
                     raise TypeError("Expected tuple/list/TimeInterval ({} given)".format(type(v)))
                 self.intervals.append(v)
     
@@ -151,9 +153,10 @@ class TimeInterval(object):
     Time interval object.
     Thin wrapper around a (start, end) tuple of datetime objects that provides some validation
     """
-    _start = None
-    _end = None
-    
+    @classmethod
+    def all_time(cls):
+        return TimeInterval(MIN_DATE, MAX_DATE)
+
     def __init__(self, start, end):
         """
         Initialise the object with the start and end times
@@ -161,18 +164,22 @@ class TimeInterval(object):
         :param start: The start time
         :param end: The end time
         """
-        self.start = start
-        self.end = end
-    
+        self._start = start
+        self._end = end
+        self.validate()
+
     def to_tuple(self):
         return self.start, self.end
     
-    def validate_types(self, val):
-        if not isinstance(val, (date, datetime)):
+    def validate(self):
+        if not isinstance(self._start, (date, datetime)):
             raise TypeError("start should datetime.datetime object")
-        
-        if self._end is not None and val >= self._end:
-            raise ValueError("start should be < end")
+
+        if not isinstance(self._end, (date, datetime)):
+            raise TypeError("end should datetime.datetime object")
+
+        if self._start >= self._end:
+            raise ValueError("start should be strictly less than  end")
 
     @property
     def width(self):
@@ -182,19 +189,9 @@ class TimeInterval(object):
     def start(self):
         return self._start
 
-    @start.setter
-    def start(self, val):
-        self.validate_types(val)
-        self._start = val
-    
     @property
     def end(self):
         return self._end
-    
-    @end.setter
-    def end(self, val):
-        self.validate_types(val)
-        self._end = val
     
     def __str__(self):
         return "({0}, {1}]".format(self.start, self.end)
@@ -238,6 +235,7 @@ class TimeInterval(object):
     #     return self + rti
 
 
+# noinspection PyMissingConstructor
 class RelativeTimeInterval(TimeInterval):
     """
     Relative time interval object.
@@ -250,23 +248,22 @@ class RelativeTimeInterval(TimeInterval):
         :param start: The start time
         :param end: The end time
         """
-        start = get_timedelta(start)
-        end = get_timedelta(end)
+        self._start = get_timedelta(start)
+        self._end = get_timedelta(end)
+        self.validate()
 
-        if start >= end:
+    def validate(self):
+        if not isinstance(self._start, timedelta):
+            raise TypeError("start should datetime.timedelta object")
+
+        if not isinstance(self._end, timedelta):
+            raise TypeError("end should datetime.timedelta object")
+
+        if self._start >= self._end:
             raise ValueError("start should be strictly less than  end")
 
-        if end > timedelta(0):
+        if self._end > timedelta(0):
             raise ValueError("relative time intervals in the future are not supported")
-
-        super(RelativeTimeInterval, self).__init__(start, end)
-        
-    def validate_types(self, val):
-        if not isinstance(val, timedelta):
-            raise TypeError("start should datetime.timedelta object")
-        
-        if self._end is not None and val >= self._end:
-            raise ValueError("start should be < end")
 
 
 def parse_time_tuple(start, end):

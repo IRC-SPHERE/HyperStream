@@ -72,16 +72,17 @@ class BaseChannel(Printable):
         """
         raise NotImplementedError
 
-    def get_or_create_stream(self, stream_id):
+    def get_or_create_stream(self, stream_id, try_create=True):
         """
         Helper function to get a stream or create one if it's not already defined
         :param stream_id: The stream id
+        :param try_create: Whether to try to create the stream if not found
         :return: The stream object
         """
         if stream_id in self.streams:
             logging.debug("found {}".format(stream_id))
             return self.streams[stream_id]
-        else:
+        elif try_create:
             # Try to create the stream
             logging.debug("creating {}".format(stream_id))
             return self.create_stream(stream_id=stream_id)
@@ -90,6 +91,12 @@ class BaseChannel(Printable):
         """
         Must be overridden by deriving classes, must create the stream according to the tool and return its unique
         identifier stream_id
+        """
+        raise NotImplementedError
+
+    def purge_stream(self, stream_id, sandbox=None):
+        """
+        Must be overridden by deriving classes, purges the stream and removes the calculated intervals
         """
         raise NotImplementedError
 

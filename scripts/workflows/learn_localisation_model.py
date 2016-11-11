@@ -57,7 +57,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, experiment_ids, 
         ("annotation_state_location",   M, ["H1.SelectedLocalisationExperiment"]),  # Annotation data in 2s windows
         ("annotation_state_2s_windows", M, ["H1.SelectedLocalisationExperiment"]),
         ("rss_2s",                      M, ["H1.SelectedLocalisationExperiment"]),  # max(RSS) per AP in past 2s of RSS
-        ("merged_2s",                   M, ["H1.SelectedLocalisationExperiment"]),  # rss_2s merged w/ annotation_state_2s
+        ("merged_2s",                   M, ["H1.SelectedLocalisationExperiment"]),  # rss_2s with annotation_state_2s
         ("merged_2s_flat",              M, ["H1"]),                                 # flattened version of merged_2s
         ("dataframe",                   M, ["H1"]),
         ("location_prediction_lda_mk1", D, ["H1"])
@@ -176,7 +176,14 @@ def create_workflow_lda_localisation_model_learner(hyperstream, experiment_ids, 
             parameters=dict(aggregation_meta_data="localisation-experiment")
         ),
         sources=[N["merged_2s"]],
-        sink=N["merged_2s_flat"]
-    )
+        sink=N["merged_2s_flat"])
+    
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="localisation_model_learn",
+            parameters=dict(nan_value=-110.0, folds=None)
+        ),
+        sources=[N["merged_2s_flat"]],
+        sink=N["location_prediction_lda_mk1"])
 
     return w
