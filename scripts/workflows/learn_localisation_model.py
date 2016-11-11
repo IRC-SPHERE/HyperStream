@@ -18,11 +18,12 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
+import datetime
 
-def create_localisation_prediction(hyperstream, safe=True):
+def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=True):
 
     # Create a simple one step workflow for querying
-    workflow_id = "localisation_prediction"
+    workflow_id = "lda_localisation_model_learner"
     try:
         w = hyperstream.create_workflow(
             workflow_id=workflow_id,
@@ -44,19 +45,19 @@ def create_localisation_prediction(hyperstream, safe=True):
     D = hyperstream.channel_manager.mongo
 
     nodes = (
-        ("anno_raw_experiments",        S, ["H1"]),  # Raw annotation data
+        # ("anno_raw_experiments",        S, ["H1"]),  # Raw annotation data
         ("experiments_list",            M, ["H1"]),  # Current annotation data in 2s windows
         ("experiments_dataframe",       M, ["H1"]),  # Current annotation data in 2s windows
         ("experiments_mapping",         M, ["H1"]),  # Current annotation data in 2s windows
-        ("every_2s",                    M, ["H1"]),  # sliding windows one every minute
         ("rss_raw",                     S, ["H1"]),  # Raw RSS data
-        ("rss_time",                    S, ["H1.LocalisationExperiment"]),  # RSS data split by experiment
+        ("rss_time",                    S, ["H1.SelectedLocalisationExperiment"]),  # RSS data split by experiment
         ("anno_raw_locations",          S, ["H1"]),  # Raw annotation data
-        ("anno_time",                   S, ["H1.LocalisationExperiment"]),  # RSS data split by experiment
-        ("rss_2s",                      M, ["H1"]),  # max RSS per access point in past 2s of RSS data
-        ("anno_state",                  M, ["H1"]),  # Current annotation data in 2s windows
-        ("anno_state_2s_windows",       M, ["H1"]),
-        ("merged_2s",                   M, ["H1"]),
+        ("anno_time",                   S, ["H1.SelectedLocalisationExperiment"]),  # RSS data split by experiment
+        ("every_2s",                    M, ["H1.SelectedLocalisationExperiment"]),  # sliding windows one every minute
+        ("anno_state_location",         M, ["H1.SelectedLocalisationExperiment"]),  # Current annotation data in 2s windows
+        ("anno_state_2s_windows",       M, ["H1.SelectedLocalisationExperiment"]),
+        ("rss_2s",                      M, ["H1.SelectedLocalisationExperiment"]),  # max RSS per access point in past 2s of RSS data
+        ("merged_2s",                   M, ["H1.SelectedLocalisationExperiment"]),
         ("dataframe",                   M, ["H1"]),
         ("location_prediction_lda_mk1", D, ["H1"])
     )
@@ -66,35 +67,8 @@ def create_localisation_prediction(hyperstream, safe=True):
 
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
-            name="sphere",
-            parameters=dict(modality="annotations", annotators=[0], elements={"Experiment"}, filters={})
-        ),
-        sources=None,
-        sink=N["anno_raw_experiments"]
-    )
-
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="extract_experiments_from_annotations",
-            parameters=dict()
-        ),
-        sources=[N["anno_raw_experiments"]],
-        sink=N["experiments_list"]
-    )
-
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="experiments_dataframe_builder",
-            parameters=dict()
-        ),
-        sources=[N["experiments_list"]],
-        sink=N["experiments_dataframe"]
-    )
-
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
             name="experiments_mapping_builder",
-            parameters=dict(exp_ids={17, 21})
+            parameters=dict(exp_ids=exp_ids)
         ),
         sources=[N["experiments_list"]],
         sink=N["experiments_mapping"]
@@ -136,5 +110,87 @@ def create_localisation_prediction(hyperstream, safe=True):
         source=N["anno_raw_locations"],
         splitting_node=N["experiments_mapping"],
         sink=N["anno_time"])
+
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="sliding_window",
+            parameters=dict(lower=datetime.timedelta(seconds=-2),
+                            upper=datetime.timedelta(seconds=0),
+                            increment=datetime.timedelta(seconds=2))
+        ),
+        sources=None,
+        sink=N["every_2s"])
+
+
+
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="anno_state_location",
+            parameters=dict()
+        ),
+        sources=[N["every_2s"], N["anno_time"]],
+        sink=N["anno_state_location"])
+
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="aligning_window",
+            parameters=dict(lower=datetime.timedelta(seconds=-2),
+                            upper=datetime.timedelta(0))
+        ),
+        sources=[N["anno_state_location"]],
+        sink=N["anno_state_2s_windows"])
+
+    def component_wise_max(init_value=None, id_field='aid', value_field='rss'):
+        if init_value is None:
+            init_value = {}
+
+        def func(data):
+            result = init_value.copy()
+            for (time, value) in data:
+                if result.has_key(value[id_field]):
+                    result[value[id_field]] = max(result[value[id_field]], value[value_field])
+                else:
+                    result[value[id_field]] = value[value_field]
+            return result
+
+        return func
+
+
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="sliding_apply",
+            parameters=dict(func=component_wise_max())
+        ),
+        sources=[N["anno_state_2s_windows"], N["rss_time"]],
+        sink=N["rss_2s"])
+
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="aligned_merge",
+            parameters=dict(names=["anno", "rssi"])
+        ),
+        sources=[N["anno_state_location"], N["rss_2s"]],
+        sink=N["merged_2s"])
+
+    # # from NT: removed the necessity for this by adding a DictVectoriser to the classifier pipeline - makes
+    # #   classifier more robust to differing sensor contexts
+    # # w.create_factor(
+    # #     tool=hyperstream.channel_manager.get_tool(
+    # #         name="dallan_dataframe_builder",
+    # #         parameters=dict(time_interval=TimeInterval(start_time, end_time))
+    # #     ),
+    # #     sources=[N["merged_2s"]],
+    # #     sink=N["dataframe"])
+    #
+    # w.create_factor(
+    #     tool=hyperstream.channel_manager.get_tool(
+    #         name="localisation_model_learn",
+    #         parameters=dict(nan_value=-110,
+    #         folds={17, 21})
+    #     ),
+    #     sources=[N["merged_2s"]],
+    #     sink=N["location_prediction_lda_mk1"])
+
+
 
     return w
