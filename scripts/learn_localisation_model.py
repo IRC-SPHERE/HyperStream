@@ -20,20 +20,51 @@
 
 import logging
 
-from hyperstream import HyperStream
+from hyperstream import HyperStream, StreamId
 from hyperstream.utils import all_time
 from plugins.sphere.utils.sphere_helpers import PredefinedTools
-from workflows.learn_localisation_model import create_localisation_prediction
 
+from workflows.display_experiments import create_workflow_list_technicians_walkarounds
+from workflows.learn_localisation_model import create_workflow_lda_localisation_model_learner
 
 if __name__ == '__main__':
+
+    technicians_selection = {17,21}
+    # ToDo: input technicians_selection from the user, for example using command-line arguments
+
     hyperstream = HyperStream(loglevel=logging.INFO)
     tools = PredefinedTools(hyperstream)
-    
-    # Create a simple one step workflow for querying
-    w = create_localisation_prediction(hyperstream, safe=False)
+
+    # Various channels
+    M = hyperstream.channel_manager.memory
+    S = hyperstream.channel_manager.sphere
+    T = hyperstream.channel_manager.tools
+    D = hyperstream.channel_manager.mongo
+
+    w0 = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
+    w0.execute(all_time())
+    df = M[StreamId('experiments_dataframe', dict(house=1))].window(all_time()).values()[0]
+    exp_ids = set([df['experiment_id'][i-1] for i in technicians_selection])
+
+    hyperstream.plate_manager.create_plate(
+        plate_id="H1.SelectedLocalisationExperiment",
+        description="Localisation experiments selected by the technician in SPHERE house",
+        meta_data_id="localisation-experiment",
+        values=exp_ids,
+        complement=False,
+        parent_plate="H1"
+    )
+    w = create_workflow_lda_localisation_model_learner(hyperstream, exp_ids=exp_ids, safe=False)
     w.execute(all_time())
-    
+
+    stream = M[StreamId('merged_2s', {'house': '1', 'localisation-experiment': '1476880283000-1476880901000'})]
+    for (kk, vv) in stream.window(all_time()):
+        print(kk)
+        print(vv)
+    stream = M[StreamId('merged_2s', {'house': '1', 'localisation-experiment': '1476884148117-1476884362837'})]
+    for (kk,vv) in stream.window(all_time()):
+        print(kk)
+        print(vv)
+
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))
-

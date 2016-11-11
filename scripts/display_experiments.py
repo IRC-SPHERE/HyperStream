@@ -25,7 +25,7 @@ from hyperstream.utils import all_time
 import arrow
 import logging
 
-from workflows.display_experiments import create_workflow_localisation_from_tech_script
+from workflows.display_experiments import create_workflow_list_technicians_walkarounds
 
 
 if __name__ == '__main__':
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     T = hyperstream.channel_manager.tools
     D = hyperstream.channel_manager.mongo
 
-    w = create_workflow_localisation_from_tech_script(hyperstream, safe=False)
+    w = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
     w.execute(all_time())
 
     print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))

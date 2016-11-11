@@ -35,11 +35,11 @@ class ExperimentsMappingBuilder(Tool):
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
         data = sources[0].window(interval, force_calculation=True)
-        mapping = map(lambda x: (
-            construct_experiment_id(TimeInterval(x.value['start'], x.value['end'])),
-            TimeInterval(x.value['start'], x.value['end'])
-            )
-            , data)
-        mapping = [mapping[i-1] for i in self.exp_ids]
+        mapping = list()
+        for x in data:
+            exp_interval = TimeInterval(x.value['start'], x.value['end'])
+            experiment_id = construct_experiment_id(exp_interval)
+            if experiment_id in self.exp_ids:
+                mapping.append( (experiment_id,exp_interval) )
         yield StreamInstance(interval.end, mapping)
 
