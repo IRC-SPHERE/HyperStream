@@ -26,6 +26,7 @@ from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream import TimeInterval, TimeIntervals
 from copy import deepcopy
 import logging
+import datetime
 
 # this tool currently assumes non-overlapping sliding windows in its first input stream
 
@@ -36,10 +37,11 @@ class AnnoStateLocation(Tool):
     # noinspection PyCompatibility
     @check_input_stream_count(2)
     def _execute(self, sources, alignment_stream, interval):
-#        interval2 = TimeInterval(self.start_time,interval.end)
-        windows = iter(sources[0].window(interval, force_calculation=True))
-#data = iter(sources[1].window(interval2, force_calculation=True))
-        data = iter(sources[1].window(interval, force_calculation=True))
+        data = list(sources[1].window(interval, force_calculation=True))
+        timestamps = [x.timestamp for x in data]
+        interval2 = TimeInterval(min(timestamps)-datetime.timedelta(microseconds=1),max(timestamps))
+        windows = iter(sources[0].window(interval2, force_calculation=True))
+        data = iter(data)
 
         # run from self.start_time to interval.start to find out the state at the beginning of the interval
         # then from there on yield documents according to the sliding window, containing the active annotations within the window

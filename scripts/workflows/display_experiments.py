@@ -22,7 +22,7 @@ from hyperstream import TimeInterval
 from hyperstream.utils import construct_experiment_id
 
 
-def create_workflow_localisation_from_tech_script(hyperstream, safe=True):
+def create_workflow_list_technicians_walkarounds(hyperstream, safe=True):
     # Various channels
     M = hyperstream.channel_manager.memory
     S = hyperstream.channel_manager.sphere
@@ -30,7 +30,7 @@ def create_workflow_localisation_from_tech_script(hyperstream, safe=True):
     D = hyperstream.channel_manager.mongo
 
     # Create a simple one step workflow for querying
-    workflow_id = "localisation_from_tech_script"
+    workflow_id = "list_technicians_walkarounds"
     try:
         w = hyperstream.create_workflow(
             workflow_id=workflow_id,
