@@ -23,7 +23,6 @@ from hyperstream.tool import MultiOutputTool
 from hyperstream.stream import StreamMetaInstance
 import logging
 from copy import deepcopy
-from numpy.random import choice
 
 
 class Splitter(MultiOutputTool):
