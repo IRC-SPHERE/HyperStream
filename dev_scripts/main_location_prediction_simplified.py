@@ -148,15 +148,6 @@ if __name__ == '__main__':
         sink=N["ann_test"])
 
     w.create_factor(
-        tool=hyperstream.channel_manager.get_tool(
-            name="aggregate",
-            parameters=dict(
-                func=None
-            )
-        )
-    )
-
-    w.create_factor(
         tool=tools.wearable_rss,
         sources=None,
         sink=N["rss_raw"])

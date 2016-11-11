@@ -57,7 +57,8 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         ("anno_state_location",         M, ["H1.SelectedLocalisationExperiment"]),  # Annotation data in 2s windows
         ("anno_state_2s_windows",       M, ["H1.SelectedLocalisationExperiment"]),
         ("rss_2s",                      M, ["H1.SelectedLocalisationExperiment"]),  # max(RSS) per AP in past 2s of RSS
-        ("merged_2s",                   M, ["H1.SelectedLocalisationExperiment"]),
+        ("merged_2s",                   M, ["H1.SelectedLocalisationExperiment"]),  # rss_2s merged with anno_state_2s
+        ("merged_2s_flat",              M, ["H1"]),                                 # flattened version of merged_2s
         ("dataframe",                   M, ["H1"]),
         ("location_prediction_lda_mk1", D, ["H1"])
     )
@@ -168,6 +169,15 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         ),
         sources=[N["anno_state_location"], N["rss_2s"]],
         sink=N["merged_2s"])
+
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="aggregate_plate",
+            parameters=dict(aggregation_meta_data="localisation-experiment")
+        ),
+        sources=[N["merged_2s"]],
+        sink=N["merged_2s_flat"]
+    )
 
     # # from NT: removed the necessity for this by adding a DictVectoriser to the classifier pipeline - makes
     # #   classifier more robust to differing sensor contexts
