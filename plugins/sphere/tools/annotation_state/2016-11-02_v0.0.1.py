@@ -27,6 +27,7 @@ from hyperstream import TimeInterval, TimeIntervals
 from copy import deepcopy
 import logging
 
+
 # this tool currently assumes non-overlapping sliding windows in its first input stream
 
 class AnnoState(Tool):
@@ -37,64 +38,67 @@ class AnnoState(Tool):
     # noinspection PyCompatibility
     @check_input_stream_count(2)
     def _execute(self, sources, alignment_stream, interval):
-        interval2 = TimeInterval(self.start_time,interval.end)
+        interval2 = TimeInterval(self.start_time, interval.end)
         windows = iter(sources[0].window(interval, force_calculation=True))
         data = iter(sources[1].window(interval2, force_calculation=True))
 
         # run from self.start_time to interval.start to find out the state at the beginning of the interval
-        # then from there on yield documents according to the sliding window, containing the active annotations within the window
+        # then from there on yield documents according to the sliding window,
+        # containing the active annotations within the window
 
         win_future = []
         data_future = []
-        anno = {}
+        annotations = {}
         last_experiment = 0
 
         while True:
-            if len(data_future)==0:
+            if len(data_future) == 0:
                 try:
                     doc = next(data)
                     data_future.append(doc)
                 except StopIteration:
                     pass
-            if len(win_future)==0:
+            if len(win_future) == 0:
                 try:
-                    _,win = next(windows)
+                    _, win = next(windows)
                     win_future.append(win)
                     win_start = win_future[0].start
                     win_end = win_future[0].end
-                    win_anno = deepcopy(anno)
+                    win_annotations = deepcopy(annotations)
                 except StopIteration:
                     pass
-            if len(win_future)==0:
+            if len(win_future) == 0:
                 return
-            if (len(data_future)>0) and (data_future[0].timestamp<=win_end): # the current annotation has potential effect on the current window
+
+            # the current annotation has potential effect on the current window
+            if (len(data_future) > 0) and (data_future[0].timestamp <= win_end):
                 doc = data_future.pop(0)
                 tt, dd = doc
                 trigger = dd['trigger']
                 tier = dd['tier']
                 label = dd['label']
-                if label=="Experiment Time":
+                if label == "Experiment Time":
                     tier = "Experiment"
-                    if trigger==+1:
-                        last_experiment = last_experiment + 1
+                    if trigger == 1:
+                        last_experiment += 1
                     label = last_experiment
-                if not anno.has_key(tier):
-                    anno[tier] = set()
-                if trigger==1:
-                    anno[tier].add(label)
-                elif trigger==-1:
+                if not annotations.has_key(tier):
+                    annotations[tier] = set()
+                if trigger == 1:
+                    annotations[tier].add(label)
+                elif trigger == -1:
                     try:
-                        anno[tier].remove(label) # raises KeyError if removing a label which is not present
+                        annotations[tier].remove(label)  # raises KeyError if removing a label which is not present
                     except KeyError:
                         logging.warn("At time {} label {} of tier {} ending without a start".
-                                     format(tt,label,tier))
+                                     format(tt, label, tier))
                 else:
                     raise ValueError("trigger must have value +1 or -1")
-                if tt>win_start: # the current annotation is changing a tier within the current window
-                    win_anno[tier] = set(['MIX'])
+                if tt > win_start:  # the current annotation is changing a tier within the current window
+                    win_annotations[tier] = set(['MIX'])
                 else:
-                    win_anno[tier] = anno[tier].copy()
-            else: # must yield a window because it has been finished
-                if win_anno.has_key("Experiment") and len(win_anno["Experiment"])>0:
-                    yield StreamInstance(win_end,win_anno)
+                    win_annotations[tier] = annotations[tier].copy()
+            else:  # must yield a window because it has been finished
+                if win_annotations.has_key("Experiment") and len(win_annotations["Experiment"]) > 0:
+                    yield StreamInstance(win_end, win_annotations)
                 win_future.pop(0)

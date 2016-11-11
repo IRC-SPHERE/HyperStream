@@ -49,7 +49,7 @@ if __name__ == '__main__':
         parameters=dict(element="gw",subelement="aid",mapping={"aaaa::212:4b00:a49:e387":"kitchen","aaaa::212:4b00:a49:e503":"lounge","aaaa::212:4b00:a49:f283":"hallway"})) # actually no idea about the locations
 
     multires_importer = hyperstream.channel_manager.get_tool(
-        name="multiresident_experiment_importer",
+        name="multi_resident_experiment_importer",
         parameters=dict())
     exp_meta = multires_importer.experiment_metadata
     exp_times = TimeIntervals()
@@ -110,8 +110,8 @@ if __name__ == '__main__':
         ("vidloc_uid",  M, ["H1.W"]),                  # RSS by wearable id
         ("vidloc_uid_align",  M, ["H1.W"]),                  # RSS by wearable id
         ("vidloc_rss",  M, ["H1.W"]),                  # RSS by wearable id
-        ("vidloc_rss_anno",  M, ["H1.W"]),                  # RSS by wearable id
-        ("vidloc_rss_anno_dict",  M, ["H1.W"]),                  # RSS by wearable id
+        ("vidloc_rss_annotation",  M, ["H1.W"]),                  # RSS by wearable id
+        ("vidloc_rss_annotation_dict",  M, ["H1.W"]),                  # RSS by wearable id
         ("rss_vec",     M, ["H1.W"]),                  # RSS by wearable id
         ("rss_counter", M, ["H1.W"]),                  # RSS by wearable id
         ("rss_aid",     M, ["H1.L"]),                  # RSS by access point id
@@ -169,7 +169,7 @@ if __name__ == '__main__':
     )
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
-            name="multiresident_experiment_importer",
+            name="multi_resident_experiment_importer",
             parameters=dict()
         ),
         sources=None,
@@ -200,18 +200,18 @@ if __name__ == '__main__':
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="aligned_merge",
-            parameters=dict(names=["anno","rssi"])
+            parameters=dict(names=["annotations","rssi"])
         ),
         sources=[N["vidloc_uid"],N["vidloc_rss"]],
         sink=N["vidloc_rss_anno"]
     )
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
-            name="multiresident_reformat",
+            name="multi_resident_reformat",
             parameters=dict()
         ),
         sources=[N["vidloc_rss_anno"]],
-        sink=N["vidloc_rss_anno_dict"]
+        sink=N["vidloc_rss_annotation_dict"]
     )
 
 #    w.create_factor(tool=tools.wearable_rss_values, sources=[N["rss_aid_uid"]], sink=N["rss"])
@@ -228,18 +228,6 @@ if __name__ == '__main__':
 #    w.execute(exp_times.span)
     f.execute(TimeInterval(exp_times.start,exp_times.start+datetime.timedelta(minutes=5)))
 #    w.execute(TimeInterval(exp_times.start,exp_times.start+datetime.timedelta(hours=48)))
-
-###    file = open("vidloc_rss_anno.csv","w")
-###    file.write("dt,wearable,person,exper,camera,rssi1,rssi2,rssi3\n")
-###    for wearable in ["A","B","C","D"]:
-###        stream = M.data[StreamId(name="vidloc_rss_anno",meta_data=(("house","1"),("wearable",wearable)))]
-###        for t in sorted(stream):
-###            anno = stream[t]["anno"]
-###            rssi = stream[t]["rssi"]
-###            row = [str(t),wearable,str(anno["person_id"]),str(anno["exper_id"]),str(anno["camera_id"])] + [str(x) for x in rssi]
-###            file.write(",".join(row)+"\n")
-###    file.close()
-
 
 #    w.execute(time_interval)
     exit(0)
