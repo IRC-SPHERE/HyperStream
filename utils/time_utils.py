@@ -57,7 +57,12 @@ def get_timedelta(value):
 
 
 def unix2datetime(u):
-    return datetime.fromtimestamp(u/1000.0, tz=UTC) + timedelta(hours=0)
+    return datetime.fromtimestamp(u / 1000.0, tz=UTC) + timedelta(hours=0)
+
+
+def duration2str(x):
+    minutes, seconds = divmod(x.total_seconds(), 60)
+    return '{} min {} sec'.format(int(minutes), int(seconds))
 
 
 def construct_experiment_id(time_interval):
