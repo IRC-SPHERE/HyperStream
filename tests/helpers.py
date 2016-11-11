@@ -18,15 +18,12 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream import HyperStream, UTC, StreamId
-
-from sphere_helpers import PredefinedTools, scripted_experiments
-
-from sphere_connector_package.sphere_connector import SphereConnector
+import os
 from datetime import datetime, timedelta
 
-import os
-
+from hyperstream import HyperStream, UTC, StreamId
+from plugins.sphere.utils.sphere_helpers import PredefinedTools
+from sphere_connector_package.sphere_connector import SphereConnector
 
 os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
 

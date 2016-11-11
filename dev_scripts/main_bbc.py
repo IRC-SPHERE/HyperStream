@@ -18,12 +18,10 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-import logging
 from datetime import datetime, timedelta
 
 from hyperstream import HyperStream, TimeInterval, UTC
-
-from sphere_helpers import PredefinedTools
+from plugins.sphere.utils.sphere_helpers import PredefinedTools
 
 
 if __name__ == '__main__':

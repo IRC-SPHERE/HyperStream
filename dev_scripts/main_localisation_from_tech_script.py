@@ -19,17 +19,15 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from __future__ import print_function
-import itertools
-import logging
+
 import datetime
+
 import pytz
 
 from hyperstream import HyperStream, TimeInterval, TimeIntervals
 from hyperstream.stream import StreamId
 from hyperstream.utils import unix2datetime
-
-from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
-
+from plugins.sphere.utils.sphere_helpers import PredefinedTools, scripted_experiments, minute
 
 # Analysis of data from:
 # http://10.70.18.138/data_viewer/scripted/001/2/Location/

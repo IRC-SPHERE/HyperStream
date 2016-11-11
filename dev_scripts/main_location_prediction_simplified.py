@@ -19,13 +19,11 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from __future__ import print_function
+
 import itertools
-import logging
 
-from hyperstream import HyperStream, TimeInterval
-
-from sphere_helpers import PredefinedTools, scripted_experiments, second, minute, hour
-
+from hyperstream import HyperStream
+from plugins.sphere.utils.sphere_helpers import PredefinedTools, scripted_experiments, minute
 
 # Analysis of data from:
 # http://10.70.18.138/data_viewer/scripted/001/2/Location/
@@ -105,20 +103,16 @@ if __name__ == '__main__':
 
     nodes = (
         ("rss_raw",     S, ["H1"]),                 # Raw RSS data
-        ("rss_aid",     M, ["H1.L"]),               # RSS by access point id
-        ("rss_aid_uid", M, ["H1.L.W"]),             # RSS by access point id and device id
-        ("rss",         M, ["H1.L.W"]),             # RSS values only (by access point id and device id)
-        # ("rss_time",    M, ["H1.L.W", "H1.S"]),     # RSS values per scripted experiment
-        ("rss_time",    M, ["H1.L.W", "H1.S_1,2"]),  # RSS values per scripted experiment (just experiments 1, 2)
-        ("rss_train",   M, ["H1.L.W", "H1.S1"]),    # RSS values scripted experiment 1
-        ("rss_test",    M, ["H1.L.W", "H1.S2"]),    # RSS values scripted experiment 2
+        ("rss_time",    M, ["H1.S_1,2"]),           # RSS values per scripted experiment (just experiments 1, 2)
+        ("rss_train",   M, ["H1.S1"]),              # RSS values scripted experiment 1
+        ("rss_test",    M, ["H1.S2"]),              # RSS values scripted experiment 2
         ("ann_raw",     S, ["H1"]),                 # Annotations (raw format)
-        # ("ann_time",    M, ["H1.S"]),               # Annotations per scripted experiment
+        ("ann",         M, ["H1"]),                 # Annotations (clean format)
         ("ann_time",    M, ["H1.S_1,2"]),           # Annotations per scripted experiment (just experiments 1, 2)
-        ("ann_raw_trn", M, ["H1.S1"]),              # Annotations for scripted experiment 1
-        ("ann_raw_tst", M, ["H1.S2"]),              # Annotations for scripted experiment 1
-        ("ann_train",   M, ["H1.S1.A"]),            # Annotations for scripted experiment 1 by annotator
-        ("ann_test",    M, ["H1.S2.A"]),            # Annotations for scripted experiment 2 by annotator
+        ("ann_time1",   M, ["H1.S_1,2"]),           # Annotations per scripted experiment (just experiments 1, 2)
+        ("ann_train",   M, ["H1.S1"]),              # Annotations for scripted experiment 1
+        ("ann_test",    M, ["H1.S2"]),              # Annotations for scripted experiment 2
+        ("ann_train_test", M, ["H1"]),              # Annotations for
         ("model",       M, ["H1.S1"]),              # Outputs of model trained on scripted experiment 1
     )
 
@@ -131,60 +125,46 @@ if __name__ == '__main__':
         sources=None,
         sink=N["ann_raw"])
 
+    w.create_factor(
+        tool=tools.annotations_components,
+        sources=[N["ann_raw"]],
+        sink=N["ann"]
+    )
+
     w.create_multi_output_factor(
         tool=tools.split_time,
-        source=N["ann_raw"],
+        source=N["ann"],
         splitting_node=None,
         sink=N["ann_time"])
 
-    f = w.create_factor(
+    w.create_factor(
         tool=tools.index_of_1,
         sources=[N["ann_time"]],
-        sink=N["ann_raw_trn"])
+        sink=N["ann_train"])
 
     w.create_factor(
         tool=tools.index_of_2,
         sources=[N["ann_time"]],
-        sink=N["ann_raw_tst"])
-
-    w.create_multi_output_factor(
-        tool=tools.split_annotator,
-        source=N["ann_raw_trn"],
-        splitting_node=None,
-        sink=N["ann_train"])
-
-    w.create_multi_output_factor(
-        tool=tools.split_annotator,
-        source=N["ann_raw_tst"],
-        splitting_node=None,
         sink=N["ann_test"])
+
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="aggregate",
+            parameters=dict(
+                func=None
+            )
+        )
+    )
 
     w.create_factor(
         tool=tools.wearable_rss,
         sources=None,
         sink=N["rss_raw"])
 
-    w.create_multi_output_factor(
-        tool=tools.split_aid,
-        source=N["rss_raw"],
-        splitting_node=None,
-        sink=N["rss_aid"])
-
-    w.create_multi_output_factor(
-        tool=tools.split_uid,
-        source=N["rss_aid"],
-        splitting_node=None,
-        sink=N["rss_aid_uid"])
-
-    w.create_factor(
-        tool=tools.wearable_rss_values,
-        sources=[N["rss_aid_uid"]],
-        sink=N["rss"])
-
     # Now we want to split by time interval onto a time-oriented plate
     w.create_multi_output_factor(
         tool=tools.split_time,
-        source=N["rss"],
+        source=N["rss_raw"],
         splitting_node=None,
         sink=N["rss_time"])
 
@@ -199,11 +179,14 @@ if __name__ == '__main__':
         sources=[N["rss_time"]],
         sink=N["rss_test"])
 
-    w.create_factor(
-        tool=hyperstream.channel_manager.get_tool("location_predictor", parameters=dict()),
-        sources=[N["rss_train"], N["ann_train"]],
-        sink=N["model"]
-    )
+    w.create_factor()
+
+    if True:
+        w.create_factor(
+            tool=hyperstream.channel_manager.get_tool("location_predictor", parameters=dict()),
+            sources=[N["rss_train"], N["ann_train"]],
+            sink=N["model"]
+        )
 
     # time_interval = TimeInterval(scripted_experiments.intervals[0].start,
     #                              scripted_experiments.intervals[0].start + second)
@@ -216,15 +199,10 @@ if __name__ == '__main__':
         print_func("Node: {}".format(node_id))
         N[node_id].print_head(parent_plate_values, plate_values, interval, n, print_func)
 
-    print_head("ann_train",     h1 + s1,    anns[0],    time_interval, 10, print)
-    print_head("ann_test",      h1 + s2,    anns[1],    time_interval, 10, print)
-    # print_head("rss_raw",       None,       h1,         time_interval, 10, print)
-    # print_head("rss_aid",       h1,         locs,       time_interval, 10, print)
-    # print_head("rss_aid_uid",   h1 + wA,    locs,       time_interval, 10, print)
-    # print_head("rss",           h1 + wA,    locs,       time_interval, 10, print)
-    # print_head("rss_time",      h1 + wA,    locs_eids,  time_interval, 10, print)
-    print_head("rss_train",     h1 + wA,    locs_eids,  time_interval, 10, print)
-    print_head("rss_test",      h1 + wA,    locs_eids,  time_interval, 10, print)
+    print_head("ann_train",     h1, s1,    time_interval, 10, print)
+    print_head("ann_test",      h1, s2,    time_interval, 10, print)
+    print_head("rss_train",     h1, s1,    time_interval, 10, print)
+    print_head("rss_test",      h1, s2,    time_interval, 10, print)
 
     # TODO: Example of training on one set of data and testing on another
     # TODO: Example of training on several sets of data and testing on other sets

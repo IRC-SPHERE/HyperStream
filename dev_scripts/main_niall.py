@@ -18,17 +18,14 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-import logging
 from datetime import datetime, timedelta
 
 from hyperstream import HyperStream, StreamId
-from hyperstream.utils import UTC
-from hyperstream.itertools2 import online_average
-from sphere_helpers import PredefinedTools
-
 from hyperstream import TimeInterval, RelativeTimeInterval
-
+from hyperstream.itertools2 import online_average
+from hyperstream.utils import UTC
 from hyperstream.utils.time_utils import MIN_DATE
+from plugins.sphere.utils.sphere_helpers import PredefinedTools
 
 if __name__ == '__main__':
     hyperstream = HyperStream()

@@ -22,9 +22,7 @@ import logging
 
 from hyperstream import HyperStream
 from hyperstream.utils import all_time
-
-from sphere_helpers import PredefinedTools
-
+from plugins.sphere.utils.sphere_helpers import PredefinedTools
 from workflows.learn_localisation_model import create_localisation_prediction
 
 
