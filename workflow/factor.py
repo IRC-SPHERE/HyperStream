@@ -122,8 +122,8 @@ class Factor(Printable):
             # sources = [source.streams[None] for source in self.sources] if self.sources else None
             sources = self.get_global_sources()
             sink = self.sink.streams[None]
-            self.tool.execute(sources=sources, sink=sink, interval=time_interval, alignment_stream=
-            self.get_alignment_stream(None, None))
+            self.tool.execute(sources=sources, sink=sink, interval=time_interval,
+                              alignment_stream=self.get_alignment_stream(None, None))
         return self
     
     def get_sources(self, plate, plate_value, sources=None):

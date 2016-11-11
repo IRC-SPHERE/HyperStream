@@ -24,7 +24,8 @@ from mongoengine import NotUniqueError
 from mongoengine.context_managers import switch_db
 
 from base_channel import BaseChannel
-from hyperstream.utils.errors import StreamAlreadyExistsError
+from hyperstream.utils.errors import StreamAlreadyExistsError, StreamNotFoundError
+from ..time_interval import TimeIntervals
 from ..models import StreamInstanceModel
 from ..stream import StreamInstance, DatabaseStream
 
@@ -70,6 +71,9 @@ class DatabaseChannel(BaseChannel):
         :return: None
         :raises: NotImplementedError
         """
+        if sandbox is not None:
+            raise NotImplementedError
+
         if stream_id in self.streams:
             raise StreamAlreadyExistsError("Stream with id '{}' already exists".format(stream_id))
 
@@ -77,6 +81,30 @@ class DatabaseChannel(BaseChannel):
         stream.save_definition()
         self.streams[stream_id] = stream
         return stream
+
+    def purge_stream(self, stream_id, sandbox=None):
+        """
+        Purge the stream
+        :param stream_id: The stream identifier
+        :param sandbox: The sandbox for this stream
+        :return: None
+        :raises: NotImplementedError
+        """
+        # TODO: Add time interval to this
+
+        if sandbox is not None:
+            raise NotImplementedError
+
+        if stream_id not in self.streams:
+            raise StreamNotFoundError("Stream with id '{}' not found".format(stream_id))
+
+        stream = self.streams[stream_id]
+        query = stream_id.as_raw()
+        with switch_db(StreamInstanceModel, 'hyperstream'):
+            StreamInstanceModel.objects(__raw__=query).delete()
+
+        # Also update the stream status
+        stream.calculated_intervals = TimeIntervals([])
 
     def get_stream_writer(self, stream):
         """
