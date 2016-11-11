@@ -46,15 +46,20 @@ def run(selection):
         complement=False,
         parent_plate="H1"
     )
-    
+
     w = create_workflow_lda_localisation_model_learner(hyperstream, exp_ids=exp_ids, safe=False)
     w.execute(all_time())
 
-    stream = M[StreamId('merged_2s', {'house': '1', 'localisation-experiment': '1476880283000-1476880901000'})]
-    for (kk, vv) in stream.window(all_time()):
-        print(kk)
-        print(vv)
-    stream = M[StreamId('merged_2s', {'house': '1', 'localisation-experiment': '1476884148117-1476884362837'})]
+    # stream = M[StreamId('merged_2s', {'house': '1', 'localisation-experiment': '1476880283000-1476880901000'})]
+    # for (kk, vv) in stream.window(all_time()):
+    #     print(kk)
+    #     print(vv)
+    # stream = M[StreamId('merged_2s', {'house': '1', 'localisation-experiment': '1476884148117-1476884362837'})]
+    # for (kk, vv) in stream.window(all_time()):
+    #     print(kk)
+    #     print(vv)
+
+    stream = M[StreamId('merged_2s_flat', {'house': '1'})]
     for (kk, vv) in stream.window(all_time()):
         print(kk)
         print(vv)

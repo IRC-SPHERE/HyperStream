@@ -22,6 +22,7 @@ import datetime
 
 
 def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=True):
+
     # Create a simple one step workflow for querying
     workflow_id = "lda_localisation_model_learner"
     try:
@@ -37,33 +38,34 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
             raise e
         else:
             return hyperstream.workflow_manager.workflows[workflow_id]
-    
+
     # Various channels
     M = hyperstream.channel_manager.memory
     S = hyperstream.channel_manager.sphere
     T = hyperstream.channel_manager.tools
     D = hyperstream.channel_manager.mongo
-    
+
     nodes = (
-        ("experiments_list", M, ["H1"]),  # Current annotation data in 2s windows
-        ("experiments_dataframe", M, ["H1"]),  # Current annotation data in 2s windows
-        ("experiments_mapping", M, ["H1"]),  # Current annotation data in 2s windows
-        ("rss_raw", S, ["H1"]),  # Raw RSS data
-        ("rss_time", S, ["H1.SelectedLocalisationExperiment"]),  # RSS data split by experiment
-        ("anno_raw_locations", S, ["H1"]),  # Raw annotation data
-        ("anno_time", S, ["H1.SelectedLocalisationExperiment"]),  # RSS data split by experiment
-        ("every_2s", M, ["H1.SelectedLocalisationExperiment"]),  # sliding windows one every minute
-        ("anno_state_location", M, ["H1.SelectedLocalisationExperiment"]),  # Annotation data in 2s windows
-        ("anno_state_2s_windows", M, ["H1.SelectedLocalisationExperiment"]),
-        ("rss_2s", M, ["H1.SelectedLocalisationExperiment"]),  # max(RSS) per AP in past 2s of RSS
-        ("merged_2s", M, ["H1.SelectedLocalisationExperiment"]),
-        ("dataframe", M, ["H1"]),
+        ("experiments_list",            M, ["H1"]),  # Current annotation data in 2s windows
+        ("experiments_dataframe",       M, ["H1"]),  # Current annotation data in 2s windows
+        ("experiments_mapping",         M, ["H1"]),  # Current annotation data in 2s windows
+        ("rss_raw",                     S, ["H1"]),  # Raw RSS data
+        ("rss_time",                    S, ["H1.SelectedLocalisationExperiment"]),  # RSS data split by experiment
+        ("anno_raw_locations",          S, ["H1"]),  # Raw annotation data
+        ("anno_time",                   S, ["H1.SelectedLocalisationExperiment"]),  # RSS data split by experiment
+        ("every_2s",                    M, ["H1.SelectedLocalisationExperiment"]),  # sliding windows one every minute
+        ("anno_state_location",         M, ["H1.SelectedLocalisationExperiment"]),  # Annotation data in 2s windows
+        ("anno_state_2s_windows",       M, ["H1.SelectedLocalisationExperiment"]),
+        ("rss_2s",                      M, ["H1.SelectedLocalisationExperiment"]),  # max(RSS) per AP in past 2s of RSS
+        ("merged_2s",                   M, ["H1.SelectedLocalisationExperiment"]),  # rss_2s merged with anno_state_2s
+        ("merged_2s_flat",              M, ["H1"]),                                 # flattened version of merged_2s
+        ("dataframe",                   M, ["H1"]),
         ("location_prediction_lda_mk1", D, ["H1"])
     )
-    
+
     # Create all of the nodes
     N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
-    
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="experiments_mapping_builder",
@@ -72,7 +74,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         sources=[N["experiments_list"]],
         sink=N["experiments_mapping"]
     )
-    
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
@@ -80,7 +82,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         ),
         sources=None,
         sink=N["rss_raw"])
-    
+
     w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="splitter_time_aware_from_stream",
@@ -89,7 +91,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         source=N["rss_raw"],
         splitting_node=N["experiments_mapping"],
         sink=N["rss_time"])
-    
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
@@ -100,7 +102,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         ),
         sources=None,
         sink=N["anno_raw_locations"])
-    
+
     w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="splitter_time_aware_from_stream",
@@ -109,7 +111,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         source=N["anno_raw_locations"],
         splitting_node=N["experiments_mapping"],
         sink=N["anno_time"])
-    
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sliding_window",
@@ -119,7 +121,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         ),
         sources=None,
         sink=N["every_2s"])
-    
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="anno_state_location",
@@ -127,7 +129,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         ),
         sources=[N["every_2s"], N["anno_time"]],
         sink=N["anno_state_location"])
-    
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="aligning_window",
@@ -136,11 +138,11 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         ),
         sources=[N["anno_state_location"]],
         sink=N["anno_state_2s_windows"])
-    
+
     def component_wise_max(init_value=None, id_field='aid', value_field='rss'):
         if init_value is None:
             init_value = {}
-        
+
         def func(data):
             result = init_value.copy()
             for (time, value) in data:
@@ -149,9 +151,9 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
                 else:
                     result[value[id_field]] = value[value_field]
             return result
-        
+
         return func
-    
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sliding_apply",
@@ -159,7 +161,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         ),
         sources=[N["anno_state_2s_windows"], N["rss_time"]],
         sink=N["rss_2s"])
-    
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="aligned_merge",
@@ -167,7 +169,16 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         ),
         sources=[N["anno_state_location"], N["rss_2s"]],
         sink=N["merged_2s"])
-    
+
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="aggregate_plate",
+            parameters=dict(aggregation_meta_data="localisation-experiment")
+        ),
+        sources=[N["merged_2s"]],
+        sink=N["merged_2s_flat"]
+    )
+
     # # from NT: removed the necessity for this by adding a DictVectoriser to the classifier pipeline - makes
     # #   classifier more robust to differing sensor contexts
     # # w.create_factor(
@@ -186,5 +197,5 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
     #     ),
     #     sources=[N["merged_2s"]],
     #     sink=N["location_prediction_lda_mk1"])
-    
+
     return w
