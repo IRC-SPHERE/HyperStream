@@ -24,8 +24,8 @@ import itertools
 from mongoengine.context_managers import switch_db
 
 from . import Workflow
-from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, ToolModel
-from ..utils import Printable, FrozenKeyDict, StreamNotFoundError
+from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, ToolModel, WorkflowStatusModel
+from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow
 from ..tool import MultiOutputTool
 
 
@@ -46,6 +46,7 @@ class WorkflowManager(Printable):
 
         self.workflows = FrozenKeyDict()
         self.uncommitted_workflows = set()
+        self.requested_execution_times = []
 
         with switch_db(WorkflowDefinitionModel, db_alias='hyperstream'):
             for workflow_definition in WorkflowDefinitionModel.objects():
@@ -95,6 +96,15 @@ class WorkflowManager(Printable):
                     self.add_workflow(workflow, False)
                 except StreamNotFoundError as e:
                     logging.error(str(e))
+
+        with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
+            for workflow_status in WorkflowStatusModel.objects:
+                if workflow_status.workflow_id not in self.workflows:
+                    raise ValueError("Workflow {} not found".format(workflow_status.workflow_id))
+                for interval in workflow_status.requested_intervals:
+                    # TODO: Is there any point in looking at the computed intervals for a workflow, given that the
+                    # streams already do this?
+                    self.requested_execution_times.append((workflow_status.workflow_id, interval))
 
     def add_workflow(self, workflow, commit=False):
         """
@@ -147,7 +157,17 @@ class WorkflowManager(Printable):
                 owner=workflow.owner
             )
 
-        workflow_definition.save()
+            workflow_definition.save()
+
+        with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
+            workflow_status = WorkflowStatusModel(
+                workflow_id=workflow.workflow_id,
+                last_updated=utcnow(),
+                requested_intervals=[]
+            )
+
+            workflow_status.save()
+
         self.uncommitted_workflows.remove(workflow_id)
         logging.info("Committed workflow {} to database".format(workflow_id))
 
@@ -163,5 +183,5 @@ class WorkflowManager(Printable):
         """
         Execute all workflows
         """
-        for workflow in self.workflows:
-            self.workflows[workflow].execute()
+        for workflow_id, interval in self.requested_execution_times:
+            self.workflows[workflow_id].execute(interval)
