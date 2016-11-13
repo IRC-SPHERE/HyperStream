@@ -43,4 +43,9 @@ class BaseTool(Printable, Hashable):
 
     @property
     def name(self):
-        return self.__class__.__module__
+        # return self.__class__.__module__
+        return super(BaseTool, self).name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
