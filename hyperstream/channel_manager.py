@@ -167,14 +167,19 @@ class ChannelManager(dict, Printable):
         # TODO: Use tool versions - here we just take the latest one
         return tool_stream_view.last().value
 
-    def get_tool(self, name, parameters):
+    def get_tool(self, name, parameters, version=None):
         """
         Gets the tool object from the tool channel(s), and instantiates it using the tool parameters
 
         :param name: The name or stream id for the tool in the tool channel
         :param parameters: The parameters for the tool
+        :param version: The string representation of the version
         :return: The instantiated tool object
         """
+        # TODO: use the version
+        if version is not None:
+            logging.warn("Tool versions not yet supported")
+
         tool_class = self.get_tool_class(name)
 
         # Check that the number of arguments is correct for this tool
@@ -192,8 +197,10 @@ class ChannelManager(dict, Printable):
             raise ValueError(message)
 
         # Instantiate tool
-        name = tool_class(**parameters) if parameters is not None else tool_class()
-        if not name:
+        tool = tool_class(**parameters) if parameters is not None else tool_class()
+        if not tool:
             raise ToolNotFoundError
 
-        return name
+        tool.name = name
+
+        return tool

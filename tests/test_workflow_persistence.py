@@ -33,7 +33,8 @@ from helpers import *
 
 
 def basic_workflow(workflow_id):
-    w = hyperstream.create_workflow(workflow_id=workflow_id, name="Test", owner="Tests", description="")
+    w = hyperstream.create_workflow(workflow_id=workflow_id, name="Test", owner="Tests",
+                                    description="Nose test generated workflow")
     N = w.nodes
 
     aggregate_dev = channels.get_tool(
@@ -175,25 +176,35 @@ RSS_LOC_AVG = {
 
 
 # noinspection PyMethodMayBeStatic
-class HyperStreamWorkspacePersistenceTests(unittest.TestCase):
-    def test_save_workspace(self):
-        w = basic_workflow(sys._getframe().f_code.co_name)
+class HyperStreamWorkflowPersistenceTests(unittest.TestCase):
+    def test_save_workflow(self):
+        workflow_id = sys._getframe().f_code.co_name
+
+        # hyperstream.logger.setLevel(logging.WARN)
+
+        # First delete the workflow if it's there
+        hyperstream.workflow_manager.delete_workflow(workflow_id)
+
+        w1 = basic_workflow(workflow_id)
+
         time_interval = TimeInterval(scripted_experiments[0].start, scripted_experiments[0].start + 2 * minute)
-        w.execute(time_interval)
+        w1.execute(time_interval)
 
-        wid = w.workflow_id
+        hyperstream.workflow_manager.commit_workflow(workflow_id)
 
-        hyperstream.workflow_manager.commit_workflow(wid)
+        # Now remove it from the workflow manager
+        del hyperstream.workflow_manager.workflows[workflow_id]
 
-        del w
+        # And then reload it
+        w2 = hyperstream.workflow_manager.load_workflow(workflow_id)
 
-        w = hyperstream.workflow_manager.load_workflow(wid)
+        # print_head(w, "rss", h1 + wA, locs, time_interval, 10, print)
+        # print_head(w, "rss_dev_avg", h1, locs, time_interval, 10, print)
 
-        print_head(w, "rss", h1 + wA, locs, time_interval, 10, print)
-        print_head(w, "rss_dev_avg", h1, locs, time_interval, 10, print)
+        assert all(list(w1.nodes["rss_dev_avg"].streams[k].window(time_interval).head(10)) == v
+                   for k, v in RSS_DEV_AVG.items())
 
-        N = w.nodes
-        assert all(list(N["rss_dev_avg"].streams[k].window(time_interval).head(10)) == v
+        assert all(list(w2.nodes["rss_dev_avg"].streams[k].window(time_interval).head(10)) == v
                    for k, v in RSS_DEV_AVG.items())
 
 if __name__ == '__main__':

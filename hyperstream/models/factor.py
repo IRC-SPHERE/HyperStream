@@ -18,11 +18,22 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
-from mongoengine import EmbeddedDocument, EmbeddedDocumentField, ListField, IntField
+from mongoengine import EmbeddedDocument, EmbeddedDocumentField, ListField, StringField, BooleanField
 from tool import ToolModel
+
+
+class OutputPlateDefinitionModel(EmbeddedDocument):
+    plate_id = StringField(min_length=1, max_length=512, required=True)
+    meta_data_id = StringField(min_length=1, max_length=512, required=True)
+    description = StringField(min_length=1, max_length=512, required=True)
+    use_provided_values = BooleanField(required=True)
 
 
 class FactorDefinitionModel(EmbeddedDocument):
     tool = EmbeddedDocumentField(document_type=ToolModel, required=True)
-    sources = ListField(field=IntField(min_value=0), required=False)
-    sinks = ListField(field=IntField(min_value=0), required=False)
+    factor_type = StringField(required=True)
+    sources = ListField(field=StringField(min_length=1, max_length=512), required=False)
+    sinks = ListField(field=StringField(min_length=1, max_length=512), required=False)
+    alignment_node = StringField(min_length=1, max_length=512, required=False)
+    splitting_node = StringField(min_length=1, max_length=512, required=False)
+    output_plate = EmbeddedDocumentField(document_type=OutputPlateDefinitionModel, required=False)
