@@ -40,7 +40,7 @@ class WorkflowDefinitionModel(Document):
 
 
 class WorkflowStatusModel(Document):
-    stream_id = StringField(required=True, min_length=1, max_length=512)
+    workflow_id = StringField(required=True, min_length=1, max_length=512)
     last_updated = DateTimeField(required=True)
     last_accessed = DateTimeField(required=False)
     
@@ -48,36 +48,10 @@ class WorkflowStatusModel(Document):
     requested_intervals = EmbeddedDocumentListField(document_type=TimeIntervalModel, required=True)
     
     # Actual ranges that have been computed. Note that this can be empty to begin with
-    calculated_intervals = EmbeddedDocumentListField(document_type=TimeIntervalModel, required=False)
+    # calculated_intervals = EmbeddedDocumentListField(document_type=TimeIntervalModel, required=False)
     
     meta = {
         'collection': 'workflow_status',
-        'indexes': [{'fields': ['stream_id']}],
-        'ordering': ['start']
+        'indexes': [{'fields': ['workflow_id']}],
+        'ordering': ['workflow_id']
     }
-    
-    def add_time_interval(self, time_interval):
-        if not isinstance(time_interval, TimeIntervalModel):
-            raise RuntimeError("Can only add TimeIntervalModel objects")
-        
-        self.calculated_intervals.append(time_interval)
-        self.update_time_intervals()
-        return self.calculated_intervals
-    
-    def update_time_intervals(self):
-        sorted_by_lower_bound = sorted(self.calculated_intervals, key=lambda r: r.start)
-        merged = []
-        
-        for higher in sorted_by_lower_bound:
-            if not merged:
-                merged.append(higher)
-            else:
-                lower = merged[-1]
-                # test for intersection between lower and higher:
-                # we know via sorting that lower.start <= higher.start
-                if higher.start <= lower.end:
-                    upper_bound = max(lower.end, higher.end)
-                    merged[-1] = TimeIntervalModel(start=lower.start, end=upper_bound)  # replace by merged interval
-                else:
-                    merged.append(higher)
-        self.calculated_intervals = merged

@@ -18,11 +18,11 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
-from mongoengine import EmbeddedDocument, EmbeddedDocumentField, ListField, StringField
+from mongoengine import EmbeddedDocument, EmbeddedDocumentField, ListField, IntField
 from tool import ToolModel
 
 
 class FactorDefinitionModel(EmbeddedDocument):
     tool = EmbeddedDocumentField(document_type=ToolModel, required=True)
-    sources = ListField(field=StringField(min_length=1, max_length=512), required=False)
-    sinks = StringField(min_length=1, max_length=512, required=False)
+    sources = ListField(field=IntField(min_value=0), required=False)
+    sinks = ListField(field=IntField(min_value=0), required=False)
