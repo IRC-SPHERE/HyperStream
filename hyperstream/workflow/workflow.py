@@ -36,19 +36,19 @@ class Workflow(Printable):
     Workflow.
     This defines the graph of operations through "nodes" and "factors".
     """
-    def __init__(self, channels, plates, workflow_id, name, description, owner):
+    def __init__(self, channels, plate_manager, workflow_id, name, description, owner):
         """
         Initialise the workflow
 
         :param channels: The channels used by this workflow
-        :param plates: All of the plates used by this workflow
+        :param plate_manager: The plate manager
         :param workflow_id: The workflow id
         :param name: The name of the workflow
         :param description: A human readable description
         :param owner: The owner/author of the workflow
         """
         self.channels = channels
-        self.plates = plates
+        self.plate_manager = plate_manager
         self.workflow_id = workflow_id
         self.name = name
         self.description = description
@@ -91,7 +91,7 @@ class Workflow(Printable):
         """
         streams = {}
 
-        plates = [self.plates[p] for p in plate_ids] if plate_ids else None
+        plates = [self.plate_manager.plates[p] for p in plate_ids] if plate_ids else None
 
         plate_values = get_overlapping_plate_values(plates)
 
@@ -111,7 +111,7 @@ class Workflow(Printable):
         if not streams:
             raise NodeDefinitionError("No streams created for node with id {}".format(stream_name))
 
-        node = Node(stream_name, streams, plates)
+        node = Node(channel, stream_name, streams, plates)
         self._add_node(node)
         return node
 
@@ -174,7 +174,7 @@ class Workflow(Printable):
                     for p in source_plates:
                         if p not in set(sink.plate_ids):
                             raise IncompatiblePlatesError("{} not in sink plates".format(p))
-            plates = [self.plates[plate_id] for plate_id in sink.plate_ids]
+            plates = [self.plate_manager.plates[plate_id] for plate_id in sink.plate_ids]
         else:
             plates = None
 
@@ -206,14 +206,14 @@ class Workflow(Printable):
         :rtype: Factor
         """
         if isinstance(tool, dict):
-            tool = self.channels.get_tool(name=tool["name"], parameters=["parameters"])
+            tool = self.channels.get_tool(name=tool["name"], parameters=tool["parameters"])
 
         if not isinstance(tool, MultiOutputTool):
             raise ValueError("Expected MultiOutputTool, got {}".format(type(tool)))
 
         # Check that the input_plate are compatible - note this is the opposite way round to a normal factor
-        input_plates = [self.plates[plate_id] for plate_id in source.plate_ids]
-        output_plates = [self.plates[plate_id] for plate_id in sink.plate_ids]
+        input_plates = [self.plate_manager.plates[plate_id] for plate_id in source.plate_ids]
+        output_plates = [self.plate_manager.plates[plate_id] for plate_id in sink.plate_ids]
 
         if len(input_plates) > 1:
             raise NotImplementedError
@@ -284,7 +284,7 @@ class Workflow(Printable):
         if not isinstance(tool, PlateCreationTool):
             raise ValueError("Expected MultiOutputTool, got {}".format(type(tool)))
 
-        input_plates = [self.plates[plate_id] for plate_id in source.plate_ids]
+        input_plates = [self.plate_manager.plates[plate_id] for plate_id in source.plate_ids]
 
         if len(input_plates) > 1:
             raise NotImplementedError

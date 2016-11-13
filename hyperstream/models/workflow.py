@@ -45,7 +45,7 @@ class WorkflowStatusModel(Document):
     last_accessed = DateTimeField(required=False)
     
     # Time ranges requested for computation for this workflow
-    requested_intervals = EmbeddedDocumentListField(document_type=TimeIntervalModel, required=True)
+    requested_intervals = EmbeddedDocumentListField(document_type=TimeIntervalModel, required=False)
     
     # Actual ranges that have been computed. Note that this can be empty to begin with
     # calculated_intervals = EmbeddedDocumentListField(document_type=TimeIntervalModel, required=False)

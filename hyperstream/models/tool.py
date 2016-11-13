@@ -18,11 +18,17 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
-from mongoengine import StringField, DictField, EmbeddedDocument
+from mongoengine import StringField, EmbeddedDocument, BooleanField, EmbeddedDocumentListField, DynamicField
+
+
+class ToolParameterModel(EmbeddedDocument):
+    key = StringField(required=True, min_length=1, max_length=512)
+    value = DynamicField(required=False)  # This is false to allow None as a parameter value
+    is_function = BooleanField(required=True, default=False)
+    is_set = BooleanField(required=True, default=False)
 
 
 class ToolModel(EmbeddedDocument):
     name = StringField(required=True, min_length=1, max_length=512)
     version = StringField(required=True, min_length=1, max_length=512)
-    # TODO: strong typing
-    parameters = DictField()
+    parameters = EmbeddedDocumentListField(document_type=ToolParameterModel, required=True)
