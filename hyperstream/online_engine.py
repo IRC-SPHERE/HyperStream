@@ -38,4 +38,4 @@ class OnlineEngine(object):
         """
         Execute the engine - currently simple executes all workflows.
         """
-        self.hyperstream.workflows.execute_all()
+        self.hyperstream.workflow_manager.execute_all()

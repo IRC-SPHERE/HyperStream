@@ -21,8 +21,17 @@
 from hyperstream import HyperStream
 from hyperstream.online_engine import OnlineEngine
 
+from time import sleep
+import signal
+import logging
+
 
 if __name__ == '__main__':
     hyperstream = HyperStream()
     online_engine = OnlineEngine(hyperstream)
-    online_engine.execute()
+
+    for _ in range(100):
+        signal.alarm(305)  # if this takes more than 5 minutes, kill myself
+        logging.info("Online engine starting up.")
+        online_engine.execute()
+        sleep(5)
