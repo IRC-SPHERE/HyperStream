@@ -287,8 +287,8 @@ class HyperStreamLogger(Printable):
     def __init__(self, path='/tmp', filename='hyperstream', loglevel=logging.DEBUG):
         # coloredlogs.install(level=loglevel)
         log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
-        root_logger = logging.getLogger()
-        root_logger.setLevel(loglevel)
+        self.root_logger = logging.getLogger()
+        self.root_logger.setLevel(loglevel)
 
         if not os.path.exists(path):
             os.makedirs(path)
@@ -300,11 +300,11 @@ class HyperStreamLogger(Printable):
 
         file_handler = logging.FileHandler(full_name)
         file_handler.setFormatter(log_formatter)
-        root_logger.addHandler(file_handler)
+        self.root_logger.addHandler(file_handler)
 
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(log_formatter)
-        root_logger.addHandler(console_handler)
+        self.root_logger.addHandler(console_handler)
         #
         # stream_handler = logging.StreamHandler()
         # stream_handler.setFormatter(log_formatter)
@@ -320,3 +320,5 @@ class HyperStreamLogger(Printable):
         # logging.config.dictConfig(LOGGING)
         logging.debug("HyperStream version: " + __version__)
 
+    def setLevel(self, loglevel):
+        self.root_logger.setLevel(loglevel)

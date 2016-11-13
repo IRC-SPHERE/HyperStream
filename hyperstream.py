@@ -43,8 +43,7 @@ class HyperStream(object):
         # Define some managers
         self.channel_manager = ChannelManager(self.config.plugins)
         self.plate_manager = PlateManager()
-        self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager,
-                                                plates=self.plate_manager.plates)
+        self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager, plate_manager=self.plate_manager)
 
     def create_workflow(self, workflow_id, name, owner, description):
         """
@@ -58,7 +57,7 @@ class HyperStream(object):
         """
         w = Workflow(
             channels=self.channel_manager,
-            plates=self.plate_manager.plates,
+            plate_manager=self.plate_manager,
             workflow_id=workflow_id,
             name=name,
             owner=owner,
