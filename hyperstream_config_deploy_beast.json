@@ -3,7 +3,10 @@
         "host": "localhost",
         "port": 27017,
         "tz_aware": true,
+        "username": "dbuser",
+        "password": "rYYr7QEeD5",
         "db": "hyperstream",
+        "authentication_database": "admin"
     },
     "plugins": [
     {
