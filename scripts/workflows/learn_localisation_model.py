@@ -115,9 +115,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, experiment_ids, 
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sliding_window",
-            parameters=dict(lower=datetime.timedelta(seconds=-2),
-                            upper=datetime.timedelta(seconds=0),
-                            increment=datetime.timedelta(seconds=2))
+            parameters=dict(lower=-2.0, upper=0.0, increment=2.0)
         ),
         sources=None,
         sink=N["every_2s"])
@@ -133,8 +131,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, experiment_ids, 
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="aligning_window",
-            parameters=dict(lower=datetime.timedelta(seconds=-2),
-                            upper=datetime.timedelta(0))
+            parameters=dict(lower=-2.0, upper=0.0)
         ),
         sources=[N["annotation_state_location"]],
         sink=N["annotation_state_2s_windows"])

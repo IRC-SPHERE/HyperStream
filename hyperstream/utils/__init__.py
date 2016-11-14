@@ -27,3 +27,4 @@ from errors import StreamNotAvailableError, StreamAlreadyExistsError, StreamData
     StreamNotFoundError, IncompatiblePlatesError, ToolNotFoundError, ChannelNotFoundError, ToolExecutionError, \
     PlateEmptyError, PlateDefinitionError, LinkageError, FactorAlreadyExistsError, NodeAlreadyExistsError, \
     FactorDefinitionError, ChannelAlreadyExistsError, NodeDefinitionError
+from serialization import func_dump, func_load

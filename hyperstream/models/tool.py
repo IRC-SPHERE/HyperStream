@@ -31,4 +31,4 @@ class ToolParameterModel(EmbeddedDocument):
 class ToolModel(EmbeddedDocument):
     name = StringField(required=True, min_length=1, max_length=512)
     version = StringField(required=True, min_length=1, max_length=512)
-    parameters = EmbeddedDocumentListField(document_type=ToolParameterModel, required=True)
+    parameters = EmbeddedDocumentListField(document_type=ToolParameterModel, required=False)  # To allow empty lists

@@ -19,10 +19,10 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-import copy_reg
 import logging
-import marshal
 import pickle
+import copy_reg
+import marshal
 import types
 
 from mongoengine.context_managers import switch_db
@@ -30,11 +30,10 @@ from mongoengine.context_managers import switch_db
 from . import Workflow
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, ToolModel, \
     ToolParameterModel, WorkflowStatusModel
-from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow
+from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow, func_dump, func_load
 from ..workflow import Factor, PlateCreationFactor, MultiOutputFactor
 
 
-# register a pickle handler for code objects
 def code_unpickler(data):
     return marshal.loads(data)
 
@@ -42,6 +41,8 @@ def code_unpickler(data):
 def code_pickler(code):
     return code_unpickler, (marshal.dumps(code),)
 
+
+# Register the code_pickler and code_unpickler handlers for code objects. See http://effbot.org/librarybook/copy-reg.htm
 copy_reg.pickle(types.CodeType, code_pickler, code_unpickler)
 
 
@@ -118,7 +119,8 @@ class WorkflowManager(Printable):
                 parameters = {}
                 for p in f.tool.parameters:
                     if p.is_function:
-                        parameters[p.key] = pickle.loads(p.value)
+                        code, defaults, closure = pickle.loads(p.value)
+                        parameters[p.key] = func_load(code, defaults, closure, globs=globals())
                     elif p.is_set:
                         parameters[p.key] = set(p.value)
                     else:
@@ -273,8 +275,7 @@ class WorkflowManager(Printable):
                     is_set = False
 
                     if callable(v):
-                        # noinspection PyUnresolvedReferences
-                        value = pickle.dumps(v.func_code)
+                        value = pickle.dumps(func_dump(v))
                         is_function = True
                     elif isinstance(v, set):
                         value = list(v)
@@ -294,7 +295,7 @@ class WorkflowManager(Printable):
                 if isinstance(f, Factor):
                     sources = [s.node_id for s in f.sources] if f.sources else []
                     sinks = [f.sink.node_id]
-                    alignment_node = f.alignment_node
+                    alignment_node = f.alignment_node.node_id if f.alignment_node else None
                     splitting_node = None
                     output_plate = None
 
@@ -302,7 +303,7 @@ class WorkflowManager(Printable):
                     sources = [f.source.node_id]
                     sinks = [f.sink.node_id]
                     alignment_node = None
-                    splitting_node = f.splitting_node
+                    splitting_node = f.splitting_node.node_id
                     output_plate = None
 
                 elif isinstance(f, PlateCreationFactor):
