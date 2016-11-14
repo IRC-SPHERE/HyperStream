@@ -36,20 +36,19 @@ class Clock(Tool):
         if not isinstance(first, datetime):
             raise ValueError("Expected datetime.datetime, got {}".format(first.__type__.__name__))
 
-        self.first = first
-        self.stride = get_timedelta(stride)
+        self._stride = get_timedelta(stride)
 
     def message(self, interval):
-        return '{} running from {} to {} with stride {}'.format(
+        return '{} running from {} to {} with stride {}s'.format(
             self.__class__.__name__, str(interval.start), str(interval.end), str(self.stride))
 
     @check_input_stream_count(0)
     def _execute(self, sources, alignment_stream, interval):
         if interval.start < self.first:
             interval.start = self.first
-        n_strides = int((interval.start - self.first).total_seconds() // self.stride.total_seconds())
-        t = self.first + n_strides * self.stride
+        n_strides = int((interval.start - self.first).total_seconds() // self._stride.total_seconds())
+        t = self.first + n_strides * self._stride
         while t <= interval.end:
             if t > interval.start:
                 yield StreamInstance(t, t)
-            t += self.stride
+            t += self._stride
