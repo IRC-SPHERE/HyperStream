@@ -36,7 +36,7 @@ class Workflow(Printable):
     Workflow.
     This defines the graph of operations through "nodes" and "factors".
     """
-    def __init__(self, channels, plate_manager, workflow_id, name, description, owner):
+    def __init__(self, channels, plate_manager, workflow_id, name, description, owner, online=False):
         """
         Initialise the workflow
 
@@ -46,6 +46,7 @@ class Workflow(Printable):
         :param name: The name of the workflow
         :param description: A human readable description
         :param owner: The owner/author of the workflow
+        :param online: Whether this workflow should be executed by the online engine
         """
         self.channels = channels
         self.plate_manager = plate_manager
@@ -55,6 +56,7 @@ class Workflow(Printable):
         self.owner = owner
         self.nodes = {}
         self.factors = []
+        self.online = online
 
         logging.info("New workflow created with id {}".format(workflow_id))
     
