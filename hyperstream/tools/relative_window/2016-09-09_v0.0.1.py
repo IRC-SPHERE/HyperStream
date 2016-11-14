@@ -21,6 +21,7 @@
 from hyperstream import RelativeTimeInterval
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
+from datetime import timedelta
 
 
 class RelativeWindow(Tool):
@@ -40,19 +41,20 @@ class RelativeWindow(Tool):
         window = []
         future = []
         for (t, _) in alignment_stream.window(interval, force_calculation=True):
-            while (len(window) > 0) and (window[0][0] <= t + self.relative_interval.start):
+            while (len(window) > 0) and (window[0][0] <= t + timedelta(self.relative_interval.start)):
                 window = window[1:]
-            while (len(future) > 0) and (future[0][0] <= t + self.relative_interval.end):
+            while (len(future) > 0) and (future[0][0] <= t + timedelta(self.relative_interval.end)):
                 doc = future[0]
                 future = future[1:]
-                if t + self.relative_interval.start < doc[0] <= t + self.relative_interval.end:
+                if t + timedelta(self.relative_interval.start) < doc[0] <= t + timedelta(self.relative_interval.end):
                     window.append(doc)
             while True:
                 try:
                     doc = next(data)
-                    if t + self.relative_interval.start < doc[0] <= t + self.relative_interval.end:
+                    if t + timedelta(self.relative_interval.start) < doc[0] \
+                            <= t + timedelta(self.relative_interval.end):
                         window.append(doc)
-                    elif doc[0] > t + self.relative_interval.end:
+                    elif doc[0] > t + timedelta(self.relative_interval.end):
                         future.append(doc)
                         break
                     else:
