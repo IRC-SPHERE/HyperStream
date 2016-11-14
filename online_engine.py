@@ -24,6 +24,8 @@ import logging
 from time import sleep
 import signal
 from datetime import datetime, timedelta
+import fasteners
+
 
 from .time_interval import TimeInterval
 from .utils import UTC
@@ -41,6 +43,7 @@ class OnlineEngine(object):
         """
         self.hyperstream = hyperstream
 
+    @fasteners.interprocess_locked('/tmp/hyperstream.lock')
     def execute(self):
         """
         Execute the engine - currently simple executes all workflows.
