@@ -32,7 +32,7 @@ from stream import StreamId, DatabaseStream
 from time_interval import TimeIntervals
 from utils import Printable, utcnow, MIN_DATE, StreamAlreadyExistsError, ChannelNotFoundError, ToolNotFoundError, \
     ChannelAlreadyExistsError
-from channels import ToolChannel, MemoryChannel, DatabaseChannel
+from channels import ToolChannel, MemoryChannel, DatabaseChannel, AssetsChannel
 
 
 class ChannelManager(dict, Printable):
@@ -48,6 +48,7 @@ class ChannelManager(dict, Printable):
         self.tools = ToolChannel("tools", "hyperstream/tools", up_to_timestamp=utcnow())
         self.memory = MemoryChannel("memory")
         self.mongo = DatabaseChannel("mongo")
+        self.assets = AssetsChannel("assets")
 
         for plugin in plugins:
             for channel in plugin.load():
