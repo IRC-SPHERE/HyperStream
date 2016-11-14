@@ -21,5 +21,5 @@
 from stream_id import StreamId
 from stream_instance import StreamInstance, StreamMetaInstance
 from stream_view import StreamView
-from stream import Stream, DatabaseStream
+from stream import Stream, DatabaseStream, AssetStream
 from stream_collections import StreamDict, StreamInstanceCollection
