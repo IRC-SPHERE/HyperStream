@@ -20,8 +20,8 @@
 
 from __future__ import print_function
 
-from hyperstream import HyperStream, StreamId
-from hyperstream.utils import all_time, duration2str
+from hyperstream import HyperStream, StreamId, TimeInterval
+from hyperstream.utils import duration2str
 import arrow
 import logging
 import pandas as pd
@@ -36,15 +36,22 @@ if __name__ == '__main__':
     S = hyperstream.channel_manager.sphere
     T = hyperstream.channel_manager.tools
     D = hyperstream.channel_manager.mongo
-    
-    w = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
-    w.execute(all_time())
+
+    workflow_id = "list_technicians_walkarounds"
+    # hyperstream.workflow_manager.delete_workflow(workflow_id)
+    try:
+        w = hyperstream.workflow_manager.workflows[workflow_id]
+    except KeyError:
+        w = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
+        hyperstream.workflow_manager.commit_workflow(workflow_id)
+
+    w.execute(TimeInterval.all_time())
     
     print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))
     print('number of memory non_empty_streams: {}'.format(len(M.non_empty_streams)))
     
-    experiment_data = M[StreamId('experiments_list', dict(house=1))].window(all_time()).values()
-    df = M[StreamId('experiments_dataframe', dict(house=1))].window(all_time()).values()[0]
+    experiment_data = M[StreamId('experiments_list', dict(house=1))].window(TimeInterval.all_time()).values()
+    df = M[StreamId('experiments_dataframe', dict(house=1))].window(TimeInterval.all_time()).values()[0]
     # arrow.get(x).humanize()
     # df['start'] = df['start'].map('{:%Y-%m-%d %H:%M:%S}'.format)
     df['duration'] = df['end'] - df['start']

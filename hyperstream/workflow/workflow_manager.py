@@ -20,13 +20,31 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
-import itertools
+import pickle
+import copy_reg
+import marshal
+import types
+
 from mongoengine.context_managers import switch_db
 
 from . import Workflow
-from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, ToolModel
-from ..utils import Printable, FrozenKeyDict, StreamNotFoundError
-from ..tool import MultiOutputTool
+from ..time_interval import TimeInterval, TimeIntervals
+from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, ToolModel, \
+    ToolParameterModel, WorkflowStatusModel
+from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow, func_dump, func_load
+from ..workflow import Factor, PlateCreationFactor, MultiOutputFactor
+
+
+def code_unpickler(data):
+    return marshal.loads(data)
+
+
+def code_pickler(code):
+    return code_unpickler, (marshal.dumps(code),)
+
+
+# Register the code_pickler and code_unpickler handlers for code objects. See http://effbot.org/librarybook/copy-reg.htm
+copy_reg.pickle(types.CodeType, code_pickler, code_unpickler)
 
 
 class WorkflowManager(Printable):
@@ -35,66 +53,156 @@ class WorkflowManager(Printable):
     workflows
     """
 
-    def __init__(self, channel_manager, plates):
+    def __init__(self, channel_manager, plate_manager):
         """
         Initialise the workflow object
         :param channel_manager: The channel manager
-        :param plates: All defined plates
+        :param plate_manager: The plate manager
         """
-        self.channels = channel_manager
-        self.plates = plates
+        self.channel_manager = channel_manager
+        self.plate_manager = plate_manager
 
         self.workflows = FrozenKeyDict()
         self.uncommitted_workflows = set()
+        self.requested_intervals = {}
 
         with switch_db(WorkflowDefinitionModel, db_alias='hyperstream'):
             for workflow_definition in WorkflowDefinitionModel.objects():
                 try:
-                    workflow = Workflow(
-                        channels=channel_manager,
-                        plates=plates,
-                        workflow_id=workflow_definition.workflow_id,
-                        name=workflow_definition.name,
-                        description=workflow_definition.description,
-                        owner=workflow_definition.owner
-                    )
-
-                    for n in workflow_definition.nodes:
-                        workflow.create_node(
-                            stream_name=n.stream_name,
-                            channel=channel_manager.get_channel(n.channel_id),
-                            plate_ids=n.plate_ids)
-
-                    # NOTE that we have to replicate the factor over the plate
-                    # This is fairly simple in the case of
-                    # 1. a single plate.
-                    # However we can have:
-                    # 2. nested plates
-                    # 3. intersecting plates
-                    # 4. a combination of 2. and 3.
-
-                    # TODO: alignment node
-                    for f in workflow_definition.factors:
-                        continue
-                        source_nodes = [workflow.nodes[s] for s in f.sources]
-                        sink_node = workflow.nodes[f.sink]
-
-                        # sort the plate lists by increasing length
-                        factor_plates = sorted([plates[plate_id] for plate_id in
-                                                list(itertools.chain.from_iterable(s.plate_ids for s in source_nodes))],
-                                               key=lambda x: len(x))
-
-                        # TODO: Here we need to get the sub-graph of the plate tree so that we can build our for loops
-                        # later
-                        # TODO: One for loop for each level of nesting
-                        tool = channel_manager.get_tool(
-                            name=f.tool.name,
-                            parameters=f.tool.parameters)
-                        workflow.create_factor(tool, source_nodes, sink_node, None)
-
-                    self.add_workflow(workflow, False)
+                    self.load_workflow(workflow_definition.workflow_id)
                 except StreamNotFoundError as e:
                     logging.error(str(e))
+
+        with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
+            for workflow_status in WorkflowStatusModel.objects:
+                if workflow_status.workflow_id not in self.workflows:
+                    raise ValueError("Workflow {} not found".format(workflow_status.workflow_id))
+                # TODO: Is there any point in looking at the computed intervals for a workflow, given that the
+                # streams already do this?
+                requested_intervals = TimeIntervals(
+                    [TimeInterval(ti.start, ti.end) for ti in workflow_status.requested_intervals])
+                self.requested_intervals[workflow_status.workflow_id] = requested_intervals
+
+    def load_workflow(self, workflow_id):
+        """
+        Load workflow from the database and store in memory
+        :param workflow_id: The workflow id
+        :return: The workflow
+        """
+        with switch_db(WorkflowDefinitionModel, db_alias='hyperstream'):
+            workflow_definition = WorkflowDefinitionModel.objects.get(workflow_id=workflow_id)
+            if not workflow_definition:
+                logging.warn("Attempted to load workflow with id {}, but not found".format(workflow_id))
+
+            workflow = Workflow(
+                channels=self.channel_manager,
+                plate_manager=self.plate_manager,
+                workflow_id=workflow_id,
+                name=workflow_definition.name,
+                description=workflow_definition.description,
+                owner=workflow_definition.owner,
+                online=workflow_definition.online
+            )
+
+            for n in workflow_definition.nodes:
+                workflow.create_node(
+                    stream_name=n.stream_name,
+                    channel=self.channel_manager.get_channel(n.channel_id),
+                    plate_ids=n.plate_ids)
+
+            for f in workflow_definition.factors:
+                source_nodes = [workflow.nodes[node_id] for node_id in f.sources] if f.sources else []
+                sink_nodes = [workflow.nodes[node_id] for node_id in f.sinks] if f.sinks else []
+                alignment_node = workflow.nodes[f.alignment_node] if f.alignment_node else None
+                splitting_node = workflow.nodes[f.splitting_node] if f.splitting_node else None
+                output_plate = f.output_plate
+
+                parameters = {}
+                for p in f.tool.parameters:
+                    if p.is_function:
+                        code, defaults, closure = pickle.loads(p.value)
+                        parameters[p.key] = func_load(code, defaults, closure, globs=globals())
+                    elif p.is_set:
+                        parameters[p.key] = set(p.value)
+                    else:
+                        parameters[p.key] = p.value
+
+                tool = dict(name=f.tool.name, parameters=parameters)
+
+                if f.factor_type == "Factor":
+                    if len(sink_nodes) != 1:
+                        raise ValueError(
+                            "Standard factors should have a single sink node, received {}"
+                            .format(len(sink_nodes)))
+
+                    if splitting_node is not None:
+                        raise ValueError(
+                            "Standard factors do not support splitting nodes")
+
+                    if output_plate is not None:
+                        raise ValueError(
+                            "Standard factors do not support output plates")
+
+                    workflow.create_factor(
+                        tool=tool,
+                        sources=source_nodes,
+                        sink=sink_nodes[0],
+                        alignment_node=alignment_node
+                    )
+
+                elif f.factor_type == "MultiOutputFactor":
+                    if len(source_nodes) != 1:
+                        raise ValueError(
+                            "MultiOutputFactor factors should have a single source node, received {}"
+                            .format(len(source_nodes)))
+
+                    if len(sink_nodes) != 1:
+                        raise ValueError(
+                            "MultiOutputFactor factors should have a single sink node, received {}"
+                            .format(len(sink_nodes)))
+
+                    if alignment_node is not None:
+                        raise ValueError(
+                            "MultiOutputFactor does not support alignment nodes")
+
+                    if output_plate is not None:
+                        raise ValueError(
+                            "MultiOutputFactor does not support output plates")
+
+                    workflow.create_multi_output_factor(
+                        tool=tool,
+                        source=source_nodes[0],
+                        splitting_node=splitting_node,
+                        sink=sink_nodes[0]
+                    )
+
+                elif f.factor_type == "PlateCreationFactor":
+                    if len(source_nodes) != 1:
+                        raise ValueError(
+                            "PlateCreationFactor factors should have a single source node, received {}"
+                            .format(len(source_nodes)))
+
+                    if len(sink_nodes) != 0:
+                        raise ValueError(
+                            "PlateCreationFactor factors should not have sink nodes"
+                            .format(len(sink_nodes)))
+
+                    if output_plate is None:
+                        raise ValueError(
+                            "PlateCreationFactor requires an output plate definition")
+
+                    workflow.create_node_creation_factor(
+                        tool=tool,
+                        source=source_nodes[0],
+                        output_plate=output_plate.to_mongo().to_dict(),
+                        plate_manager=self.plate_manager
+                    )
+
+                else:
+                    raise NotImplementedError("Unsupported factor type {}".format(f.factor_type))
+
+            self.add_workflow(workflow, False)
+            return workflow
 
     def add_workflow(self, workflow, commit=False):
         """
@@ -117,6 +225,29 @@ class WorkflowManager(Printable):
         else:
             self.uncommitted_workflows.add(workflow.workflow_id)
 
+    def delete_workflow(self, workflow_id):
+        """
+        Delete a workflow from the database
+        :param workflow_id:
+        :return: None
+        """
+        with switch_db(WorkflowDefinitionModel, "hyperstream"):
+            workflows = WorkflowDefinitionModel.objects(workflow_id=workflow_id)
+            if len(workflows) == 1:
+                workflows[0].delete()
+            else:
+                logging.warn("Workflow with id {} does not exist".format(workflow_id))
+
+        with switch_db(WorkflowStatusModel, "hyperstream"):
+            workflows = WorkflowStatusModel.objects(workflow_id=workflow_id)
+            if len(workflows) == 1:
+                workflows[0].delete()
+            else:
+                logging.warn("Workflow status with id {} does not exist".format(workflow_id))
+
+        if workflow_id in self.workflows:
+            del self.workflows[workflow_id]
+
     def commit_workflow(self, workflow_id):
         """
         Commit the workflow to the database
@@ -128,26 +259,106 @@ class WorkflowManager(Printable):
         workflow = self.workflows[workflow_id]
 
         with switch_db(WorkflowDefinitionModel, "hyperstream"):
+            workflows = WorkflowDefinitionModel.objects(workflow_id=workflow_id)
+            if len(workflows) > 0:
+                logging.warn("Workflow with id {} already exists in database".format(workflow_id))
+                return
+
             factors = []
-            for f in itertools.chain(*workflow.factors):
-                tool = ToolModel(name=f.tool.name, version="", parameters=f.tool.parameters)
-                raise NotImplementedError("sources and sinks should actually just be references to the nodes by node id")
-                if isinstance(f.tool, MultiOutputTool):
-                    factor = FactorDefinitionModel(tool=tool, sources=f.sources, sinks=f.sinks)
+            for f in workflow.factors:
+                # TODO: Tool version
+
+                parameters = []
+                for k, v in f.tool.__dict__.items():
+                    if k.startswith("_"):
+                        continue
+
+                    is_function = False
+                    is_set = False
+
+                    if callable(v):
+                        value = pickle.dumps(func_dump(v))
+                        is_function = True
+                    elif isinstance(v, set):
+                        value = list(v)
+                        is_set = True
+                    else:
+                        value = v
+
+                    parameters.append(ToolParameterModel(
+                        key=k,
+                        value=value,
+                        is_function=is_function,
+                        is_set=is_set
+                    ))
+
+                tool = ToolModel(name=f.tool.name, version="0.0.0", parameters=parameters)
+
+                if isinstance(f, Factor):
+                    sources = [s.node_id for s in f.sources] if f.sources else []
+                    sinks = [f.sink.node_id]
+                    alignment_node = f.alignment_node.node_id if f.alignment_node else None
+                    splitting_node = None
+                    output_plate = None
+
+                elif isinstance(f, MultiOutputFactor):
+                    sources = [f.source.node_id]
+                    sinks = [f.sink.node_id]
+                    alignment_node = None
+                    splitting_node = f.splitting_node.node_id if f.splitting_node else None
+                    output_plate = None
+
+                elif isinstance(f, PlateCreationFactor):
+                    sources = [f.source.node_id]
+                    sinks = []
+                    alignment_node = None
+                    splitting_node = None
+                    output_plate = f.output_plate
+
                 else:
-                    factor = FactorDefinitionModel(tool=tool, sources=f.sources, sinks=[f.sink])
+                    raise NotImplementedError("Unsupported factor type")
+
+                factor = FactorDefinitionModel(
+                    tool=tool,
+                    factor_type=f.__class__.__name__,
+                    sources=sources,
+                    sinks=sinks,
+                    alignment_node=alignment_node,
+                    splitting_node=splitting_node,
+                    output_plate=output_plate
+                )
+
                 factors.append(factor)
+
+            nodes = []
+            for n in workflow.nodes.values():
+                nodes.append(NodeDefinitionModel(
+                    stream_name=n.node_id,
+                    plate_ids=n.plate_ids,
+                    channel_id=n._channel.channel_id
+                ))
 
             workflow_definition = WorkflowDefinitionModel(
                 workflow_id=workflow.workflow_id,
                 name=workflow.name,
                 description=workflow.description,
-                nodes=[NodeDefinitionModel(stream_name=n.node_id, plate_ids=n.plate_ids) for n in workflow.nodes.values()],
+                nodes=nodes,
                 factors=factors,
                 owner=workflow.owner
             )
 
-        workflow_definition.save()
+            workflow_definition.save()
+
+        with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
+            workflow_status = WorkflowStatusModel(
+                workflow_id=workflow.workflow_id,
+                last_updated=utcnow(),
+                last_accessed=utcnow(),
+                requested_intervals=[]
+            )
+
+            workflow_status.save()
+
         self.uncommitted_workflows.remove(workflow_id)
         logging.info("Committed workflow {} to database".format(workflow_id))
 
@@ -163,5 +374,16 @@ class WorkflowManager(Printable):
         """
         Execute all workflows
         """
-        for workflow in self.workflows:
-            self.workflows[workflow].execute()
+        for workflow_id, intervals in self.requested_intervals.items():
+            if self.workflows[workflow_id].online:
+                for interval in intervals:
+                    logging.info("Executing workflow {} over interval {}".format(workflow_id, interval))
+                    self.workflows[workflow_id].execute(interval)
+
+    def set_requested_intervals(self, workflow_id, requested_intervals):
+        with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
+            workflow_status = WorkflowStatusModel.objects.get(workflow_id=workflow_id)
+            if not workflow_status:
+                raise ValueError("Workflow {} not found".format(workflow_id))
+            workflow_status.requested_intervals = requested_intervals
+            self.requested_intervals[workflow_status.workflow_id] = requested_intervals

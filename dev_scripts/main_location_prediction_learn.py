@@ -47,10 +47,10 @@ if __name__ == '__main__':
     nodes = (
         ("every_2s", hyperstream.channel_manager.memory, ["H1"]),  # sliding windows one every minute
         ("rss_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw RSS data
-        ("anno_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw annotation data
+        ("annotations_raw", hyperstream.channel_manager.sphere, ["H1"]),  # Raw annotation data
         ("rss_2s", hyperstream.channel_manager.memory, ["H1"]),  # max RSS per access point in past 2s of RSS data
-        ("anno_state", hyperstream.channel_manager.memory, ["H1"]),  # Current annotation data in 2s windows
-        ("anno_state_2s_windows", hyperstream.channel_manager.memory, ["H1"]),
+        ("annotation_state", hyperstream.channel_manager.memory, ["H1"]),  # Current annotation data in 2s windows
+        ("annotation_state_2s_windows", hyperstream.channel_manager.memory, ["H1"]),
         ("merged_2s", hyperstream.channel_manager.memory, ["H1"]),
         ("dataframe", hyperstream.channel_manager.memory, ["H1"]),
         ("location_prediction_models", hyperstream.channel_manager.mongo, ["H1"]),
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
     
     multires_importer = hyperstream.channel_manager.get_tool(
-        name="multiresident_experiment_importer",
+        name="multi_resident_experiment_importer",
         parameters=dict())
     exp_meta = multires_importer.experiment_metadata
     exp_times = TimeIntervals()
@@ -89,9 +89,7 @@ if __name__ == '__main__':
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sliding_window",
-            parameters=dict(lower=datetime.timedelta(seconds=-2),
-                            upper=datetime.timedelta(seconds=0),
-                            increment=datetime.timedelta(seconds=2))
+            parameters=dict(lower=-2.0, upper=0.0, increment=2.0)
         ),
         sources=None,
         sink=N["every_2s"])
@@ -105,24 +103,23 @@ if __name__ == '__main__':
                             filters={})
         ),
         sources=None,
-        sink=N["anno_raw"])
+        sink=N["annotations_raw"])
     
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
-            name="anno_state",
+            name="annotation_state",
             parameters=dict(start_time=start_time)
         ),
-        sources=[N["every_2s"], N["anno_raw"]],
-        sink=N["anno_state"])
+        sources=[N["every_2s"], N["annotations_raw"]],
+        sink=N["annotation_state"])
     
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="aligning_window",
-            parameters=dict(lower=datetime.timedelta(seconds=-2),
-                            upper=datetime.timedelta(0))
+            parameters=dict(lower=-2.0, upper=0.0)
         ),
-        sources=[N["anno_state"]],
-        sink=N["anno_state_2s_windows"])
+        sources=[N["annotation_state"]],
+        sink=N["annotation_state_2s_windows"])
     
     
     def component_wise_max(init_value=None, id_field='aid', value_field='rss'):
@@ -146,26 +143,16 @@ if __name__ == '__main__':
             name="sliding_apply",
             parameters=dict(func=component_wise_max())
         ),
-        sources=[N["anno_state_2s_windows"], N["rss_raw"]],
+        sources=[N["annotation_state_2s_windows"], N["rss_raw"]],
         sink=N["rss_2s"])
     
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="aligned_merge",
-            parameters=dict(names=["anno", "rssi"])
+            parameters=dict(names=["annotations", "rssi"])
         ),
-        sources=[N["anno_state"], N["rss_2s"]],
+        sources=[N["annotation_state"], N["rss_2s"]],
         sink=N["merged_2s"])
-    
-    # from NT: removed the necessity for this by adding a DictVectoriser to the classifier pipeline - makes
-    #   classifier more robust to differing sensor contexts
-    # w.create_factor(
-    #     tool=hyperstream.channel_manager.get_tool(
-    #         name="dallan_dataframe_builder",
-    #         parameters=dict(time_interval=TimeInterval(start_time, end_time))
-    #     ),
-    #     sources=[N["merged_2s"]],
-    #     sink=N["dataframe"])
     
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
@@ -186,7 +173,7 @@ if __name__ == '__main__':
     sid = StreamId(name='dataframe', meta_data=(('house', '1'),))
     df = hyperstream.channel_manager.memory.data[sid][end_time]
     
-    stream = hyperstream.channel_manager.memory.data[StreamId(name="anno_state", meta_data=(("house", "1"),))]
+    stream = hyperstream.channel_manager.memory.data[StreamId(name="annotation_state", meta_data=(("house", "1"),))]
     for t in sorted(stream):
         print('{} : {}'.format(t, stream[t]))
     
@@ -205,7 +192,7 @@ if __name__ == '__main__':
     
     
     def print_cm(cm, labels, hide_zeroes=False, hide_diagonal=False, hide_threshold=None):
-        """pretty print for confusion matrixes"""
+        """pretty print for confusion matrices"""
         columnwidth = max([len(x) for x in labels] + [5])  # 5 is value length
         empty_cell = " " * columnwidth
         # Print header

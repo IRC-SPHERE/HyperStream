@@ -33,6 +33,8 @@ class BaseTool(Printable, Hashable):
             logging.debug('Defining a {} tool with parameters {}'.format(self.__class__.__name__, kwargs))
         else:
             logging.debug('Defining a {} tool'.format(self.__class__.__name__))
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
 
     def __eq__(self, other):
         # TODO: requires a unit test
@@ -43,4 +45,9 @@ class BaseTool(Printable, Hashable):
 
     @property
     def name(self):
-        return self.__class__.__module__
+        # return self.__class__.__module__
+        return super(BaseTool, self).name
+
+    @name.setter
+    def name(self, value):
+        self._name = value

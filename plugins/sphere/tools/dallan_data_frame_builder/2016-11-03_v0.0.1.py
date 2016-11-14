@@ -18,30 +18,26 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream import TimeInterval
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
-from hyperstream.utils.time_utils import construct_experiment_id
 import pandas as pd
 
 
-class ExperimentsDataframeBuilder(Tool):
+class DallanDataFrameBuilder(Tool):
     """
     Converts the value part of the stream instances to json format
     """
-    def __init__(self):
-        super(ExperimentsDataframeBuilder, self).__init__()
+    def __init__(self, time_interval):
+        super(DallanDataFrameBuilder, self).__init__(time_interval=time_interval)
+        self.time_interval = time_interval
 
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
         data = list(sources[0].window(interval, force_calculation=True))
         flattened = map(lambda x: dict(dict(
-            experiment_id = construct_experiment_id(TimeInterval(x.value['start'],x.value['end'])),
-            start=x.value['start'],
-            end=x.value['end'],
-            annotator=x.value['annotator']
-            ),**(x.value['notes'])),data)
+            timestamp=x.timestamp,
+            fold=next(iter(x.value['annotations']['Experiment']), None),
+            location=next(iter(x.value['annotations']['Location']), None)
+        ), **(x.value['rssi'])), data)
         df = pd.DataFrame(flattened)
-        df['id'] = range(1,len(df)+1)
-        yield StreamInstance(interval.end,df)
-
+        yield StreamInstance(interval.end, df)

@@ -24,9 +24,6 @@ from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.stream import StreamInstance
 from hyperstream.utils import unix2datetime
 import hyperstream  # just to get the path out of it
-import datetime
-import pytz
-
 
 DATA_PATH = '../data/2016_10_17_multiresident_annotations_from_sion_anonymised/location_annotations_unique_dt.csv'
 META_PATH = '../data/2016_10_17_multiresident_annotations_from_sion_anonymised/occurrence_times_manually.txt'
@@ -38,12 +35,11 @@ def reformat(doc):
     return StreamInstance(dt, doc)
 
 
-class MultiresidentExperimentImporter(Tool):
+class MultiResidentExperimentImporter(Tool):
     def __init__(self):
-        super(MultiresidentExperimentImporter, self).__init__()
+        super(MultiResidentExperimentImporter, self).__init__()
         path = os.path.dirname(hyperstream.__file__)
         self.data = pd.read_csv(os.path.join(path, DATA_PATH))
-#        self.data = self.data.iloc[0:50000]
         self.experiment_metadata = pd.read_csv(os.path.join(path, META_PATH))
 
     @check_input_stream_count(0)
