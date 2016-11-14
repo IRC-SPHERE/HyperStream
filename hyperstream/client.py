@@ -81,7 +81,11 @@ class Client(object):
             self.db.authenticate(server_config['username'], server_config['password'],
                                  source=server_config['authentication_database'])
         else:
-            self.db.authenticate(server_config['username'], server_config['password'])
+            if 'username' in server_config:
+                if 'password' in server_config:
+                    self.db.authenticate(server_config['username'], server_config['password'])
+                else:
+                    self.db.authenticate(server_config['username'])
 
         # Mongo Engine connection
         d = dict((k, v) for k, v in server_config.items() if k not in ['modalities', 'summaries'])
