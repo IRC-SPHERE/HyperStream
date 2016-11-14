@@ -89,5 +89,4 @@ class SelectorTool(BaseTool):
                     produced_data = True
 
             if not produced_data:
-                logging.warn("{} did not produce any data for time interval {}".format(
-                    self.name, required_intervals))
+                logging.debug("{} did not produce any data for time interval {}".format(self.name, required_intervals))
