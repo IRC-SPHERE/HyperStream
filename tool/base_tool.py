@@ -33,6 +33,8 @@ class BaseTool(Printable, Hashable):
             logging.debug('Defining a {} tool with parameters {}'.format(self.__class__.__name__, kwargs))
         else:
             logging.debug('Defining a {} tool'.format(self.__class__.__name__))
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
 
     def __eq__(self, other):
         # TODO: requires a unit test
