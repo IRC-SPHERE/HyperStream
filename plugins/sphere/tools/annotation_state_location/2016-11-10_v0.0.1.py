@@ -40,7 +40,12 @@ class AnnotationStateLocation(Tool):
     def _execute(self, sources, alignment_stream, interval):
         data = list(sources[1].window(interval, force_calculation=True))
         timestamps = [x.timestamp for x in data]
-        interval2 = TimeInterval(min(timestamps) - datetime.timedelta(microseconds=1), max(timestamps))
+        try:
+            interval2 = TimeInterval(min(timestamps) - datetime.timedelta(microseconds=1), max(timestamps))
+        except ValueError:
+            # TODO: Something more intelligent - This is raised when the source stream is empty
+            return
+
         windows = iter(sources[0].window(interval2, force_calculation=True))
         data = iter(data)
 

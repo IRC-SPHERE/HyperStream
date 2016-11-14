@@ -26,7 +26,7 @@ from hyperstream import HyperStream, TimeInterval, StreamId, UTC
 from workflows.deploy_localisation_model import create_workflow_localisation_predict
 
 
-def run():
+def run(house):
     hyperstream = HyperStream(loglevel=logging.INFO)
 
     workflow_id = "lda_localisation_model_predict"
@@ -51,10 +51,12 @@ def run():
         len(hyperstream.channel_manager.memory.non_empty_streams)))
 
     for wearable in 'ABCD':
-        sid = StreamId('predicted_locations_broadcasted', dict(house=1, wearable=wearable))
+        sid = StreamId('predicted_locations_broadcasted', dict(house=house, wearable=wearable))
         print sid
         print len(list(hyperstream.channel_manager.memory[sid].window(time_interval)))
         print '\n\n'
 
 if __name__ == '__main__':
-    run()
+    house = 1
+
+    run(house)

@@ -48,22 +48,22 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
     U = hyperstream.channel_manager.assets
 
     nodes = (
-        ("experiments_list",            M, ["H1"]),  # Current annotation data in 2s windows
-        ("experiments_dataframe",       M, ["H1"]),  # Current annotation data in 2s windows
-        ("experiments_mapping",         M, ["H1"]),  # Current annotation data in 2s windows
-        ("rss_raw",                     S, ["H1"]),  # Raw RSS data
-        ("rss_time",                    S, ["H1.SelectedLocalisationExperiment"]),  # RSS data split by experiment
-        ("annotation_raw_locations",    S, ["H1"]),  # Raw annotation data
-        ("annotation_time",             S, ["H1.SelectedLocalisationExperiment"]),  # RSS data split by experiment
-        ("every_2s",                    M, ["H1.SelectedLocalisationExperiment"]),  # sliding windows one every minute
-        ("annotation_state_location",   M, ["H1.SelectedLocalisationExperiment"]),  # Annotation data in 2s windows
-        ("annotation_state_2s_windows", M, ["H1.SelectedLocalisationExperiment"]),
-        ("rss_2s",                      M, ["H1.SelectedLocalisationExperiment"]),  # max(RSS) per AP in past 2s of RSS
-        ("merged_2s",                   M, ["H1.SelectedLocalisationExperiment"]),  # rss_2s with annotation_state_2s
-        ("merged_2s_flat",              M, ["H1"]),                                 # flattened version of merged_2s
-        ("dataframe",                   M, ["H1"]),
-        ("location_prediction_lda_mk1", M, ["H1"]),
-        ("experiments_selected",        U, ["H1"])
+        ("experiments_list",            M, ["H"]),  # Current annotation data in 2s windows
+        ("experiments_dataframe",       M, ["H"]),  # Current annotation data in 2s windows
+        ("experiments_mapping",         M, ["H"]),  # Current annotation data in 2s windows
+        ("rss_raw",                     S, ["H"]),  # Raw RSS data
+        ("rss_time",                    S, ["H.SelectedLocalisationExperiment"]),  # RSS data split by experiment
+        ("annotation_raw_locations",    S, ["H"]),  # Raw annotation data
+        ("annotation_time",             S, ["H.SelectedLocalisationExperiment"]),  # RSS data split by experiment
+        ("every_2s",                    M, ["H.SelectedLocalisationExperiment"]),  # sliding windows one every minute
+        ("annotation_state_location",   M, ["H.SelectedLocalisationExperiment"]),  # Annotation data in 2s windows
+        ("annotation_state_2s_windows", M, ["H.SelectedLocalisationExperiment"]),
+        ("rss_2s",                      M, ["H.SelectedLocalisationExperiment"]),  # max(RSS) per AP in past 2s of RSS
+        ("merged_2s",                   M, ["H.SelectedLocalisationExperiment"]),  # rss_2s with annotation_state_2s
+        ("merged_2s_flat",              M, ["H"]),                                 # flattened version of merged_2s
+        ("dataframe",                   M, ["H"]),
+        ("location_prediction_lda_mk1", M, ["H"]),
+        ("experiments_selected",        U, ["H"])
     )
 
     # Create all of the nodes
@@ -84,12 +84,13 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
         sink=N["experiments_mapping"]
     )
 
-    w.create_factor(
+    w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
             parameters=dict(modality="wearable4")
         ),
-        sources=None,
+        source=None,
+        splitting_node=None,
         sink=N["rss_raw"])
 
     w.create_multi_output_factor(
@@ -101,7 +102,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
         splitting_node=N["experiments_mapping"],
         sink=N["rss_time"])
 
-    w.create_factor(
+    w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
             parameters=dict(modality="annotations",
@@ -109,7 +110,8 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
                             elements={"Location"},
                             filters={})
         ),
-        sources=None,
+        source=None,
+        splitting_node=None,
         sink=N["annotation_raw_locations"])
 
     w.create_multi_output_factor(

@@ -38,7 +38,10 @@ class SplitterTimeAwareFromStream(MultiOutputTool):
         if output_plate.meta_data_id != self.meta_data_id:
             raise IncompatiblePlatesError("Output plate does not match the specified meta data id")
 
-        time_intervals = splitting_stream.window(interval, force_calculation=True).last().value
+        try:
+            time_intervals = splitting_stream.window(interval, force_calculation=True).last().value
+        except AttributeError:
+            return
 
         mapping = {}
         if isinstance(time_intervals, (tuple, list, TimeIntervals)):

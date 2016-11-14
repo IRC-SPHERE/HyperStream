@@ -99,7 +99,10 @@ class LocalisationModelLearn(Tool):
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
         data = list(sources[0].window(interval, force_calculation=True))
-        
+
+        if not data:
+            return
+
         yy_key = 'annotations'
         xx_key = 'rssi'
         ex_key = 'localisation-experiment'

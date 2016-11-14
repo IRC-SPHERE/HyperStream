@@ -27,7 +27,7 @@ from workflows.display_experiments import create_workflow_list_technicians_walka
 from workflows.learn_localisation_model import create_workflow_lda_localisation_model_learner
 
 
-def run(selection):
+def run(house, selection):
     hyperstream = HyperStream(loglevel=logging.INFO)
     M = hyperstream.channel_manager.memory
 
@@ -36,20 +36,20 @@ def run(selection):
     try:
         w0 = hyperstream.workflow_manager.workflows[workflow_id0]
     except KeyError:
-        w0 = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
+        w0 = create_workflow_list_technicians_walkarounds(hyperstream, house=house, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id0)
     w0.execute(TimeInterval.all_time())
 
-    df = M[StreamId('experiments_dataframe', dict(house=1))].window(TimeInterval.all_time()).values()[0]
+    df = M[StreamId('experiments_dataframe', dict(house=house))].window(TimeInterval.all_time()).values()[0]
     experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
 
     hyperstream.plate_manager.create_plate(
-        plate_id="H1.SelectedLocalisationExperiment",
+        plate_id="H.SelectedLocalisationExperiment",
         description="Localisation experiments selected by the technician in SPHERE house",
         meta_data_id="localisation-experiment",
-        values=experiment_ids,
-        complement=False,
-        parent_plate="H1"
+        values=[],
+        complement=True,
+        parent_plate="H"
     )
 
     # Ensure the model is overwritten if it's already there
@@ -83,4 +83,6 @@ if __name__ == '__main__':
         technicians_selection = None  # just to keep lint happy
         exit(0)
 
-    run(technicians_selection)
+    house = 1
+
+    run(house, technicians_selection)
