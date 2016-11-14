@@ -151,9 +151,9 @@ class WorkflowManager(Printable):
                     )
 
                 elif f.factor_type == "MultiOutputFactor":
-                    if len(source_nodes) != 1:
+                    if len(source_nodes) > 1:
                         raise ValueError(
-                            "MultiOutputFactor factors should have a single source node, received {}"
+                            "MultiOutputFactor factors should have at most one source node, received {}"
                             .format(len(source_nodes)))
 
                     if len(sink_nodes) != 1:
@@ -171,7 +171,7 @@ class WorkflowManager(Printable):
 
                     workflow.create_multi_output_factor(
                         tool=tool,
-                        source=source_nodes[0],
+                        source=source_nodes[0] if source_nodes else None,
                         splitting_node=splitting_node,
                         sink=sink_nodes[0]
                     )
@@ -302,7 +302,7 @@ class WorkflowManager(Printable):
                     output_plate = None
 
                 elif isinstance(f, MultiOutputFactor):
-                    sources = [f.source.node_id]
+                    sources = [f.source.node_id] if f.source else []
                     sinks = [f.sink.node_id]
                     alignment_node = None
                     splitting_node = f.splitting_node.node_id if f.splitting_node else None

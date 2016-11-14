@@ -208,6 +208,7 @@ class MultiOutputFactor(Printable):
         :param output_plates: The plates, the last of which will be the new one created
         :type tool: MultiOutputTool
         :type sink_node: Node
+        :type source_node: Node | None
         :type input_plate: Plate | None
         :type output_plates: list[Plate] | tuple[Plate] | Plate
         """
@@ -215,7 +216,7 @@ class MultiOutputFactor(Printable):
             raise ValueError("Expected tool, got {}".format(type(tool)))
         self.tool = tool
         
-        if not isinstance(source_node, Node):
+        if source_node and not isinstance(source_node, Node):
             raise ValueError("Expected node, got {}".format(type(source_node)))
         self.source = source_node
 
@@ -284,7 +285,7 @@ class MultiOutputFactor(Printable):
                 self.tool.execute(source=source, sinks=sinks, interval=time_interval, splitting_stream=splitting_stream,
                                   input_plate_value=ipv, output_plate=self.output_plates[-1])
         else:
-            sources = self.source.streams[None]
+            sources = self.source.streams[None] if self.source else None
             if len(self.output_plates) != 1:
                 raise ValueError("Should be a single output plate if there is no input plate")
 

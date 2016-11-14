@@ -94,7 +94,7 @@ class MultiOutputTool(BaseTool):
                 for item in self._execute(source=source, splitting_stream=splitting_stream,
                                           interval=interval, output_plate=output_plate):
                     # Join the output meta data with the parent plate meta data
-                    meta_data = input_plate_value + (item.meta_data,)
+                    meta_data = input_plate_value + (item.meta_data,) if input_plate_value else (item.meta_data, )
                     try:
                         sink = next(s for s in sinks if
                                     tuple(sorted(s.stream_id.meta_data)) == tuple(sorted(meta_data)))
