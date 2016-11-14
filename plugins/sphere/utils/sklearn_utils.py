@@ -21,6 +21,8 @@
 
 
 from sklearn.base import BaseEstimator, TransformerMixin
+from copy import deepcopy
+from numpy import asarray, __name__ as numpy_name
 
 
 class FillZeros(BaseEstimator, TransformerMixin):
@@ -35,3 +37,67 @@ class FillZeros(BaseEstimator, TransformerMixin):
         X[X == 0] = self.default_value
         
         return X
+
+
+def serialise_sklearn_model(model):
+    """
+    
+    :param model:
+    :return:
+    """
+    
+    params = {}
+    
+    for kk, vv in model.__dict__.iteritems():
+        try:
+            if isinstance(vv, type):
+                continue
+            
+            if vv is None:
+                params[kk] = None
+            
+            elif type(vv).__module__ == numpy_name:
+                params[kk] = vv.tolist()
+            
+            elif isinstance(vv, (dict, str, list, bool, int, float)):
+                params[kk] = vv
+        
+        except Exception as ex:
+            raise ex
+    
+    return params
+
+
+def serialise_json_pipeline(param_dict):
+    """
+    
+    :param param_dict:
+    :return:
+    """
+    param_dict = deepcopy(param_dict)
+    
+    # TODO: look into using get_params/set_params as an alternative to this
+    for step_name, step_model in param_dict.iteritems():
+        param_dict[step_name] = serialise_sklearn_model(step_model)
+    
+    return param_dict
+
+
+def deserialise_json_pipeline(steps, param_dict):
+    """
+    
+    :param steps:
+    :param param_dict:
+    :return:
+    """
+    
+    steps = deepcopy(steps)
+    
+    for step_name in steps.keys():
+        for param_name, param_value in param_dict[step_name].iteritems():
+            if isinstance(param_value, list):
+                setattr(steps[step_name], param_name, asarray(param_value))
+            else:
+                setattr(steps[step_name], param_name, param_value)
+    
+    return steps

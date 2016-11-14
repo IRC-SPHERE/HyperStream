@@ -60,7 +60,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, exp_ids, safe=Tr
         ("merged_2s",                   M, ["H1.SelectedLocalisationExperiment"]),  # rss_2s merged with anno_state_2s
         ("merged_2s_flat",              M, ["H1"]),                                 # flattened version of merged_2s
         ("dataframe",                   M, ["H1"]),
-        ("location_prediction_lda_mk1", D, ["H1"])
+        ("location_prediction_lda_mk1", M, ["H1"])
     )
 
     # Create all of the nodes

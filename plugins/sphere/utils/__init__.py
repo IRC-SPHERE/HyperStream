@@ -19,4 +19,4 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from sklearn_utils import FillZeros
+from sklearn_utils import FillZeros, serialise_json_pipeline, deserialise_json_pipeline
