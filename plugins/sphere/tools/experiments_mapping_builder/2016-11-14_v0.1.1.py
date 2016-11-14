@@ -34,7 +34,10 @@ class ExperimentsMappingBuilder(Tool):
     @check_input_stream_count(2)
     def _execute(self, sources, alignment_stream, interval):
         data = sources[0].window(interval, force_calculation=True)
-        experiment_ids = sources[1].window(interval, force_calculation=True).last().value
+        try:
+            experiment_ids = sources[1].window(interval, force_calculation=True).last().value
+        except AttributeError:
+            return
 
         mappings = []
         for x in data:

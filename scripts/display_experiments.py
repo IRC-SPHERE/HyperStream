@@ -28,9 +28,8 @@ import pandas as pd
 
 from workflows.display_experiments import create_workflow_list_technicians_walkarounds
 
-if __name__ == '__main__':
-    house = 2
 
+def run(house):
     hyperstream = HyperStream(loglevel=logging.INFO)
     
     # Various channels
@@ -52,7 +51,6 @@ if __name__ == '__main__':
     print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))
     print('number of memory non_empty_streams: {}'.format(len(M.non_empty_streams)))
     
-    experiment_data = M[StreamId('experiments_list', dict(house=house))].window(TimeInterval.all_time()).values()
     df = M[StreamId('experiments_dataframe', dict(house=house))].window(TimeInterval.all_time()).values()[0]
     # arrow.get(x).humanize()
     # df['start'] = df['start'].map('{:%Y-%m-%d %H:%M:%S}'.format)
@@ -66,3 +64,8 @@ if __name__ == '__main__':
     
     pd.set_option('display.width', 1000)
     print(df[['id', 'start_as_text', 'duration_as_text', 'start', 'end', 'annotator']].to_string(index=False))
+
+if __name__ == '__main__':
+    house = 1
+
+    run(house)

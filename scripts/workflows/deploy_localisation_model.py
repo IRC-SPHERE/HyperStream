@@ -36,13 +36,13 @@ def create_workflow_localisation_predict(hyperstream, safe=True):
             return hyperstream.workflow_manager.workflows[workflow_id]
 
     nodes = (
-        ("rss_raw",                                 hyperstream.channel_manager.sphere, ["H1"]),
-        ("location_prediction_lda_mk1",             hyperstream.channel_manager.mongo,  ["H1"]),
-        ("every_2s",                                hyperstream.channel_manager.memory, ["H1.W"]),
-        ("rss_per_uid",                             hyperstream.channel_manager.memory, ["H1.W"]),
-        ("rss_per_uid_2s",                          hyperstream.channel_manager.memory, ["H1.W"]),
-        ("location_prediction_models_broadcasted",  hyperstream.channel_manager.memory, ["H1.W"]),
-        ("predicted_locations_broadcasted",         hyperstream.channel_manager.memory, ["H1.W"]),
+        ("rss_raw",                                 hyperstream.channel_manager.sphere, ["H"]),
+        ("location_prediction_lda_mk1",             hyperstream.channel_manager.mongo,  ["H"]),
+        ("every_2s",                                hyperstream.channel_manager.memory, ["H.W"]),
+        ("rss_per_uid",                             hyperstream.channel_manager.memory, ["H.W"]),
+        ("rss_per_uid_2s",                          hyperstream.channel_manager.memory, ["H.W"]),
+        ("location_prediction_models_broadcasted",  hyperstream.channel_manager.memory, ["H.W"]),
+        ("predicted_locations_broadcasted",         hyperstream.channel_manager.memory, ["H.W"]),
     )
 
     # Create all of the nodes
