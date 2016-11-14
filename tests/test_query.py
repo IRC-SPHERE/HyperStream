@@ -73,7 +73,15 @@ class HyperStreamQueryTests(unittest.TestCase):
         env_tool = channels.get_tool("sphere", dict(modality="environmental"))
         elec_tool = T[component].window((MIN_DATE, utcnow())).last().value(key='electricity-04063')
 
-        env_tool.execute(sources=None, sink=env, alignment_stream=None, interval=ti)
+        env_tool.execute(
+            source=None,
+            splitting_stream=None,
+            sinks=[env],
+            interval=ti,
+            input_plate_value=None,
+            output_plate=hyperstream.plate_manager.plates["H"]
+        )
+
         elec_tool.execute(sources=[env], sink=elec, alignment_stream=None, interval=ti)
 
         q1 = "\n".join("=".join(map(str, ee)) for ee in elec.window(ti))
@@ -121,10 +129,13 @@ class HyperStreamQueryTests(unittest.TestCase):
             interval=ti)
 
         t_env.execute(
-            alignment_stream=None,
-            sources=None,
-            sink=S[environmental],
-            interval=ti)
+            source=None,
+            splitting_stream=None,
+            sinks=[S[environmental]],
+            interval=ti,
+            input_plate_value=None,
+            output_plate=hyperstream.plate_manager.plates["H"]
+        )
 
         t_kitchen.execute(
             alignment_stream=None,
@@ -185,7 +196,14 @@ class HyperStreamQueryTests(unittest.TestCase):
         env_tool = channels.get_tool("sphere", dict(modality="environmental"))
         elec_tool = T[component].window((MIN_DATE, utcnow())).last().value(key='electricity-04063')
 
-        env_tool.execute(sources=None, sink=env, alignment_stream=None, interval=ti)
+        env_tool.execute(
+            source=None,
+            splitting_stream=None,
+            sinks=[env],
+            interval=ti,
+            input_plate_value=None,
+            output_plate=hyperstream.plate_manager.plates["H"]
+        )
         elec_tool.execute(sources=[env], sink=elec, alignment_stream=None, interval=ti)
 
         q1 = "\n".join("=".join(map(str, ee)) for ee in elec.window(ti))
@@ -216,8 +234,11 @@ class HyperStreamQueryTests(unittest.TestCase):
         node = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1"])  # .window((t1, t1 + 1 * minute))
 
         # Create a factor to produce some data
-        w.create_factor(tool=dict(name="sphere", parameters=dict(modality="environmental")),
-                        sources=None, sink=node)
+        w.create_multi_output_factor(
+            tool=dict(name="sphere", parameters=dict(modality="environmental")),
+            source=None,
+            splitting_node=None,
+            sink=node)
 
         # Execute the workflow
         w.execute(time_interval)
@@ -254,7 +275,8 @@ class HyperStreamQueryTests(unittest.TestCase):
         
         # Define the motion in kitchen tool
         
-        stream_sphere_environmental = S.create_stream(StreamId('stream_id_memory_environmental'))
+        stream_sphere_environmental = S.create_stream(StreamId(
+            name='stream_id_memory_environmental', meta_data=dict(house=1)))
         
         stream_tool_sphere_environmental = channels.get_tool(
             name='sphere',
@@ -264,10 +286,12 @@ class HyperStreamQueryTests(unittest.TestCase):
         )
         
         stream_tool_sphere_environmental.execute(
-            sources=None,
-            sink=stream_sphere_environmental,
-            alignment_stream=None,
-            interval=interval
+            source=None,
+            sinks=[stream_sphere_environmental],
+            splitting_stream=None,
+            input_plate_value=None,
+            interval=interval,
+            output_plate=hyperstream.plate_manager.plates["H"]
         )
 
         result = stream_sphere_environmental.window(interval).first().value
@@ -356,8 +380,11 @@ class HyperStreamQueryTests(unittest.TestCase):
     
         # Define the environmental data
         n_environmental_data = w.create_node(stream_name="environmental", channel=M, plate_ids=["H1"])
-        w.create_factor(tool=dict(name="sphere", parameters=dict(modality="environmental")),
-                        sources=None, sink=n_environmental_data).execute(interval)
+        w.create_multi_output_factor(
+            tool=dict(name="sphere", parameters=dict(modality="environmental")),
+            source=None,
+            splitting_node=None,
+            sink=n_environmental_data).execute(interval)
 
         # Pick out the kitchen sensor
         n_environmental_kitchen = w.create_node(stream_name="environmental_kitchen", channel=M, plate_ids=["H1"])
@@ -407,9 +434,11 @@ class HyperStreamQueryTests(unittest.TestCase):
     
         # Define the environmental data
         n_environmental_data = w.create_node(stream_name="environmental", channel=M, plate_ids=["H1"])
-        w.create_factor(
+        w.create_multi_output_factor(
             tool=dict(name="sphere", parameters=dict(modality="environmental")),
-            sources=None, sink=n_environmental_data)
+            source=None,
+            splitting_node=None,
+            sink=n_environmental_data)
     
         # Pick out the kitchen sensor
         n_environmental_kitchen = w.create_node(stream_name="environmental_kitchen", channel=M, plate_ids=["H1"])

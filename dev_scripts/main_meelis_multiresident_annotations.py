@@ -124,7 +124,11 @@ if __name__ == '__main__':
     N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
 
 #    w.create_factor(tool=tools.wearable_rss, sources=None, sink=N["rss_raw"])
-    f = w.create_factor(tool=wearable3, sources=None, sink=N["rss_raw"])
+    f = w.create_multi_output_factor(
+        tool=wearable3,
+        source=None,
+        splitting_node=None,
+        sink=N["rss_raw"])
 #    w.create_multi_output_factor(tool=tools.split_aid, source=N["rss_raw"], splitting_node=None, sink=N["rss_aid"])
 
 #    w.create_multi_output_factor(tool=split_aid, source=N["rss_raw"], splitting_node=None, sink=N["rss_aid"])
@@ -271,8 +275,9 @@ if __name__ == '__main__':
                                 filters={"trigger": 1})
             )
 
-            w.create_factor(
-                tool=annotations_location, sources=None, sink=N["annotations_flat"]).execute(time_interval) \
+            w.create_multi_output_factor(
+                tool=annotations_location, source=None, splitting_node=None,
+                sink=N["annotations_flat"]).execute(time_interval) \
                 .sink.print_head(None, (("house", "1"), ('scripted', str(i + 1))), time_interval)
 
             plate_id = "H1.scripted_{}".format(i + 1)

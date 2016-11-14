@@ -71,9 +71,12 @@ if __name__ == '__main__':
     node = w.create_node(stream_name="environmental", channel=S, plate_ids=["H1"])  # .window((t1, t1 + 1 * minute))
 
     # Create a factor to produce some data
-    factor = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"), source_nodes=None,
-                             sink_node=node, alignment_node=None)
-    # sources=None, sink=StreamView(stream=node.streams[0], time_interval=time_interval))
+    factor = w.create_multi_output_factor(
+        tool_name="sphere",
+        tool_parameters=dict(modality="environmental"),
+        source=None,
+        splitting_node=None,
+        sink=node)
 
     # Execute the workflow
     w.execute(time_interval)
@@ -104,8 +107,12 @@ if __name__ == '__main__':
     f_timer = w.create_factor(tool_name="clock", tool_parameters=dict(first=MIN_DATE, stride=30 * second),
                               source_nodes=None, sink_node=n_clock, alignment_node=None)
 
-    f_env = w.create_factor(tool_name="sphere", tool_parameters=dict(modality="environmental"), source_nodes=None,
-                            sink_node=n_environ, alignment_node=None)
+    f_env = w.create_multi_output_factor(
+        tool_name="sphere",
+        tool_parameters=dict(modality="environmental"),
+        source=None,
+        splitting_node=None,
+        sink=n_environ)
 
     f_motion = w.create_factor(tool_name="component", tool_parameters=dict(key="motion-S1_K"), source_nodes=[n_environ],
                                sink_node=n_motion_kitchen, alignment_node=None)
