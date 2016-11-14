@@ -17,3 +17,4 @@ simplejson
 SQLAlchemy
 tqdm
 treelib
+sklearn=0.18
