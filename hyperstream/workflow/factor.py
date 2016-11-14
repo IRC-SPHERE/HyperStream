@@ -47,6 +47,13 @@ class Factor(Printable):
         """
         if not isinstance(tool, BaseTool):
             raise ValueError("Expected tool, got {}".format(type(tool)))
+
+        if isinstance(tool, MultiOutputTool):
+            raise ValueError("Use MultiOutputFactor for MultiOutputTool")
+
+        if isinstance(tool, PlateCreationTool):
+            raise ValueError("Use PlateCreationFactor for PlateCreationTool")
+
         self.tool = tool
         if source_nodes:
             for source in source_nodes:
