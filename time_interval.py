@@ -25,6 +25,7 @@ from utils import MIN_DATE, MAX_DATE, utcnow, UTC, Printable, get_timedelta
 
 from datetime import date, datetime, timedelta
 from dateutil.parser import parse
+from collections import namedtuple
 
 
 class TimeIntervals(Printable):
@@ -148,7 +149,7 @@ class TimeIntervals(Printable):
         return len(self.intervals)
 
 
-class TimeInterval(object):
+class TimeInterval(namedtuple("TimeInterval", "start end")):
     """
     Time interval object.
     Thin wrapper around a (start, end) tuple of datetime objects that provides some validation
@@ -157,21 +158,25 @@ class TimeInterval(object):
     def all_time(cls):
         return TimeInterval(MIN_DATE, MAX_DATE)
 
-    def __init__(self, start, end):
+    def __new__(cls, start, end):
         """
         Initialise the object with the start and end times
 
         :param start: The start time
         :param end: The end time
         """
+        return super(TimeInterval, cls).__new__(cls, start, end)
+
+    def __init__(self, start, end):
         self._start = start
         self._end = end
-        self.validate()
+        self._validate()
+        super(TimeInterval, self).__init__()
 
     def to_tuple(self):
         return self.start, self.end
     
-    def validate(self):
+    def _validate(self):
         if not isinstance(self._start, (date, datetime)):
             raise TypeError("start should datetime.datetime object")
 
@@ -183,16 +188,26 @@ class TimeInterval(object):
 
     @property
     def width(self):
-        return self.end - self.start
+        return self._end - self._start
 
     @property
     def start(self):
         return self._start
 
+    @start.setter
+    def start(self, value):
+        self._start = value
+        self._validate()
+
     @property
     def end(self):
         return self._end
-    
+
+    @end.setter
+    def end(self, value):
+        self._end = value
+        self._validate()
+
     def __str__(self):
         return "({0}, {1}]".format(self.start, self.end)
 
@@ -250,9 +265,9 @@ class RelativeTimeInterval(TimeInterval):
         """
         self._start = get_timedelta(start)
         self._end = get_timedelta(end)
-        self.validate()
+        self._validate()
 
-    def validate(self):
+    def _validate(self):
         if not isinstance(self._start, timedelta):
             raise TypeError("start should datetime.timedelta object")
 
@@ -264,6 +279,24 @@ class RelativeTimeInterval(TimeInterval):
 
         if self._end > timedelta(0):
             raise ValueError("relative time intervals in the future are not supported")
+
+    @property
+    def start(self):
+        return self._start.total_seconds()
+
+    @start.setter
+    def start(self, value):
+        self._start = get_timedelta(value)
+        self._validate()
+
+    @property
+    def end(self):
+        return self._end.total_seconds()
+
+    @end.setter
+    def end(self, value):
+        self._end = get_timedelta(value)
+        self._validate()
 
 
 def parse_time_tuple(start, end):
