@@ -135,7 +135,8 @@ class Workflow(Printable):
         :rtype: Factor
         """
         if isinstance(tool, dict):
-            tool = self.channels.get_tool(**tool)
+            # tool = self.channels.get_tool(**tool)
+            tool = self.channels.get_tool(name=tool["name"], parameters=tool["parameters"])
 
         if not isinstance(tool, BaseTool):
             raise ValueError("Expected Tool, got {}".format(type(tool)))
@@ -279,7 +280,7 @@ class Workflow(Printable):
         :return: The created factor
         """
         if isinstance(tool, dict):
-            tool = self.channels.get_tool(name=tool["name"], parameters=["parameters"])
+            tool = self.channels.get_tool(name=tool["name"], parameters=tool["parameters"])
 
         if not isinstance(tool, PlateCreationTool):
             raise ValueError("Expected MultiOutputTool, got {}".format(type(tool)))

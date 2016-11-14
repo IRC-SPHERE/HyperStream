@@ -18,9 +18,6 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream import TimeInterval
-from hyperstream.utils import construct_experiment_id
-
 
 def create_workflow_list_technicians_walkarounds(hyperstream, safe=True):
     # Various channels
@@ -73,6 +70,8 @@ def create_workflow_list_technicians_walkarounds(hyperstream, safe=True):
     )
 
     def func(instance):
+        from hyperstream.utils import construct_experiment_id
+        from hyperstream.time_interval import TimeInterval
         return construct_experiment_id(TimeInterval(instance.value["start"], instance.value["end"]))
 
     w.create_node_creation_factor(

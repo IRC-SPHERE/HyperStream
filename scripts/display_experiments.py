@@ -36,8 +36,15 @@ if __name__ == '__main__':
     S = hyperstream.channel_manager.sphere
     T = hyperstream.channel_manager.tools
     D = hyperstream.channel_manager.mongo
-    
-    w = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
+
+    workflow_id = "list_technicians_walkarounds"
+    # hyperstream.workflow_manager.delete_workflow(workflow_id)
+    try:
+        w = hyperstream.workflow_manager.workflows[workflow_id]
+    except KeyError:
+        w = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
+        hyperstream.workflow_manager.commit_workflow(workflow_id)
+
     w.execute(TimeInterval.all_time())
     
     print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))

@@ -236,9 +236,9 @@ class HyperStreamQueryTests(unittest.TestCase):
             name="sliding_window",
             parameters=dict(
                 first=MIN_DATE,
-                lower=timedelta(seconds=-30),
-                upper=timedelta(seconds=0),
-                increment=timedelta(seconds=10)
+                lower=-30.0,
+                upper=0.0,
+                increment=10.0
             )
         )
         
@@ -349,9 +349,9 @@ class HyperStreamQueryTests(unittest.TestCase):
         n_sliding_window = w.create_node(stream_name="sliding_window", channel=M, plate_ids=None)
         w.create_factor(tool=dict(name="sliding_window", parameters=dict(
             first=MIN_DATE,
-            lower=timedelta(seconds=-30),
-            upper=timedelta(seconds=0),
-            increment=timedelta(seconds=10)
+            lower=-30.0,
+            upper=0.0,
+            increment=10.0
         )), sources=None, sink=n_sliding_window).execute(interval)
     
         # Define the environmental data

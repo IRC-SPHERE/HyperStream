@@ -86,9 +86,7 @@ if __name__ == '__main__':
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sliding_window",
-            parameters=dict(lower=datetime.timedelta(seconds=-2),
-                            upper=datetime.timedelta(seconds=0),
-                            increment=datetime.timedelta(seconds=2))
+            parameters=dict(lower=-2.0, upper=0.0, increment=2.0)
         ),
         sources=None,
         sink=N["every_2s"])
