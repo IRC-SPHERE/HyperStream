@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-def create_workflow_list_technicians_walkarounds(hyperstream, safe=True):
+def create_workflow_list_technicians_walkarounds(hyperstream, house, safe=True):
     # Various channels
     M = hyperstream.channel_manager.memory
     S = hyperstream.channel_manager.sphere
@@ -43,20 +43,21 @@ def create_workflow_list_technicians_walkarounds(hyperstream, safe=True):
             return hyperstream.workflow_manager.workflows[workflow_id]
 
     nodes = (
-        ("annotations_raw",         S, ["H1"]),                    # Raw annotation data
-        ("experiments_list",        M, ["H1"]),                    # Current annotation data in 2s windows
-        ("experiments_dataframe",   M, ["H1"]),                    # Current annotation data in 2s windows
+        ("annotations_raw",         S, ["H"]),                    # Raw annotation data
+        ("experiments_list",        M, ["H"]),                    # Current annotation data in 2s windows
+        ("experiments_dataframe",   M, ["H"]),                    # Current annotation data in 2s windows
     )
 
     # Create all of the nodes
     N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
 
-    w.create_factor(
+    w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
             parameters=dict(modality="annotations", annotators=[0], elements={"Experiment"}, filters={})
         ),
-        sources=None,
+        source=None,
+        splitting_node=None,
         sink=N["annotations_raw"]
     )
 

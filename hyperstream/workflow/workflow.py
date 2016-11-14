@@ -215,7 +215,7 @@ class Workflow(Printable):
             raise ValueError("Expected MultiOutputTool, got {}".format(type(tool)))
 
         # Check that the input_plate are compatible - note this is the opposite way round to a normal factor
-        input_plates = [self.plate_manager.plates[plate_id] for plate_id in source.plate_ids]
+        input_plates = [self.plate_manager.plates[plate_id] for plate_id in source.plate_ids] if source else []
         output_plates = [self.plate_manager.plates[plate_id] for plate_id in sink.plate_ids]
 
         if len(input_plates) > 1:
@@ -229,7 +229,8 @@ class Workflow(Printable):
                 raise IncompatiblePlatesError("Parent plate does not match input plate")
 
             factor = MultiOutputFactor(tool=tool, source_node=source, splitting_node=splitting_node, sink_node=sink,
-                                       input_plate=input_plates[0], output_plates=output_plates[0])
+                                       input_plate=input_plates[0] if input_plates else None,
+                                       output_plates=output_plates[0])
         else:
             # The output plates should be the same as the input plates, except for one
             # additional plate. Since we're currently only supporting one input plate,
