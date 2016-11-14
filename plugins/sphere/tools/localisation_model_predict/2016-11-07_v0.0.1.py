@@ -34,6 +34,8 @@ from plugins.sphere.utils import FillZeros
 from hyperstream.utils import MIN_DATE, MAX_DATE
 from hyperstream.time_interval import TimeInterval
 
+from plugins.sphere.utils import deserialise_json_pipeline
+
 
 class LocalisationModelPredict(Tool):
     """
@@ -48,27 +50,17 @@ class LocalisationModelPredict(Tool):
         param_doc = sources[0].window(TimeInterval(MIN_DATE, MAX_DATE), force_calculation=True).last()
         if param_doc is None:
             return
-            
-        param_dict = param_doc.value
         
-        data = sources[1].window(interval, force_calculation=True)
-        
-        steps = {
+        steps = deserialise_json_pipeline({
             'vectorisation': DictVectorizer(sparse=False),
             'fill_missing': FillZeros(),
             'classifier': LinearDiscriminantAnalysis(),
             'label_encoder': LabelEncoder()
-        }
-
-        for step_name in steps.keys():
-            for param_name, param_value in param_dict[step_name].iteritems():
-                if isinstance(param_value, list):
-                    setattr(steps[step_name], param_name, np.asarray(param_value))
-                else:
-                    setattr(steps[step_name], param_name, param_value)
+        }, param_doc.value)
         
         clf = Pipeline([(kk, steps[kk]) for kk in ('vectorisation', 'fill_missing', 'classifier')])
         locations = steps['label_encoder'].classes_
         
+        data = sources[1].window(interval, force_calculation=True)
         for tt, dd in data:
             yield StreamInstance(tt, {locations[ii]: pp for ii, pp in enumerate(clf.predict_proba(dd)[0])})
