@@ -22,7 +22,7 @@ from hyperstream.utils import utcnow
 from hyperstream import StreamId, StreamInstance
 
 
-def create_workflow_lda_localisation_model_learner(hyperstream, house_id, experiment_ids, safe=True):
+def create_workflow_lda_localisation_model_learner(hyperstream, house, experiment_ids, safe=True):
 
     # Create a simple one step workflow for querying
     workflow_id = "lda_localisation_model_learner"
@@ -45,7 +45,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house_id, experi
     S = hyperstream.channel_manager.sphere
     T = hyperstream.channel_manager.tools
     D = hyperstream.channel_manager.mongo
-    U = hyperstream.channel_manager.user
+    U = hyperstream.channel_manager.assets
 
     nodes = (
         ("experiments_list",            M, ["H1"]),  # Current annotation data in 2s windows
@@ -71,8 +71,8 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house_id, experi
 
     # TODO: Perhaps we want to do this same
     U.write_to_stream(
-        stream_id=StreamId(name="experiments_selected", meta_data={"house": house_id}),
-        instance=StreamInstance(timestamp=utcnow(), value=experiment_ids)
+        stream_id=StreamId(name="experiments_selected", meta_data=dict(house=house)),
+        data=StreamInstance(timestamp=utcnow(), value=list(experiment_ids))
     )
 
     w.create_factor(
@@ -80,7 +80,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house_id, experi
             name="experiments_mapping_builder",
             parameters={}
         ),
-        sources=[N["experiments_list"], U["experiments_selected"]],
+        sources=[N["experiments_list"], N["experiments_selected"]],
         sink=N["experiments_mapping"]
     )
 
