@@ -23,3 +23,4 @@ from tool_channel import ToolChannel
 from file_channel import FileChannel
 from module_channel import ModuleChannel
 from database_channel import DatabaseChannel
+from assets_channel import AssetsChannel

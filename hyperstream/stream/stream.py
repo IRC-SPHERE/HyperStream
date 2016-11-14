@@ -167,7 +167,8 @@ class DatabaseStream(Stream):
     def calculated_intervals(self):
         with switch_db(StreamStatusModel, 'hyperstream'):
             status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
-            calculated_intervals = TimeIntervals(map(lambda x: TimeInterval(x.start, x.end), status.calculated_intervals))
+            calculated_intervals = TimeIntervals(map(lambda x: TimeInterval(x.start, x.end),
+                                                     status.calculated_intervals))
             return calculated_intervals
 
     @calculated_intervals.setter
@@ -177,6 +178,37 @@ class DatabaseStream(Stream):
         :param intervals: The calculated intervals
         :return: None
         """
+        with switch_db(StreamStatusModel, 'hyperstream'):
+            StreamStatusModel.objects(__raw__=self.stream_id.as_raw()).modify(
+                upsert=True,
+                set__stream_id=self.stream_id.as_dict(),
+                set__last_updated=utcnow(),
+                set__calculated_intervals=tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
+            )
+
+
+class AssetStream(DatabaseStream):
+    """
+    Simple subclass that overrides the calculated intervals property
+    """
+    @property
+    def calculated_intervals(self):
+        with switch_db(StreamStatusModel, 'hyperstream'):
+            status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
+            calculated_intervals = TimeIntervals(map(lambda x: TimeInterval(x.start, utcnow()),
+                                                     status.calculated_intervals))
+            return calculated_intervals
+
+    @calculated_intervals.setter
+    def calculated_intervals(self, intervals):
+        """
+        Updates the calculated intervals in the database. Performs an upsert
+        :param intervals: The calculated intervals
+        :return: None
+        """
+        if len(intervals) > 1:
+            raise ValueError("Only single calculated interval valid for AssetStream")
+
         with switch_db(StreamStatusModel, 'hyperstream'):
             StreamStatusModel.objects(__raw__=self.stream_id.as_raw()).modify(
                 upsert=True,
