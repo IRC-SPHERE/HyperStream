@@ -85,6 +85,6 @@ class AssetsChannel(DatabaseChannel):
             data = [data]
 
         for instance in data:
-            if not isinstance(data, StreamInstance):
+            if not isinstance(instance, StreamInstance):
                 raise ValueError("Expected StreamInstance, got {}".format(str(type(instance))))
             writer(instance)
