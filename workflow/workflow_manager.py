@@ -232,16 +232,16 @@ class WorkflowManager(Printable):
         :return: None
         """
         with switch_db(WorkflowDefinitionModel, "hyperstream"):
-            w = WorkflowDefinitionModel.objects.get(workflow_id=workflow_id)
-            if w:
-                w.delete()
+            workflows = WorkflowDefinitionModel.objects(workflow_id=workflow_id)
+            if len(workflows) == 1:
+                workflows[0].delete()
             else:
                 logging.warn("Workflow with id {} does not exist".format(workflow_id))
 
         with switch_db(WorkflowStatusModel, "hyperstream"):
-            w = WorkflowStatusModel.objects.get(workflow_id=workflow_id)
-            if w:
-                w.delete()
+            workflows = WorkflowStatusModel.objects(workflow_id=workflow_id)
+            if len(workflows) == 1:
+                workflows[0].delete()
             else:
                 logging.warn("Workflow status with id {} does not exist".format(workflow_id))
 
@@ -259,7 +259,8 @@ class WorkflowManager(Printable):
         workflow = self.workflows[workflow_id]
 
         with switch_db(WorkflowDefinitionModel, "hyperstream"):
-            if WorkflowDefinitionModel.objects.get(workflow_id=workflow_id):
+            workflows = WorkflowDefinitionModel.objects(workflow_id=workflow_id)
+            if len(workflows) > 0:
                 logging.warn("Workflow with id {} already exists in database".format(workflow_id))
                 return
 
@@ -334,7 +335,7 @@ class WorkflowManager(Printable):
                 nodes.append(NodeDefinitionModel(
                     stream_name=n.node_id,
                     plate_ids=n.plate_ids,
-                    channel_id=n.channel.channel_id
+                    channel_id=n._channel.channel_id
                 ))
 
             workflow_definition = WorkflowDefinitionModel(
