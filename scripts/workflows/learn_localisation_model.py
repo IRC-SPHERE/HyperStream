@@ -18,10 +18,11 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-import datetime
+from hyperstream.utils import utcnow
+from hyperstream import StreamId, StreamInstance
 
 
-def create_workflow_lda_localisation_model_learner(hyperstream, experiment_ids, safe=True):
+def create_workflow_lda_localisation_model_learner(hyperstream, house_id, experiment_ids, safe=True):
 
     # Create a simple one step workflow for querying
     workflow_id = "lda_localisation_model_learner"
@@ -44,6 +45,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, experiment_ids, 
     S = hyperstream.channel_manager.sphere
     T = hyperstream.channel_manager.tools
     D = hyperstream.channel_manager.mongo
+    U = hyperstream.channel_manager.user
 
     nodes = (
         ("experiments_list",            M, ["H1"]),  # Current annotation data in 2s windows
@@ -60,18 +62,25 @@ def create_workflow_lda_localisation_model_learner(hyperstream, experiment_ids, 
         ("merged_2s",                   M, ["H1.SelectedLocalisationExperiment"]),  # rss_2s with annotation_state_2s
         ("merged_2s_flat",              M, ["H1"]),                                 # flattened version of merged_2s
         ("dataframe",                   M, ["H1"]),
-        ("location_prediction_lda_mk1", M, ["H1"])
+        ("location_prediction_lda_mk1", M, ["H1"]),
+        ("experiments_selected",        U, ["H1"])
     )
 
     # Create all of the nodes
     N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
 
+    # TODO: Perhaps we want to do this same
+    U.write_to_stream(
+        stream_id=StreamId(name="experiments_selected", meta_data={"house": house_id}),
+        instance=StreamInstance(timestamp=utcnow(), value=experiment_ids)
+    )
+
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="experiments_mapping_builder",
-            parameters=dict(experiment_ids=experiment_ids)
+            parameters={}
         ),
-        sources=[N["experiments_list"]],
+        sources=[N["experiments_list"], U["experiments_selected"]],
         sink=N["experiments_mapping"]
     )
 
