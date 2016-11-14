@@ -237,7 +237,7 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
             other = RelativeTimeInterval(*other)
         if not isinstance(other, RelativeTimeInterval):
             raise ValueError("Can only add a relative time interval to a time interval")
-        return TimeInterval(self.start + other.start, self.end + other.end)
+        return TimeInterval(self.start + timedelta(other.start), self.end + timedelta(other.end))
 
     # def resize(self, *args):
     #     if len(args) == 1:
