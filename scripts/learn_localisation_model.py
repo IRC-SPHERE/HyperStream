@@ -57,7 +57,7 @@ def run(selection):
             StreamId(name="location_prediction_lda_mk1", meta_data=dict(house=1)))
 
     workflow_id1 = "lda_localisation_model_learner"
-    hyperstream.workflow_manager.delete_workflow(workflow_id1)
+    # hyperstream.workflow_manager.delete_workflow(workflow_id1)
     try:
         w1 = hyperstream.workflow_manager.workflows[workflow_id1]
     except KeyError:
