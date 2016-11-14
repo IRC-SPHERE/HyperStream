@@ -18,7 +18,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from mongoengine import Document, StringField, EmbeddedDocumentListField, DateTimeField
+from mongoengine import Document, StringField, EmbeddedDocumentListField, DateTimeField, BooleanField
 from time_interval import TimeIntervalModel
 from node import NodeDefinitionModel
 from factor import FactorDefinitionModel
@@ -31,7 +31,8 @@ class WorkflowDefinitionModel(Document):
     nodes = EmbeddedDocumentListField(document_type=NodeDefinitionModel, required=False)
     factors = EmbeddedDocumentListField(document_type=FactorDefinitionModel, required=True)
     owner = StringField(required=False, min_length=1, max_length=512)
-    
+    online = BooleanField(required=True, default=False)
+
     meta = {
         'collection': 'workflow_definitions',
         'indexes': [{'fields': ['workflow_id']}],

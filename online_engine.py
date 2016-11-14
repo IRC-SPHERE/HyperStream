@@ -20,6 +20,13 @@
 """
 Online Engine module. This will be used in the online execution mode.
 """
+import logging
+from time import sleep
+import signal
+from datetime import datetime, timedelta
+
+from .time_interval import TimeInterval
+from .utils import UTC
 
 
 class OnlineEngine(object):
@@ -38,4 +45,21 @@ class OnlineEngine(object):
         """
         Execute the engine - currently simple executes all workflows.
         """
-        self.hyperstream.workflow_manager.execute_all()
+        # Set some default times for execution (debugging)
+        start_time = datetime(year=2016, month=10, day=19, hour=12, minute=28, tzinfo=UTC)
+        duration = timedelta(seconds=5)
+        end_time = start_time + duration
+        time_interval = TimeInterval(start_time, end_time)
+        workflow_id = "lda_localisation_model_predict"
+
+        for _ in range(100):
+            signal.alarm(305)  # if this takes more than 5 minutes, kill myself
+            logging.info("Online engine starting up.")
+
+            self.hyperstream.workflow_manager.set_requested_intervals(workflow_id, [time_interval])
+
+            self.hyperstream.workflow_manager.execute_all()
+            sleep(5)
+
+            time_interval += duration
+

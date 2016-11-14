@@ -231,6 +231,8 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
         raise TypeError("can't compare datetime.datetime to {}".format(type(item)))
 
     def __add__(self, other):
+        if isinstance(other, timedelta):
+            return TimeInterval(self.start + other, self.end + other)
         if isinstance(other, (tuple, list)) and len(other) == 2:
             other = RelativeTimeInterval(*other)
         if not isinstance(other, RelativeTimeInterval):
