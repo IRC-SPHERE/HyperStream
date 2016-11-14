@@ -37,7 +37,7 @@ def create_workflow_localisation_predict(hyperstream, safe=True):
 
     nodes = (
         ("rss_raw",                                 hyperstream.channel_manager.sphere, ["H1"]),
-        ("location_prediction_models",              hyperstream.channel_manager.mongo,  ["H1"]),
+        ("location_prediction_lda_mk1",             hyperstream.channel_manager.mongo,  ["H1"]),
         ("every_2s",                                hyperstream.channel_manager.memory, ["H1.W"]),
         ("rss_per_uid",                             hyperstream.channel_manager.memory, ["H1.W"]),
         ("rss_per_uid_2s",                          hyperstream.channel_manager.memory, ["H1.W"]),

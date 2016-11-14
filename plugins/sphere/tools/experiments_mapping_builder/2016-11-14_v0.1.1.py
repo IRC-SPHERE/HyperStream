@@ -18,8 +18,29 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from stream_id import StreamId
-from stream_instance import StreamInstance, StreamMetaInstance
-from stream_view import StreamView
-from stream import Stream, DatabaseStream, AssetStream
-from stream_collections import StreamDict, StreamInstanceCollection
+from hyperstream import TimeInterval
+from hyperstream.stream import StreamInstance
+from hyperstream.tool import Tool, check_input_stream_count
+from hyperstream.utils.time_utils import construct_experiment_id
+
+
+class ExperimentsMappingBuilder(Tool):
+    """
+    Converts the value part of the stream instances to json format
+    """
+    def __init__(self):
+        super(ExperimentsMappingBuilder, self).__init__()
+
+    @check_input_stream_count(2)
+    def _execute(self, sources, alignment_stream, interval):
+        data = sources[0].window(interval, force_calculation=True)
+        experiment_ids = sources[1].window(interval, force_calculation=True).last().value
+
+        mappings = []
+        for x in data:
+            experiment_interval = TimeInterval(x.value['start'], x.value['end'])
+            experiment_id = construct_experiment_id(experiment_interval)
+            if experiment_id in experiment_ids:
+                mappings.append((experiment_id, experiment_interval))
+        yield StreamInstance(interval.end, mappings)
+

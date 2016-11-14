@@ -43,6 +43,7 @@ def run(selection):
     df = M[StreamId('experiments_dataframe', dict(house=1))].window(TimeInterval.all_time()).values()[0]
     experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
 
+    hyperstream.plate_manager.delete_plate("H1.SelectedLocalisationExperiment")
     hyperstream.plate_manager.create_plate(
         plate_id="H1.SelectedLocalisationExperiment",
         description="Localisation experiments selected by the technician in SPHERE house",
@@ -61,7 +62,8 @@ def run(selection):
     try:
         w1 = hyperstream.workflow_manager.workflows[workflow_id1]
     except KeyError:
-        w1 = create_workflow_lda_localisation_model_learner(hyperstream, experiment_ids=experiment_ids, safe=False)
+        w1 = create_workflow_lda_localisation_model_learner(
+            hyperstream, house=1, experiment_ids=experiment_ids, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id1)
 
     w1.execute(TimeInterval.all_time())
@@ -84,3 +86,35 @@ if __name__ == '__main__':
         exit(0)
 
     run(technicians_selection)
+
+
+'''
+
+/* 22 */
+{
+    "_id" : ObjectId("58251f37c33bd870f6dde55b"),
+    "plate_id" : "H1.SelectedLocalisationExperiments",
+    "meta_data_id" : "localisation-experiment",
+    "description" : "Localisation experiments selected by the technician in SPHERE house",
+    "values" : [
+        "1476884148117-1476884362837",
+        "1476880283000-1476880901000"
+    ],
+    "complement" : false,
+    "parent_plate" : "H1"
+}
+
+/* 23 */
+{
+    "_id" : ObjectId("5825234bc33bd8722aa80d4d"),
+    "plate_id" : "H1.SelectedLocalisationExperiment",
+    "meta_data_id" : "localisation-experiment",
+    "description" : "Localisation experiments selected by the technician in SPHERE house",
+    "values" : [
+        "1476884148117-1476884362837",
+        "1476880283000-1476880901000"
+    ],
+    "complement" : false,
+    "parent_plate" : "H1"
+}
+'''
