@@ -32,7 +32,7 @@ def run(selection):
     M = hyperstream.channel_manager.memory
 
     workflow_id0 = "list_technicians_walkarounds"
-    # hyperstream.workflow_manager.delete_workflow(workflow_id)
+    hyperstream.workflow_manager.delete_workflow(workflow_id0)
     try:
         w0 = hyperstream.workflow_manager.workflows[workflow_id0]
     except KeyError:
@@ -57,7 +57,7 @@ def run(selection):
             StreamId(name="location_prediction_lda_mk1", meta_data=dict(house=1)))
 
     workflow_id1 = "lda_localisation_model_learner"
-    # hyperstream.workflow_manager.delete_workflow(workflow_id1)
+    hyperstream.workflow_manager.delete_workflow(workflow_id1)
     try:
         w1 = hyperstream.workflow_manager.workflows[workflow_id1]
     except KeyError:
@@ -71,12 +71,13 @@ def run(selection):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("Expected two integer ids")
+    if len(sys.argv) < 3:
+        print("Expected at least two integer ids")
         exit(0)
 
     try:
         technicians_selection = map(int, sys.argv[1:])
+        
     except ValueError:
         print("Expected two integer ids")
         technicians_selection = None  # just to keep lint happy

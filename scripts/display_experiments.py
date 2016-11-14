@@ -38,7 +38,7 @@ if __name__ == '__main__':
     D = hyperstream.channel_manager.mongo
 
     workflow_id = "list_technicians_walkarounds"
-    # hyperstream.workflow_manager.delete_workflow(workflow_id)
+    hyperstream.workflow_manager.delete_workflow(workflow_id)
     try:
         w = hyperstream.workflow_manager.workflows[workflow_id]
     except KeyError:

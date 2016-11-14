@@ -39,19 +39,45 @@ class FillZeros(BaseEstimator, TransformerMixin):
         return X
 
 
-def serialise_sklearn_model(model):
+def serialise_dict(dd):
+    out = {}
+    
+    for kk, vv in dd.iteritems():
+        if isinstance(vv, type):
+            continue
+        
+        try:
+            if vv is None:
+                out[kk] = None
+            
+            elif type(vv).__module__ == numpy_name:
+                out[kk] = vv.tolist()
+            
+            elif isinstance(vv, dict):
+                out[kk] = serialise_dict(vv)
+            
+            elif isinstance(vv, (str, list, bool, int, float)):
+                out[kk] = vv
+        
+        except Exception as ex:
+            raise ex
+    
+    return out
+
+
+def serialise_to_json(obj):
     """
     
     :param model:
     :return:
     """
     
-    if model is dict:
-        return model
+    if obj is dict:
+        return serialise_dict(obj)
     
     params = {}
     
-    for kk, vv in model.__dict__.iteritems():
+    for kk, vv in obj.__dict__.iteritems():
         try:
             if isinstance(vv, type):
                 continue
@@ -62,7 +88,10 @@ def serialise_sklearn_model(model):
             elif type(vv).__module__ == numpy_name:
                 params[kk] = vv.tolist()
             
-            elif isinstance(vv, (dict, str, list, bool, int, float)):
+            elif isinstance(vv, dict):
+                params[kk] = serialise_dict(vv)
+            
+            elif isinstance(vv, (str, list, bool, int, float)):
                 params[kk] = vv
         
         except Exception as ex:
@@ -71,22 +100,19 @@ def serialise_sklearn_model(model):
     return params
 
 
-def serialise_json_pipeline(param_dict):
+def serialise_pipeline(pipe):
     """
-    
+
     :param param_dict:
     :return:
     """
-    param_dict = deepcopy(param_dict)
-    
     # TODO: look into using get_params/set_params as an alternative to this
-    for step_name, step_model in param_dict.iteritems():
-        if isinstance(step_model, (dict, int, list)):
-            continue
-            
-        param_dict[step_name] = serialise_sklearn_model(step_model)
+    params = {}
     
-    return param_dict
+    for step_name, step_model in pipe.named_steps.iteritems():
+        params[step_name] = serialise_dict(step_model.__dict__)
+    
+    return params
 
 
 def deserialise_json_pipeline(steps, param_dict):
