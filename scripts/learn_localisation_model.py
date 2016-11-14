@@ -36,7 +36,7 @@ def run(selection):
     try:
         w0 = hyperstream.workflow_manager.workflows[workflow_id0]
     except KeyError:
-        w0 = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
+        w0 = create_workflow_list_technicians_walkarounds(hyperstream, house=1, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id0)
     w0.execute(TimeInterval.all_time())
 
