@@ -20,14 +20,15 @@
 from plugins.sphere.utils.sphere_helpers import mappings
 
 
-def create_workflow(hyperstream, safe=True):
+def create_workflow_localisation_predict(hyperstream, safe=True):
     workflow_id = "lda_localisation_model_predict"
     try:
         w = hyperstream.create_workflow(
             workflow_id=workflow_id,
             name="Live Predictions",
             owner="TD",
-            description="Deploy the LDA localisation model for live predictions")
+            description="Deploy the LDA localisation model for live predictions",
+            online=True)
     except KeyError as e:
         if safe:
             raise e

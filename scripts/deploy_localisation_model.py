@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
 
 from hyperstream import HyperStream, TimeInterval, StreamId, UTC
 
-from workflows.deploy_localisation_model import create_workflow
+from workflows.deploy_localisation_model import create_workflow_localisation_predict
 
 
 def run():
@@ -34,7 +34,7 @@ def run():
     try:
         w = hyperstream.workflow_manager.workflows[workflow_id]
     except KeyError:
-        w = create_workflow(hyperstream, safe=False)
+        w = create_workflow_localisation_predict(hyperstream, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id)
 
     # Set times for execution

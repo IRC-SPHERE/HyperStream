@@ -28,6 +28,7 @@ import types
 from mongoengine.context_managers import switch_db
 
 from . import Workflow
+from ..time_interval import TimeInterval, TimeIntervals
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, ToolModel, \
     ToolParameterModel, WorkflowStatusModel
 from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow, func_dump, func_load
@@ -63,7 +64,7 @@ class WorkflowManager(Printable):
 
         self.workflows = FrozenKeyDict()
         self.uncommitted_workflows = set()
-        self.requested_execution_times = []
+        self.requested_intervals = {}
 
         with switch_db(WorkflowDefinitionModel, db_alias='hyperstream'):
             for workflow_definition in WorkflowDefinitionModel.objects():
@@ -76,10 +77,11 @@ class WorkflowManager(Printable):
             for workflow_status in WorkflowStatusModel.objects:
                 if workflow_status.workflow_id not in self.workflows:
                     raise ValueError("Workflow {} not found".format(workflow_status.workflow_id))
-                for interval in workflow_status.requested_intervals:
-                    # TODO: Is there any point in looking at the computed intervals for a workflow, given that the
-                    # streams already do this?
-                    self.requested_execution_times.append((workflow_status.workflow_id, interval))
+                # TODO: Is there any point in looking at the computed intervals for a workflow, given that the
+                # streams already do this?
+                requested_intervals = TimeIntervals(
+                    [TimeInterval(ti.start, ti.end) for ti in workflow_status.requested_intervals])
+                self.requested_intervals[workflow_status.workflow_id] = requested_intervals
 
     def load_workflow(self, workflow_id):
         """
@@ -88,11 +90,9 @@ class WorkflowManager(Printable):
         :return: The workflow
         """
         with switch_db(WorkflowDefinitionModel, db_alias='hyperstream'):
-            workflow_definitions = WorkflowDefinitionModel.objects(workflow_id=workflow_id)
-            if len(workflow_definitions) != 1:
-                logging.warn("Attempted to load workflow with id {}, but {} records found".format(
-                    workflow_id, len(workflow_definitions)))
-            workflow_definition = workflow_definitions[0]
+            workflow_definition = WorkflowDefinitionModel.objects.get(workflow_id=workflow_id)
+            if not workflow_definition:
+                logging.warn("Attempted to load workflow with id {}, but not found".format(workflow_id))
 
             workflow = Workflow(
                 channels=self.channel_manager,
@@ -100,7 +100,8 @@ class WorkflowManager(Printable):
                 workflow_id=workflow_id,
                 name=workflow_definition.name,
                 description=workflow_definition.description,
-                owner=workflow_definition.owner
+                owner=workflow_definition.owner,
+                online=workflow_definition.online
             )
 
             for n in workflow_definition.nodes:
@@ -132,7 +133,7 @@ class WorkflowManager(Printable):
                     if len(sink_nodes) != 1:
                         raise ValueError(
                             "Standard factors should have a single sink node, received {}"
-                                .format(len(sink_nodes)))
+                            .format(len(sink_nodes)))
 
                     if splitting_node is not None:
                         raise ValueError(
@@ -153,12 +154,12 @@ class WorkflowManager(Printable):
                     if len(source_nodes) != 1:
                         raise ValueError(
                             "MultiOutputFactor factors should have a single source node, received {}"
-                                .format(len(source_nodes)))
+                            .format(len(source_nodes)))
 
                     if len(sink_nodes) != 1:
                         raise ValueError(
                             "MultiOutputFactor factors should have a single sink node, received {}"
-                                .format(len(sink_nodes)))
+                            .format(len(sink_nodes)))
 
                     if alignment_node is not None:
                         raise ValueError(
@@ -179,12 +180,12 @@ class WorkflowManager(Printable):
                     if len(source_nodes) != 1:
                         raise ValueError(
                             "PlateCreationFactor factors should have a single source node, received {}"
-                                .format(len(source_nodes)))
+                            .format(len(source_nodes)))
 
                     if len(sink_nodes) != 0:
                         raise ValueError(
                             "PlateCreationFactor factors should not have sink nodes"
-                                .format(len(sink_nodes)))
+                            .format(len(sink_nodes)))
 
                     if output_plate is None:
                         raise ValueError(
@@ -231,14 +232,14 @@ class WorkflowManager(Printable):
         :return: None
         """
         with switch_db(WorkflowDefinitionModel, "hyperstream"):
-            w = WorkflowDefinitionModel.objects(workflow_id=workflow_id)
+            w = WorkflowDefinitionModel.objects.get(workflow_id=workflow_id)
             if w:
                 w.delete()
             else:
                 logging.warn("Workflow with id {} does not exist".format(workflow_id))
 
         with switch_db(WorkflowStatusModel, "hyperstream"):
-            w = WorkflowStatusModel.objects(workflow_id=workflow_id)
+            w = WorkflowStatusModel.objects.get(workflow_id=workflow_id)
             if w:
                 w.delete()
             else:
@@ -258,7 +259,7 @@ class WorkflowManager(Printable):
         workflow = self.workflows[workflow_id]
 
         with switch_db(WorkflowDefinitionModel, "hyperstream"):
-            if WorkflowDefinitionModel.objects(workflow_id=workflow_id):
+            if WorkflowDefinitionModel.objects.get(workflow_id=workflow_id):
                 logging.warn("Workflow with id {} already exists in database".format(workflow_id))
                 return
 
@@ -372,5 +373,16 @@ class WorkflowManager(Printable):
         """
         Execute all workflows
         """
-        for workflow_id, interval in self.requested_execution_times:
-            self.workflows[workflow_id].execute(interval)
+        for workflow_id, intervals in self.requested_intervals.items():
+            if self.workflows[workflow_id].online:
+                for interval in intervals:
+                    logging.info("Executing workflow {} over interval {}".format(workflow_id, interval))
+                    self.workflows[workflow_id].execute(interval)
+
+    def set_requested_intervals(self, workflow_id, requested_intervals):
+        with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
+            workflow_status = WorkflowStatusModel.objects.get(workflow_id=workflow_id)
+            if not workflow_status:
+                raise ValueError("Workflow {} not found".format(workflow_id))
+            workflow_status.requested_intervals = requested_intervals
+            self.requested_intervals[workflow_status.workflow_id] = requested_intervals
