@@ -303,7 +303,7 @@ class WorkflowManager(Printable):
                     sources = [f.source.node_id]
                     sinks = [f.sink.node_id]
                     alignment_node = None
-                    splitting_node = f.splitting_node.node_id
+                    splitting_node = f.splitting_node.node_id if f.splitting_node else None
                     output_plate = None
 
                 elif isinstance(f, PlateCreationFactor):
