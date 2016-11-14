@@ -290,35 +290,38 @@ class HyperStreamLogger(Printable):
         self.root_logger = logging.getLogger()
         self.root_logger.setLevel(loglevel)
 
-        if not os.path.exists(path):
-            os.makedirs(path)
+        if not self.root_logger.handlers:
+            # create the handlers and call logger.addHandler(logging_handler)
 
-        if not filename.endswith('.log'):
-            filename += '.log'
-        full_name = os.path.join(path, filename)
-        touch(full_name)
+            if not os.path.exists(path):
+                os.makedirs(path)
 
-        file_handler = logging.FileHandler(full_name)
-        file_handler.setFormatter(log_formatter)
-        self.root_logger.addHandler(file_handler)
+            if not filename.endswith('.log'):
+                filename += '.log'
+            full_name = os.path.join(path, filename)
+            touch(full_name)
 
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(log_formatter)
-        self.root_logger.addHandler(console_handler)
-        #
-        # stream_handler = logging.StreamHandler()
-        # stream_handler.setFormatter(log_formatter)
-        # memory_handler = logging.handlers.MemoryHandler(1024 * 10, root_logger.level, stream_handler)
-        # root_logger.addHandler(memory_handler)
+            file_handler = logging.FileHandler(full_name)
+            file_handler.setFormatter(log_formatter)
+            self.root_logger.addHandler(file_handler)
 
-        # Capture warnings
-        logging.captureWarnings(True)
+            console_handler = logging.StreamHandler()
+            console_handler.setFormatter(log_formatter)
+            self.root_logger.addHandler(console_handler)
+            #
+            # stream_handler = logging.StreamHandler()
+            # stream_handler.setFormatter(log_formatter)
+            # memory_handler = logging.handlers.MemoryHandler(1024 * 10, root_logger.level, stream_handler)
+            # root_logger.addHandler(memory_handler)
 
-        # Capture uncaught exceptions
-        sys.excepthook = handle_exception
+            # Capture warnings
+            logging.captureWarnings(True)
 
-        # logging.config.dictConfig(LOGGING)
-        logging.debug("HyperStream version: " + __version__)
+            # Capture uncaught exceptions
+            sys.excepthook = handle_exception
+
+            # logging.config.dictConfig(LOGGING)
+            logging.debug("HyperStream version: " + __version__)
 
     def setLevel(self, loglevel):
         self.root_logger.setLevel(loglevel)

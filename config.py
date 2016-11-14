@@ -40,6 +40,7 @@ class HyperStreamConfig(Printable):
 
         try:
             with open('hyperstream_config.json', 'r') as f:
+                logging.getLogger("hyperstream")
                 logging.info('Reading ' + os.path.abspath(f.name))
                 config = json.load(f)
                 self.mongo = config['mongo']

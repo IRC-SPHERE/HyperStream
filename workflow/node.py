@@ -51,7 +51,7 @@ class Node(Printable):
         and then plate values (tuple(sorted(plate_values.items())) as the keys at the next level
         :param plates: The plates over which this node is defined
         """
-        self.channel = channel
+        self._channel = channel
         self.node_id = node_id
         self.streams = streams
         for stream in streams.values():
