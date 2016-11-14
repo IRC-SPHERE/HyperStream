@@ -21,8 +21,7 @@
 import logging
 import sys
 
-from hyperstream import HyperStream, StreamId
-from hyperstream.utils import all_time
+from hyperstream import HyperStream, StreamId, TimeInterval
 
 from workflows.display_experiments import create_workflow_list_technicians_walkarounds
 from workflows.learn_localisation_model import create_workflow_lda_localisation_model_learner
@@ -32,23 +31,40 @@ def run(selection):
     hyperstream = HyperStream(loglevel=logging.INFO)
     M = hyperstream.channel_manager.memory
 
-    w0 = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
-    w0.execute(all_time())
+    workflow_id0 = "list_technicians_walkarounds"
+    # hyperstream.workflow_manager.delete_workflow(workflow_id)
+    try:
+        w0 = hyperstream.workflow_manager.workflows[workflow_id0]
+    except KeyError:
+        w0 = create_workflow_list_technicians_walkarounds(hyperstream, safe=False)
+        hyperstream.workflow_manager.commit_workflow(workflow_id0)
+    w0.execute(TimeInterval.all_time())
 
-    df = M[StreamId('experiments_dataframe', dict(house=1))].window(all_time()).values()[0]
-    exp_ids = set([df['experiment_id'][i - 1] for i in selection])
+    df = M[StreamId('experiments_dataframe', dict(house=1))].window(TimeInterval.all_time()).values()[0]
+    experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
 
     hyperstream.plate_manager.create_plate(
         plate_id="H1.SelectedLocalisationExperiment",
         description="Localisation experiments selected by the technician in SPHERE house",
         meta_data_id="localisation-experiment",
-        values=exp_ids,
+        values=experiment_ids,
         complement=False,
         parent_plate="H1"
     )
 
-    w = create_workflow_lda_localisation_model_learner(hyperstream, exp_ids=exp_ids, safe=False)
-    w.execute(all_time())
+    # Ensure the model is overwritten if it's already there
+    hyperstream.channel_manager.mongo.purge_stream(
+            StreamId(name="location_prediction_lda_mk1", meta_data=dict(house=1)))
+
+    workflow_id1 = "lda_localisation_model_learner"
+    # hyperstream.workflow_manager.delete_workflow(workflow_id1)
+    try:
+        w1 = hyperstream.workflow_manager.workflows[workflow_id1]
+    except KeyError:
+        w1 = create_workflow_lda_localisation_model_learner(hyperstream, experiment_ids=experiment_ids, safe=False)
+        hyperstream.workflow_manager.commit_workflow(workflow_id1)
+
+    w1.execute(TimeInterval.all_time())
 
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))

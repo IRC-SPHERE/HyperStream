@@ -30,11 +30,17 @@ from hyperstream import TimeIntervals, TimeInterval, StreamInstance
 from hyperstream.utils import MIN_DATE, MAX_DATE
 
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-sphere_connector = SphereConnector(
-    config_filename=os.path.join(path, 'config.json'),
-    include_mongo=True,
-    include_redcap=False,
-    sphere_logger=None)
+
+sphere_connector = None
+
+
+def get_sphere_connector():
+    sphere_connector = SphereConnector(
+        config_filename=os.path.join(path, 'config.json'),
+        include_mongo=True,
+        include_redcap=False,
+        sphere_logger=None)
+    return sphere_connector
 
 
 class SphereDataWindow(DataWindow):
@@ -48,6 +54,7 @@ class SphereDataWindow(DataWindow):
             start, end = time_interval
         else:
             raise TypeError
+        sphere_connector = get_sphere_connector()
         super(SphereDataWindow, self).__init__(sphere_connector, start, end)
 
 
@@ -62,6 +69,7 @@ class SphereExperiment(Experiment):
             start, end = time_interval
         else:
             raise TypeError
+        sphere_connector = get_sphere_connector()
         annotations = dict((annotator_id, {'filename': None}) for annotator_id in annotators)
         experiment_config = ExperimentConfig(experiment_start=start, experiment_end=end, annotations=annotations)
         super(SphereExperiment, self).__init__(sphere_connector, experiment_config, auto_initialise=False)

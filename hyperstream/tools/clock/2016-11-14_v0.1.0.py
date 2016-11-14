@@ -20,30 +20,36 @@
 
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
-import json
+from hyperstream.utils import MIN_DATE, get_timedelta
+from datetime import datetime
 
 
-class MultiresidentReformat(Tool):
-    """
-    Converts the value part of the stream instances to json format
-    """
-    def __init__(self):
-        super(MultiresidentReformat, self).__init__()
+class Clock(Tool):
+    def __init__(self, first=MIN_DATE, stride=1.0):
+        """
+        Simple clock ticker tool
+        :param first: Start of the clock
+        :param stride: Tick stride as timedelta
+        """
+        super(Clock, self).__init__(first=first, stride=stride)
 
-    @check_input_stream_count(1)
+        if not isinstance(first, datetime):
+            raise ValueError("Expected datetime.datetime, got {}".format(first.__type__.__name__))
+
+        self.first = first
+        self.stride = get_timedelta(stride)
+
+    def message(self, interval):
+        return '{} running from {} to {} with stride {}'.format(
+            self.__class__.__name__, str(interval.start), str(interval.end), str(self.stride))
+
+    @check_input_stream_count(0)
     def _execute(self, sources, alignment_stream, interval):
-        for time, data in sources[0].window(interval, force_calculation=True):
-            anno = data['anno']
-            rssi = data['rssi']
-            yield StreamInstance(time, dict(
-                camera=anno['camera_id'],
-                exper=anno['exper_id'],
-                person=anno['person_id'],
-                rssi1=rssi[0],
-                rssi2=rssi[1],
-                rssi3=rssi[2],
-                na1=(1 if rssi[0]==-120 else 0),
-                na2=(1 if rssi[1]==-120 else 0),
-                na3=(1 if rssi[2]==-120 else 0)
-            ))
-
+        if interval.start < self.first:
+            interval.start = self.first
+        n_strides = int((interval.start - self.first).total_seconds() // self.stride.total_seconds())
+        t = self.first + n_strides * self.stride
+        while t <= interval.end:
+            if t > interval.start:
+                yield StreamInstance(t, t)
+            t += self.stride

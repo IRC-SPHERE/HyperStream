@@ -21,8 +21,10 @@
 from hyperstream import HyperStream
 from hyperstream.online_engine import OnlineEngine
 
+import logging
+
 
 if __name__ == '__main__':
-    hyperstream = HyperStream()
+    hyperstream = HyperStream(loglevel=logging.INFO)
     online_engine = OnlineEngine(hyperstream)
     online_engine.execute()

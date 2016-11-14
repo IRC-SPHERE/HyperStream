@@ -25,13 +25,65 @@ from hyperstream.tool import Tool, check_input_stream_count
 
 import numpy as np
 
+from copy import deepcopy
+
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import PredefinedSplit
+from sklearn import metrics
 
 from plugins.sphere.utils import FillZeros, serialise_json_pipeline
+
+
+def predefined_train_test_split(data, labels, folds, workflow, label_encoder):
+    folds = np.asarray(folds)
+    
+    fold_encoder = LabelEncoder()
+    split_encoded = fold_encoder.fit_transform(folds)
+    
+    num_classes = len(label_encoder.classes_)
+    
+    performance = {
+        'classes': label_encoder.classes_.tolist(),
+        'intervals': {key: np.sum(folds == key) for key in sorted(list(set(folds)))}
+    }
+    
+    split = PredefinedSplit(split_encoded)
+    for fold_index, (train_inds, test_inds) in enumerate(split.split()):
+        train_x, train_y = [data[ii] for ii in train_inds], [labels[ii] for ii in train_inds]
+        test_x, test_y = [data[ii] for ii in test_inds], [labels[ii] for ii in test_inds]
+
+        prior_train = [0] * num_classes
+        for yy in train_y:
+            prior_train[yy] += 1
+        
+        prior_test = [0] * num_classes
+        for yy in test_y:
+            prior_test[yy] += 1
+        
+        clf = deepcopy(workflow)
+        clf.fit(train_x, train_y)
+
+        test_pred = clf.predict(test_x)
+        
+        test_ind = folds[test_inds[0]]
+        performance[test_ind] = {
+            'accuracy': metrics.accuracy_score(test_y, test_pred),
+            'precision_micro': metrics.precision_score(test_y, test_pred, average='micro'),
+            'precision_macro': metrics.precision_score(test_y, test_pred, average='micro'),
+            'recall_micro': metrics.recall_score(test_y, test_pred, average='micro'),
+            'recall_macro': metrics.recall_score(test_y, test_pred, average='macro'),
+            'f1_score_micro': metrics.f1_score(test_y, test_pred, average='micro'),
+            'f1_score_macro': metrics.f1_score(test_y, test_pred, average='macro'),
+            'confusion_matrix': metrics.confusion_matrix(test_y, test_pred).tolist(),
+            'prior_train': prior_train,
+            'prior_test': prior_test
+        }
+    
+    return performance
 
 
 class LocalisationModelLearn(Tool):
@@ -48,7 +100,7 @@ class LocalisationModelLearn(Tool):
     def _execute(self, sources, alignment_stream, interval):
         data = list(sources[0].window(interval, force_calculation=True))
         
-        yy_key = 'anno'
+        yy_key = 'annotations'
         xx_key = 'rssi'
         ex_key = 'localisation-experiment'
         
@@ -61,8 +113,9 @@ class LocalisationModelLearn(Tool):
             if len(loc) != 1 or 'MIX' not in {exp} | loc:
                 keep_inds.append(di)
         
-        train_x = [data[ii][1][xx_key] for ii in keep_inds]
-        train_y = [list(data[ii][1][yy_key]['Location'])[0] for ii in keep_inds]
+        folds = [data[ii].value[ex_key] for ii in keep_inds]
+        train_x = [data[ii].value[xx_key] for ii in keep_inds]
+        train_y = [list(data[ii].value[yy_key]['Location'])[0] for ii in keep_inds]
         # TODO: update ['anno']['Location'] keys format changed
         
         label_encoder = LabelEncoder()
@@ -76,6 +129,7 @@ class LocalisationModelLearn(Tool):
         }
         
         clf = Pipeline([(kk, param_dict[kk]) for kk in ('vectorisation', 'fill_missing', 'classifier')])
-        clf.fit(train_x, train_y_trans)
+        param_dict['performance'] = predefined_train_test_split(train_x, train_y_trans, folds, clf, label_encoder)
 
+        clf.fit(train_x, train_y_trans)
         yield StreamInstance(interval.end, serialise_json_pipeline(param_dict))

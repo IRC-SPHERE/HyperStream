@@ -43,10 +43,9 @@ class HyperStream(object):
         # Define some managers
         self.channel_manager = ChannelManager(self.config.plugins)
         self.plate_manager = PlateManager()
-        self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager,
-                                                plates=self.plate_manager.plates)
+        self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager, plate_manager=self.plate_manager)
 
-    def create_workflow(self, workflow_id, name, owner, description):
+    def create_workflow(self, workflow_id, name, owner, description, online=False):
         """
         Create a new workflow. Simple wrapper for creating a workflow and adding it to the workflow manager.
 
@@ -54,15 +53,17 @@ class HyperStream(object):
         :param name: The workflow name
         :param owner: The owner/creator of the workflow
         :param description: A human readable description
+        :param online: Whether this workflow should be executed by the online engine
         :return: The workflow
         """
         w = Workflow(
             channels=self.channel_manager,
-            plates=self.plate_manager.plates,
+            plate_manager=self.plate_manager,
             workflow_id=workflow_id,
             name=name,
             owner=owner,
-            description=description
+            description=description,
+            online=online
         )
 
         self.workflow_manager.add_workflow(w)

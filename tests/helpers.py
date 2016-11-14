@@ -22,7 +22,7 @@ import os
 from datetime import datetime, timedelta
 
 from hyperstream import HyperStream, UTC, StreamId
-from plugins.sphere.utils.sphere_helpers import PredefinedTools
+from plugins.sphere.utils.sphere_helpers import PredefinedTools, scripted_experiments
 from sphere_connector_package.sphere_connector import SphereConnector
 
 os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))

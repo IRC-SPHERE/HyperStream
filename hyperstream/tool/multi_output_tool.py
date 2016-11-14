@@ -105,5 +105,5 @@ class MultiOutputTool(BaseTool):
                     produced_data = True
 
             if not produced_data:
-                logging.warn("{} did not produce any data for time interval {} on stream {}".format(
+                logging.debug("{} did not produce any data for time interval {} on stream {}".format(
                     self.name, required_intervals, source))

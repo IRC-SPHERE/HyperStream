@@ -17,35 +17,31 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
-"""
-HyperStream configuration module.
-"""
 
-import logging
-import simplejson as json
-import os
-from utils import Printable
-from plugin_manager import Plugin
+from hyperstream import TimeInterval
+from hyperstream.stream import StreamInstance
+from hyperstream.tool import Tool, check_input_stream_count
+import pandas as pd
+from hyperstream.utils.time_utils import construct_experiment_id
 
 
-class HyperStreamConfig(Printable):
+class ExperimentsDataFrameBuilder(Tool):
     """
-    Wrapper around the hyperstream configuration files (hyperstream_config.json and meta_data.json)
+    Converts the value part of the stream instances to json format
     """
+
     def __init__(self):
-        """
-        Initialise the configuration - currently uses fixed file names (hyperstream_config.json and meta_data.json)
-        """
-        self.mongo = None
+        super(ExperimentsDataFrameBuilder, self).__init__()
 
-        try:
-            with open('hyperstream_config.json', 'r') as f:
-                logging.getLogger("hyperstream")
-                logging.info('Reading ' + os.path.abspath(f.name))
-                config = json.load(f)
-                self.mongo = config['mongo']
-                self.plugins = [Plugin(**p) for p in config['plugins']]
-
-        except (OSError, IOError, TypeError) as e:
-            # raise
-            logging.error("Configuration error: " + str(e))
+    @check_input_stream_count(1)
+    def _execute(self, sources, alignment_stream, interval):
+        data = list(sources[0].window(interval, force_calculation=True))
+        flattened = map(lambda x: dict(dict(
+            experiment_id=construct_experiment_id(TimeInterval(x.value['start'], x.value['end'])),
+            start=x.value['start'],
+            end=x.value['end'],
+            annotator=x.value['annotator']
+        ), **(x.value['notes'])), data)
+        df = pd.DataFrame(flattened)
+        df['id'] = range(1, len(df) + 1)
+        yield StreamInstance(interval.end, df)

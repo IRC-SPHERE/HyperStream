@@ -36,7 +36,7 @@ class Node(Printable):
     """
     A node in the graph. This consists of a set of streams defined over a set of plates
     """
-    def __init__(self, node_id, streams, plates):
+    def __init__(self, channel, node_id, streams, plates):
         """
         Initialise the node
 
@@ -45,11 +45,13 @@ class Node(Printable):
         Use Node.reverse_lookup as follows:
             meta_data = {'a': 1, 'b': 1}
 
+        :param channel: The channel to which this node belongs
         :param node_id: The node id
         :param streams: The streams, organised as a nested dictionary with plate objects as keys at the top level,
         and then plate values (tuple(sorted(plate_values.items())) as the keys at the next level
         :param plates: The plates over which this node is defined
         """
+        self._channel = channel
         self.node_id = node_id
         self.streams = streams
         for stream in streams.values():

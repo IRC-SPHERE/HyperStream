@@ -69,7 +69,7 @@ class PlateCreationTool(BaseTool):
             output_plate_values.add(item.meta_data, )
 
         if not output_plate_values:
-            logging.warn("{} did not produce any data for time interval {} on stream {}".format(
+            logging.debug("{} did not produce any data for time interval {} on stream {}".format(
                 self.name, interval, source))
 
         return output_plate_values

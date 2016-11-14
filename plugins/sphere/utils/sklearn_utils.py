@@ -46,6 +46,9 @@ def serialise_sklearn_model(model):
     :return:
     """
     
+    if model is dict:
+        return model
+    
     params = {}
     
     for kk, vv in model.__dict__.iteritems():
@@ -78,6 +81,9 @@ def serialise_json_pipeline(param_dict):
     
     # TODO: look into using get_params/set_params as an alternative to this
     for step_name, step_model in param_dict.iteritems():
+        if isinstance(step_model, (dict, int, list)):
+            continue
+            
         param_dict[step_name] = serialise_sklearn_model(step_model)
     
     return param_dict
