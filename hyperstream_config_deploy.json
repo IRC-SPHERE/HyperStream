@@ -3,7 +3,7 @@
         "host": "localhost",
         "port": 27017,
         "tz_aware": true,
-        "db": "hyperstream",
+        "db": "hyperstream"
     },
     "plugins": [
     {
