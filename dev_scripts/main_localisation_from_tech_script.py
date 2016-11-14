@@ -82,12 +82,13 @@ if __name__ == '__main__':
                                                             unix2datetime(row.last_occurrence))])
     print(exp_times)
 
-    w.create_factor(
+    w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
             parameters=dict(modality="wearable4")
         ),
-        sources=None,
+        source=None,
+        splitting_node=None,
         sink=N["rss_raw"]
     )
     w.create_factor(
@@ -99,12 +100,13 @@ if __name__ == '__main__':
         sink=N["every_2s"]
     )
 
-    w.create_factor(
+    w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
             parameters=dict(modality="annotations", annotators=[0], elements={"Location"}, filters={})
         ),
-        sources=None,
+        source=None,
+        splitting_node=None,
         sink=N["annotations_raw"]
     )
     start_time = datetime.datetime(year=2016, month=10, day=18, hour=1, tzinfo=pytz.UTC)

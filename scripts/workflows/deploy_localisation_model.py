@@ -48,12 +48,13 @@ def create_workflow_localisation_predict(hyperstream, safe=True):
     # Create all of the nodes
     N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
 
-    w.create_factor(
+    w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
             parameters=dict(modality="wearable4")
         ),
-        sources=None,
+        source=None,
+        splitting_node=None,
         sink=N["rss_raw"])
 
     w.create_multi_output_factor(
