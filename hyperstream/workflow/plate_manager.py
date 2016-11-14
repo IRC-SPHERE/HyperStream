@@ -66,6 +66,17 @@ class PlateManager(Printable):
         with switch_db(PlateDefinitionModel, db_alias="hyperstream"):
             for p in PlateDefinitionModel.objects:
                 self.add_plate(p)
+                
+    def delete_plate(self, plate_id):
+        """
+        
+        :param plate_id:
+        :return:
+        """
+
+        with switch_db(PlateDefinitionModel, "hyperstream"):
+            p = PlateDefinitionModel.objects.get(plate_id=plate_id)
+            p.delete()
 
     def create_plate(self, plate_id, description, meta_data_id, values, complement, parent_plate):
         """
