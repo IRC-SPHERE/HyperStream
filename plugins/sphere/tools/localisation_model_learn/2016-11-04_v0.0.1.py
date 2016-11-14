@@ -35,7 +35,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import PredefinedSplit
 from sklearn import metrics
 
-from plugins.sphere.utils import FillZeros, serialise_json_pipeline
+from plugins.sphere.utils import FillZeros, serialise_dict, serialise_pipeline
 
 
 def predefined_train_test_split(data, labels, folds, workflow, label_encoder):
@@ -55,7 +55,7 @@ def predefined_train_test_split(data, labels, folds, workflow, label_encoder):
     for fold_index, (train_inds, test_inds) in enumerate(split.split()):
         train_x, train_y = [data[ii] for ii in train_inds], [labels[ii] for ii in train_inds]
         test_x, test_y = [data[ii] for ii in test_inds], [labels[ii] for ii in test_inds]
-
+        
         prior_train = [0] * num_classes
         for yy in train_y:
             prior_train[yy] += 1
@@ -66,7 +66,8 @@ def predefined_train_test_split(data, labels, folds, workflow, label_encoder):
         
         clf = deepcopy(workflow)
         clf.fit(train_x, train_y)
-
+        param_dict = {kk: vv.__dict__ for kk, vv in clf.named_steps.iteritems()}
+        
         test_pred = clf.predict(test_x)
         
         test_ind = folds[test_inds[0]]
@@ -80,10 +81,11 @@ def predefined_train_test_split(data, labels, folds, workflow, label_encoder):
             'f1_score_macro': metrics.f1_score(test_y, test_pred, average='macro'),
             'confusion_matrix': metrics.confusion_matrix(test_y, test_pred).tolist(),
             'prior_train': prior_train,
-            'prior_test': prior_test
+            'prior_test': prior_test,
+            'model': serialise_dict(param_dict)
         }
     
-    return performance
+    return serialise_dict(performance)
 
 
 class LocalisationModelLearn(Tool):
@@ -125,11 +127,13 @@ class LocalisationModelLearn(Tool):
             'vectorisation': DictVectorizer(sparse=False),
             'fill_missing': FillZeros(-110),
             'classifier': LinearDiscriminantAnalysis(),
-            'label_encoder': label_encoder
         }
         
         clf = Pipeline([(kk, param_dict[kk]) for kk in ('vectorisation', 'fill_missing', 'classifier')])
-        param_dict['performance'] = predefined_train_test_split(train_x, train_y_trans, folds, clf, label_encoder)
-
         clf.fit(train_x, train_y_trans)
-        yield StreamInstance(interval.end, serialise_json_pipeline(param_dict))
+        
+        clf_serialised = serialise_pipeline(clf)
+        clf_serialised['label_encoder'] = serialise_dict(label_encoder.__dict__)
+        clf_serialised['performance'] = predefined_train_test_split(train_x, train_y_trans, folds, clf, label_encoder)
+        
+        yield StreamInstance(interval.end, clf_serialised)
