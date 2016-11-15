@@ -38,7 +38,10 @@ class StreamBroadcaster(MultiOutputTool):
         #   use the time interval, but only pulls the last instance in the stream. Will need to change this in \
         #   future instances
         param_doc = source.window(TimeInterval(MIN_DATE, MAX_DATE), force_calculation=True).last()
-        
+
+        if param_doc is None:
+            return
+
         for kk, vv in self.mapping.iteritems():
             yield StreamMetaInstance(
                 (param_doc.timestamp, param_doc.value), (output_plate.meta_data_id, str(vv)))

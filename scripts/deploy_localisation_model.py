@@ -21,16 +21,18 @@
 import logging
 from datetime import datetime, timedelta
 
-from hyperstream import HyperStream, TimeInterval, StreamId, UTC
 
-from workflows.deploy_localisation_model import create_workflow_localisation_predict
+def run(house, delete_existing_workflows=True):
+    from hyperstream import HyperStream, TimeInterval, StreamId, UTC
+    from workflows.deploy_localisation_model import create_workflow_localisation_predict
 
-
-def run(house):
     hyperstream = HyperStream(loglevel=logging.INFO)
 
     workflow_id = "lda_localisation_model_predict"
-    # hyperstream.workflow_manager.delete_workflow(workflow_id)
+
+    if delete_existing_workflows:
+        hyperstream.workflow_manager.delete_workflow(workflow_id)
+
     try:
         w = hyperstream.workflow_manager.workflows[workflow_id]
     except KeyError:
@@ -57,6 +59,9 @@ def run(house):
         print '\n\n'
 
 if __name__ == '__main__':
-    house = 1
+    import sys
+    from os import path
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
+    house = 1
     run(house)

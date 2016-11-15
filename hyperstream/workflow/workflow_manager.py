@@ -381,10 +381,21 @@ class WorkflowManager(Printable):
                     self.workflows[workflow_id].execute(interval)
 
     def set_requested_intervals(self, workflow_id, requested_intervals):
+        if workflow_id not in self.workflows:
+            raise ValueError("Workflow {} not found".format(workflow_id))
+
         with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
             workflow_statuses = WorkflowStatusModel.objects(workflow_id=workflow_id)
             if len(workflow_statuses) != 1:
-                raise ValueError("Workflow {} not found".format(workflow_id))
-            workflow_status = workflow_statuses[0]
+                workflow_status = WorkflowStatusModel(
+                    workflow_id=workflow_id,
+                    last_updated=utcnow(),
+                    last_accessed=utcnow(),
+                    requested_intervals=[]
+                )
+
+            else:
+                workflow_status = workflow_statuses[0]
             workflow_status.requested_intervals = requested_intervals
+            workflow_status.save()
             self.requested_intervals[workflow_status.workflow_id] = requested_intervals

@@ -107,7 +107,7 @@ def create_workflow_localisation_predict(hyperstream, safe=True):
                 mapping=mappings['uid']
             )
         ),
-        source=N["location_prediction_models"],
+        source=N["location_prediction_lda_mk1"],
         splitting_node=None,
         sink=N["location_prediction_models_broadcasted"])
 

@@ -21,18 +21,20 @@
 import logging
 import sys
 
-from hyperstream import HyperStream, StreamId, TimeInterval
 
-from workflows.display_experiments import create_workflow_list_technicians_walkarounds
-from workflows.learn_localisation_model import create_workflow_lda_localisation_model_learner
+def run(house, selection, delete_existing_workflows=True):
+    from hyperstream import HyperStream, StreamId, TimeInterval
+    from workflows.display_experiments import create_workflow_list_technicians_walkarounds
+    from workflows.learn_localisation_model import create_workflow_lda_localisation_model_learner
 
-
-def run(house, selection):
     hyperstream = HyperStream(loglevel=logging.INFO)
     M = hyperstream.channel_manager.memory
 
     workflow_id0 = "list_technicians_walkarounds"
-    # hyperstream.workflow_manager.delete_workflow(workflow_id)
+
+    if delete_existing_workflows:
+        hyperstream.workflow_manager.delete_workflow(workflow_id0)
+
     try:
         w0 = hyperstream.workflow_manager.workflows[workflow_id0]
     except KeyError:
@@ -58,7 +60,10 @@ def run(house, selection):
             StreamId(name="location_prediction_lda_mk1", meta_data=dict(house=1)))
 
     workflow_id1 = "lda_localisation_model_learner"
-    hyperstream.workflow_manager.delete_workflow(workflow_id1)
+
+    if delete_existing_workflows:
+        hyperstream.workflow_manager.delete_workflow(workflow_id1)
+
     try:
         w1 = hyperstream.workflow_manager.workflows[workflow_id1]
     except KeyError:
@@ -73,6 +78,9 @@ def run(house, selection):
 
 
 if __name__ == '__main__':
+    from os import path
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
     if len(sys.argv) < 3:
         print("Expected at least two integer ids")
         exit(0)
@@ -85,5 +93,4 @@ if __name__ == '__main__':
         exit(0)
 
     house = 1
-
     run(house, technicians_selection)
