@@ -26,5 +26,5 @@ from decorators import timeit, check_output_format, check_tool_defined, check_in
 from errors import StreamNotAvailableError, StreamAlreadyExistsError, StreamDataNotAvailableError, \
     StreamNotFoundError, IncompatiblePlatesError, ToolNotFoundError, ChannelNotFoundError, ToolExecutionError, \
     PlateEmptyError, PlateDefinitionError, LinkageError, FactorAlreadyExistsError, NodeAlreadyExistsError, \
-    FactorDefinitionError, ChannelAlreadyExistsError, NodeDefinitionError
+    FactorDefinitionError, ChannelAlreadyExistsError, NodeDefinitionError, ToolInitialisationError
 from serialization import func_dump, func_load
