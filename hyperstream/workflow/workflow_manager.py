@@ -31,7 +31,8 @@ from . import Workflow
 from ..time_interval import TimeInterval, TimeIntervals
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, ToolModel, \
     ToolParameterModel, WorkflowStatusModel
-from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow, func_dump, func_load
+from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow, func_dump, func_load, \
+    ToolInitialisationError, ToolNotFoundError
 from ..workflow import Factor, PlateCreationFactor, MultiOutputFactor
 
 
@@ -70,13 +71,14 @@ class WorkflowManager(Printable):
             for workflow_definition in WorkflowDefinitionModel.objects():
                 try:
                     self.load_workflow(workflow_definition.workflow_id)
-                except StreamNotFoundError as e:
-                    logging.error(str(e))
+                except (StreamNotFoundError, ToolInitialisationError, ToolNotFoundError) as e:
+                    logging.warn(str(e))
 
         with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
             for workflow_status in WorkflowStatusModel.objects:
                 if workflow_status.workflow_id not in self.workflows:
-                    raise ValueError("Workflow {} not found".format(workflow_status.workflow_id))
+                    logging.warn("Workflow {} not found".format(workflow_status.workflow_id))
+                    continue
                 # TODO: Is there any point in looking at the computed intervals for a workflow, given that the
                 # streams already do this?
                 requested_intervals = TimeIntervals(
