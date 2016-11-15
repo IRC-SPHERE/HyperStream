@@ -35,6 +35,10 @@ class ToolNotFoundError(Exception):
     pass
 
 
+class ToolInitialisationError(Exception):
+    pass
+
+
 class ChannelNotFoundError(Exception):
     pass
 
