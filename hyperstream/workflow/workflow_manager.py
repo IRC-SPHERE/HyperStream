@@ -30,7 +30,7 @@ from mongoengine.context_managers import switch_db
 from . import Workflow
 from ..time_interval import TimeInterval, TimeIntervals
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, ToolModel, \
-    ToolParameterModel, WorkflowStatusModel
+    ToolParameterModel, WorkflowStatusModel, TimeIntervalModel
 from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow, func_dump, func_load, \
     ToolInitialisationError, ToolNotFoundError
 from ..workflow import Factor, PlateCreationFactor, MultiOutputFactor
@@ -398,6 +398,7 @@ class WorkflowManager(Printable):
 
             else:
                 workflow_status = workflow_statuses[0]
-            workflow_status.requested_intervals = requested_intervals
+#            workflow_status.requested_intervals = requested_intervals  ### MK: probably this line is wrong, wrote the next line instead
+            workflow_status.requested_intervals = tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), requested_intervals))
             workflow_status.save()
             self.requested_intervals[workflow_status.workflow_id] = requested_intervals
