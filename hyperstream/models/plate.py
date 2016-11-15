@@ -27,7 +27,7 @@ class PlateDefinitionModel(Document):
     description = StringField(required=False, min_length=0, max_length=512, default="")
     values = ListField(field=StringField(min_length=1, max_length=512))
     complement = BooleanField(required=False, default=False)
-    parent_plate = StringField(required=False, min_length=1, max_length=512, default="")
+    parent_plate = StringField(required=False, min_length=1, max_length=512, default=None)
 
     meta = {
         'collection': 'plate_definitions',

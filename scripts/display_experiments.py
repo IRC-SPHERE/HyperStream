@@ -38,6 +38,17 @@ def run(house, delete_existing_workflows=True):
     T = hyperstream.channel_manager.tools
     D = hyperstream.channel_manager.mongo
 
+    hyperstream.plate_manager.delete_plate("H")
+    hyperstream.plate_manager.create_plate(
+        plate_id="H",
+        description="All houses",
+        meta_data_id="house",
+        values=[],
+        complement=True,
+        parent_plate=None
+    )
+
+
     workflow_id = "list_technicians_walkarounds"
 
     if delete_existing_workflows:
