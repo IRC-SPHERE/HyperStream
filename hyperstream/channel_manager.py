@@ -31,7 +31,7 @@ from models import StreamDefinitionModel, StreamStatusModel
 from stream import StreamId, DatabaseStream
 from time_interval import TimeIntervals
 from utils import Printable, utcnow, MIN_DATE, StreamAlreadyExistsError, ChannelNotFoundError, ToolNotFoundError, \
-    ChannelAlreadyExistsError
+    ChannelAlreadyExistsError, ToolInitialisationError
 from channels import ToolChannel, MemoryChannel, DatabaseChannel, AssetsChannel
 
 
@@ -198,9 +198,13 @@ class ChannelManager(dict, Printable):
             raise ValueError(message)
 
         # Instantiate tool
-        tool = tool_class(**parameters) if parameters is not None else tool_class()
+        try:
+            tool = tool_class(**parameters) if parameters is not None else tool_class()
+        except TypeError:
+            raise ToolInitialisationError(name, parameters)
+
         if not tool:
-            raise ToolNotFoundError
+            raise ToolNotFoundError(name, parameters)
 
         tool.name = name
 
