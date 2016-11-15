@@ -20,16 +20,16 @@
 
 from __future__ import print_function
 
-from hyperstream import HyperStream, StreamId, TimeInterval
-from hyperstream.utils import duration2str
 import arrow
 import logging
 import pandas as pd
 
-from workflows.display_experiments import create_workflow_list_technicians_walkarounds
 
+def run(house, delete_existing_workflows=True):
+    from hyperstream import HyperStream, StreamId, TimeInterval
+    from hyperstream.utils import duration2str
+    from workflows.display_experiments import create_workflow_list_technicians_walkarounds
 
-def run(house):
     hyperstream = HyperStream(loglevel=logging.INFO)
     
     # Various channels
@@ -39,7 +39,10 @@ def run(house):
     D = hyperstream.channel_manager.mongo
 
     workflow_id = "list_technicians_walkarounds"
-    hyperstream.workflow_manager.delete_workflow(workflow_id)
+
+    if delete_existing_workflows:
+        hyperstream.workflow_manager.delete_workflow(workflow_id)
+
     try:
         w = hyperstream.workflow_manager.workflows[workflow_id]
     except KeyError:
@@ -66,6 +69,9 @@ def run(house):
     print(df[['id', 'start_as_text', 'duration_as_text', 'start', 'end', 'annotator']].to_string(index=False))
 
 if __name__ == '__main__':
-    house = 1
+    import sys
+    from os import path
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
+    house = 1
     run(house)
