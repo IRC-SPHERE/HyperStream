@@ -75,8 +75,11 @@ class PlateManager(Printable):
         """
 
         with switch_db(PlateDefinitionModel, "hyperstream"):
-            p = PlateDefinitionModel.objects.get(plate_id=plate_id)
-            p.delete()
+            try:
+                p = PlateDefinitionModel.objects.get(plate_id=plate_id)
+                p.delete()
+            except DoesNotExist as e:
+                logging.warn(e.message)
 
     def create_plate(self, plate_id, description, meta_data_id, values, complement, parent_plate):
         """
