@@ -70,6 +70,7 @@ class AssetsChannel(DatabaseChannel):
         :param stream_id: The stream identifier
         :param data: The stream instances
         :param sandbox: The sandbox for this stream
+        :type stream_id: StreamId
         :return: None
         :raises: NotImplementedError
         """
