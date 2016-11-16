@@ -47,9 +47,11 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
     D = hyperstream.channel_manager.mongo
     U = hyperstream.channel_manager.assets
 
+    experiment_ids_str = '_'.join(experiment_ids)
+
     nodes = (
         ("experiments_list",            M, ["H"]),  # Current annotation data in 2s windows
-        ("experiments_dataframe",       M, ["H"]),  # Current annotation data in 2s windows
+        # ("experiments_dataframe",       M, ["H"]),  # Current annotation data in 2s windows
         ("experiments_mapping",         M, ["H"]),  # Current annotation data in 2s windows
         ("rss_raw",                     S, ["H"]),  # Raw RSS data
         ("rss_time",                    S, ["H.SelectedLocalisationExperiment"]),  # RSS data split by experiment
@@ -60,9 +62,9 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
         ("annotation_state_2s_windows", M, ["H.SelectedLocalisationExperiment"]),
         ("rss_2s",                      M, ["H.SelectedLocalisationExperiment"]),  # max(RSS) per AP in past 2s of RSS
         ("merged_2s",                   M, ["H.SelectedLocalisationExperiment"]),  # rss_2s with annotation_state_2s
-        ("merged_2s_flat",              M, ["H"]),                                 # flattened version of merged_2s
-        ("dataframe",                   M, ["H"]),
-        ("location_prediction_lda_mk1", D, ["H"]),
+        ("merged_2s_flat_"+experiment_ids_str,              M, ["H"]),                                 # flattened version of merged_2s
+        # ("dataframe_"+experiment_ids_str,                   M, ["H"]),
+        ("location_prediction_lda_"+experiment_ids_str, D, ["H"]),
         ("experiments_selected",        U, ["H"])
     )
 
@@ -184,14 +186,14 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
             parameters=dict(aggregation_meta_data="localisation-experiment")
         ),
         sources=[N["merged_2s"]],
-        sink=N["merged_2s_flat"])
+        sink=N["merged_2s_flat_"+experiment_ids_str])
     
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="localisation_model_learn",
-            parameters=dict(nan_value=-110.0, folds=None)
+            parameters=dict(nan_value=-110.0)
         ),
-        sources=[N["merged_2s_flat"]],
-        sink=N["location_prediction_lda_mk1"])
+        sources=[N["merged_2s_flat_"+experiment_ids_str]],
+        sink=N["location_prediction_lda_"+experiment_ids_str])
 
     return w
