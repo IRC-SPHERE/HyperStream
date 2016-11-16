@@ -27,8 +27,8 @@ from datetime import datetime, timedelta
 import fasteners
 
 
-from .time_interval import TimeInterval, TimeIntervals
-from .utils import UTC
+from .time_interval import TimeInterval, TimeIntervals, RelativeTimeInterval
+from .utils import UTC, utcnow
 
 
 class OnlineEngine(object):
@@ -48,12 +48,20 @@ class OnlineEngine(object):
         """
         Execute the engine - currently simple executes all workflows.
         """
-        # Set some default times for execution (debugging)
-        start_time = datetime(year=2016, month=10, day=19, hour=12, minute=28, tzinfo=UTC)
-        duration = timedelta(seconds=5)
-        end_time = start_time + duration
-        time_interval = TimeInterval(start_time, end_time)
-        workflow_id = "lda_localisation_model_predict"
+
+        if __debug__:
+            # Set some default times for execution (debugging)
+            start_time = datetime(year=2016, month=10, day=19, hour=12, minute=28, tzinfo=UTC)
+            duration = timedelta(seconds=5)
+            end_time = start_time + duration
+
+            relative_interval = RelativeTimeInterval(0, 0)
+            time_interval = TimeInterval(start_time, end_time)
+            # workflow_id = "lda_localisation_model_predict"
+        else:
+            duration = 0  # not needed
+            relative_interval = self.hyperstream.config.online_engine_interval
+            time_interval = relative_interval.absolute(utcnow())
 
         for _ in range(100):
             if not __debug__:
@@ -61,10 +69,13 @@ class OnlineEngine(object):
 
             logging.info("Online engine starting up.")
 
-            self.hyperstream.workflow_manager.set_requested_intervals(workflow_id, TimeIntervals([time_interval]))
-
+            # self.hyperstream.workflow_manager.set_requested_intervals(workflow_id, TimeIntervals([time_interval]))
+            self.hyperstream.workflow_manager.set_all_requested_intervals(TimeIntervals([time_interval]))
             self.hyperstream.workflow_manager.execute_all()
             sleep(5)
 
-            time_interval += duration
+            if __debug__:
+                time_interval += duration
+            else:
+                time_interval = TimeInterval(time_interval.end, utcnow() + timedelta(seconds=relative_interval.end))
 

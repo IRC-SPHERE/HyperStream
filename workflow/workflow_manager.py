@@ -370,7 +370,7 @@ class WorkflowManager(Printable):
                 for interval in self.workflows[workflow_id].requested_intervals:
                     logging.info("Executing workflow {} over interval {}".format(workflow_id, interval))
                     self.workflows[workflow_id].execute(interval)
-                    self.workflows[workflow_id].requested_intervals -= interval
+                    # self.workflows[workflow_id].requested_intervals -= interval
 
     def set_requested_intervals(self, workflow_id, requested_intervals):
         """
@@ -384,3 +384,14 @@ class WorkflowManager(Printable):
             raise ValueError("Workflow {} not found".format(workflow_id))
 
         self.workflows[workflow_id].requested_intervals = requested_intervals
+
+    def set_all_requested_intervals(self, requested_intervals):
+        """
+        Sets the requested intervals for all workflow
+        :param requested_intervals: The requested intervals
+        :return: None
+        :type requested_intervals: TimeIntervals
+        """
+        for workflow_id in self.workflows:
+            if self.workflows[workflow_id].online:
+                self.workflows[workflow_id].requested_intervals = requested_intervals
