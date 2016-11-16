@@ -36,7 +36,7 @@ class IndexOfByStream(SelectorTool):
 
         found_source = False
         found_data_in_source = False
-        for source in sources[1:]:
+        for source in sources[1]:
             if (selector_meta_data, self.index) in source.stream_id.meta_data:
                 found_source = True
                 for item in map(lambda x: StreamMetaInstance(x, source.stream_id.meta_data),
