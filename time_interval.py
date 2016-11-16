@@ -159,7 +159,7 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
         return TimeInterval(MIN_DATE, MAX_DATE)
 
     @classmethod
-    def all_time_until_now(cls):
+    def up_to_now(cls):
         return TimeInterval(MIN_DATE, utcnow())
 
     def __new__(cls, start, end):
