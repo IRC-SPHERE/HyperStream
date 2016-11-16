@@ -23,12 +23,15 @@ Workflow and WorkflowManager definitions.
 
 import itertools
 import logging
+from mongoengine.context_managers import switch_db
 
 from factor import Factor, MultiOutputFactor, PlateCreationFactor
 from node import Node, get_overlapping_plate_values
 from ..stream import StreamId
 from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
-from ..utils import Printable, TypedFrozenKeyDict, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError
+from ..utils import Printable, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError, utcnow
+from ..models import TimeIntervalModel, WorkflowStatusModel
+from ..time_interval import TimeIntervals, TimeInterval
 
 
 class Workflow(Printable):
@@ -352,3 +355,32 @@ class Workflow(Printable):
                 if sink_plate.parent.plate_id != source_plates[0].plate_id:
                     return False
         return True
+
+    @property
+    def requested_intervals(self):
+        with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
+            workflow_statuses = WorkflowStatusModel.objects(workflow_id=self.workflow_id)
+            if len(workflow_statuses) == 1:
+                return TimeIntervals(workflow_statuses.requested_intervals)
+            else:
+                return TimeIntervals([])
+
+    @requested_intervals.setter
+    def requested_intervals(self, intervals):
+        with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
+            workflow_statuses = WorkflowStatusModel.objects(workflow_id=self.workflow_id)
+            if len(workflow_statuses) != 1:
+                workflow_status = WorkflowStatusModel(
+                    workflow_id=self.workflow_id,
+                    requested_intervals=[]
+                )
+
+            else:
+                workflow_status = workflow_statuses[0]
+
+            workflow_status.last_updated = utcnow()
+            workflow_status.last_accessed = utcnow()
+            workflow_status.requested_intervals = tuple(
+                map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
+
+            workflow_status.save()

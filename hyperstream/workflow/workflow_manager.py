@@ -30,7 +30,7 @@ from mongoengine.context_managers import switch_db
 from . import Workflow
 from ..time_interval import TimeInterval, TimeIntervals
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, ToolModel, \
-    ToolParameterModel, WorkflowStatusModel, TimeIntervalModel
+    ToolParameterModel, WorkflowStatusModel
 from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow, func_dump, func_load, \
     ToolInitialisationError, ToolNotFoundError
 from ..workflow import Factor, PlateCreationFactor, MultiOutputFactor
@@ -65,7 +65,6 @@ class WorkflowManager(Printable):
 
         self.workflows = FrozenKeyDict()
         self.uncommitted_workflows = set()
-        self.requested_intervals = {}
 
         with switch_db(WorkflowDefinitionModel, db_alias='hyperstream'):
             for workflow_definition in WorkflowDefinitionModel.objects():
@@ -73,17 +72,6 @@ class WorkflowManager(Printable):
                     self.load_workflow(workflow_definition.workflow_id)
                 except (StreamNotFoundError, ToolInitialisationError, ToolNotFoundError) as e:
                     logging.warn(str(e))
-
-        with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
-            for workflow_status in WorkflowStatusModel.objects:
-                if workflow_status.workflow_id not in self.workflows:
-                    logging.warn("Workflow {} not found".format(workflow_status.workflow_id))
-                    continue
-                # TODO: Is there any point in looking at the computed intervals for a workflow, given that the
-                # streams already do this?
-                requested_intervals = TimeIntervals(
-                    [TimeInterval(ti.start, ti.end) for ti in workflow_status.requested_intervals])
-                self.requested_intervals[workflow_status.workflow_id] = requested_intervals
 
     def load_workflow(self, workflow_id):
         """
@@ -376,29 +364,22 @@ class WorkflowManager(Printable):
         """
         Execute all workflows
         """
-        for workflow_id, intervals in self.requested_intervals.items():
+        for workflow_id in self.workflows:
             if self.workflows[workflow_id].online:
-                for interval in intervals:
+                for interval in self.workflows[workflow_id].requested_intervals:
                     logging.info("Executing workflow {} over interval {}".format(workflow_id, interval))
                     self.workflows[workflow_id].execute(interval)
+                    self.workflows[workflow_id].requested_intervals -= interval
 
     def set_requested_intervals(self, workflow_id, requested_intervals):
+        """
+        Sets the requested intervals for a given workflow
+        :param workflow_id: The workflow id
+        :param requested_intervals: The requested intervals
+        :return: None
+        :type requested_intervals: TimeIntervals
+        """
         if workflow_id not in self.workflows:
             raise ValueError("Workflow {} not found".format(workflow_id))
 
-        with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
-            workflow_statuses = WorkflowStatusModel.objects(workflow_id=workflow_id)
-            if len(workflow_statuses) != 1:
-                workflow_status = WorkflowStatusModel(
-                    workflow_id=workflow_id,
-                    last_updated=utcnow(),
-                    last_accessed=utcnow(),
-                    requested_intervals=[]
-                )
-
-            else:
-                workflow_status = workflow_statuses[0]
-#            workflow_status.requested_intervals = requested_intervals  ### MK: probably this line is wrong, wrote the next line instead
-            workflow_status.requested_intervals = tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), requested_intervals))
-            workflow_status.save()
-            self.requested_intervals[workflow_status.workflow_id] = requested_intervals
+        self.workflows[workflow_id].requested_intervals = requested_intervals
