@@ -24,8 +24,10 @@ HyperStream configuration module.
 import logging
 import simplejson as json
 import os
+
 from utils import Printable
 from plugin_manager import Plugin
+from time_interval import RelativeTimeInterval
 
 
 class HyperStreamConfig(Printable):
@@ -37,6 +39,7 @@ class HyperStreamConfig(Printable):
         Initialise the configuration - currently uses fixed file names (hyperstream_config.json and meta_data.json)
         """
         self.mongo = None
+        self.online_engine_interval = None
 
         try:
             with open('hyperstream_config.json', 'r') as f:
@@ -45,6 +48,7 @@ class HyperStreamConfig(Printable):
                 config = json.load(f)
                 self.mongo = config['mongo']
                 self.plugins = [Plugin(**p) for p in config['plugins']]
+                self.online_engine_interval = RelativeTimeInterval(**config["online_engine"]["interval"])
 
         except (OSError, IOError, TypeError) as e:
             # raise

@@ -29,10 +29,9 @@ from factor import Factor, MultiOutputFactor, PlateCreationFactor
 from node import Node, get_overlapping_plate_values
 from ..stream import StreamId
 from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
-from ..utils import Printable, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError, utcnow, \
-    ToolInitialisationError, ToolNotFoundError
+from ..utils import Printable, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError, utcnow
 from ..models import TimeIntervalModel, WorkflowStatusModel
-from ..time_interval import TimeIntervals
+from ..time_interval import TimeIntervals, TimeInterval
 
 
 class Workflow(Printable):
@@ -364,7 +363,8 @@ class Workflow(Printable):
         with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
             workflow_statuses = WorkflowStatusModel.objects(workflow_id=self.workflow_id)
             if len(workflow_statuses) == 1:
-                return TimeIntervals(workflow_statuses.requested_intervals)
+                return TimeIntervals(map(lambda x: TimeInterval(x.start, x.end),
+                                         workflow_statuses[0].requested_intervals))
             else:
                 return TimeIntervals([])
 
