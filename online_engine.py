@@ -27,7 +27,7 @@ from datetime import datetime, timedelta
 import fasteners
 
 
-from .time_interval import TimeInterval
+from .time_interval import TimeInterval, TimeIntervals
 from .utils import UTC
 
 
@@ -56,10 +56,12 @@ class OnlineEngine(object):
         workflow_id = "lda_localisation_model_predict"
 
         for _ in range(100):
-            signal.alarm(305)  # if this takes more than 5 minutes, kill myself
+            if not __debug__:
+                signal.alarm(305)  # if this takes more than 5 minutes, kill myself
+
             logging.info("Online engine starting up.")
 
-            self.hyperstream.workflow_manager.set_requested_intervals(workflow_id, [time_interval])
+            self.hyperstream.workflow_manager.set_requested_intervals(workflow_id, TimeIntervals([time_interval]))
 
             self.hyperstream.workflow_manager.execute_all()
             sleep(5)
