@@ -182,13 +182,13 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
     
     def _validate(self):
         if not isinstance(self._start, (date, datetime)):
-            raise TypeError("start should datetime.datetime object")
+            raise TypeError("start should be datetime.datetime object")
 
         if not isinstance(self._end, (date, datetime)):
-            raise TypeError("end should datetime.datetime object")
+            raise TypeError("end should be datetime.datetime object")
 
         if self._start >= self._end:
-            raise ValueError("start should be strictly less than  end")
+            raise ValueError("start should be strictly less than end")
 
     @property
     def width(self):
@@ -303,6 +303,11 @@ class RelativeTimeInterval(TimeInterval):
     def end(self, value):
         self._end = get_timedelta(value)
         self._validate()
+
+    def absolute(self, dt):
+        if not isinstance(dt, (date, datetime)):
+            raise ValueError("Expected date|datetime, got {}".format(type(dt)))
+        return TimeInterval(start=dt + self._start, end=dt + self._end)
 
 
 def parse_time_tuple(start, end):
