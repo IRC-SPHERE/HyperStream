@@ -103,13 +103,16 @@ class Factor(Printable):
                 if len(self.sources) == 1:
                     sources = self.sources[0].streams.values()
                 elif len(self.sources) == 2:
-                    sources = [self.sources[0], self.sources[1].streams.values()]
+                    selector_node = self.sources[0]
+                    if len(selector_node.streams) != 1:
+                        raise ValueError("Selector node should only have one stream")
+                    sources = [self.sources[0].streams[None], self.sources[1].streams.values()]
                 else:
                     raise ValueError("Currently only one or twos source nodes are valid for a Selector Tool")
                 if self.alignment_node:
                     raise ValueError("Currently an alignment node cannot be used with a Selector Tool")
                 
-                diff, counts, is_sub_plate = self.sources[0].difference(self.sink)
+                diff, counts, is_sub_plate = self.sources[-1].difference(self.sink)
                 if is_sub_plate:
                     # Special case of tools that are performing sub-selection
                     self.tool.execute(sources=sources,
