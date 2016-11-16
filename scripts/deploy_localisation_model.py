@@ -86,7 +86,7 @@ def run(house, selection, delete_existing_workflows=True):
     start_time = datetime(year=2016, month=10, day=19, hour=12, minute=28, tzinfo=UTC)
     end_time = start_time + timedelta(hours=1)
     time_interval = TimeInterval(start=start_time,end=end_time)
-#    time_interval = TimeInterval.all_time_until_now()
+#    time_interval = TimeInterval.up_to_now()
     w.execute(time_interval)
 
     print('number of non_empty_streams: {}'.format(
