@@ -20,8 +20,11 @@
 from plugins.sphere.utils.sphere_helpers import mappings
 
 
-def create_workflow_localisation_predict(hyperstream, safe=True):
-    workflow_id = "lda_localisation_model_predict"
+def create_workflow_localisation_predict(hyperstream, house, experiment_ids, safe=True):
+    experiment_ids_str = '_'.join(experiment_ids)
+    # Create a simple one step workflow for querying
+    workflow_id = "lda_localisation_model_predict_" + experiment_ids_str
+
     try:
         w = hyperstream.create_workflow(
             workflow_id=workflow_id,
@@ -37,12 +40,12 @@ def create_workflow_localisation_predict(hyperstream, safe=True):
 
     nodes = (
         ("rss_raw",                                 hyperstream.channel_manager.sphere, ["H"]),
-        ("location_prediction_lda_mk1",             hyperstream.channel_manager.mongo,  ["H"]),
+        ("location_prediction_lda_"+experiment_ids_str,             hyperstream.channel_manager.mongo,  ["H"]),
         ("every_2s",                                hyperstream.channel_manager.memory, ["H.W"]),
         ("rss_per_uid",                             hyperstream.channel_manager.memory, ["H.W"]),
         ("rss_per_uid_2s",                          hyperstream.channel_manager.memory, ["H.W"]),
         ("location_prediction_models_broadcasted",  hyperstream.channel_manager.memory, ["H.W"]),
-        ("predicted_locations_broadcasted",         hyperstream.channel_manager.memory, ["H.W"]),
+        ("predicted_locations_broadcasted",         hyperstream.channel_manager.mongo, ["H.W"]),
     )
 
     # Create all of the nodes
@@ -107,7 +110,7 @@ def create_workflow_localisation_predict(hyperstream, safe=True):
                 mapping=mappings['uid']
             )
         ),
-        source=N["location_prediction_lda_mk1"],
+        source=N["location_prediction_lda_"+experiment_ids_str],
         splitting_node=None,
         sink=N["location_prediction_models_broadcasted"])
 

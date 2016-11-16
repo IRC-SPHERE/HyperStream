@@ -82,7 +82,7 @@ def create_workflow_list_technicians_walkarounds(hyperstream, house, safe=True):
         ),
         source=N["experiments_list"],
         output_plate=dict(
-            plate_id="H1.LocalisationExperiment",
+            plate_id="H.LocalisationExperiment",
             meta_data_id="localisation-experiment",
             description="Technician localisation walk-around",
             use_provided_values=False

@@ -24,8 +24,9 @@ from hyperstream import StreamId, StreamInstance
 
 def create_workflow_lda_localisation_model_learner(hyperstream, house, experiment_ids, safe=True):
 
+    experiment_ids_str = '_'.join(experiment_ids)
     # Create a simple one step workflow for querying
-    workflow_id = "lda_localisation_model_learner"
+    workflow_id = "lda_localisation_model_learner_"+experiment_ids_str
     try:
         w = hyperstream.create_workflow(
             workflow_id=workflow_id,
@@ -47,7 +48,6 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
     D = hyperstream.channel_manager.mongo
     U = hyperstream.channel_manager.assets
 
-    experiment_ids_str = '_'.join(experiment_ids)
 
     nodes = (
         ("experiments_list",            M, ["H"]),  # Current annotation data in 2s windows
