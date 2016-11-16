@@ -100,15 +100,19 @@ class Factor(Printable):
                     sink = self.sink.streams[pv]
                     self.tool.execute(sources=sources, sink=sink, interval=time_interval, alignment_stream=None)
             elif isinstance(self.tool, SelectorTool):
-                if len(self.sources) != 1:
-                    raise ValueError("Currently only a single source node is valid for an Aggregate Tool")
+                if len(self.sources) == 1:
+                    sources = self.sources[0].streams.values()
+                elif len(self.sources) == 2:
+                    sources = [self.sources[0], self.sources[1].streams.values()]
+                else:
+                    raise ValueError("Currently only one or twos source nodes are valid for a Selector Tool")
                 if self.alignment_node:
-                    raise ValueError("Currently an alignment node cannot be used with an Aggregate Tool")
+                    raise ValueError("Currently an alignment node cannot be used with a Selector Tool")
                 
                 diff, counts, is_sub_plate = self.sources[0].difference(self.sink)
                 if is_sub_plate:
                     # Special case of tools that are performing sub-selection
-                    self.tool.execute(sources=self.sources[0].streams.values(),
+                    self.tool.execute(sources=sources,
                                       sinks=self.sink.streams.values(),
                                       interval=time_interval)
                 else:

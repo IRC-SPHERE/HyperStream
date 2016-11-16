@@ -74,9 +74,10 @@ def basic_workflow(workflow_id):
     for stream_name, channel, plate_ids in nodes:
         w.create_node(stream_name, channel, plate_ids)
 
-    w.create_factor(
+    w.create_multi_output_factor(
         tool=tools.wearable_rss,
-        sources=None,
+        source=None,
+        splitting_node=None,
         sink=N["rss_raw"])
 
     w.create_multi_output_factor(
