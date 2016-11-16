@@ -14,5 +14,11 @@
             "path": "plugins/sphere",
             "channel_names": ["sphere_channel"],
             "has_tools": true
-        }]
+        }],
+    "online_engine": {
+        "interval": {
+            "start": -60,
+            "end": -5
+        }
+    }
 }
