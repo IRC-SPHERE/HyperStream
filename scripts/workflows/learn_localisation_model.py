@@ -62,7 +62,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
         ("merged_2s",                   M, ["H.SelectedLocalisationExperiment"]),  # rss_2s with annotation_state_2s
         ("merged_2s_flat",              M, ["H"]),                                 # flattened version of merged_2s
         ("dataframe",                   M, ["H"]),
-        ("location_prediction_lda_mk1", M, ["H"]),
+        ("location_prediction_lda_mk1", D, ["H"]),
         ("experiments_selected",        U, ["H"])
     )
 

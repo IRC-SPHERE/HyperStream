@@ -26,6 +26,7 @@ def run(house, selection, delete_existing_workflows=True):
     from hyperstream import HyperStream, StreamId, TimeInterval
     from workflows.display_experiments import create_workflow_list_technicians_walkarounds
     from workflows.learn_localisation_model import create_workflow_lda_localisation_model_learner
+    from hyperstream.utils import StreamNotFoundError
 
     hyperstream = HyperStream(loglevel=logging.INFO)
     M = hyperstream.channel_manager.memory
@@ -56,8 +57,11 @@ def run(house, selection, delete_existing_workflows=True):
     )
 
     # Ensure the model is overwritten if it's already there
-    hyperstream.channel_manager.mongo.purge_stream(
+    try:
+        hyperstream.channel_manager.mongo.purge_stream(
             StreamId(name="location_prediction_lda_mk1", meta_data=dict(house=1)))
+    except StreamNotFoundError:
+        pass
 
     workflow_id1 = "lda_localisation_model_learner"
 
