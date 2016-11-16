@@ -57,13 +57,15 @@ def run(house, selection, delete_existing_workflows=True):
     )
 
     # Ensure the model is overwritten if it's already there
-    try:
-        hyperstream.channel_manager.mongo.purge_stream(
-            StreamId(name="location_prediction_lda_mk1", meta_data=dict(house=1)))
-    except StreamNotFoundError:
-        pass
+#    try:
+#        hyperstream.channel_manager.mongo.purge_stream(
+#            StreamId(name="location_prediction_lda", meta_data=dict(house=1)))
+#    except StreamNotFoundError:
+#        pass
 
-    workflow_id1 = "lda_localisation_model_learner"
+    experiment_ids_str = '_'.join(experiment_ids)
+    # Create a simple one step workflow for querying
+    workflow_id1 = "lda_localisation_model_learner_"+experiment_ids_str
 
     if delete_existing_workflows:
         hyperstream.workflow_manager.delete_workflow(workflow_id1)
