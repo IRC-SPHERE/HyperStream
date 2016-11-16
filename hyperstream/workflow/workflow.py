@@ -29,9 +29,10 @@ from factor import Factor, MultiOutputFactor, PlateCreationFactor
 from node import Node, get_overlapping_plate_values
 from ..stream import StreamId
 from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
-from ..utils import Printable, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError, utcnow
+from ..utils import Printable, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError, utcnow, \
+    ToolInitialisationError, ToolNotFoundError
 from ..models import TimeIntervalModel, WorkflowStatusModel
-from ..time_interval import TimeIntervals, TimeInterval
+from ..time_interval import TimeIntervals
 
 
 class Workflow(Printable):
@@ -140,23 +141,25 @@ class Workflow(Printable):
         :rtype: Factor
         """
         if isinstance(tool, dict):
-            # tool = self.channels.get_tool(**tool)
-            tool = self.channels.get_tool(name=tool["name"], parameters=tool["parameters"])
+            tool = self.channels.get_tool(**tool)
 
         if not isinstance(tool, BaseTool):
             raise ValueError("Expected Tool, got {}".format(type(tool)))
 
         if sink.plates:
             if isinstance(tool, (AggregateTool, SelectorTool)):
-                if not sources or len(sources) != 1:
-                    raise FactorDefinitionError("Aggregate tools require a single source node")
+                if not sources or len(sources) > 2:
+                    raise FactorDefinitionError("{} requires one or two source nodes".format(type(tool)))
 
-                if not sources[0].plates:
-                    raise FactorDefinitionError("Aggregate tool source must live on a plate")
+                if len(sources) == 2 and sources[0].plates:
+                    raise FactorDefinitionError("{} requires the first source to have no plates".format(type(tool)))
 
-                if len(sources[0].plates) != 1:
+                if not sources[-1].plates:
+                    raise FactorDefinitionError("{} source must live on a plate".format(type(tool)))
+
+                if len(sources[-1].plates) != 1:
                     # Make sure that there are exactly two plates that don't match: one from each side
-                    diff, counts, is_sub_plate = sources[0].difference(sink)
+                    diff, counts, is_sub_plate = sources[-1].difference(sink)
                     if counts == [1, 1]:
                         if not is_sub_plate:
                             raise IncompatiblePlatesError("Sink plate is not a simplification of source plate")
@@ -164,7 +167,7 @@ class Workflow(Printable):
                         raise IncompatiblePlatesError("Sink plate is not a simplification of source plate")
                 else:
                     # Check if the parent plate is valid instead
-                    source_plate = sources[0].plates[0]
+                    source_plate = sources[-1].plates[0]
                     sink_plate = sink.plates[0]
 
                     error = self.check_plate_compatibility(tool, source_plate, sink_plate)
@@ -212,7 +215,7 @@ class Workflow(Printable):
         :rtype: Factor
         """
         if isinstance(tool, dict):
-            tool = self.channels.get_tool(name=tool["name"], parameters=tool["parameters"])
+            tool = self.channels.get_tool(**tool)
 
         if not isinstance(tool, MultiOutputTool):
             raise ValueError("Expected MultiOutputTool, got {}".format(type(tool)))
@@ -286,7 +289,7 @@ class Workflow(Printable):
         :return: The created factor
         """
         if isinstance(tool, dict):
-            tool = self.channels.get_tool(name=tool["name"], parameters=tool["parameters"])
+            tool = self.channels.get_tool(**tool)
 
         if not isinstance(tool, PlateCreationTool):
             raise ValueError("Expected MultiOutputTool, got {}".format(type(tool)))

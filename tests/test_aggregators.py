@@ -258,7 +258,8 @@ class HyperStreamAggregatorTests(unittest.TestCase):
         # Create a stream with the single value "location" in it
         w.create_node(stream_name="selector_meta_data", channel=A, plate_ids=None)
 
-        A.write_to_stream(stream_id="selector_meta_data", data=StreamInstance(timestamp=utcnow(), value="location"))
+        A.write_to_stream(stream_id=StreamId(name="selector_meta_data"),
+                          data=StreamInstance(timestamp=utcnow(), value="location"))
 
         N = w.nodes
         w.create_factor(

@@ -192,10 +192,9 @@ class ChannelManager(dict, Printable):
             min_expected = max_expected
         num_parameters = len(parameters) if parameters is not None else 0
         if not (min_expected <= num_parameters + 1 <= max_expected):
-            message = "Tool {} takes a between {} and {} arguments ({} given)".format(
+            message = "Tool {} takes between {} and {} arguments ({} given)".format(
                 tool_class.__name__, min_expected, max_expected, num_parameters + 1)
-            # logging.warn(message)
-            raise ValueError(message)
+            raise ToolInitialisationError(message)
 
         # Instantiate tool
         try:
