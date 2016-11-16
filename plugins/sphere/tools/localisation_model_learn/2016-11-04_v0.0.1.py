@@ -22,13 +22,13 @@
 
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
+from hyperstream.utils import utcnow
 
 import numpy as np
 
 from copy import deepcopy
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.calibration import CalibratedClassifierCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.pipeline import Pipeline
@@ -139,4 +139,4 @@ class LocalisationModelLearn(Tool):
         clf_serialised['label_encoder'] = serialise_dict(label_encoder.__dict__)
         clf_serialised['performance'] = predefined_train_test_split(train_x, train_y_trans, folds, clf, label_encoder)
         
-        yield StreamInstance(interval.end, clf_serialised)
+        yield StreamInstance(utcnow(), clf_serialised)
