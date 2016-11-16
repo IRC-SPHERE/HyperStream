@@ -21,6 +21,9 @@
 
 from datetime import datetime
 from collections import namedtuple
+import logging
+
+from ..utils import utcnow
 
 
 class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
@@ -31,6 +34,11 @@ class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
     def __new__(cls, timestamp, value):
         if not isinstance(timestamp, datetime):
             raise ValueError("Timestamp must be datetime.datetime")
+
+        if timestamp > utcnow():
+            # TODO: Possibly this should raise and exception
+            logging.critical("Timestamp should not be in the future!")
+
         return super(StreamInstance, cls).__new__(cls, timestamp, value)
 
     def as_list(self, flat=True):
