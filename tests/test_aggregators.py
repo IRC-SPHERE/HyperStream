@@ -247,6 +247,34 @@ class HyperStreamAggregatorTests(unittest.TestCase):
         assert all(a == b for a, b in zip(N['rss_kitchen'].streams[key].window(time_interval).head(10),
                                           N['rss'].streams[key].window(time_interval).head(10)))
 
+    def test_index_of_by_stream(self):
+        w = basic_workflow(sys._getframe().f_code.co_name)
+
+        aggregate_loc = channels.get_tool(
+            name="index_of_by_stream",
+            parameters=dict(index="kitchen")
+        )
+
+        # Create a stream with the single value "location" in it
+        w.create_node(stream_name="selector_meta_data", channel=A, plate_ids=None)
+
+        A.write_to_stream(stream_id="selector_meta_data", data=StreamInstance(timestamp=utcnow(), value="location"))
+
+        N = w.nodes
+        w.create_factor(
+            tool=aggregate_loc,
+            sources=[N["selector_meta_data"], N["rss"]],
+            sink=N["rss_kitchen"]
+        )
+
+        time_interval = TimeInterval(scripted_experiments[0].start, scripted_experiments[0].start + 2 * minute)
+        w.execute(time_interval)
+
+        key = h1 + (('location', 'kitchen'),) + wA
+
+        assert all(a == b for a, b in zip(N['rss_kitchen'].streams[key].window(time_interval).head(10),
+                                          N['rss'].streams[key].window(time_interval).head(10)))
+
 
 if __name__ == '__main__':
     unittest.main()

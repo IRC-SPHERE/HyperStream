@@ -120,9 +120,10 @@ if __name__ == '__main__':
     for stream_name, channel, plate_ids in nodes:
         w.create_node(stream_name, channel, plate_ids)
 
-    w.create_factor(
+    w.create_multi_output_factor(
         tool=tools.annotations_location,
-        sources=None,
+        source=None,
+        splitting_node=None,
         sink=N["ann_raw"])
 
     w.create_factor(
@@ -147,9 +148,10 @@ if __name__ == '__main__':
         sources=[N["ann_time"]],
         sink=N["ann_test"])
 
-    w.create_factor(
+    w.create_multi_output_factor(
         tool=tools.wearable_rss,
-        sources=None,
+        source=None,
+        splitting_node=None,
         sink=N["rss_raw"])
 
     # Now we want to split by time interval onto a time-oriented plate
@@ -169,8 +171,6 @@ if __name__ == '__main__':
         tool=tools.index_of_2,
         sources=[N["rss_time"]],
         sink=N["rss_test"])
-
-    w.create_factor()
 
     if True:
         w.create_factor(
