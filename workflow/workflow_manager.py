@@ -334,7 +334,8 @@ class WorkflowManager(Printable):
                 description=workflow.description,
                 nodes=nodes,
                 factors=factors,
-                owner=workflow.owner
+                owner=workflow.owner,
+                online=workflow.online
             )
 
             workflow_definition.save()
