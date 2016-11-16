@@ -29,6 +29,7 @@ import logging
 class SelectorTool(BaseTool):
     """
     This type of tool performs sub-selection of streams within a node.
+    This can either be done using a selector in the parameters or using an input stream.
     The sink node plate should be a sub-plate of the source node.
     Examples are IndexOf and SubArray, either with fixed or variable parameters
     """
@@ -44,6 +45,7 @@ class SelectorTool(BaseTool):
         Execute the tool over the given time interval.
 
         :param sources: The source streams
+        :param selector: The selector stream
         :param sinks: The sink streams
         :param interval: The time interval
         :type sources: list[Stream] | tuple[Stream]

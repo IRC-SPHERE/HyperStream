@@ -49,6 +49,7 @@ M = hyperstream.channel_manager.memory
 S = hyperstream.channel_manager.sphere
 T = hyperstream.channel_manager.tools
 D = hyperstream.channel_manager.mongo
+A = hyperstream.channel_manager.assets
 
 # Some predefined tools
 tools = PredefinedTools(hyperstream)
