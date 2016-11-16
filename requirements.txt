@@ -3,6 +3,7 @@ arrow
 bidict
 future
 datadiff
+matplotlib
 mongoengine
 nose
 numpy
