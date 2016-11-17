@@ -44,12 +44,12 @@ class OnlineEngine(object):
         self.hyperstream = hyperstream
 
     @fasteners.interprocess_locked('/tmp/hyperstream.lock')
-    def execute(self):
+    def execute(self, debug=False):
         """
         Execute the engine - currently simple executes all workflows.
         """
 
-        if __debug__:
+        if debug:
             # Set some default times for execution (debugging)
             start_time = datetime(year=2016, month=10, day=19, hour=12, minute=28, tzinfo=UTC)
             duration = timedelta(seconds=5)
@@ -64,7 +64,7 @@ class OnlineEngine(object):
             time_interval = relative_interval.absolute(utcnow())
 
         for _ in range(100):
-            if not __debug__:
+            if not debug:
                 signal.alarm(305)  # if this takes more than 5 minutes, kill myself
 
             logging.info("Online engine starting up.")
@@ -74,7 +74,7 @@ class OnlineEngine(object):
             self.hyperstream.workflow_manager.execute_all()
             sleep(5)
 
-            if __debug__:
+            if debug:
                 time_interval += duration
             else:
                 time_interval = TimeInterval(time_interval.end, utcnow() + timedelta(seconds=relative_interval.end))
