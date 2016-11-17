@@ -42,11 +42,12 @@ def run(house, wearables):
         predictions = D[stream_id].window(time_interval).last()
 
         if predictions:
-            print("{}:{}\t{}\t{}".format(
+            print("Wearable {}:{}\t{}".format(
                 wearable,
                 predictions.timestamp,
-                arrow.get(predictions.timestamp).humanize(),
-                predictions.value))
+                arrow.get(predictions.timestamp).humanize()))
+            for k in sorted(predictions.value):
+                print("{}:\t{}".format(k, predictions.value[k]))
         else:
             print("No predictions in interval {} for wearable {}".format(time_interval, wearable))
 
