@@ -26,17 +26,8 @@ import logging
 from datetime import timedelta
 from time import sleep
 
-from sphere_connector_package.sphere_connector import SphereConnector
 
-# path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-sphere_connector = SphereConnector(
-    config_filename='config.json',  # os.path.join(path, 'config.json'),
-    include_mongo=True,
-    include_redcap=False,
-    sphere_logger=None)
-
-
-def run(house, wearables):
+def run(sphere_connector, house, wearables):
     from hyperstream import HyperStream, StreamId, TimeInterval
     from hyperstream.utils import utcnow
     hyperstream = HyperStream(loglevel=logging.CRITICAL)
@@ -64,7 +55,6 @@ def run(house, wearables):
 
     print("Access points: ")
     dtf = sphere_connector.basic_config.mongo['modalities']['wearable4']['date_time_field']
-    sphere_connector.modalities['environmental']
     aids = sphere_connector.client.collections['wearable4']\
         .find({dtf: {'$gt': utcnow() - timedelta(seconds=5)}}).distinct('aid')
     for i, aid in enumerate(aids):
@@ -79,6 +69,17 @@ if __name__ == '__main__':
     from os import path
 
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    sys.path.append(path)
+
+    from sphere_connector_package.sphere_connector import SphereConnector
+
+    # path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    sphere_connector = SphereConnector(
+        config_filename='config.json',  # os.path.join(path, 'config.json'),
+        include_mongo=True,
+        include_redcap=False,
+        sphere_logger=None)
 
     wearables = 'ABCD'
 
@@ -91,5 +92,5 @@ if __name__ == '__main__':
     house = 1
 
     while True:
-        run(house, wearables)
+        run(sphere_connector, house, wearables)
         sleep(1)
