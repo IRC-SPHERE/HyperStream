@@ -20,16 +20,25 @@
 
 from __future__ import print_function
 
+import os
 import arrow
 import logging
 from datetime import timedelta
 from time import sleep
 
+from sphere_connector_package.sphere_connector import SphereConnector
+
+# path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sphere_connector = SphereConnector(
+    config_filename='config.json',  # os.path.join(path, 'config.json'),
+    include_mongo=True,
+    include_redcap=False,
+    sphere_logger=None)
+
 
 def run(house, wearables):
     from hyperstream import HyperStream, StreamId, TimeInterval
     from hyperstream.utils import utcnow
-
     hyperstream = HyperStream(loglevel=logging.CRITICAL)
 
     # Various channels
@@ -52,6 +61,18 @@ def run(house, wearables):
             print("No predictions in interval {} for wearable {}".format(time_interval, wearable))
 
     print()
+
+    print("Access points: ")
+    dtf = sphere_connector.basic_config.mongo['modalities']['wearable4']['date_time_field']
+    sphere_connector.modalities['environmental']
+    aids = sphere_connector.client.collections['wearable4']\
+        .find({dtf: {'$gt': utcnow() - timedelta(seconds=5)}}).distinct('aid')
+    for i, aid in enumerate(aids):
+        print("{}: {}".format(i, aid))
+
+    print()
+    # db.getCollection('WEARABLE-ISO-TIME').distinct('aid',{wts:{$gt:ISODate("2016-11-17T16:40")})
+
 
 if __name__ == '__main__':
     import sys
