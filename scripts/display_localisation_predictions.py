@@ -47,7 +47,7 @@ def run(house, wearables):
                 predictions.timestamp,
                 arrow.get(predictions.timestamp).humanize()))
             for k in sorted(predictions.value):
-                print("{}:\t{}".format(k, predictions.value[k]))
+                print("{:>20}:\t{:0.2f}".format(k, predictions.value[k]))
         else:
             print("No predictions in interval {} for wearable {}".format(time_interval, wearable))
 
