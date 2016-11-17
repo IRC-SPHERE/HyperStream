@@ -50,14 +50,23 @@ def run(house, wearables):
         else:
             print("No predictions in interval {} for wearable {}".format(time_interval, wearable))
 
+    print()
+
 if __name__ == '__main__':
     import sys
     from os import path
 
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-    house = 1
     wearables = 'ABCD'
+
+    if len(sys.argv) > 1:
+        try:
+            wearables = sys.argv[1]
+        except ValueError:
+            pass
+
+    house = 1
 
     while True:
         run(house, wearables)
