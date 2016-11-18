@@ -78,3 +78,43 @@ sudo apt-get install supervisor
 sudo sh setup_supervisor.sh  
 sudo service supervisor start
 ```
+
+
+### Install annotation app using apache
+
+Assuming the app is located at `/etc/www/html/localisation_annotation`
+
+```
+sudo apt-get install libapache2-mod-wsgi
+```
+
+Create `/var/www/wsgi/localisation_annotation.wsgi` with the following:
+
+```
+import sys, os
+sys.path.insert (0,'/var/www/html/localisation_annotation')
+os.chdir("/var/www/html/localisation_annotation")
+from flaskapp import app as application
+```
+	
+Add the following to `/etc/apache2/apache2.conf`
+
+```
+WSGIRestrictStdout Off
+WSGIScriptReloading On
+
+<VirtualHost *:80>
+    ServerName shg
+
+    # Alias /localisation_annotation "/var/www/html/localisation_annotation/"
+    DocumentRoot /var/www/html
+
+    WSGIDaemonProcess localisation_annotation threads=5 home=/var/www/html/localisation_annotation
+    WSGIScriptAlias /app /var/www/wsgi/localisation_annotation.wsgi
+
+    <Location /app>
+        WSGIProcessGroup localisation_annotation
+        WSGIApplicationGroup %{GLOBAL}
+    </Location>
+</VirtualHost>
+```
