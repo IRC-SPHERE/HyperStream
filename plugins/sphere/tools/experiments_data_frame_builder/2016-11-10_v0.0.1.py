@@ -22,7 +22,8 @@ from hyperstream import TimeInterval
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 import pandas as pd
-from hyperstream.utils.time_utils import construct_experiment_id
+
+from hyperstream.utils.time_utils import construct_experiment_id, utcnow
 
 
 class ExperimentsDataFrameBuilder(Tool):
@@ -44,4 +45,4 @@ class ExperimentsDataFrameBuilder(Tool):
         ), **(x.value['notes'])), data)
         df = pd.DataFrame(flattened)
         df['id'] = range(1, len(df) + 1)
-        yield StreamInstance(interval.end, df)
+        yield StreamInstance(utcnow(), df)

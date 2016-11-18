@@ -36,8 +36,7 @@ class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
             raise ValueError("Timestamp must be datetime.datetime")
 
         if timestamp > utcnow():
-            # TODO: Possibly this should raise and exception
-            logging.critical("Timestamp should not be in the future!")
+            raise ValueError("Timestamp {} should not be in the future!".format(timestamp))
 
         return super(StreamInstance, cls).__new__(cls, timestamp, value)
 

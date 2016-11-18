@@ -20,6 +20,8 @@
 
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
+from hyperstream.utils import utcnow
+
 import pandas as pd
 
 
@@ -40,4 +42,4 @@ class DallanDataFrameBuilder(Tool):
             location=next(iter(x.value['annotations']['Location']), None)
         ), **(x.value['rssi'])), data)
         df = pd.DataFrame(flattened)
-        yield StreamInstance(interval.end, df)
+        yield StreamInstance(utcnow(), df)
