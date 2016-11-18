@@ -32,7 +32,12 @@ MAX_DATE = datetime.max.replace(tzinfo=UTC).replace(microsecond=0)
 
 
 def utcnow():
-    return datetime.utcnow().replace(tzinfo=UTC)
+    """
+    Gets the current datetime in UTC format with millisecond precision
+    :return:
+    """
+    now = datetime.utcnow().replace(tzinfo=UTC)
+    return datetime(now.year, now.month, now.day, now.hour, now.minute, now.second, now.microsecond / 1000 * 1000, UTC)
 
 
 def get_timedelta(value):
