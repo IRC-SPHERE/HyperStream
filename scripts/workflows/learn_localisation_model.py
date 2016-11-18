@@ -89,7 +89,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
     w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
-            parameters=dict(modality="wearable4")
+            parameters=dict(modality="wearable3")
         ),
         source=None,
         splitting_node=None,
