@@ -28,7 +28,7 @@ from mongoengine import DoesNotExist, MultipleObjectsReturned
 from mongoengine.context_managers import switch_db
 
 from models import StreamDefinitionModel, StreamStatusModel
-from stream import StreamId, DatabaseStream
+from stream import StreamId, DatabaseStream, AssetStream
 from time_interval import TimeIntervals
 from utils import Printable, utcnow, MIN_DATE, StreamAlreadyExistsError, ChannelNotFoundError, ToolNotFoundError, \
     ChannelAlreadyExistsError, ToolInitialisationError
@@ -124,7 +124,12 @@ class ChannelManager(dict, Printable):
                         except MultipleObjectsReturned as e:
                             raise e
 
-                    channel.streams[stream_id] = DatabaseStream(
+                    if channel == self.assets:
+                        stream_type = AssetStream
+                    else:
+                        stream_type = DatabaseStream
+
+                    channel.streams[stream_id] = stream_type(
                         channel=channel,
                         stream_id=stream_id,
                         calculated_intervals=calculated_intervals,
