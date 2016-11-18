@@ -85,7 +85,7 @@
                 }
             },
             "annotations": {
-                "collection": "ANN_fixed_datetime_tier",
+                "collection": "ANN",
                 "collection_old": "annotations"
             }
         }
