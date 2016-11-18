@@ -21,7 +21,7 @@
 from hyperstream import TimeInterval
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
-from hyperstream.utils.time_utils import construct_experiment_id
+from hyperstream.utils.time_utils import construct_experiment_id, utcnow
 
 
 class ExperimentsMappingBuilder(Tool):
@@ -45,5 +45,5 @@ class ExperimentsMappingBuilder(Tool):
             experiment_id = construct_experiment_id(experiment_interval)
             if experiment_id in experiment_ids:
                 mappings.append((experiment_id, experiment_interval))
-        yield StreamInstance(interval.end, mappings)
+        yield StreamInstance(utcnow(), mappings)
 
