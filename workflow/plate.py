@@ -39,18 +39,26 @@ class Plate(Printable):
         self.plate_id = plate_id
         self.meta_data_id = meta_data_id
 
-        self.values = []
-        self.cardinality = 0
+        self._values = []
+        self._cardinality = 0
         for pv in values:
-            self.values.append(tuple(sorted(pv.items())))
-            if self.cardinality == 0:
-                self.cardinality = len(pv)
+            self._values.append(tuple(sorted(pv.items())))
+            if self._cardinality == 0:
+                self._cardinality = len(pv)
             else:
-                if len(pv) != self.cardinality:
+                if len(pv) != self._cardinality:
                     raise ValueError("Plate values have inconsistent cardinality")
 
-        self.values = [tuple(sorted(pv.items())) for pv in values]
-        self.parent = parent_plate
+        # self._values = [tuple(sorted(pv.items())) for pv in values]
+        self._parent = parent_plate
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def values(self):
+        return self._values
 
     def _get_ancestors(self, current=None):
         """
