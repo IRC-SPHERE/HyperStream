@@ -116,6 +116,7 @@ mappings = {
         "a0:e6:f8:ad:87:84": "D",
         "a0:e6:f8:ad:85:04": "A",
         "a0e6f8ad8504": "A",
+        "a0e6f8ad8600": "B"
     },
     # 'annotator': dict((x, x) for x in annotator_ids)
 }
