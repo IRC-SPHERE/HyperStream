@@ -15,8 +15,8 @@ sh mongo_exports.sh
 ```
 ssh-keygen  
 ssh-agent /bin/bash  
-ssh-add ~/.ssh/id_rsa   
-ssh-add -l   
+ssh-add ~/.ssh/id_rsa  
+ssh-add -l  
 cat ~/.ssh/id_rsa.pub  
 ```
 
@@ -35,7 +35,7 @@ git config --global push.default matching
 ```
 
 ### Setup virtual environment
-
+
 ```
 bash  
 sudo pip install virtualenv  
@@ -77,4 +77,54 @@ python scripts/deploy_localisation_model.py
 sudo apt-get install supervisor  
 sudo sh setup_supervisor.sh  
 sudo service supervisor start
+```
+
+
+### Install annotation app using apache
+
+```
+cd ..
+git clone git@bitbucket.org:irc-sphere/localisation_annotation.git
+sh deploy.sh
+cd /var/www/html/localisation_annotation
+pip install -r requirements.txt
+sudo apt-get install libapache2-mod-wsgi
+sudo mkdir /var/www/wsgi
+```
+
+Create `/var/www/wsgi/localisation_annotation.wsgi` (`sudo vim /var/www/wsgi/localisation_annotation.wsgi`) with the following:
+
+```
+import sys, os
+sys.path.insert (0,'/var/www/html/localisation_annotation')
+os.chdir("/var/www/html/localisation_annotation")
+from flaskapp import app as application
+```
+	
+Add the following to `/etc/apache2/apache2.conf`
+
+```
+WSGIRestrictStdout Off
+WSGIScriptReloading On
+
+<VirtualHost *:80>
+    ServerName shg
+
+    # Alias /localisation_annotation "/var/www/html/localisation_annotation/"
+    DocumentRoot /var/www/html
+
+    WSGIDaemonProcess localisation_annotation threads=5 home=/var/www/html/localisation_annotation
+    WSGIScriptAlias /app /var/www/wsgi/localisation_annotation.wsgi
+
+    <Location /app>
+        WSGIProcessGroup localisation_annotation
+        WSGIApplicationGroup %{GLOBAL}
+    </Location>
+</VirtualHost>
+```
+
+Restart apache
+
+```
+sudo service apache2 restart
 ```

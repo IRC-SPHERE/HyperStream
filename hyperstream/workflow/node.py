@@ -53,13 +53,17 @@ class Node(Printable):
         """
         self._channel = channel
         self.node_id = node_id
-        self.streams = streams
+        self._streams = streams
         for stream in streams.values():
             stream.parent_node = self
 
         self._factor = None  # reference to the factor that defines this node. Required for upstream computation
         self.plates = plates if plates else []
         self._is_leaf = True  # All nodes are leaf nodes until they are declared as a source node in a factor
+
+    @property
+    def streams(self):
+        return self._streams
 
     @property
     def plate_ids(self):
@@ -97,7 +101,7 @@ class Node(Printable):
         :type meta: dict
         :rtype: StreamId
         """
-        keys = self.streams[0].stream_id.meta_data.keys()
+        keys = self._streams[0].stream_id.meta_data.keys()
         return StreamId(self.node_id, dict(*zip((kk, meta[kk]) for kk in keys)))
 
     def difference(self, other):
@@ -140,14 +144,14 @@ class Node(Printable):
         for plate_value in plate_values:
             combined_plate_value = self.combine_plate_values(parent_plate_value, plate_value)
 
-            if combined_plate_value not in self.streams:
+            if combined_plate_value not in self._streams:
                 # This can happen if we have created a compound plate and only certain plate values are valid
                 continue
 
             found = True
             print_func("Plate value: {}".format(combined_plate_value))
             data = False
-            for k, v in self.streams[combined_plate_value].window(interval).head(n):
+            for k, v in self._streams[combined_plate_value].window(interval).head(n):
                 data = True
                 print_func("{}, {}".format(k, v))
             if not data:
