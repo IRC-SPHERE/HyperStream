@@ -15,8 +15,8 @@ sh mongo_exports.sh
 ```
 ssh-keygen  
 ssh-agent /bin/bash  
-ssh-add ~/.ssh/id_rsa  Â 
-ssh-add -l  Â 
+ssh-add ~/.ssh/id_rsa   
+ssh-add -l   
 cat ~/.ssh/id_rsa.pub  
 ```
 
@@ -82,9 +82,10 @@ sudo service supervisor start
 
 ### Install annotation app using apache
 
-Assuming the app is located at `/etc/www/html/localisation_annotation`
-
 ```
+cd ..
+git clone git@bitbucket.org:irc-sphere/localisation_annotation.git
+sudo mv localisation_annotation /var/www/html/
 sudo apt-get install libapache2-mod-wsgi
 ```
 
