@@ -15,8 +15,8 @@ sh mongo_exports.sh
 ```
 ssh-keygen  
 ssh-agent /bin/bash  
-ssh-add ~/.ssh/id_rsa   
-ssh-add -l   
+ssh-add ~/.ssh/id_rsa  ï¿½
+ssh-add -l  ï¿½
 cat ~/.ssh/id_rsa.pub  
 ```
 
@@ -87,9 +87,10 @@ cd ..
 git clone git@bitbucket.org:irc-sphere/localisation_annotation.git
 sudo mv localisation_annotation /var/www/html/
 sudo apt-get install libapache2-mod-wsgi
+sudo mkdir /var/www/wsgi
 ```
 
-Create `/var/www/wsgi/localisation_annotation.wsgi` with the following:
+Create `/var/www/wsgi/localisation_annotation.wsgi` (`sudo vim /var/www/wsgi/localisation_annotation.wsgi`) with the following:
 
 ```
 import sys, os
