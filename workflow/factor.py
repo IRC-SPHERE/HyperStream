@@ -164,7 +164,7 @@ class Factor(Printable):
                     sources.append(source.streams[plate_value])
                 else:
                     # TODO - determine whether this should raise an exception or not
-                    logging.warn("Plate {} with value {} not valid for source {}"
+                    logging.warn("{} with value {} not valid for source {}"
                                  .format(plate, plate_value, source))
         
         if not plate.is_root:
@@ -269,7 +269,7 @@ class MultiOutputFactor(Printable):
                 if ipv in self.source.streams:
                     source = self.source.streams[ipv]
                 else:
-                    logging.warn("Plate {} with value {} not valid for source {}".format(
+                    logging.warn("{} with value {} not valid for source {}".format(
                         self.input_plate, ipv, self.source))
                     continue
                 
@@ -381,7 +381,7 @@ class PlateCreationFactor(Printable):
                 if ipv in self.source.streams:
                     source = self.source.streams[ipv]
                 else:
-                    logging.warn("Plate {} with value {} not valid for source {}".format(
+                    logging.warn("{} with value {} not valid for source {}".format(
                         self.input_plate, ipv, self.source))
                     continue
 
