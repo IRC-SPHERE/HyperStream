@@ -50,7 +50,7 @@
                 }
             },
             "wearable3": {
-                "collection": "wearable",
+                "collection": "WEAR",
                 "date_time_field": "bt",
                 "event": "e",
                 "fields": {

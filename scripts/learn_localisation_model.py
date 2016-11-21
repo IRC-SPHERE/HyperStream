@@ -30,6 +30,8 @@ def run(house, selection, delete_existing_workflows=True):
 
     hyperstream = HyperStream(loglevel=logging.INFO)
     M = hyperstream.channel_manager.memory
+    D = hyperstream.channel_manager.mongo
+    A = hyperstream.channel_manager.assets
 
     workflow_id0 = "list_technicians_walkarounds"
 
@@ -56,15 +58,15 @@ def run(house, selection, delete_existing_workflows=True):
         parent_plate="H"
     )
 
-    # Ensure the model is overwritten if it's already there
-#    try:
-#        hyperstream.channel_manager.mongo.purge_stream(
-#            StreamId(name="location_prediction_lda", meta_data=dict(house=1)))
-#    except StreamNotFoundError:
-#        pass
-
     experiment_ids_str = '_'.join(experiment_ids)
-    # Create a simple one step workflow for querying
+
+    # Ensure the model is overwritten if it's already there
+    model_id = StreamId(name="location_prediction_lda_"+experiment_ids_str, meta_data=dict(house=1))
+    try:
+        hyperstream.channel_manager.mongo.purge_stream(model_id)
+    except StreamNotFoundError:
+        pass
+
     workflow_id1 = "lda_localisation_model_learner_"+experiment_ids_str
 
     if delete_existing_workflows:
@@ -79,8 +81,16 @@ def run(house, selection, delete_existing_workflows=True):
 
     w1.execute(TimeInterval.all_time())
 
+    last_experiment = A[StreamId(name='experiments_selected', meta_data=dict(house=1))].window(
+        time_interval=TimeInterval.all_time()).last().value
+
+    print(last_experiment)
+
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))
+
+    model = D[model_id].window(TimeInterval.all_time()).last().value
+    print(model)
 
 
 if __name__ == '__main__':
