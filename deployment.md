@@ -15,8 +15,8 @@ sh mongo_exports.sh
 ```
 ssh-keygen  
 ssh-agent /bin/bash  
-ssh-add ~/.ssh/id_rsa  �
-ssh-add -l  �
+ssh-add ~/.ssh/id_rsa  
+ssh-add -l  
 cat ~/.ssh/id_rsa.pub  
 ```
 
@@ -35,7 +35,7 @@ git config --global push.default matching
 ```
 
 ### Setup virtual environment
-
+
 ```
 bash  
 sudo pip install virtualenv  
@@ -85,9 +85,8 @@ sudo service supervisor start
 ```
 cd ..
 git clone git@bitbucket.org:irc-sphere/localisation_annotation.git
-sudo mv localisation_annotation /var/www/html/
+sh deploy.sh
 cd /var/www/html/localisation_annotation
-sudo chown --recursive www-data:www-data .
 pip install -r requirements.txt
 sudo apt-get install libapache2-mod-wsgi
 sudo mkdir /var/www/wsgi
