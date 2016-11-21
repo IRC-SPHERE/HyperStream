@@ -120,3 +120,9 @@ WSGIScriptReloading On
     </Location>
 </VirtualHost>
 ```
+
+Restart apache
+
+```
+sudo service apache2 restart
+```
