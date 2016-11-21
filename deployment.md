@@ -86,6 +86,8 @@ sudo service supervisor start
 cd ..
 git clone git@bitbucket.org:irc-sphere/localisation_annotation.git
 sudo mv localisation_annotation /var/www/html/
+cd /var/www/html/localisation_annotation
+pip install -r requirements.txt
 sudo apt-get install libapache2-mod-wsgi
 sudo mkdir /var/www/wsgi
 ```
