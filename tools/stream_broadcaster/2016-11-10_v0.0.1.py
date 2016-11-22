@@ -22,14 +22,12 @@
 from hyperstream.tool import MultiOutputTool
 from hyperstream.stream import StreamMetaInstance
 from hyperstream.time_interval import TimeInterval
-from hyperstream.utils import MIN_DATE, MAX_DATE
 
 
 class StreamBroadcaster(MultiOutputTool):
-    def __init__(self, mapping):
-        super(StreamBroadcaster, self).__init__(mapping=mapping)
-        self.mapping = mapping
-    
+    def __init__(self, output_plate_values):
+        super(StreamBroadcaster, self).__init__(output_plate_values=output_plate_values)
+
     def _execute(self, source, splitting_stream, interval, output_plate):
         if splitting_stream is not None:
             raise NotImplementedError("Splitting stream not supported for this tool")
@@ -37,11 +35,10 @@ class StreamBroadcaster(MultiOutputTool):
         # TODO: This factor is currently used to pull out the parameters of a localisation model, and as such does \
         #   use the time interval, but only pulls the last instance in the stream. Will need to change this in \
         #   future instances
-        param_doc = source.window(TimeInterval(MIN_DATE, MAX_DATE), force_calculation=True).last()
+        param_doc = source.window(TimeInterval.all_time(), force_calculation=True).last()
 
         if param_doc is None:
             return
 
-        for kk, vv in self.mapping.iteritems():
-            yield StreamMetaInstance(
-                (param_doc.timestamp, param_doc.value), (output_plate.meta_data_id, str(vv)))
+        for vv in self.output_plate_values:
+            yield StreamMetaInstance(param_doc, (output_plate.meta_data_id, str(vv)))
