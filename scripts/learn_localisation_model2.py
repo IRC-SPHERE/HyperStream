@@ -20,6 +20,7 @@
 
 import logging
 import sys
+from pprint import pprint
 
 
 def create_selected_localisation_plates(hyperstream, house, experiment_ids_str):
@@ -61,7 +62,7 @@ def run(house, selection, delete_existing_workflows=True):
     from hyperstream import HyperStream, StreamId, TimeInterval
     from workflows.display_experiments import create_workflow_list_technicians_walkarounds
     from workflows.learn_localisation_model2 import create_workflow_lda_localisation_model_learner
-    from hyperstream.utils import StreamNotFoundError
+    from hyperstream.utils import StreamNotFoundError, reconstruct_interval
 
     hyperstream = HyperStream(loglevel=logging.INFO)
     M = hyperstream.channel_manager.memory
@@ -111,20 +112,20 @@ def run(house, selection, delete_existing_workflows=True):
 
     w1.execute(TimeInterval.all_time())
 
-    last_experiment = A[StreamId(name='experiments_selected', meta_data=dict(house=1))].window(
-        time_interval=TimeInterval.all_time()).last().value
-
-    print(last_experiment)
-
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))
 
-    # M.find_streams(house=1)
-    # M.find_streams(name='location_prediction')
-    # M.find_streams(name='location_prediction', localisation_model="lda")
-    # D.find_streams(house=1, name='location_prediction', localisation_model='lda')
-    model = M[model_id].window(TimeInterval.all_time()).last().value
-    print(model)
+    model = D[model_id].window(TimeInterval.all_time()).last().value
+
+    for experiment_id in list(experiment_ids):
+        print("Experiment id: {}".format(experiment_id))
+        print("Time interval: {}".format(reconstruct_interval(experiment_id)))
+        print("Accuracy: {}".format(pprint(model['performance'][experiment_id]['accuracy'])))
+        print("Macro F1: {}".format(pprint(model['performance'][experiment_id]['f1_score_macro'])))
+        print("Micro F1: {}".format(pprint(model['performance'][experiment_id]['f1_score_micro'])))
+        print("Confusion Matrix:")
+        pprint(model['performance'][experiment_id]['confusion_matrix'])
+        print("")
 
 
 if __name__ == '__main__':
