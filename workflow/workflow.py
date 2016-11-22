@@ -175,7 +175,7 @@ class Workflow(Printable):
             else:
                 if sources:
                     # Check that the plates are compatible
-                    source_plates = itertools.chain(*(source.plate_ids for source in sources))
+                    source_plates = list(itertools.chain(*(source.plate_ids for source in sources)))
                     for p in sink.plate_ids:
                         if p not in set(source_plates):
                             raise IncompatiblePlatesError("{} not in source plates".format(p))
@@ -213,6 +213,12 @@ class Workflow(Printable):
         :type sink: Node
         :rtype: Factor
         """
+        if source and not isinstance(source, Node):
+            raise ValueError("Expected Node, got {}".format(type(source)))
+
+        if not isinstance(sink, Node):
+            raise ValueError("Expected Node, got {}".format(type(sink)))
+
         if isinstance(tool, dict):
             tool = self.channels.get_tool(**tool)
 
@@ -257,16 +263,17 @@ class Workflow(Printable):
                 # Swap them round so the new plate is the last plate - this is required by the factor
                 output_plates[1], output_plates[0] = output_plates[0], output_plates[1]
 
-            # We need to walk up the input plate's parent tree
-            match = False
-            parent = input_plates[0].parent
-            while parent is not None:
-                if parent.plate_id == output_plate.parent.plate_id:
-                    match = True
-                    break
-                parent = parent.parent
-            if not match:
-                raise IncompatiblePlatesError("Require an input plate to match all but one of the output plates")
+            if not output_plate.is_root:
+                # We need to walk up the input plate's parent tree
+                match = False
+                parent = input_plates[0].parent
+                while parent is not None:
+                    if parent.plate_id == output_plate.parent.plate_id:
+                        match = True
+                        break
+                    parent = parent.parent
+                if not match:
+                    raise IncompatiblePlatesError("Require an input plate to match all but one of the output plates")
 
             factor = MultiOutputFactor(
                 tool=tool, source_node=source, sink_node=sink,
