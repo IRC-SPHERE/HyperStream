@@ -94,6 +94,21 @@ class BaseChannel(Printable):
         """
         raise NotImplementedError
 
+    def find_streams(self, **kwargs):
+        """
+        Finds streams with the given meta data values. Useful for debugging purposes.
+        :param kwargs: The meta data as keyword arguments
+        :return: The streams found
+        """
+        found = {}
+        for stream_id, stream in self.streams.items():
+            d = stream_id.as_dict()
+            if all(d['name'] == str(v) if k == 'name'
+                   else k in d['meta_data'] and d['meta_data'][k] == str(v)
+                   for k, v in kwargs.items()):
+                found[stream_id] = stream
+        return found
+
     def purge_stream(self, stream_id, sandbox=None):
         """
         Must be overridden by deriving classes, purges the stream and removes the calculated intervals
