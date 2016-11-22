@@ -96,7 +96,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
         ("merged_2s",                               M, ["H.SelectedLocalisationExperiment"]),  # rss_2s with annotation_state_2s
         ("merged_2s_flat_" + experiment_ids_str,    M, ["H"]),  # flattened version of merged_2s
         ("merged_2s_split_" + experiment_ids_str,   M, ["H", "LocalisationModels"]),
-        ("location_prediction",                     M, ["H", "LocalisationModels"]),
+        ("location_prediction",                     D, ["H", "LocalisationModels"]),
         ("experiments_selected",                    A, ["H"])
     )
 
@@ -223,7 +223,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
     w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="stream_broadcaster",
-            parameters=dict(output_plate_values=model_names)
+            parameters=dict(func=lambda x: x, output_plate_values=model_names)
         ),
         source=N["merged_2s_flat_" + experiment_ids_str],
         splitting_node=None,

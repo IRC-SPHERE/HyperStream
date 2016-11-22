@@ -20,9 +20,9 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-from hyperstream.stream import StreamInstance, StreamMetaInstance
+from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
-from hyperstream.utils import utcnow
+from hyperstream.utils import utcnow, reconstruct_interval
 
 import numpy as np
 
@@ -148,6 +148,9 @@ class LocalisationModelLearn2(Tool):
         clf_serialised['label_encoder'] = serialise_dict(label_encoder.__dict__)
         clf_serialised['performance'] = predefined_train_test_split(train_x, train_y_trans, folds, clf, label_encoder)
 
-        clf_serialised[''] = None
+        experiment_ids = sources[0].stream_id.name.split('_')[-2:]
+        clf_serialised['experiment_ids_str'] = '_'.join(experiment_ids)
+        clf_serialised['experiment_interval'] = map(reconstruct_interval, experiment_ids)
+        clf_serialised['tool_parameters'] = dict((x, self.__dict__[x]) for x in self.__dict__ if not x.startswith("_"))
 
         yield StreamInstance(utcnow(), clf_serialised)
