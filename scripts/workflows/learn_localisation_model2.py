@@ -56,7 +56,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
 
     experiment_ids_str = '_'.join(experiment_ids)
     # Create a simple one step workflow for querying
-    workflow_id = "lda_localisation_model_learner_"+experiment_ids_str
+    workflow_id = "lda_localisation_model_learner2_" + experiment_ids_str
     try:
         w = hyperstream.create_workflow(
             workflow_id=workflow_id,
@@ -82,23 +82,22 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
     create_localisation_model_plate(hyperstream, model_names)
 
     nodes = (
-        ("experiments_list",            M, ["H"]),  # Current annotation data in 2s windows
-        # ("experiments_dataframe",       M, ["H"]),  # Current annotation data in 2s windows
-        ("experiments_mapping",         M, ["H"]),  # Current annotation data in 2s windows
-        ("rss_raw",                     S, ["H"]),  # Raw RSS data
-        ("rss_time",                    S, ["H.SelectedLocalisationExperiment"]),  # RSS data split by experiment
-        ("annotation_raw_locations",    S, ["H"]),  # Raw annotation data
-        ("annotation_time",             S, ["H.SelectedLocalisationExperiment"]),  # RSS data split by experiment
-        ("every_2s",                    M, ["H.SelectedLocalisationExperiment"]),  # sliding windows one every minute
-        ("annotation_state_location",   M, ["H.SelectedLocalisationExperiment"]),  # Annotation data in 2s windows
-        ("annotation_state_2s_windows", M, ["H.SelectedLocalisationExperiment"]),
-        ("rss_2s",                      M, ["H.SelectedLocalisationExperiment"]),  # max(RSS) per AP in past 2s of RSS
-        ("merged_2s",                   M, ["H.SelectedLocalisationExperiment"]),  # rss_2s with annotation_state_2s
-        # ("merged_2s_flat_"+experiment_ids_str,              M, ["H"]),              # flattened version of merged_2s
-        # ("dataframe_"+experiment_ids_str,                   M, ["H"]),
-        ("merged_2s_split",             M, ["H.SelectedLocalisationExperiment", "LocalisationModels"]),  # rss_2s with annotation_state_2s
-        ("location_prediction",         M, ["H.SelectedLocalisationExperiment", "LocalisationModels"]),
-        ("experiments_selected",        A, ["H"])
+        ("experiments_list",                        M, ["H"]),  # Current annotation data in 2s windows
+        # ("experiments_dataframe",                   M, ["H"]),  # Current annotation data in 2s windows
+        ("experiments_mapping",                     M, ["H"]),  # Current annotation data in 2s windows
+        ("rss_raw",                                 S, ["H"]),  # Raw RSS data
+        ("rss_time",                                S, ["H.SelectedLocalisationExperiment"]),  # RSS data split by experiment
+        ("annotation_raw_locations",                S, ["H"]),  # Raw annotation data
+        ("annotation_time",                         S, ["H.SelectedLocalisationExperiment"]),  # RSS data split by experiment
+        ("every_2s",                                M, ["H.SelectedLocalisationExperiment"]),  # sliding windows one every minute
+        ("annotation_state_location",               M, ["H.SelectedLocalisationExperiment"]),  # Annotation data in 2s windows
+        ("annotation_state_2s_windows",             M, ["H.SelectedLocalisationExperiment"]),
+        ("rss_2s",                                  M, ["H.SelectedLocalisationExperiment"]),  # max(RSS) per AP in past 2s of RSS
+        ("merged_2s",                               M, ["H.SelectedLocalisationExperiment"]),  # rss_2s with annotation_state_2s
+        ("merged_2s_flat_" + experiment_ids_str,    M, ["H"]),  # flattened version of merged_2s
+        ("merged_2s_split_" + experiment_ids_str,   M, ["H", "LocalisationModels"]),
+        ("location_prediction",                     M, ["H", "LocalisationModels"]),
+        ("experiments_selected",                    A, ["H"])
     )
 
     # Create all of the nodes
@@ -122,7 +121,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
     w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
-            parameters=dict(modality="wearable3")
+            parameters=dict(modality="wearable4")
         ),
         source=None,
         splitting_node=None,
@@ -213,21 +212,29 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
         sources=[N["annotation_state_location"], N["rss_2s"]],
         sink=N["merged_2s"])
 
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="aggregate_plate",
+            parameters=dict(aggregation_meta_data="localisation-experiment")
+        ),
+        sources=[N["merged_2s"]],
+        sink=N["merged_2s_flat_" + experiment_ids_str])
+
     w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="stream_broadcaster",
             parameters=dict(output_plate_values=model_names)
         ),
-        source=N["merged_2s"],
+        source=N["merged_2s_flat_" + experiment_ids_str],
         splitting_node=None,
-        sink=N["merged_2s_split"])
+        sink=N["merged_2s_split_" + experiment_ids_str])
 
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="localisation_model_learn2",
             parameters=dict(nan_value=-110.0)
         ),
-        sources=[N["merged_2s_split"]],
+        sources=[N["merged_2s_split_" + experiment_ids_str]],
         sink=N["location_prediction"])
 
     return w

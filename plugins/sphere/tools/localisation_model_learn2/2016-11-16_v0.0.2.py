@@ -20,7 +20,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-from hyperstream.stream import StreamInstance
+from hyperstream.stream import StreamInstance, StreamMetaInstance
 from hyperstream.tool import Tool, check_input_stream_count
 from hyperstream.utils import utcnow
 
@@ -97,12 +97,12 @@ class LocalisationModelLearn2(Tool):
     
     def __init__(self, nan_value=-110):
         super(LocalisationModelLearn2, self).__init__(nan_value=nan_value)
-        self.nan_value = nan_value
 
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
-        data = list(sources[0].window(interval, force_calculation=True))
-        classifier_name = dict(sources[0].stream_id.meta_data)['localisation_model']
+        source = sources[0]
+        data = list(source.window(interval, force_calculation=True))
+        classifier_name = dict(source.stream_id.meta_data)['localisation_model']
 
         if classifier_name == "lda":
             classifier = LinearDiscriminantAnalysis()
@@ -147,5 +147,7 @@ class LocalisationModelLearn2(Tool):
         clf_serialised = serialise_pipeline(clf)
         clf_serialised['label_encoder'] = serialise_dict(label_encoder.__dict__)
         clf_serialised['performance'] = predefined_train_test_split(train_x, train_y_trans, folds, clf, label_encoder)
-        
+
+        clf_serialised[''] = None
+
         yield StreamInstance(utcnow(), clf_serialised)
