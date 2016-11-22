@@ -106,9 +106,7 @@ def create_workflow_localisation_predict(hyperstream, house, experiment_ids, saf
     w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="stream_broadcaster",
-            parameters=dict(
-                mapping=mappings['uid']
-            )
+            parameters=dict(output_plate_values=mappings['uid'].values())
         ),
         source=N["location_prediction_lda_"+experiment_ids_str],
         splitting_node=None,
