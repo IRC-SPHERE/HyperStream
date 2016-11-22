@@ -220,6 +220,12 @@ def get_overlapping_plate_values(plates):
     if len(plates) > 2:
         raise NotImplementedError
 
+    # First check for the simple case where one of the plates has no parent and does not share meta data with the other
+    plates_sorted = sorted(plates, key=lambda item: len(item.ancestor_plates))
+    if plates_sorted[0].is_root:
+        if plates_sorted[0].meta_data_id not in plates_sorted[1].ancestor_meta_data_ids:
+            return map(lambda x: tuple(itertools.chain(*x)), itertools.product(plates[0].values, plates[1].values))
+
     # Get all of the ancestors zipped together, padded with None
     ancestors = deque(itertools.izip_longest(*(p.ancestor_plates for p in plates)))
 
