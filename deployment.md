@@ -15,8 +15,8 @@ sh mongo_exports.sh
 ```
 ssh-keygen  
 ssh-agent /bin/bash  
-ssh-add ~/.ssh/id_rsa   
-ssh-add -l   
+ssh-add ~/.ssh/id_rsa  
+ssh-add -l  
 cat ~/.ssh/id_rsa.pub  
 ```
 
@@ -35,7 +35,7 @@ git config --global push.default matching
 ```
 
 ### Setup virtual environment
-
+
 ```
 bash  
 sudo pip install virtualenv  
@@ -82,13 +82,17 @@ sudo service supervisor start
 
 ### Install annotation app using apache
 
-Assuming the app is located at `/etc/www/html/localisation_annotation`
-
 ```
+cd ..
+git clone git@bitbucket.org:irc-sphere/localisation_annotation.git
+sh deploy.sh
+cd /var/www/html/localisation_annotation
+pip install -r requirements.txt
 sudo apt-get install libapache2-mod-wsgi
+sudo mkdir /var/www/wsgi
 ```
 
-Create `/var/www/wsgi/localisation_annotation.wsgi` with the following:
+Create `/var/www/wsgi/localisation_annotation.wsgi` (`sudo vim /var/www/wsgi/localisation_annotation.wsgi`) with the following:
 
 ```
 import sys, os
@@ -117,4 +121,10 @@ WSGIScriptReloading On
         WSGIApplicationGroup %{GLOBAL}
     </Location>
 </VirtualHost>
+```
+
+Restart apache
+
+```
+sudo service apache2 restart
 ```
