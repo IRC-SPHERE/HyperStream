@@ -18,7 +18,8 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
-from ..utils import Printable
+
+from ..utils import Printable, IncompatibleToolError
 from node import Node
 from ..tool import BaseTool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
 from plate import Plate
@@ -49,10 +50,10 @@ class Factor(Printable):
             raise ValueError("Expected tool, got {}".format(type(tool)))
 
         if isinstance(tool, MultiOutputTool):
-            raise ValueError("Use MultiOutputFactor for MultiOutputTool")
+            raise IncompatibleToolError("Use MultiOutputFactor for MultiOutputTool")
 
         if isinstance(tool, PlateCreationTool):
-            raise ValueError("Use PlateCreationFactor for PlateCreationTool")
+            raise IncompatibleToolError("Use PlateCreationFactor for PlateCreationTool")
 
         self.tool = tool
         if source_nodes:
@@ -83,6 +84,9 @@ class Factor(Printable):
         :param time_interval:
         :return:
         """
+        logging.info('{} running from {} to {}'.format(
+            self.tool.__class__.__name__, time_interval.start, time_interval.end))
+
         if self.plates:
             if isinstance(self.tool, AggregateTool):
                 if len(self.sources) != 1:
@@ -123,9 +127,18 @@ class Factor(Printable):
             else:
                 # TODO: This loop over plates is probably not correct:
                 # What we probably want is to take the cartesian product of plate values
-                for plate in self.plates:
+                if len(self.plates) == 1:
+                    plate = self.plates[0]
                     for pv in plate.values:
                         sources = self.get_sources(plate, pv)
+                        sink = self.sink.streams[pv]
+                        self.tool.execute(sources=sources, sink=sink, interval=time_interval,
+                                          alignment_stream=self.get_alignment_stream(None, None))
+                else:
+                    if len(self.sources) != 1:
+                        raise NotImplementedError
+                    for pv in self.sources[0].plate_values:
+                        sources = [self.sources[0].streams[s] for s in self.sources[0].streams if pv == s]
                         sink = self.sink.streams[pv]
                         self.tool.execute(sources=sources, sink=sink, interval=time_interval,
                                           alignment_stream=self.get_alignment_stream(None, None))
@@ -163,9 +176,10 @@ class Factor(Printable):
                 elif plate_value in source.streams:
                     sources.append(source.streams[plate_value])
                 else:
-                    # TODO - determine whether this should raise an exception or not
-                    logging.warn("{} with value {} not valid for source {}"
-                                 .format(plate, plate_value, source))
+                    # # TODO - determine whether this should raise an exception or not, or even log a warning
+                    # logging.warn("{} with value {} not valid for source {}"
+                    #              .format(plate, plate_value, source))
+                    pass
         
         if not plate.is_root:
             # Populate with sources defined on parent plate
@@ -261,6 +275,9 @@ class MultiOutputFactor(Printable):
         :param time_interval: The time interval
         :return: self (for chaining)
         """
+        logging.info('{} running from {} to {}'.format(
+            self.tool.__class__.__name__, time_interval.start, time_interval.end))
+
         output_plate_values = self.sink.plate_values
         sinks = [self.sink.streams[opv] for opv in output_plate_values]
         
@@ -374,6 +391,9 @@ class PlateCreationFactor(Printable):
         :param time_interval: The time interval
         :return: self (for chaining)
         """
+        logging.info('{} running from {} to {}'.format(
+            self.tool.__class__.__name__, time_interval.start, time_interval.end))
+
         # Execute the tool to produce the output plate values
         output_plate_values = {}
         if self.input_plate:

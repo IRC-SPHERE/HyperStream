@@ -67,7 +67,7 @@ class MultiOutputTool(BaseTool):
         """
         if not isinstance(interval, TimeInterval):
             raise TypeError('Expected TimeInterval, got {}'.format(type(interval)))
-        logging.info(self.message(interval))
+        # logging.info(self.message(interval))
 
         calculated_intervals = None
 
