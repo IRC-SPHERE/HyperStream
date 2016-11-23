@@ -188,7 +188,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
         def func(data):
             result = init_value.copy()
             for (time, value) in data:
-                if result.has_key(value[id_field]):
+                if value[id_field] in result:
                     result[value[id_field]] = max(result[value[id_field]], value[value_field])
                 else:
                     result[value[id_field]] = value[value_field]

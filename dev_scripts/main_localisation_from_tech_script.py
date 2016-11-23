@@ -85,7 +85,7 @@ if __name__ == '__main__':
     w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
-            parameters=dict(modality="wearable3")
+            parameters=dict(modality="wearable2")
         ),
         source=None,
         splitting_node=None,

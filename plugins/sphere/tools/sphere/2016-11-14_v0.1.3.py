@@ -48,4 +48,5 @@ class Sphere(MultiOutputTool):
             raise ValueError("Sphere tool does not expect an input source")
         window = SphereExperiment(interval, self.annotators) if self.annotators else SphereDataWindow(interval)
         source = window.modalities[self.modality]
-        return map(reformat, source.get_data(self.elements, self.filters, self.rename_keys))
+        result = map(reformat, source.get_data(self.elements, self.filters, self.rename_keys))
+        return result

@@ -122,11 +122,11 @@ class LocalisationModelLearn2(Tool):
         keep_inds = []
         for di, (tt, dd) in enumerate(data):
             exp = dd[ex_key]
-            loc = dd[yy_key]['Location']
+            loc = list(dd[yy_key]['Location'])
             
-            if len(loc) != 1 or 'MIX' not in {exp} | loc:
+            if len(loc) == 1 and loc[0] != 'MIX' and exp != 'MIX':
                 keep_inds.append(di)
-        
+
         folds = [data[ii].value[ex_key] for ii in keep_inds]
         train_x = [data[ii].value[xx_key] for ii in keep_inds]
         train_y = [list(data[ii].value[yy_key]['Location'])[0] for ii in keep_inds]
