@@ -29,6 +29,7 @@ globs = {
 
 def run(house, delete_existing_workflows=True, loglevel=logging.INFO):
     from hyperstream import HyperStream, TimeInterval, UTC
+    from hyperstream.utils import utcnow
     from workflows.deploy_localisation_model2 import create_workflow_localisation_predict
 
     hyperstream = HyperStream(loglevel=loglevel)
@@ -51,12 +52,12 @@ def run(house, delete_existing_workflows=True, loglevel=logging.INFO):
         hyperstream.workflow_manager.commit_workflow(workflow_id)
 
     # w.execute(TimeInterval.all_time())
-#    start_time = utcnow()-timedelta(minutes=1)
-#    end_time = utcnow()
-    start_time = datetime(year=2016, month=10, day=19, hour=12, minute=28, tzinfo=UTC)
-    end_time = start_time + timedelta(hours=1)
+    start_time = utcnow()-timedelta(minutes=1)
+    end_time = utcnow()
+#     start_time = datetime(year=2016, month=10, day=19, hour=12, minute=28, tzinfo=UTC)
+#     end_time = start_time + timedelta(hours=1)
     time_interval = TimeInterval(start=start_time,end=end_time)
-#    time_interval = TimeInterval.up_to_now()
+    # time_interval = TimeInterval.up_to_now()
     w.execute(time_interval)
 
     print('number of non_empty_streams: {}'.format(

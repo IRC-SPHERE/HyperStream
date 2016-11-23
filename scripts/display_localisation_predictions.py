@@ -45,7 +45,7 @@ def display_predictions(hyperstream, house, wearables):
         predictions = hyperstream.channel_manager.mongo[stream_id].window(time_interval).last()
 
         if predictions:
-            print("Wearable {}:{}\t{}".format(
+            print("Wearable {}:\t{}\t({})".format(
                 wearable,
                 predictions.timestamp,
                 arrow.get(predictions.timestamp).humanize()))
