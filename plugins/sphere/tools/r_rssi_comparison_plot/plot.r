@@ -39,12 +39,15 @@ dm = melt(d[,-1])
 dma = dm
 dma[is.na(dma)] = missing_impute_value
 dmx = ddply(dma, c("location","variable"), function(df) mean(df$value))
-dmx$value_discrete = quantcut(dmx$V1,n_color_bins)
+# dmx$value_discrete = quantcut(dmx$V1,n_color_bins)
+dmx$value_discrete = cut(dmx$V1,breaks=c(-120,-110,-100,-90,-80,-70,-60,-50))
+
+print(levels(dmx$value_discrete))
 
 p = ggplot(dmx)
 p = p + facet_grid(location~variable,scales="free_y")
 p = p + geom_rect(aes(fill=value_discrete),xmin = -Inf,xmax = Inf, ymin = -Inf,ymax = Inf,alpha = 0.8)
-p = p + scale_fill_brewer(palette="RdBu",direction=-1)
+p = p + scale_fill_brewer(palette="RdBu",direction=-1,drop=F)
 p = p + geom_histogram(data=dma,aes(value),bins=n_histogram_bins)
 
 #g <- file("stdout")

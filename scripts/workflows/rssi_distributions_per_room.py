@@ -22,7 +22,7 @@ from hyperstream.utils import utcnow
 from hyperstream import StreamId, StreamInstance
 
 
-def create_workflow_rssi_distributions_per_room(hyperstream, house, experiment_ids, safe=True):
+def create_workflow_rssi_distributions_per_room(hyperstream, house, experiment_indices, experiment_ids, safe=True):
     experiment_ids_str = '_'.join(experiment_ids)
     # Create a simple one step workflow for querying
     workflow_id = "rssi_distributions_per_room_" + experiment_ids_str
@@ -208,7 +208,7 @@ def create_workflow_rssi_distributions_per_room(hyperstream, house, experiment_i
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="r_rssi_comparison_plot",
-            parameters=dict()
+            parameters=dict(filename_suffix="_rssi_comparison_plot_"+'_'.join([str(i) for i in experiment_indices])+".pdf")
         ),
         sources=[N["csv_string_"+experiment_ids_str]],
         sink=N["pdf_"+experiment_ids_str])
