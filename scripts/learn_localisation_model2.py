@@ -23,7 +23,7 @@ import sys
 from pprint import pprint
 
 
-def create_selected_localisation_plates(hyperstream, house, experiment_ids_str):
+def create_selected_localisation_plates(hyperstream):
     meta_data_id = "localisation-experiment"
 
     hyperstream.plate_manager.delete_plate("H.SelectedLocalisationExperiment")
@@ -36,35 +36,14 @@ def create_selected_localisation_plates(hyperstream, house, experiment_ids_str):
         parent_plate="H"
     )
 
-    # meta_data_id = "localisation-experiment-pair"
-    #
-    # identifier = str(house) + "." + meta_data_id + "_" + experiment_ids_str
-    # if not hyperstream.plate_manager.meta_data_manager.contains(identifier):
-    #     hyperstream.plate_manager.meta_data_manager.insert(
-    #         tag=meta_data_id,
-    #         identifier=identifier,
-    #         parent=str(house),
-    #         data=experiment_ids_str
-    #     )
-    #
-    # hyperstream.plate_manager.delete_plate("H.SelectedLocalisationExperimentPair")
-    # hyperstream.plate_manager.create_plate(
-    #     plate_id="H.SelectedLocalisationExperimentPair",
-    #     description="Pairs of localisation experiments selected by the technician in SPHERE house",
-    #     meta_data_id=meta_data_id,
-    #     values=[],
-    #     complement=True,
-    #     parent_plate="H"
-    # )
 
-
-def run(house, selection, delete_existing_workflows=True):
+def run(house, selection, delete_existing_workflows=True, loglevel=logging.INFO):
     from hyperstream import HyperStream, StreamId, TimeInterval
     from workflows.display_experiments import create_workflow_list_technicians_walkarounds
     from workflows.learn_localisation_model2 import create_workflow_lda_localisation_model_learner
     from hyperstream.utils import StreamNotFoundError, reconstruct_interval
 
-    hyperstream = HyperStream(loglevel=logging.INFO)
+    hyperstream = HyperStream(loglevel=loglevel)
     M = hyperstream.channel_manager.memory
     D = hyperstream.channel_manager.mongo
     A = hyperstream.channel_manager.assets
@@ -86,7 +65,7 @@ def run(house, selection, delete_existing_workflows=True):
 
     experiment_ids_str = '_'.join(experiment_ids)
 
-    create_selected_localisation_plates(hyperstream, house, experiment_ids_str)
+    create_selected_localisation_plates(hyperstream)
 
     # Ensure the model is overwritten if it's already there
     model_id = StreamId(

@@ -117,11 +117,16 @@ class Factor(Printable):
                     raise ValueError("Currently an alignment node cannot be used with a Selector Tool")
                 
                 diff, counts, is_sub_plate = self.sources[-1].difference(self.sink)
-                if is_sub_plate:
-                    # Special case of tools that are performing sub-selection
-                    self.tool.execute(sources=sources,
-                                      sinks=self.sink.streams.values(),
-                                      interval=time_interval)
+                # TODO: This sub-plate selection is deprecated
+
+                if (counts == [1, 1] and is_sub_plate) or \
+                    (next(p.is_root for p in self.sources[-1].plates)
+                     and len(self.sink.plates) == 1
+                     and self.sink.plates[0] in self.sources[-1].plates):
+                        # Special case of tools that are performing sub-selection
+                        self.tool.execute(sources=sources,
+                                          sinks=self.sink.streams.values(),
+                                          interval=time_interval)
                 else:
                     raise ValueError("Source and sink plates do not match")
             else:
