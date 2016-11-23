@@ -23,6 +23,7 @@ import sys
 from os import path
 import logging
 import argparse
+import signal
 
 import display_experiments
 import learn_localisation_model2
@@ -49,6 +50,10 @@ def query_yes_no(question, default="yes"):
         prompt = " [y/N] "
     else:
         raise ValueError("invalid default answer: '%s'" % default)
+
+    def signal_handler(signal, frame):
+        sys.exit(0)
+    signal.signal(signal.SIGINT, signal_handler)
 
     while True:
         sys.stdout.write(question + prompt)
