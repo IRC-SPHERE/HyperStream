@@ -160,10 +160,23 @@ class Workflow(Printable):
                     # Make sure that there are exactly two plates that don't match: one from each side
                     diff, counts, is_sub_plate = sources[-1].difference(sink)
                     if counts == [1, 1]:
+                        # TODO: This sub-plate selection is deprecated
                         if not is_sub_plate:
                             raise IncompatiblePlatesError("Sink plate is not a simplification of source plate")
                     else:
-                        raise IncompatiblePlatesError("Sink plate is not a simplification of source plate")
+                        # If there are two plates, and one (or both) of them is a root plate, than assume that we are
+                        # simplifying by removing that plate
+                        if next(p.is_root for p in sources[-1].plates):
+                            if len(sink.plates) != 1:
+                                raise IncompatiblePlatesError(
+                                    "Multiple sink plates defined. "
+                                    "Did you intend a simplification of 2 source plates to a sink plate?")
+                            if sink.plates[0] not in sources[-1].plates:
+                                raise IncompatiblePlatesError(
+                                    "Source and sink plates do not match. "
+                                    "Did you intend a simplification of 2 source plates to a sink plate?")
+                        else:
+                            raise IncompatiblePlatesError("Sink plate is not a simplification of source plate")
                 else:
                     # Check if the parent plate is valid instead
                     source_plate = sources[-1].plates[0]
