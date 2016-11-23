@@ -18,30 +18,3 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
-
-from hyperstream.tool import MultiOutputTool
-from hyperstream.stream import StreamInstance, StreamMetaInstance
-from hyperstream.time_interval import TimeInterval
-
-
-class StreamBroadcaster(MultiOutputTool):
-    def __init__(self, func, output_plate_values):
-        super(StreamBroadcaster, self).__init__(func=func, output_plate_values=output_plate_values)
-
-    def _execute(self, source, splitting_stream, interval, output_plate):
-        if splitting_stream is not None:
-            raise NotImplementedError("Splitting stream not supported for this tool")
-
-        # TODO: This factor does use the time interval, but only applies a function on the stream.
-        # Will need to change this in future instances
-        data = self.func(source.window(TimeInterval.all_time(), force_calculation=True))
-
-        if data is None:
-            return
-
-        if isinstance(data, StreamInstance):
-            data = [data]
-
-        for doc in data:
-            for vv in self.output_plate_values:
-                yield StreamMetaInstance(doc, (output_plate.meta_data_id, str(vv)))
