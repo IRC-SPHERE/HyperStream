@@ -53,7 +53,7 @@ class Factor(Printable):
             raise IncompatibleToolError("Use MultiOutputFactor for MultiOutputTool")
 
         if isinstance(tool, PlateCreationTool):
-            raise IncompatibleToolError("Use PlateCreationFactor for PlateCreationTool")
+            raise IncompatibleToolError("Use NodeCreationFactor for PlateCreationTool")
 
         self.tool = tool
         if source_nodes:
@@ -358,7 +358,7 @@ class MultiOutputFactor(Printable):
         return self.alignment_node.streams[plate]
 
 
-class PlateCreationFactor(Printable):
+class NodeCreationFactor(Printable):
     def __init__(self, tool, source_node, input_plate, output_plate, plate_manager):
         """
         Initialise this factor

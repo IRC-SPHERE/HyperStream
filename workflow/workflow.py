@@ -25,7 +25,7 @@ import itertools
 import logging
 from mongoengine.context_managers import switch_db
 
-from factor import Factor, MultiOutputFactor, PlateCreationFactor
+from factor import Factor, MultiOutputFactor, NodeCreationFactor
 from node import Node, get_overlapping_plate_values
 from ..stream import StreamId
 from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
@@ -318,7 +318,7 @@ class Workflow(Printable):
         if len(input_plates) > 1:
             raise NotImplementedError
 
-        factor = PlateCreationFactor(
+        factor = NodeCreationFactor(
             tool=tool,
             source_node=source,
             input_plate=input_plates[0],
