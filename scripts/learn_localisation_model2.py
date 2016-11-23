@@ -20,7 +20,7 @@
 
 import logging
 import sys
-from pprint import pprint
+from pprint import pprint, pformat
 
 
 def create_selected_localisation_plates(hyperstream):
@@ -99,9 +99,9 @@ def run(house, selection, delete_existing_workflows=True, loglevel=logging.INFO)
     for experiment_id in list(experiment_ids):
         print("Experiment id: {}".format(experiment_id))
         print("Time interval: {}".format(reconstruct_interval(experiment_id)))
-        print("Accuracy: {}".format(pprint(model['performance'][experiment_id]['accuracy'])))
-        print("Macro F1: {}".format(pprint(model['performance'][experiment_id]['f1_score_macro'])))
-        print("Micro F1: {}".format(pprint(model['performance'][experiment_id]['f1_score_micro'])))
+        print("Accuracy: {}".format(pformat(model['performance'][experiment_id]['accuracy'])))
+        print("Macro F1: {}".format(pformat(model['performance'][experiment_id]['f1_score_macro'])))
+        print("Micro F1: {}".format(pformat(model['performance'][experiment_id]['f1_score_micro'])))
         print("Confusion Matrix:")
         pprint(model['performance'][experiment_id]['confusion_matrix'])
         print("")

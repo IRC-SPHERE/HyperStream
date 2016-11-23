@@ -94,6 +94,9 @@ class SlidingApply(Tool):
             try:
                 if len(value) > 0:
                     yield StreamInstance(time, value)
+                else:
+                    # TODO: Should we yield anything???
+                    yield StreamInstance(time, {})
             except TypeError:
                 # Not iterable
                 yield StreamInstance(time, value)
