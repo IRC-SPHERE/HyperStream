@@ -21,49 +21,43 @@
 from __future__ import print_function
 
 import os
-import arrow
-import logging
 from datetime import timedelta
 from time import sleep
 import signal
 
 globs = {
-    'hyperstream': None,
+    'sphere_connector': None,
     'wearables': 'ABCD',
     'house': 1
 }
 
 
-def display_predictions(hyperstream, house, wearables):
-    from hyperstream import StreamId, TimeInterval
+def display_access_points():
     from hyperstream.utils import utcnow
+    from sphere_connector_package.sphere_connector import SphereConnector
 
-    time_interval = TimeInterval(start=utcnow() - timedelta(seconds=10), end=utcnow())
+    if not globs['sphere_connector']:
+        globs['sphere_connector'] = SphereConnector(
+            config_filename='config.json',
+            include_mongo=True,
+            include_redcap=False,
+            sphere_logger=None)
 
-    for wearable in wearables:
-        stream_id = StreamId('predicted_locations_broadcasted', meta_data=dict(house=house, wearable=wearable))
-        predictions = hyperstream.channel_manager.mongo[stream_id].window(time_interval).last()
+    sphere_connector = globs['sphere_connector']
 
-        if predictions:
-            print("Wearable {}:{}\t{}".format(
-                wearable,
-                predictions.timestamp,
-                arrow.get(predictions.timestamp).humanize()))
-            for k in sorted(predictions.value):
-                print("{:>20}:\t{:0.2f}".format(k, predictions.value[k]))
-        else:
-            print("No predictions in interval {} for wearable {}".format(time_interval, wearable))
+    dtf = sphere_connector.basic_config.mongo['modalities']['wearable4']['date_time_field']
+    aids = sphere_connector.client.collections['wearable4'] \
+        .find({dtf: {'$gt': utcnow() - timedelta(seconds=5)}}).distinct('aid')
+
+    if aids:
+        print("Access points: ")
+        for i, aid in enumerate(aids):
+            print("{}: {}".format(i, aid))
+    else:
+        print("No access points found")
 
 
-def run(loglevel=logging.CRITICAL):
-    from hyperstream import HyperStream
-    globs['hyperstream'] = HyperStream(loglevel=loglevel)
-
-    display_predictions(globs['hyperstream'], globs['house'], globs['wearables'])
-    print()
-
-    from display_access_points import display_access_points
-
+def run():
     display_access_points()
     print()
     # db.getCollection('WEARABLE-ISO-TIME').distinct('aid',{wts:{$gt:ISODate("2016-11-17T16:40")})
