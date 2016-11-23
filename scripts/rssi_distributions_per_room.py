@@ -44,6 +44,7 @@ def run(house, selection, delete_existing_workflows=True):
     w0.execute(TimeInterval.all_time())
 
     df = M[StreamId('experiments_dataframe', dict(house=house))].window(TimeInterval.all_time()).values()[0]
+    experiment_indices = selection
     experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
 
     hyperstream.plate_manager.delete_plate("H.SelectedLocalisationExperiment")
@@ -74,7 +75,7 @@ def run(house, selection, delete_existing_workflows=True):
         w1 = hyperstream.workflow_manager.workflows[workflow_id1]
     except KeyError:
         w1 = create_workflow_rssi_distributions_per_room(
-            hyperstream, house=house, experiment_ids=experiment_ids, safe=False)
+            hyperstream, house=house, experiment_indices=experiment_indices, experiment_ids=experiment_ids, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id1)
 
     w1.execute(TimeInterval.all_time())
@@ -91,9 +92,9 @@ if __name__ == '__main__':
     from os import path
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-    if len(sys.argv) < 3:
-        print("Expected at least two integer ids")
-        exit(0)
+    # if len(sys.argv) < 3:
+    #     print("Expected at least two integer ids")
+    #     exit(0)
 
     try:
         technicians_selection = map(int, sys.argv[1:])
