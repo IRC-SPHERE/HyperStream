@@ -25,6 +25,7 @@ import arrow
 import logging
 from datetime import timedelta
 from time import sleep
+import signal
 
 globs = {
     'sphere_connector': None,
@@ -105,6 +106,11 @@ if __name__ == '__main__':
             globs['wearables'] = sys.argv[1]
         except ValueError:
             pass
+
+
+    def signal_handler(signal, frame):
+        sys.exit(0)
+    signal.signal(signal.SIGINT, signal_handler)
 
     while True:
         run()
