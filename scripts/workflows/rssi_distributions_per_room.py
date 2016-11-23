@@ -90,7 +90,7 @@ def create_workflow_rssi_distributions_per_room(hyperstream, house, experiment_i
     w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="sphere",
-            parameters=dict(modality="wearable4")
+            parameters=dict(modality="wearable3")
         ),
         source=None,
         splitting_node=None,
