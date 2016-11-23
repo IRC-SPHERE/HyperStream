@@ -21,52 +21,25 @@
 import logging
 from datetime import datetime, timedelta
 
+globs = {
+    'house': 1,
+    'wearables': 'ABCD'
+}
 
-def run(house, selection, delete_existing_workflows=True, loglevel=logging.INFO):
-    from hyperstream import HyperStream, StreamId, TimeInterval, UTC
-    from workflows.display_experiments import create_workflow_list_technicians_walkarounds
-    from workflows.deploy_localisation_model import create_workflow_localisation_predict
+
+def run(house, delete_existing_workflows=True, loglevel=logging.INFO):
+    from hyperstream import HyperStream, TimeInterval, UTC
+    from workflows.deploy_localisation_model2 import create_workflow_localisation_predict
 
     hyperstream = HyperStream(loglevel=loglevel)
     M = hyperstream.channel_manager.memory
+    A = hyperstream.channel_manager.assets
 
-    workflow_id0 = "list_technicians_walkarounds"
-
-    if delete_existing_workflows:
-        hyperstream.workflow_manager.delete_workflow(workflow_id0)
-
-    try:
-        w0 = hyperstream.workflow_manager.workflows[workflow_id0]
-    except KeyError:
-        w0 = create_workflow_list_technicians_walkarounds(hyperstream, house=house, safe=False)
-        hyperstream.workflow_manager.commit_workflow(workflow_id0)
-    w0.execute(TimeInterval.all_time())
-
-    df = M[StreamId('experiments_dataframe', dict(house=house))].window(TimeInterval.all_time()).values()[0]
-    experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
-
-    hyperstream.plate_manager.delete_plate("H.SelectedLocalisationExperiment")
-    hyperstream.plate_manager.create_plate(
-        plate_id="H.SelectedLocalisationExperiment",
-        description="Localisation experiments selected by the technician in SPHERE house",
-        meta_data_id="localisation-experiment",
-        values=[],
-        complement=True,
-        parent_plate="H"
-    )
-
-    hyperstream.plate_manager.delete_plate("H.W")
-    hyperstream.plate_manager.create_plate(
-        plate_id="H.W",
-        description="All wearables in all houses",
-        meta_data_id="wearable",
-        values=[],
-        complement=True,
-        parent_plate="H"
-    )
+    experiment_ids = A.find_streams(name="experiments_selected").values()[0]\
+        .window(TimeInterval.up_to_now()).last().value
 
     experiment_ids_str = '_'.join(experiment_ids)
-    workflow_id = "lda_localisation_model_predict_"+experiment_ids_str
+    workflow_id = "lda_localisation_model_predict2_"+experiment_ids_str
 
     if delete_existing_workflows:
         hyperstream.workflow_manager.delete_workflow(workflow_id)
@@ -74,7 +47,7 @@ def run(house, selection, delete_existing_workflows=True, loglevel=logging.INFO)
     try:
         w = hyperstream.workflow_manager.workflows[workflow_id]
     except KeyError:
-        w = create_workflow_localisation_predict(hyperstream, house=house,experiment_ids=experiment_ids, safe=False)
+        w = create_workflow_localisation_predict(hyperstream, house=house, experiment_ids=experiment_ids, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id)
 
     # w.execute(TimeInterval.all_time())
@@ -89,6 +62,9 @@ def run(house, selection, delete_existing_workflows=True, loglevel=logging.INFO)
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))
 
+    from display_localisation_predictions import display_predictions
+    display_predictions(hyperstream, house, wearables=globs['wearables'])
+
     # for wearable in 'ABCD':
     #     sid = StreamId('predicted_locations_broadcasted', dict(house=house, wearable=wearable))
     #     print sid
@@ -99,17 +75,4 @@ if __name__ == '__main__':
     import sys
     from os import path
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-
-    if len(sys.argv) < 3:
-        print("Expected at least two integer ids")
-        exit(0)
-
-    try:
-        technicians_selection = map(int, sys.argv[1:])
-    except ValueError:
-        print("Expected at least two integer ids")
-        technicians_selection = None  # just to keep lint happy
-        exit(0)
-
-    house = 1
-    run(house, technicians_selection)
+    run(globs['house'])

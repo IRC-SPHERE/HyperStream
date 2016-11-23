@@ -25,12 +25,12 @@ import logging
 import pandas as pd
 
 
-def run(house, delete_existing_workflows=True):
+def run(house, delete_existing_workflows=True, loglevel=logging.INFO):
     from hyperstream import HyperStream, StreamId, TimeInterval
     from hyperstream.utils import duration2str
     from workflows.display_experiments import create_workflow_list_technicians_walkarounds
 
-    hyperstream = HyperStream(loglevel=logging.INFO)
+    hyperstream = HyperStream(loglevel=loglevel)
     
     # Various channels
     M = hyperstream.channel_manager.memory
@@ -85,4 +85,4 @@ if __name__ == '__main__':
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
     house = 1
-    run(house)
+    run(house, delete_existing_workflows=True, loglevel=logging.INFO)

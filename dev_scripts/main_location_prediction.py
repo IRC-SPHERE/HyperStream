@@ -113,11 +113,11 @@ if __name__ == '__main__':
         ("ann_raw",     S, ["H1"]),                 # Annotations (raw format)
         # ("ann_time",    M, ["H1.S"]),               # Annotations per scripted experiment
         ("ann_time",    M, ["H1.S_1,2"]),           # Annotations per scripted experiment (just experiments 1, 2)
-        ("ann_raw_trn", M, ["H1.S1"]),              # Annotations for scripted experiment 1
-        ("ann_raw_tst", M, ["H1.S2"]),              # Annotations for scripted experiment 1
-        ("ann_train",   M, ["H1.S1.A"]),            # Annotations for scripted experiment 1 by annotator
-        ("ann_test",    M, ["H1.S2.A"]),            # Annotations for scripted experiment 2 by annotator
-        ("model",       M, ["H1.S1"]),              # Outputs of model trained on scripted experiment 1
+        ("ann_raw_trn", M, ["H1"]),              # Annotations for scripted experiment 1
+        ("ann_raw_tst", M, ["H1"]),              # Annotations for scripted experiment 1
+        ("ann_train",   M, ["H1.A"]),            # Annotations for scripted experiment 1 by annotator
+        ("ann_test",    M, ["H1.A"]),            # Annotations for scripted experiment 2 by annotator
+        ("model",       M, ["H1"]),              # Outputs of model trained on scripted experiment 1
     )
 
     # Create all of the nodes
@@ -214,8 +214,8 @@ if __name__ == '__main__':
         print_func("Node: {}".format(node_id))
         N[node_id].print_head(parent_plate_values, plate_values, interval, n, print_func)
 
-    print_head("ann_train",     h1 + s1,    anns[0],    time_interval, 10, print)
-    print_head("ann_test",      h1 + s2,    anns[1],    time_interval, 10, print)
+    print_head("ann_train",     h1,    anns[0],    time_interval, 10, print)
+    print_head("ann_test",      h1,    anns[1],    time_interval, 10, print)
     # print_head("rss_raw",       None,       h1,         time_interval, 10, print)
     # print_head("rss_aid",       h1,         locs,       time_interval, 10, print)
     # print_head("rss_aid_uid",   h1 + wA,    locs,       time_interval, 10, print)

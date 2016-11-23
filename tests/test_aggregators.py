@@ -43,7 +43,7 @@ def basic_workflow(workflow_id):
         ("rss", M, ["H1.L.W"]),  # RSS values only (by access point id and device id)
         ("rss_dev_avg", M, ["H1.L"]),  # Averaged RSS values by device, per location
         ("rss_loc_avg", M, ["H1.W"]),  # Averaged RSS values by location, per device
-        ("rss_kitchen", M, ["H1.K.W"]),  # Averaged RSS values by location, per device
+        ("rss_kitchen", M, ["H1.W"]),  # Averaged RSS values by location, per device
     )
 
     hyperstream.plate_manager.create_plate(
@@ -55,14 +55,14 @@ def basic_workflow(workflow_id):
         parent_plate="H1"
     )
 
-    hyperstream.plate_manager.create_plate(
-        plate_id="H1.K.W",
-        description="All wearables in kitchen in SPHERE house",
-        meta_data_id="wearable",
-        values=[],
-        complement=True,
-        parent_plate="H1.K"
-    )
+    # hyperstream.plate_manager.create_plate(
+    #     plate_id="H1.K.W",
+    #     description="All wearables in kitchen in SPHERE house",
+    #     meta_data_id="wearable",
+    #     values=[],
+    #     complement=True,
+    #     parent_plate="H1.K"
+    # )
 
     # Create all of the nodes
     for stream_name, channel, plate_ids in nodes:
@@ -244,7 +244,7 @@ class HyperStreamAggregatorTests(unittest.TestCase):
 
         key = h1 + (('location', 'kitchen'),) + wA
 
-        assert all(a == b for a, b in zip(N['rss_kitchen'].streams[key].window(time_interval).head(10),
+        assert all(a == b for a, b in zip(N['rss_kitchen'].streams[h1 + wA].window(time_interval).head(10),
                                           N['rss'].streams[key].window(time_interval).head(10)))
 
     def test_index_of_by_stream(self):
@@ -273,7 +273,7 @@ class HyperStreamAggregatorTests(unittest.TestCase):
 
         key = h1 + (('location', 'kitchen'),) + wA
 
-        assert all(a == b for a, b in zip(N['rss_kitchen'].streams[key].window(time_interval).head(10),
+        assert all(a == b for a, b in zip(N['rss_kitchen'].streams[h1 + wA].window(time_interval).head(10),
                                           N['rss'].streams[key].window(time_interval).head(10)))
 
 
