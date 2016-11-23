@@ -28,7 +28,9 @@ import signal
 globs = {
     'sphere_connector': None,
     'wearables': 'ABCD',
-    'house': 1
+    'house': 1,
+    # 'collection': 'wearable4'
+    'collection': 'wearable3'
 }
 
 
@@ -45,8 +47,8 @@ def display_access_points():
 
     sphere_connector = globs['sphere_connector']
 
-    dtf = sphere_connector.basic_config.mongo['modalities']['wearable4']['date_time_field']
-    aids = sphere_connector.client.collections['wearable4'] \
+    dtf = sphere_connector.basic_config.mongo['modalities'][globs['collection']]['date_time_field']
+    aids = sphere_connector.client.collections[globs['collection']] \
         .find({dtf: {'$gt': utcnow() - timedelta(seconds=5)}}).distinct('aid')
 
     if aids:
@@ -76,7 +78,6 @@ if __name__ == '__main__':
             globs['wearables'] = sys.argv[1]
         except ValueError:
             pass
-
 
     def signal_handler(signal, frame):
         sys.exit(0)
