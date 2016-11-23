@@ -61,7 +61,6 @@ def duration2str(x):
 def construct_experiment_id(time_interval):
     """
     Construct an experiment id from a time interval
-    :param instance:
     :return: The experiment id
     :type time_interval: TimeInterval
     :rtype: str
@@ -71,3 +70,14 @@ def construct_experiment_id(time_interval):
     start = int((time_interval.start - epoch).total_seconds() * 1000.0)
     end = int((time_interval.end - epoch).total_seconds() * 1000.0)
     return "{}-{}".format(start, end)
+
+
+def reconstruct_interval(experiment_id):
+    """
+    Reverse the construct_experiment_id operation
+    :param experiment_id: The experiment id
+    :return: time interval
+    """
+    start, end = map(lambda x: datetime.utcfromtimestamp(x / 1000.0), map(float, experiment_id.split("-")))
+    from ..time_interval import TimeInterval
+    return TimeInterval(start, end)

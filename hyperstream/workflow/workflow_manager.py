@@ -32,7 +32,7 @@ from ..time_interval import TimeInterval, TimeIntervals
 from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, ToolModel, \
     ToolParameterModel, WorkflowStatusModel
 from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow, func_dump, func_load, \
-    ToolInitialisationError, ToolNotFoundError
+    ToolInitialisationError, ToolNotFoundError, IncompatibleToolError
 from ..workflow import Factor, PlateCreationFactor, MultiOutputFactor
 
 
@@ -70,7 +70,7 @@ class WorkflowManager(Printable):
             for workflow_definition in WorkflowDefinitionModel.objects():
                 try:
                     self.load_workflow(workflow_definition.workflow_id)
-                except (StreamNotFoundError, ToolInitialisationError, ToolNotFoundError) as e:
+                except (StreamNotFoundError, ToolInitialisationError, ToolNotFoundError, IncompatibleToolError) as e:
                     logging.warn(str(e))
 
     def load_workflow(self, workflow_id):

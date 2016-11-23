@@ -120,9 +120,7 @@ if __name__ == '__main__':
     w.create_multi_output_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="stream_broadcaster",
-            parameters=dict(
-                mapping=mappings['uid']
-            )
+            parameters=dict(func=lambda x: x.last(), output_plate_values=mappings['uid'].values())
         ),
         source=N["location_prediction_models"],
         splitting_node=None,
