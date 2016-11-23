@@ -63,6 +63,7 @@ def run():
     display_access_points()
     print()
     # db.getCollection('WEARABLE-ISO-TIME').distinct('aid',{wts:{$gt:ISODate("2016-11-17T16:40")})
+    # db.getCollection('WEAR').distinct('gw.uid', {'bt': {$gt: ISODate('2016-11-23T15:40.000Z')}})
 
 
 if __name__ == '__main__':
