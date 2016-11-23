@@ -33,7 +33,7 @@ from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinit
     ToolParameterModel, WorkflowStatusModel
 from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow, func_dump, func_load, \
     ToolInitialisationError, ToolNotFoundError, IncompatibleToolError
-from ..workflow import Factor, PlateCreationFactor, MultiOutputFactor
+from ..workflow import Factor, NodeCreationFactor, MultiOutputFactor
 
 
 def code_unpickler(data):
@@ -166,20 +166,20 @@ class WorkflowManager(Printable):
                         sink=sink_nodes[0]
                     )
 
-                elif f.factor_type == "PlateCreationFactor":
+                elif f.factor_type == "NodeCreationFactor":
                     if len(source_nodes) != 1:
                         raise ValueError(
-                            "PlateCreationFactor factors should have a single source node, received {}"
+                            "NodeCreationFactor factors should have a single source node, received {}"
                             .format(len(source_nodes)))
 
                     if len(sink_nodes) != 0:
                         raise ValueError(
-                            "PlateCreationFactor factors should not have sink nodes"
+                            "NodeCreationFactor factors should not have sink nodes"
                             .format(len(sink_nodes)))
 
                     if output_plate is None:
                         raise ValueError(
-                            "PlateCreationFactor requires an output plate definition")
+                            "NodeCreationFactor requires an output plate definition")
 
                     workflow.create_node_creation_factor(
                         tool=tool,
@@ -298,7 +298,7 @@ class WorkflowManager(Printable):
                     splitting_node = f.splitting_node.node_id if f.splitting_node else None
                     output_plate = None
 
-                elif isinstance(f, PlateCreationFactor):
+                elif isinstance(f, NodeCreationFactor):
                     sources = [f.source.node_id]
                     sinks = []
                     alignment_node = None
