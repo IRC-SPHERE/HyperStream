@@ -32,12 +32,14 @@ class RRssiComparisonPlot(Tool):
     Converts the value part of the stream instances to json format
     """
     def __init__(self,
+            filename_suffix="_rssi_comparison_plot.pdf",
             missing_impute_value=-110,
             n_histogram_bins=20,
             n_color_bins=7,
             width_inches=8,
             height_inches=6):
         super(RRssiComparisonPlot, self).__init__(
+            filename_suffix=filename_suffix,
             missing_impute_value=missing_impute_value,
             n_histogram_bins=n_histogram_bins,
             n_color_bins=n_color_bins,
@@ -47,8 +49,8 @@ class RRssiComparisonPlot(Tool):
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
         for time, data in sources[0].window(interval, force_calculation=True):
-            time_str = time.strftime("%Y-%m-%dT%H:%M:%S")
-            filename = [time_str+"_rssi_comparison_plot.pdf"]
+            time_str = time.strftime("%Y-%m-%dT%H_%M_%S")
+            filename = [time_str+self.filename_suffix]
             params = filename+[
                       str(self.missing_impute_value),
                       str(self.n_histogram_bins),
