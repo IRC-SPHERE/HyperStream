@@ -34,7 +34,7 @@ class StreamBroadcaster(MultiOutputTool):
 
         # TODO: This factor does use the time interval, but only applies a function on the stream.
         # Will need to change this in future instances
-        data = self.func(source.window(TimeInterval.all_time(), force_calculation=True))
+        data = self.func(source.window(TimeInterval.up_to_now(), force_calculation=True))
 
         if data is None:
             return

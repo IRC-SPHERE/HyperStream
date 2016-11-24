@@ -107,13 +107,19 @@ class Stream(Hashable):
             return
 
         if isinstance(value, TimeInterval):
-            self._calculated_intervals = TimeIntervals([value])
+            value = TimeIntervals([value])
         elif isinstance(value, TimeIntervals):
-            self._calculated_intervals = value
+            pass
         elif isinstance(value, list):
-            self._calculated_intervals = TimeIntervals(value)
+            value = TimeIntervals(value)
         else:
             raise TypeError("Expected list/TimeInterval/TimeIntervals, got {}".format(type(value)))
+
+        for interval in value:
+            if interval.end > utcnow():
+                raise ValueError("Calculated intervals should not be in the future")
+
+        self._calculated_intervals = value
 
     @property
     def writer(self):

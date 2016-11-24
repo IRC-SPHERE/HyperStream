@@ -40,9 +40,10 @@ def run(house, selection, delete_existing_workflows=True, loglevel=logging.INFO)
     except KeyError:
         w0 = create_workflow_list_technicians_walkarounds(hyperstream, house=house, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id0)
-    w0.execute(TimeInterval.all_time())
+    time_interval = TimeInterval.up_to_now()
+    w0.execute(time_interval)
 
-    df = M[StreamId('experiments_dataframe', dict(house=house))].window(TimeInterval.all_time()).values()[0]
+    df = M[StreamId('experiments_dataframe', dict(house=house))].window(time_interval).values()[0]
     experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
 
     hyperstream.plate_manager.delete_plate("H.SelectedLocalisationExperiment")
@@ -77,13 +78,7 @@ def run(house, selection, delete_existing_workflows=True, loglevel=logging.INFO)
         w = create_workflow_localisation_predict(hyperstream, house=house,experiment_ids=experiment_ids, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id)
 
-    # w.execute(TimeInterval.all_time())
-#    start_time = utcnow()-timedelta(minutes=1)
-#    end_time = utcnow()
-    start_time = datetime(year=2016, month=10, day=19, hour=12, minute=28, tzinfo=UTC)
-    end_time = start_time + timedelta(hours=1)
-    time_interval = TimeInterval(start=start_time,end=end_time)
-#    time_interval = TimeInterval.up_to_now()
+    time_interval = TimeInterval.up_to_now()
     w.execute(time_interval)
 
     print('number of non_empty_streams: {}'.format(
