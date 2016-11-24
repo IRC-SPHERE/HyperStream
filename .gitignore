@@ -106,3 +106,4 @@ config.json
 docs/_static/
 docs/_templates/
 output/
+.Rhistory

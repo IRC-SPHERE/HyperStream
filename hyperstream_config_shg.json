@@ -16,6 +16,8 @@
         "interval": {
             "start": -60,
             "end": -5
-        }
+        },
+        "sleep": 5,
+        "iterations": 100
     }
 }

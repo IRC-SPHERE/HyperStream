@@ -26,6 +26,7 @@ from utils import MIN_DATE, MAX_DATE, utcnow, UTC, Printable, get_timedelta
 from datetime import date, datetime, timedelta
 from dateutil.parser import parse
 from collections import namedtuple
+import arrow
 
 
 class TimeIntervals(Printable):
@@ -74,6 +75,10 @@ class TimeIntervals(Printable):
     @property
     def span(self):
         return TimeInterval(self.start, self.end)
+
+    @property
+    def humanized(self):
+        return " U ".join(map(lambda x: x.humanized, self.intervals))
 
     def split(self, points):
         if len(points) == 0:
@@ -218,6 +223,10 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
     def end(self, value):
         self._end = value
         self._validate()
+
+    @property
+    def humanized(self):
+        return "({0} to {1}]".format(arrow.get(self.start).humanize(), arrow.get(self.end).humanize())
 
     def __str__(self):
         return "({0}, {1}]".format(self.start, self.end)
