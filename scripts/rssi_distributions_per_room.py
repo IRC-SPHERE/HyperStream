@@ -42,9 +42,10 @@ def run(house, selection, delete_existing_workflows=True):
     except KeyError:
         w0 = create_workflow_list_technicians_walkarounds(hyperstream, house=house, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id0)
-    w0.execute(TimeInterval.all_time())
+    time_interval = TimeInterval.up_to_now()
+    w0.execute(time_interval)
 
-    df = M[StreamId('experiments_dataframe', dict(house=house))].window(TimeInterval.all_time()).values()[0]
+    df = M[StreamId('experiments_dataframe', dict(house=house))].window(time_interval).values()[0]
     experiment_indices = selection
     experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
 
@@ -79,9 +80,10 @@ def run(house, selection, delete_existing_workflows=True):
             hyperstream, house=house, experiment_indices=experiment_indices, experiment_ids=experiment_ids, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id1)
 
-    w1.execute(TimeInterval.all_time())
+    time_interval = TimeInterval.up_to_now()
+    w1.execute(time_interval)
 
-    df = M[StreamId('dataframe_'+experiment_ids_str, dict(house=house))].window(TimeInterval.all_time()).values()[0]
+    df = M[StreamId('dataframe_'+experiment_ids_str, dict(house=house))].window(time_interval).values()[0]
     df.to_csv(os.path.join('output', 'dataframe_'+experiment_ids_str+'.csv'))
 
     print('number of non_empty_streams: {}'.format(

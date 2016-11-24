@@ -48,7 +48,6 @@ def run(house, delete_existing_workflows=True, loglevel=logging.INFO):
         parent_plate=None
     )
 
-
     workflow_id = "list_technicians_walkarounds"
 
     if delete_existing_workflows:
@@ -59,13 +58,13 @@ def run(house, delete_existing_workflows=True, loglevel=logging.INFO):
     except KeyError:
         w = create_workflow_list_technicians_walkarounds(hyperstream, house, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id)
-
-    w.execute(TimeInterval.all_time())
+    time_interval = TimeInterval.up_to_now()
+    w.execute(time_interval)
     
     print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))
     print('number of memory non_empty_streams: {}'.format(len(M.non_empty_streams)))
     
-    df = M[StreamId('experiments_dataframe', dict(house=house))].window(TimeInterval.all_time()).values()[0]
+    df = M[StreamId('experiments_dataframe', dict(house=house))].window(time_interval).values()[0]
     # arrow.get(x).humanize()
     # df['start'] = df['start'].map('{:%Y-%m-%d %H:%M:%S}'.format)
     df['duration'] = df['end'] - df['start']

@@ -43,9 +43,10 @@ def run(house, selection, delete_existing_workflows=True):
     except KeyError:
         w0 = create_workflow_list_technicians_walkarounds(hyperstream, house=house, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id0)
-    w0.execute(TimeInterval.all_time())
+    time_interval = TimeInterval.up_to_now()
+    w0.execute(time_interval)
 
-    df = M[StreamId('experiments_dataframe', dict(house=house))].window(TimeInterval.all_time()).values()[0]
+    df = M[StreamId('experiments_dataframe', dict(house=house))].window(time_interval).values()[0]
     experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
 
     hyperstream.plate_manager.delete_plate("H.SelectedLocalisationExperiment")
@@ -78,18 +79,17 @@ def run(house, selection, delete_existing_workflows=True):
         w1 = create_workflow_lda_localisation_model_learner(
             hyperstream, house=house, experiment_ids=experiment_ids, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id1)
+    time_interval = TimeInterval.up_to_now()
+    w1.execute(time_interval)
 
-    w1.execute(TimeInterval.all_time())
-
-    last_experiment = A[StreamId(name='experiments_selected', meta_data=dict(house=1))].window(
-        time_interval=TimeInterval.all_time()).last().value
+    last_experiment = A[StreamId(name='experiments_selected', meta_data=dict(house=1))].window(time_interval).last().value
 
     print(last_experiment)
 
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))
 
-    model = D[model_id].window(TimeInterval.all_time()).last().value
+    model = D[model_id].window(time_interval).last().value
     print(model)
 
 
