@@ -23,7 +23,6 @@ from __future__ import print_function
 import os
 import arrow
 import logging
-from datetime import timedelta
 from time import sleep
 import signal
 
@@ -34,11 +33,8 @@ globs = {
 }
 
 
-def display_predictions(hyperstream, house, wearables):
-    from hyperstream import StreamId, TimeInterval
-    from hyperstream.utils import utcnow
-
-    time_interval = TimeInterval(start=utcnow() - timedelta(seconds=10), end=utcnow())
+def display_predictions(hyperstream, time_interval, house, wearables):
+    from hyperstream import StreamId
 
     for wearable in wearables:
         stream_id = StreamId('predicted_locations_broadcasted', meta_data=dict(house=house, wearable=wearable))
@@ -56,10 +52,10 @@ def display_predictions(hyperstream, house, wearables):
 
 
 def run(loglevel=logging.CRITICAL):
-    from hyperstream import HyperStream
+    from hyperstream import HyperStream, TimeInterval
     globs['hyperstream'] = HyperStream(loglevel=loglevel)
 
-    display_predictions(globs['hyperstream'], globs['house'], globs['wearables'])
+    display_predictions(time_interval=TimeInterval.now_minus(minutes=1), **globs)
     print()
 
     from display_access_points import display_access_points
@@ -82,7 +78,6 @@ if __name__ == '__main__':
             globs['wearables'] = sys.argv[1]
         except ValueError:
             pass
-
 
     def signal_handler(signal, frame):
         sys.exit(0)

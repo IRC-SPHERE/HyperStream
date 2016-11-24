@@ -24,8 +24,7 @@ from plugins.sphere.channels.sphere_channel import SphereDataWindow, SphereExper
 
 
 def reformat(doc):
-    dt = doc['datetime']
-    del doc['datetime']
+    dt = doc.pop('datetime')
     if 'house_id' in doc:
         house_id = doc.pop('house_id')
     else:

@@ -51,20 +51,14 @@ def run(house, delete_existing_workflows=True, loglevel=logging.INFO):
         w = create_workflow_localisation_predict(hyperstream, house=house, experiment_ids=experiment_ids, safe=False)
         hyperstream.workflow_manager.commit_workflow(workflow_id)
 
-    # w.execute(TimeInterval.all_time())
-    start_time = utcnow()-timedelta(minutes=1)
-    end_time = utcnow()
-#     start_time = datetime(year=2016, month=10, day=19, hour=12, minute=28, tzinfo=UTC)
-#     end_time = start_time + timedelta(hours=1)
-    time_interval = TimeInterval(start=start_time,end=end_time)
-    # time_interval = TimeInterval.up_to_now()
+    time_interval = TimeInterval.now_minus(minutes=1)
     w.execute(time_interval)
 
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))
 
     from display_localisation_predictions import display_predictions
-    display_predictions(hyperstream, house, wearables=globs['wearables'])
+    display_predictions(hyperstream, time_interval, house, wearables=globs['wearables'])
 
     # for wearable in 'ABCD':
     #     sid = StreamId('predicted_locations_broadcasted', dict(house=house, wearable=wearable))
