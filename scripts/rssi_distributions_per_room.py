@@ -20,6 +20,7 @@
 
 import logging
 import sys
+import os
 
 
 def run(house, selection, delete_existing_workflows=True):
@@ -81,8 +82,7 @@ def run(house, selection, delete_existing_workflows=True):
     w1.execute(TimeInterval.all_time())
 
     df = M[StreamId('dataframe_'+experiment_ids_str, dict(house=house))].window(TimeInterval.all_time()).values()[0]
-    df.to_csv('dataframe_'+experiment_ids_str+'.csv')
-
+    df.to_csv(os.path.join('output', 'dataframe_'+experiment_ids_str+'.csv'))
 
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))
