@@ -51,10 +51,6 @@ def query_yes_no(question, default="yes"):
     else:
         raise ValueError("invalid default answer: '%s'" % default)
 
-    def signal_handler(signal, frame):
-        sys.exit(0)
-    signal.signal(signal.SIGINT, signal_handler)
-
     while True:
         sys.stdout.write(question + prompt)
         choice = raw_input().lower()
@@ -67,6 +63,10 @@ def query_yes_no(question, default="yes"):
                              "(or 'y' or 'n').\n")
 
 if __name__ == '__main__':
+    def signal_handler(signal, frame):
+        sys.exit(0)
+    signal.signal(signal.SIGINT, signal_handler)
+
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
     parser = argparse.ArgumentParser()
