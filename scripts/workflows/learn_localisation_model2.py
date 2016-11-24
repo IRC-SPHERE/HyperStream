@@ -78,7 +78,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
     D = hyperstream.channel_manager.mongo
     A = hyperstream.channel_manager.assets
 
-    model_names = ("lda", "svm")
+    model_names = ("lda", )  # "svm")
     create_localisation_model_plate(hyperstream, model_names)
 
     nodes = (

@@ -162,6 +162,13 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
     def up_to_now(cls):
         return TimeInterval(MIN_DATE, utcnow())
 
+    @classmethod
+    def now_minus(cls, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0):
+        delta = timedelta(weeks=weeks, days=days, hours=hours,
+                          minutes=minutes, seconds=seconds, milliseconds=milliseconds, microseconds=0)
+        now = utcnow()
+        return TimeInterval(now - delta, now)
+
     def __new__(cls, start, end):
         """
         Initialise the object with the start and end times

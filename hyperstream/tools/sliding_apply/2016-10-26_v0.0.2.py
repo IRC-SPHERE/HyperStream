@@ -96,7 +96,8 @@ class SlidingApply(Tool):
                     yield StreamInstance(time, value)
                 else:
                     # TODO: Should we yield anything???
-                    yield StreamInstance(time, {})
+                    # yield StreamInstance(time, {})
+                    pass
             except TypeError:
                 # Not iterable
                 yield StreamInstance(time, value)
