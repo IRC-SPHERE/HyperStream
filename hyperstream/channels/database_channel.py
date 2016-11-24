@@ -20,8 +20,10 @@
 """
 Database channel module.
 """
-from mongoengine import NotUniqueError
+from mongoengine import NotUniqueError, InvalidDocumentError
 from mongoengine.context_managers import switch_db
+from pymongo.errors import InvalidDocument
+import logging
 
 from base_channel import BaseChannel
 from hyperstream.utils.errors import StreamAlreadyExistsError, StreamNotFoundError
@@ -130,8 +132,11 @@ class DatabaseChannel(BaseChannel):
                     except NotUniqueError as e:
                         # Implies that this has already been written to the database
                         # Raise an error if the value differs from that in the database
+                        logging.warn("Found duplicate document: {}".format(e.message))
                         existing = StreamInstanceModel.objects(stream_id=stream.stream_id.as_dict(), datetime=t)[0]
                         if existing.value != doc:
                             raise e
-
+                    except (InvalidDocumentError, InvalidDocument) as e:
+                        # Something wrong with the document - log the error
+                        logging.error(e)
         return writer
