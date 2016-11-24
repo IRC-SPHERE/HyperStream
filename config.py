@@ -30,6 +30,17 @@ from plugin_manager import Plugin
 from time_interval import RelativeTimeInterval
 
 
+class OnlineEngineConfig(Printable):
+    def __init__(self, interval, sleep=5, iterations=100):
+        self.interval = RelativeTimeInterval(**interval)
+        self.sleep = sleep
+        self.iterations = iterations
+
+    @property
+    def alarm(self):
+        return self.sleep * self.iterations
+
+
 class HyperStreamConfig(Printable):
     """
     Wrapper around the hyperstream configuration files (hyperstream_config.json and meta_data.json)
@@ -39,7 +50,6 @@ class HyperStreamConfig(Printable):
         Initialise the configuration - currently uses fixed file names (hyperstream_config.json and meta_data.json)
         """
         self.mongo = None
-        self.online_engine_interval = None
 
         try:
             with open('hyperstream_config.json', 'r') as f:
@@ -48,8 +58,7 @@ class HyperStreamConfig(Printable):
                 config = json.load(f)
                 self.mongo = config['mongo']
                 self.plugins = [Plugin(**p) for p in config['plugins']]
-                self.online_engine_interval = RelativeTimeInterval(**config["online_engine"]["interval"])
-
+                self.online_engine = OnlineEngineConfig(**config["online_engine"])
         except (OSError, IOError, TypeError) as e:
             # raise
             logging.error("Configuration error: " + str(e))
