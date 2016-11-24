@@ -60,19 +60,20 @@ class OnlineEngine(object):
             # workflow_id = "lda_localisation_model_predict"
         else:
             duration = 0  # not needed
-            relative_interval = self.hyperstream.config.online_engine_interval
+            relative_interval = self.hyperstream.config.online_engine.interval
             time_interval = relative_interval.absolute(utcnow())
 
-        for _ in range(100):
+        for _ in range(self.hyperstream.config.online_engine.iterations):
             if not debug:
-                signal.alarm(305)  # if this takes more than 5 minutes, kill myself
+                # if this takes more than x minutes, kill myself
+                signal.alarm(self.hyperstream.config.online_engine.alarm)
 
             logging.info("Online engine starting up.")
 
             # self.hyperstream.workflow_manager.set_requested_intervals(workflow_id, TimeIntervals([time_interval]))
             self.hyperstream.workflow_manager.set_all_requested_intervals(TimeIntervals([time_interval]))
             self.hyperstream.workflow_manager.execute_all()
-            sleep(5)
+            sleep(self.hyperstream.config.online_engine.sleep)
 
             if debug:
                 time_interval += duration
