@@ -23,9 +23,11 @@ from hyperstream.tool import Tool, check_input_stream_count
 from StringIO import StringIO
 from subprocess import PIPE, Popen
 import logging
+import os
 
 R_COMMAND = ['/usr/local/bin/Rscript', '--vanilla']
 R_SCRIPT = ['plugins/sphere/tools/r_rssi_comparison_plot/plot.r']
+
 
 class RRssiComparisonPlot(Tool):
     """
@@ -50,7 +52,7 @@ class RRssiComparisonPlot(Tool):
     def _execute(self, sources, alignment_stream, interval):
         for time, data in sources[0].window(interval, force_calculation=True):
             time_str = time.strftime("%Y-%m-%dT%H_%M_%S")
-            filename = [time_str+self.filename_suffix]
+            filename = [os.path.join('output', time_str+self.filename_suffix)]
             params = filename+[
                       str(self.missing_impute_value),
                       str(self.n_histogram_bins),
