@@ -26,6 +26,7 @@ import inspect
 import logging
 from mongoengine import DoesNotExist, MultipleObjectsReturned
 from mongoengine.context_managers import switch_db
+import os
 
 from models import StreamDefinitionModel, StreamStatusModel
 from stream import StreamId, DatabaseStream, AssetStream
@@ -45,7 +46,9 @@ class ChannelManager(dict, Printable):
         # See this answer http://stackoverflow.com/a/14620633 for why we do the following:
         self.__dict__ = self
 
-        self.tools = ToolChannel("tools", "hyperstream/tools", up_to_timestamp=utcnow())
+        tool_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'tools'))
+
+        self.tools = ToolChannel("tools", tool_path, up_to_timestamp=utcnow())
         self.memory = MemoryChannel("memory")
         self.mongo = DatabaseChannel("mongo")
         self.assets = AssetsChannel("assets")
