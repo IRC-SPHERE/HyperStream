@@ -84,7 +84,7 @@ def run(house, selection, delete_existing_workflows=True):
     w1.execute(time_interval)
 
     df = M[StreamId('dataframe_'+experiment_ids_str, dict(house=house))].window(TimeInterval.up_to_now()).values()[0]
-    df.to_csv(os.path.join('output', 'dataframe_'+experiment_ids_str+'.csv'))
+    df.to_csv(os.path.join(hyperstream.config.output_path, 'dataframe_{}.csv'.format(experiment_ids_str)))
 
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))

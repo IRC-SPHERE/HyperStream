@@ -45,12 +45,10 @@ def create_workflow_rssi_distributions_per_room(hyperstream, house, experiment_i
     S = hyperstream.channel_manager.sphere
     T = hyperstream.channel_manager.tools
     D = hyperstream.channel_manager.mongo
-    U = hyperstream.channel_manager.assets
-
+    A = hyperstream.channel_manager.assets
 
     nodes = (
         ("experiments_list",            M, ["H"]),  # Current annotation data in 2s windows
-        # ("experiments_dataframe",       M, ["H"]),  # Current annotation data in 2s windows
         ("experiments_mapping",         M, ["H"]),  # Current annotation data in 2s windows
         ("rss_raw",                     S, ["H"]),  # Raw RSS data
         ("rss_time",                    S, ["H.SelectedLocalisationExperiment"]),  # RSS data split by experiment
@@ -65,15 +63,14 @@ def create_workflow_rssi_distributions_per_room(hyperstream, house, experiment_i
         ("dataframe_"+experiment_ids_str,                   M, ["H"]),
         ("csv_string_"+experiment_ids_str,                   M, ["H"]),
         ("pdf_"+experiment_ids_str,                   M, ["H"]),
-#        ("rssi_distributions_per_room_"+experiment_ids_str, M, ["H"]),
-        ("experiments_selected",        U, ["H"])
+        ("experiments_selected",        A, ["H"])
     )
 
     # Create all of the nodes
     N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
 
     # TODO: Perhaps we want to do this same
-    U.write_to_stream(
+    A.write_to_stream(
         stream_id=StreamId(name="experiments_selected", meta_data=dict(house=house)),
         data=StreamInstance(timestamp=utcnow(), value=list(experiment_ids))
     )
@@ -187,31 +184,33 @@ def create_workflow_rssi_distributions_per_room(hyperstream, house, experiment_i
             parameters=dict(aggregation_meta_data="localisation-experiment")
         ),
         sources=[N["merged_2s"]],
-        sink=N["merged_2s_flat_"+experiment_ids_str])
+        sink=N["merged_2s_flat_" + experiment_ids_str])
 
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="dallan_data_frame_builder",
             parameters=dict()
         ),
-        sources=[N["merged_2s_flat_"+experiment_ids_str]],
-        sink=N["dataframe_"+experiment_ids_str])
+        sources=[N["merged_2s_flat_" + experiment_ids_str]],
+        sink=N["dataframe_" + experiment_ids_str])
 
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="data_frame_to_csv_string",
             parameters=dict()
         ),
-        sources=[N["dataframe_"+experiment_ids_str]],
-        sink=N["csv_string_"+experiment_ids_str])
+        sources=[N["dataframe_" + experiment_ids_str]],
+        sink=N["csv_string_" + experiment_ids_str])
 
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
             name="r_rssi_comparison_plot",
-            parameters=dict(filename_suffix="_rssi_comparison_plot_"+'_'.join([str(i) for i in experiment_indices])+".pdf")
+            parameters=dict(
+                output_path=hyperstream.config.output_path,
+                filename_suffix="_rssi_comparison_plot_{}.pdf".format('_'.join(map(str, experiment_indices))))
         ),
-        sources=[N["csv_string_"+experiment_ids_str]],
-        sink=N["pdf_"+experiment_ids_str])
+        sources=[N["csv_string_" + experiment_ids_str]],
+        sink=N["pdf_" + experiment_ids_str])
     
 #   w.create_factor(
 #        tool=hyperstream.channel_manager.get_tool(
