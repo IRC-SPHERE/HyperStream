@@ -22,8 +22,6 @@
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 
-import numpy as np
-
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 from sklearn.feature_extraction import DictVectorizer
@@ -31,8 +29,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 
 from plugins.sphere.utils import FillZeros
-from hyperstream.utils import MIN_DATE, MAX_DATE
-from hyperstream.time_interval import TimeInterval
+from hyperstream.time_interval import TimeInterval, MIN_DATE
 
 from plugins.sphere.utils import deserialise_json_pipeline
 
@@ -47,7 +44,8 @@ class LocalisationModelPredict(Tool):
     
     @check_input_stream_count(2)
     def _execute(self, sources, alignment_stream, interval):
-        param_doc = sources[0].window(TimeInterval.up_to_now(), force_calculation=True).last()
+        time_interval = TimeInterval(MIN_DATE, interval.end)
+        param_doc = sources[0].window(time_interval, force_calculation=True).last()
         if param_doc is None:
             return
         

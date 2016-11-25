@@ -21,7 +21,7 @@
 
 from hyperstream.tool import MultiOutputTool
 from hyperstream.stream import StreamInstance, StreamMetaInstance
-from hyperstream.time_interval import TimeInterval
+from hyperstream.time_interval import TimeInterval, MIN_DATE
 
 
 class StreamBroadcaster(MultiOutputTool):
@@ -34,7 +34,8 @@ class StreamBroadcaster(MultiOutputTool):
 
         # TODO: This factor does use the time interval, but only applies a function on the stream.
         # Will need to change this in future instances
-        data = self.func(source.window(TimeInterval.up_to_now(), force_calculation=True))
+        time_interval = TimeInterval(MIN_DATE, interval.end)
+        data = self.func(source.window(time_interval, force_calculation=True))
 
         if data is None:
             return
