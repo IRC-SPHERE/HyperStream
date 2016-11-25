@@ -28,7 +28,7 @@ globs = {
 
 def run(house, delete_existing_workflows=True, loglevel=logging.INFO):
     from hyperstream import HyperStream, TimeInterval
-    from workflows.deploy_localisation_model2 import create_workflow_localisation_predict
+    from workflows.deploy_localisation_model import create_workflow_localisation_predict
 
     hyperstream = HyperStream(loglevel=loglevel)
     M = hyperstream.channel_manager.memory
@@ -38,7 +38,7 @@ def run(house, delete_existing_workflows=True, loglevel=logging.INFO):
         TimeInterval.up_to_now()).last().value
 
     experiment_ids_str = '_'.join(experiment_ids)
-    workflow_id = "lda_localisation_model_predict2_"+experiment_ids_str
+    workflow_id = "lda_localisation_model_predict_"+experiment_ids_str
 
     if delete_existing_workflows:
         hyperstream.workflow_manager.delete_workflow(workflow_id)

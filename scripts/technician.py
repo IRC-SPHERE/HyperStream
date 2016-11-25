@@ -26,8 +26,8 @@ import argparse
 import signal
 
 import display_experiments
-import learn_localisation_model2
-import deploy_localisation_model2
+import learn_localisation_model
+import deploy_localisation_model
 
 
 def query_yes_no(question, default="yes"):
@@ -93,8 +93,8 @@ if __name__ == '__main__':
             if not technicians_selection or len(technicians_selection) < 2:
                 print("Expected at least two integer ids")
 
-        learn_localisation_model2.run(args.house, technicians_selection, delete_existing_workflows, loglevel)
+        learn_localisation_model.run(args.house, technicians_selection, delete_existing_workflows, loglevel)
 
         if query_yes_no("Deploy model?"):
-            deploy_localisation_model2.run(args.house, delete_existing_workflows, loglevel)
+            deploy_localisation_model.run(args.house, delete_existing_workflows, loglevel)
             deployed = True

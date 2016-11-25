@@ -40,7 +40,7 @@ def create_selected_localisation_plates(hyperstream):
 def run(house, selection, delete_existing_workflows=True, loglevel=logging.INFO):
     from hyperstream import HyperStream, StreamId, TimeInterval
     from workflows.display_experiments import create_workflow_list_technicians_walkarounds
-    from workflows.learn_localisation_model2 import create_workflow_lda_localisation_model_learner
+    from workflows.learn_localisation_model import create_workflow_lda_localisation_model_learner
     from hyperstream.utils import StreamNotFoundError, reconstruct_interval
 
     hyperstream = HyperStream(loglevel=loglevel)
@@ -80,7 +80,7 @@ def run(house, selection, delete_existing_workflows=True, loglevel=logging.INFO)
     except StreamNotFoundError:
         pass
 
-    workflow_id1 = "lda_localisation_model_learner2_"+experiment_ids_str
+    workflow_id1 = "lda_localisation_model_learner_"+experiment_ids_str
 
     if delete_existing_workflows:
         hyperstream.workflow_manager.delete_workflow(workflow_id1)

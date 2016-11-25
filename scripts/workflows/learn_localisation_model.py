@@ -56,7 +56,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
 
     experiment_ids_str = '_'.join(experiment_ids)
     # Create a simple one step workflow for querying
-    workflow_id = "lda_localisation_model_learner2_" + experiment_ids_str
+    workflow_id = "lda_localisation_model_learner_" + experiment_ids_str
     try:
         w = hyperstream.create_workflow(
             workflow_id=workflow_id,
@@ -241,7 +241,7 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
 
     w.create_factor(
         tool=hyperstream.channel_manager.get_tool(
-            name="localisation_model_learn2",
+            name="localisation_model_learn",
             parameters=dict(nan_value=-110.0)
         ),
         sources=[N["merged_2s_split_" + experiment_ids_str]],
