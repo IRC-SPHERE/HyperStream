@@ -20,7 +20,7 @@
 
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
-from StringIO import StringIO
+
 from subprocess import PIPE, Popen
 import logging
 import os
@@ -34,6 +34,7 @@ class RRssiComparisonPlot(Tool):
     Converts the value part of the stream instances to json format
     """
     def __init__(self,
+            output_path="output",
             filename_suffix="_rssi_comparison_plot.pdf",
             missing_impute_value=-110,
             n_histogram_bins=20,
@@ -41,6 +42,7 @@ class RRssiComparisonPlot(Tool):
             width_inches=8,
             height_inches=6):
         super(RRssiComparisonPlot, self).__init__(
+            output_path=output_path,
             filename_suffix=filename_suffix,
             missing_impute_value=missing_impute_value,
             n_histogram_bins=n_histogram_bins,
