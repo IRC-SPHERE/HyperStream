@@ -18,13 +18,19 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream import HyperStream
-from hyperstream.online_engine import OnlineEngine
-
 import logging
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'hyperstream_core'))
+sys.path.append(path)
 
 
 if __name__ == '__main__':
+    from hyperstream import HyperStream
+    from hyperstream.online_engine import OnlineEngine
+
     hyperstream = HyperStream(loglevel=logging.INFO)
     online_engine = OnlineEngine(hyperstream)
     online_engine.execute()
