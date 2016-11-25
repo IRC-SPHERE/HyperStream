@@ -57,6 +57,7 @@ class HyperStreamConfig(Printable):
                 logging.info('Reading ' + os.path.abspath(f.name))
                 config = json.load(f)
                 self.mongo = config['mongo']
+                self.output_path = config['output_path'] if 'output_path' in config else 'output'
                 self.plugins = [Plugin(**p) for p in config['plugins']]
                 self.online_engine = OnlineEngineConfig(**config["online_engine"])
         except (OSError, IOError, TypeError) as e:
