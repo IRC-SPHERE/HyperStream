@@ -61,7 +61,9 @@ def run(house, selection, delete_existing_workflows=True, loglevel=logging.INFO)
     time_interval = TimeInterval.up_to_now()
     w0.execute(time_interval)
 
-    df = M[StreamId('experiments_dataframe', dict(house=house))].window(time_interval).values()[0]
+    # from datetime import timedelta
+    # time_interval.end += timedelta(milliseconds=1)
+    df = M[StreamId('experiments_dataframe', dict(house=house))].window().values()[0]
     experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
 
     experiment_ids_str = '_'.join(experiment_ids)
@@ -96,7 +98,10 @@ def run(house, selection, delete_existing_workflows=True, loglevel=logging.INFO)
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))
 
-    model = D[model_id].window(time_interval).last().value
+    try:
+        model = D[model_id].window().last().value
+    except AttributeError:
+        raise
 
     for experiment_id in list(experiment_ids):
         print("Experiment id: {}".format(experiment_id))

@@ -247,7 +247,7 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
         if isinstance(item, (date, datetime)):
             return self.start < item <= self.end
         if isinstance(item, TimeInterval):
-            return item.start in self and item.end in self
+            return self.start < item.start and item.end <= self.end
         raise TypeError("can't compare datetime.datetime to {}".format(type(item)))
 
     def __add__(self, other):

@@ -139,4 +139,4 @@ class LocalisationModelLearn(Tool):
         clf_serialised['label_encoder'] = serialise_dict(label_encoder.__dict__)
         clf_serialised['performance'] = predefined_train_test_split(train_x, train_y_trans, folds, clf, label_encoder)
         
-        yield StreamInstance(utcnow(), clf_serialised)
+        yield StreamInstance(interval.end, clf_serialised)

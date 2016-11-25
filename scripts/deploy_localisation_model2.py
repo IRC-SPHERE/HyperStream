@@ -19,7 +19,6 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
-from datetime import datetime, timedelta
 
 globs = {
     'house': 1,
@@ -28,16 +27,15 @@ globs = {
 
 
 def run(house, delete_existing_workflows=True, loglevel=logging.INFO):
-    from hyperstream import HyperStream, TimeInterval, UTC
-    from hyperstream.utils import utcnow
+    from hyperstream import HyperStream, TimeInterval
     from workflows.deploy_localisation_model2 import create_workflow_localisation_predict
 
     hyperstream = HyperStream(loglevel=loglevel)
     M = hyperstream.channel_manager.memory
     A = hyperstream.channel_manager.assets
 
-    experiment_ids = A.find_streams(name="experiments_selected").values()[0]\
-        .window(TimeInterval.up_to_now()).last().value
+    experiment_ids = A.find_streams(name="experiments_selected").values()[0].window(
+        TimeInterval.up_to_now()).last().value
 
     experiment_ids_str = '_'.join(experiment_ids)
     workflow_id = "lda_localisation_model_predict2_"+experiment_ids_str
@@ -60,11 +58,6 @@ def run(house, delete_existing_workflows=True, loglevel=logging.INFO):
     from display_localisation_predictions import display_predictions
     display_predictions(hyperstream, time_interval, house, wearables=globs['wearables'])
 
-    # for wearable in 'ABCD':
-    #     sid = StreamId('predicted_locations_broadcasted', dict(house=house, wearable=wearable))
-    #     print sid
-    #     print len(list(hyperstream.channel_manager.memory[sid].window(time_interval)))
-    #     print '\n\n'
 
 if __name__ == '__main__':
     import sys

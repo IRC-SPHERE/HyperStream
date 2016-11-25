@@ -43,7 +43,7 @@ def run(house, selection, delete_existing_workflows=True, loglevel=logging.INFO)
     time_interval = TimeInterval.up_to_now()
     w0.execute(time_interval)
 
-    df = M[StreamId('experiments_dataframe', dict(house=house))].window(time_interval).values()[0]
+    df = M[StreamId('experiments_dataframe', dict(house=house))].window(TimeInterval.up_to_now()).values()[0]
     experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
 
     hyperstream.plate_manager.delete_plate("H.SelectedLocalisationExperiment")

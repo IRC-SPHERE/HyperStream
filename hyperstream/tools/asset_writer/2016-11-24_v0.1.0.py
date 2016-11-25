@@ -18,31 +18,18 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream import TimeInterval
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
-import pandas as pd
-
-from hyperstream.utils.time_utils import construct_experiment_id, utcnow
 
 
-class ExperimentsDataFrameBuilder(Tool):
-    """
-    Converts the value part of the stream instances to json format
-    """
+class AssetWriter(Tool):
+    def __init__(self, value):
+        """
+        Special tool to write value to asset channel
+        :param value: The value to write
+        """
+        super(AssetWriter, self).__init__(value=value)
 
-    def __init__(self):
-        super(ExperimentsDataFrameBuilder, self).__init__()
-
-    @check_input_stream_count(1)
+    @check_input_stream_count(0)
     def _execute(self, sources, alignment_stream, interval):
-        data = list(sources[0].window(interval, force_calculation=True))
-        flattened = map(lambda x: dict(dict(
-            experiment_id=construct_experiment_id(TimeInterval(x.value['start'], x.value['end'])),
-            start=x.value['start'],
-            end=x.value['end'],
-            annotator=x.value['annotator']
-        ), **(x.value['notes'])), data)
-        df = pd.DataFrame(flattened)
-        df['id'] = range(1, len(df) + 1)
-        yield StreamInstance(interval.end, df)
+        yield StreamInstance(interval.end, self.value)

@@ -61,5 +61,3 @@ class ExtractExperimentsFromAnnotations(Tool):
         for i, doc in enumerate(exp_list.values()):
             if TimeInterval(doc['start'], doc['end']) in max_interval:
                 yield StreamInstance(doc['end'], doc)
-            # if (doc.value['end'] <= interval.end) and (doc.value['start'] >= interval.start):
-            #     yield StreamInstance(doc.value['end'], doc)

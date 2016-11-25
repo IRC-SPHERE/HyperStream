@@ -104,9 +104,19 @@ def create_workflow_lda_localisation_model_learner(hyperstream, house, experimen
     N = dict((stream_name, w.create_node(stream_name, channel, plate_ids)) for stream_name, channel, plate_ids in nodes)
 
     # Put the experiments selected into an asset stream
-    A.write_to_stream(
-        stream_id=StreamId(name="experiments_selected", meta_data=dict(house=house)),
-        data=StreamInstance(timestamp=utcnow(), value=list(experiment_ids))
+    # A.write_to_stream(
+    #     stream_id=StreamId(name="experiments_selected", meta_data=dict(house=house)),
+    #     data=StreamInstance(timestamp=utcnow(), value=list(experiment_ids))
+    # )
+
+    w.create_factor(
+        tool=hyperstream.channel_manager.get_tool(
+            name="asset_writer",
+            parameters=dict(value=list(experiment_ids))
+        ),
+        sources=None,
+        alignment_node=None,
+        sink=N["experiments_selected"]
     )
 
     w.create_factor(
