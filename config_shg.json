@@ -39,7 +39,7 @@
                 }
             },
             "wearable2": {
-                "collection": "wearable",
+                "collection": "WEAR",
                 "date_time_field": "bt",
                 "event": "e",
                 "fields": {
@@ -85,7 +85,8 @@
                 }
             },
             "annotations": {
-                "collection": "ANN_fixed_datetime_tier",
+                "collection": "ANN",
+                "collection_bak": "ANN_fixed_datetime_tier_backup",
                 "collection_old": "annotations"
             }
         }
