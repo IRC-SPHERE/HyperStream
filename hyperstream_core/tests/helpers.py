@@ -22,10 +22,10 @@ import os
 from datetime import datetime, timedelta
 
 from hyperstream import HyperStream, UTC, StreamId
-from plugins.sphere.utils.sphere_helpers import PredefinedTools, scripted_experiments
+from plugins.sphere.utils.sphere_helpers import PredefinedTools
 from sphere_connector_package.sphere_connector import SphereConnector
 
-os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
+os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".."))
 
 
 # Various constants
@@ -70,4 +70,3 @@ sphere_silhouette = StreamId('sphere_silhouette')
 sphere = StreamId('sphere')
 component = StreamId('component')
 component_filter = StreamId('component_filter')
-
