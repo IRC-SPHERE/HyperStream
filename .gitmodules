@@ -1,3 +1,6 @@
 [submodule "sphere_connector"]
 	path = sphere_connector_package
 	url = git@bitbucket.org:irc-sphere/sphere_connector.git
+[submodule "hyperstream-core"]
+	path = hyperstream-core
+	url = git@bitbucket.org:irc-sphere/hyperstream-core.git
