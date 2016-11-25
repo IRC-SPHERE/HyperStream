@@ -31,7 +31,17 @@ from hyperstream.utils import MIN_DATE, MAX_DATE
 
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-sphere_connector = None
+# globs = {'sphere_connector': None}
+#
+#
+# def get_sphere_connector():
+#     if not globs['sphere_connector']:
+#         globs['sphere_connector'] = SphereConnector(
+#             config_filename=os.path.join(path, 'config.json'),
+#             include_mongo=True,
+#             include_redcap=False,
+#             sphere_logger=None)
+#     return globs['sphere_connector']
 
 
 def get_sphere_connector():
@@ -85,7 +95,8 @@ class SphereChannel(MemoryChannel):
         
         if up_to_timestamp is None:
             # TODO: maybe should be utcnow, but then we'd have to keep updating it?
-            up_to_timestamp = MAX_DATE  # utcnow()
+            up_to_timestamp = MAX_DATE
+            # up_to_timestamp = utcnow()
         
         if up_to_timestamp > MIN_DATE:
             self.update_streams(up_to_timestamp)

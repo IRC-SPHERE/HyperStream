@@ -153,4 +153,4 @@ class LocalisationModelLearn2(Tool):
         clf_serialised['experiment_interval'] = map(reconstruct_interval, experiment_ids)
         clf_serialised['tool_parameters'] = dict((x, self.__dict__[x]) for x in self.__dict__ if not x.startswith("_"))
 
-        yield StreamInstance(utcnow(), clf_serialised)
+        yield StreamInstance(interval.end, clf_serialised)

@@ -41,5 +41,5 @@ class ExperimentsMappingBuilder(Tool):
             experiment_id = construct_experiment_id(experiment_interval)
             if experiment_id in self.experiment_ids:
                 mappings.append((experiment_id, experiment_interval))
-        yield StreamInstance(utcnow(), mappings)
+        yield StreamInstance(interval.end, mappings)
 

@@ -64,7 +64,7 @@ def run(house, delete_existing_workflows=True, loglevel=logging.INFO):
     print('number of sphere non_empty_streams: {}'.format(len(S.non_empty_streams)))
     print('number of memory non_empty_streams: {}'.format(len(M.non_empty_streams)))
     
-    df = M[StreamId('experiments_dataframe', dict(house=house))].window(time_interval).values()[0]
+    df = M[StreamId('experiments_dataframe', dict(house=house))].window().values()[0]
     # arrow.get(x).humanize()
     # df['start'] = df['start'].map('{:%Y-%m-%d %H:%M:%S}'.format)
     df['duration'] = df['end'] - df['start']

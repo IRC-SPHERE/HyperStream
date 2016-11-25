@@ -69,9 +69,6 @@ class Tool(BaseTool):
         if interval.end > sink.channel.up_to_timestamp:
             raise StreamNotAvailableError(self.up_to_timestamp)
 
-        if interval.width < timedelta(seconds=1):
-            raise Exception
-
         required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
 
         if not required_intervals.is_empty:

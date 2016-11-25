@@ -46,7 +46,7 @@ def run(house, selection, delete_existing_workflows=True):
     time_interval = TimeInterval.up_to_now()
     w0.execute(time_interval)
 
-    df = M[StreamId('experiments_dataframe', dict(house=house))].window(time_interval).values()[0]
+    df = M[StreamId('experiments_dataframe', dict(house=house))].window(TimeInterval.up_to_now()).values()[0]
     experiment_ids = set([df['experiment_id'][i - 1] for i in selection])
 
     hyperstream.plate_manager.delete_plate("H.SelectedLocalisationExperiment")
@@ -82,14 +82,15 @@ def run(house, selection, delete_existing_workflows=True):
     time_interval = TimeInterval.up_to_now()
     w1.execute(time_interval)
 
-    last_experiment = A[StreamId(name='experiments_selected', meta_data=dict(house=1))].window(time_interval).last().value
+    last_experiment = A[StreamId(name='experiments_selected', meta_data=dict(house=1))].window(
+        TimeInterval.up_to_now()).last().value
 
     print(last_experiment)
 
     print('number of non_empty_streams: {}'.format(
         len(hyperstream.channel_manager.memory.non_empty_streams)))
 
-    model = D[model_id].window(time_interval).last().value
+    model = D[model_id].window(TimeInterval.up_to_now()).last().value
     print(model)
 
 

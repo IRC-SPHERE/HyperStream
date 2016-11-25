@@ -74,7 +74,8 @@ class MultiOutputTool(BaseTool):
         for sink in sinks:
             if interval.end > sink.channel.up_to_timestamp:
                 raise ValueError(
-                    'The stream is not available after {} and cannot be calculated'.format(self.up_to_timestamp))
+                    'The stream is not available after {} and cannot be calculated'.format(
+                        sink.channel.up_to_timestamp))
             if calculated_intervals is None:
                 calculated_intervals = sink.calculated_intervals
                 continue

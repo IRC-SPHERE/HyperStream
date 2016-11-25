@@ -42,4 +42,4 @@ class DallanDataFrameBuilder(Tool):
             location=next(iter(x.value['annotations']['Location']), None)
         ), **(x.value['rssi'])), data)
         df = pd.DataFrame(flattened)
-        yield StreamInstance(utcnow(), df)
+        yield StreamInstance(interval.end, df)
