@@ -73,6 +73,10 @@ class OnlineEngine(object):
             # self.hyperstream.workflow_manager.set_requested_intervals(workflow_id, TimeIntervals([time_interval]))
             self.hyperstream.workflow_manager.set_all_requested_intervals(TimeIntervals([time_interval]))
             self.hyperstream.workflow_manager.execute_all()
+
+            logging.info("Online engine shutting down.")
+            logging.info("")
+
             sleep(self.hyperstream.config.online_engine.sleep)
 
             if debug:
