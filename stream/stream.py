@@ -125,16 +125,18 @@ class Stream(Hashable):
     def writer(self):
         return self.channel.get_stream_writer(self)
 
-    def window(self, time_interval, force_calculation=False):
+    def window(self, time_interval=None, force_calculation=False):
         """
         Gets a view on this stream for the time interval given
         :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
         :param force_calculation: Whether we should force calculation for this stream view if data does not exist
-        :type time_interval: Iterable, TimeInterval
+        :type time_interval: None | Iterable | TimeInterval
         :type force_calculation: bool
         :return: a stream view object
         """
-        if isinstance(time_interval, TimeInterval):
+        if not time_interval:
+            time_interval = self.calculated_intervals[-1]
+        elif isinstance(time_interval, TimeInterval):
             time_interval = TimeInterval(time_interval.start, time_interval.end)
         elif isinstance(time_interval, Iterable):
             time_interval = parse_time_tuple(*time_interval)

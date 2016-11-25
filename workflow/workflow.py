@@ -73,8 +73,13 @@ class Workflow(Printable):
         """
         # TODO: What if the leaf nodes have different time intervals?
 
+        # First look for asset writers
         for factor in self.factors[::-1]:
-            if factor.sink is None or factor.sink.is_leaf:
+            if factor.tool.name == "asset_writer":
+                factor.execute(time_interval)
+
+        for factor in self.factors[::-1]:
+            if factor.sink is None or factor.sink.is_leaf and factor.tool.name != "asset_writer":
                 factor.execute(time_interval)
 
     def _add_node(self, node):
