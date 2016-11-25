@@ -90,13 +90,13 @@ def predefined_train_test_split(data, labels, folds, workflow, label_encoder):
     return serialise_dict(performance)
 
 
-class LocalisationModelLearn2(Tool):
+class LocalisationModelLearn(Tool):
     """
     Given a dataframe of
     """
     
     def __init__(self, nan_value=-110):
-        super(LocalisationModelLearn2, self).__init__(nan_value=nan_value)
+        super(LocalisationModelLearn, self).__init__(nan_value=nan_value)
 
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):

@@ -25,7 +25,7 @@ def create_workflow_localisation_predict(hyperstream, house, experiment_ids, saf
 
     experiment_ids_str = '_'.join(experiment_ids)
     # Create a simple one step workflow for querying
-    workflow_id = "lda_localisation_model_predict2_" + experiment_ids_str
+    workflow_id = "lda_localisation_model_predict_" + experiment_ids_str
 
     S = hyperstream.channel_manager.sphere
     D = hyperstream.channel_manager.mongo
