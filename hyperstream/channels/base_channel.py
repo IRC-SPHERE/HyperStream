@@ -20,7 +20,7 @@
 
 from ..stream import StreamDict
 from ..time_interval import TimeIntervals
-from ..utils import Printable, MAX_DATE
+from ..utils import Printable, MAX_DATE, StreamNotFoundError, MultipleStreamsFoundError
 
 import logging
 
@@ -108,6 +108,19 @@ class BaseChannel(Printable):
                    for k, v in kwargs.items()):
                 found[stream_id] = stream
         return found
+
+    def find_stream(self, **kwargs):
+        """
+        Finds a single stream with the given meta data values. Useful for debugging purposes.
+        :param kwargs: The meta data as keyword arguments
+        :return: The stream found
+        """
+        found = list(self.find_streams(**kwargs).values())
+        if not found:
+            raise StreamNotFoundError(**kwargs)
+        if len(found) > 1:
+            raise MultipleStreamsFoundError(**kwargs)
+        return found[0]
 
     def purge_stream(self, stream_id, sandbox=None):
         """
