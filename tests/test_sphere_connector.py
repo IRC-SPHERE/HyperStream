@@ -30,9 +30,8 @@ from sphere_connector_package.sphere_connector import SphereConnector, DataWindo
 # noinspection PyMethodMayBeStatic
 class SphereConnectorTests(unittest.TestCase):
     def test_filtering(self):
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         sphere_connector = SphereConnector(
-            config_filename=os.path.join(path, 'config_strauss.json'),
+            config_filename='config_strauss.json',
             include_mongo=True,
             include_redcap=False,
             sphere_logger=None)

@@ -37,6 +37,5 @@ class TestToolChannel(unittest.TestCase):
 
         agg = T[aggregate].window((MIN_DATE, utcnow())).items()
         assert(len(agg) > 0)
-        assert(str(agg[0]) ==
-               "StreamInstance(timestamp=datetime.datetime(2016, 10, 26, 0, 0, tzinfo=<UTC>), "
-               "value=<class 'hyperstream_tools_aggregate_2016_10_26_v0_1_0.Aggregate'>)")
+        assert(agg[0].timestamp == datetime(2016, 10, 26, 0, 0, tzinfo=UTC))
+        assert(isinstance(agg[0].value, type))
