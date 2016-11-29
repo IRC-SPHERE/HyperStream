@@ -187,8 +187,17 @@ class HyperStreamQueryTests(unittest.TestCase):
         # Simple querying
         ti = TimeInterval(t1, t1 + minute)
 
-        # Get a stream that lives in the database
-        env = D[StreamId('environmental_db', {"house": "1"})]
+        # Create the stream that lives in the database
+        env = D.create_stream(stream_id=StreamId('environmental_db', {"house": "1"}))
+        env_tool = channels.get_tool("sphere", dict(modality="environmental"))
+        env_tool.execute(
+            source=None,
+            splitting_stream=None,
+            sinks=[env],
+            interval=ti,
+            input_plate_value=None,
+            output_plate=hyperstream.plate_manager.plates["H"]
+        )
 
         # Create stream whose source will be the above database stream
         elec = M.create_stream(StreamId('electricity'))
