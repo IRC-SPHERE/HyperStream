@@ -23,6 +23,10 @@ class StreamNotFoundError(Exception):
     pass
 
 
+class MultipleStreamsFoundError(Exception):
+    pass
+
+
 class StreamAlreadyExistsError(Exception):
     pass
 
