@@ -1,0 +1,612 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hyperstream.workflow package &#8212; HyperStream 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="HyperStream 1.0 documentation" href="index.html" />
+    <link rel="up" title="hyperstream package" href="hyperstream.html" />
+    <link rel="next" title="tests package" href="tests.html" />
+    <link rel="prev" title="hyperstream.utils package" href="hyperstream.utils.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="hyperstream-workflow-package">
+<h1>hyperstream.workflow package<a class="headerlink" href="#hyperstream-workflow-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-hyperstream.workflow.factor">
+<span id="hyperstream-workflow-factor-module"></span><h2>hyperstream.workflow.factor module<a class="headerlink" href="#module-hyperstream.workflow.factor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="hyperstream.workflow.factor.Factor">
+<em class="property">class </em><code class="descclassname">hyperstream.workflow.factor.</code><code class="descname">Factor</code><span class="sig-paren">(</span><em>tool</em>, <em>source_nodes</em>, <em>sink_node</em>, <em>alignment_node</em>, <em>plates</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/factor.html#Factor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.factor.Factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
+<p>A factor in the graph. This defines the element of computation: the tool along with the source and sink nodes.</p>
+<dl class="method">
+<dt id="hyperstream.workflow.factor.Factor.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/factor.html#Factor.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.factor.Factor.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the factor over the given time interval
+:param time_interval:
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.factor.Factor.get_alignment_stream">
+<code class="descname">get_alignment_stream</code><span class="sig-paren">(</span><em>plate=None</em>, <em>plate_value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/factor.html#Factor.get_alignment_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.factor.Factor.get_alignment_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the alignment stream for a particular plate value
+:param plate: The plate on which the alignment node lives
+:param plate_value: The plate value to select the stream from the node
+:return: The alignment stream</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.factor.Factor.get_global_sources">
+<code class="descname">get_global_sources</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/factor.html#Factor.get_global_sources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.factor.Factor.get_global_sources" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets streams that live outside of the plates
+:return: Global streams</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.factor.Factor.get_sources">
+<code class="descname">get_sources</code><span class="sig-paren">(</span><em>plate</em>, <em>plate_value</em>, <em>sources=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/factor.html#Factor.get_sources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.factor.Factor.get_sources" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the source streams for a given plate value on a plate.
+Also populates with source streams that are valid for the parent plates of this plate,
+with the appropriate meta-data for the parent plate.
+:param plate: The plate being operated on
+:param plate_value: The specific plate value of interest
+:param sources: The currently found sources (for recursion)
+:return: The appropriate source streams
+:type plate: Plate
+:type plate_value: tuple
+:type sources: list[Stream] | None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hyperstream.workflow.factor.MultiOutputFactor">
+<em class="property">class </em><code class="descclassname">hyperstream.workflow.factor.</code><code class="descname">MultiOutputFactor</code><span class="sig-paren">(</span><em>tool</em>, <em>source_node</em>, <em>sink_node</em>, <em>input_plate</em>, <em>output_plates</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/factor.html#MultiOutputFactor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.factor.MultiOutputFactor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
+<p>A multi-output factor in the graph.
+As with a factor, this links source nodes to sink nodes. However in this case the source node is being split onto
+multiple plates.
+Note there is no concept of an alignment node here.</p>
+<dl class="method">
+<dt id="hyperstream.workflow.factor.MultiOutputFactor.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/factor.html#MultiOutputFactor.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.factor.MultiOutputFactor.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the factor over the given time interval. Note that this is normally done by the workspace,
+but can also be done on the factor directly
+:param time_interval: The time interval
+:return: self (for chaining)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.factor.MultiOutputFactor.get_alignment_stream">
+<code class="descname">get_alignment_stream</code><span class="sig-paren">(</span><em>plate=None</em>, <em>plate_value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/factor.html#MultiOutputFactor.get_alignment_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.factor.MultiOutputFactor.get_alignment_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the alignment stream for a particular plate value
+:param plate: The plate on which the alignment node lives
+:param plate_value: The plate value to select the stream from the node
+:return: The alignment stream</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-hyperstream.workflow.node">
+<span id="hyperstream-workflow-node-module"></span><h2>hyperstream.workflow.node module<a class="headerlink" href="#module-hyperstream.workflow.node" title="Permalink to this headline">¶</a></h2>
+<p>Node module.</p>
+<p>Nodes are a collection of streams defined by shared meta-data keys (plates), and are connected in the
+computational graph by factors.</p>
+<dl class="class">
+<dt id="hyperstream.workflow.node.Node">
+<em class="property">class </em><code class="descclassname">hyperstream.workflow.node.</code><code class="descname">Node</code><span class="sig-paren">(</span><em>node_id</em>, <em>streams</em>, <em>plate_ids</em>, <em>plate_values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/node.html#Node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.node.Node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
+<p>A node in the graph. This consists of a set of streams defined over a set of plates</p>
+<dl class="staticmethod">
+<dt id="hyperstream.workflow.node.Node.combine_plate_values">
+<em class="property">static </em><code class="descname">combine_plate_values</code><span class="sig-paren">(</span><em>parent_plate_value</em>, <em>plate_value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/node.html#Node.combine_plate_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.node.Node.combine_plate_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine the plate value(s) with the parent plate value(s)
+:param parent_plate_value: The parent plate value(s)
+:param plate_value: The plate value(s)
+:return: The combined plate values</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.workflow.node.Node.factor">
+<code class="descname">factor</code><a class="headerlink" href="#hyperstream.workflow.node.Node.factor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.node.Node.intersection">
+<code class="descname">intersection</code><span class="sig-paren">(</span><em>meta</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/node.html#Node.intersection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.node.Node.intersection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the intersection between the meta data given and the meta data contained within the plates.
+Since all of the streams have the same meta data keys (but differing values) we only need to consider
+the first stream.
+:param meta: The meta data to compare
+:return: A stream id with the intersection between this node&#8217;s meta data and the given meta data
+:type meta: dict
+:rtype: StreamId</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.workflow.node.Node.plate_values">
+<code class="descname">plate_values</code><em class="property"> = None</em><a class="headerlink" href="#hyperstream.workflow.node.Node.plate_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>When defining streams, it will be useful to be able to query node objects
+to determine the streams that have metadata of a particular value.
+Use Node.reverse_lookup as follows:</p>
+<blockquote>
+<div>meta_data = {&#8216;a&#8217;: 1, &#8216;b&#8217;: 1}</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.node.Node.print_head">
+<code class="descname">print_head</code><span class="sig-paren">(</span><em>parent_plate_value</em>, <em>plate_values</em>, <em>interval</em>, <em>n=10</em>, <em>print_func=&lt;function info&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/node.html#Node.print_head"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.node.Node.print_head" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print the first n values from the streams in the given time interval.
+The parent plate value is the value of the parent plate,
+and then the plate values are the values for the plate that are to be printed.</p>
+<blockquote>
+<div>e.g. print_head()</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>parent_plate_value</strong> &#8211; The (fixed) parent plate value</li>
+<li><strong>plate_values</strong> &#8211; The plate values over which to loop</li>
+<li><strong>interval</strong> &#8211; The time interval</li>
+<li><strong>n</strong> &#8211; The maximum number of elements to print</li>
+<li><strong>print_func</strong> &#8211; The function used for printing (e.g. logging.info() or print())</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-hyperstream.workflow.plate">
+<span id="hyperstream-workflow-plate-module"></span><h2>hyperstream.workflow.plate module<a class="headerlink" href="#module-hyperstream.workflow.plate" title="Permalink to this headline">¶</a></h2>
+<p>Plate and plate manager definitions.</p>
+<dl class="class">
+<dt id="hyperstream.workflow.plate.Plate">
+<em class="property">class </em><code class="descclassname">hyperstream.workflow.plate.</code><code class="descname">Plate</code><span class="sig-paren">(</span><em>plate_id</em>, <em>meta_data_id</em>, <em>values</em>, <em>parent_plate=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/plate.html#Plate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.plate.Plate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
+<p>A plate in the execution graph. This can be thought of as a &#8220;for loop&#8221; over the streams in a node</p>
+<dl class="attribute">
+<dt id="hyperstream.workflow.plate.Plate.ancestor_meta_data_ids">
+<code class="descname">ancestor_meta_data_ids</code><a class="headerlink" href="#hyperstream.workflow.plate.Plate.ancestor_meta_data_ids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.workflow.plate.Plate.ancestor_plate_ids">
+<code class="descname">ancestor_plate_ids</code><a class="headerlink" href="#hyperstream.workflow.plate.Plate.ancestor_plate_ids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.workflow.plate.Plate.ancestor_plates">
+<code class="descname">ancestor_plates</code><a class="headerlink" href="#hyperstream.workflow.plate.Plate.ancestor_plates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="hyperstream.workflow.plate.Plate.is_root">
+<code class="descname">is_root</code><a class="headerlink" href="#hyperstream.workflow.plate.Plate.is_root" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-hyperstream.workflow.plate_manager">
+<span id="hyperstream-workflow-plate-manager-module"></span><h2>hyperstream.workflow.plate_manager module<a class="headerlink" href="#module-hyperstream.workflow.plate_manager" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="hyperstream.workflow.plate_manager.PlateManager">
+<em class="property">class </em><code class="descclassname">hyperstream.workflow.plate_manager.</code><code class="descname">PlateManager</code><span class="sig-paren">(</span><em>global_meta_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/plate_manager.html#PlateManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.plate_manager.PlateManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
+<p>Plate manager. Manages the mapping between plates defined in the database with the global meta data definition.</p>
+<dl class="method">
+<dt id="hyperstream.workflow.plate_manager.PlateManager.add_plate">
+<code class="descname">add_plate</code><span class="sig-paren">(</span><em>plate_definition</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/plate_manager.html#PlateManager.add_plate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.plate_manager.PlateManager.add_plate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a plate using the plate definition
+:param plate_definition: The plate definition
+:return: None
+:type plate_definition: PlateDefinitionModel</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.plate_manager.PlateManager.create_plate">
+<code class="descname">create_plate</code><span class="sig-paren">(</span><em>plate_id</em>, <em>description</em>, <em>meta_data_id</em>, <em>values</em>, <em>complement</em>, <em>parent_plate</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/plate_manager.html#PlateManager.create_plate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.plate_manager.PlateManager.create_plate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new plate, and commit it to the database
+:param plate_id: The plate id - required to be unique
+:param description: A human readable description
+:param meta_data_id: The meta data id, which should correspond to the tag in the global meta data
+:param values: Either a list of string values, or the empty list (for use with complement)
+:param complement: If complement is true, then the complement of the values list will be used when getting
+values from the global meta data
+:param parent_plate: The parent plate identifier
+:return: The newly created plate
+:type plate_id: str | unicode
+:type complement: bool
+:type values: list | tuple</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="hyperstream.workflow.plate_manager.PlateManager.get_parent_data">
+<em class="property">static </em><code class="descname">get_parent_data</code><span class="sig-paren">(</span><em>tree</em>, <em>node</em>, <em>d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/plate_manager.html#PlateManager.get_parent_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.plate_manager.PlateManager.get_parent_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recurse up the tree getting parent data
+:param tree: The tree
+:param node: The current node
+:param d: The initial dictionary
+:return: The hierarchical dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.plate_manager.PlateManager.get_parent_plate_value">
+<code class="descname">get_parent_plate_value</code><span class="sig-paren">(</span><em>tree</em>, <em>node</em>, <em>value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/plate_manager.html#PlateManager.get_parent_plate_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.plate_manager.PlateManager.get_parent_plate_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recurse up the tree getting parent plate values
+:param tree: The tree
+:param node: The current node
+:param value: The initial plate value
+:return: The plate value as a list of tuples</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.plate_manager.PlateManager.get_plate_values">
+<code class="descname">get_plate_values</code><span class="sig-paren">(</span><em>plate_definition</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/plate_manager.html#PlateManager.get_plate_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.plate_manager.PlateManager.get_plate_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the plate values from the global meta data according to the given plate definition
+:param plate_definition: The plate definition
+:return: The plate values
+:type plate_definition: PlateDefinitionModel</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-hyperstream.workflow.workflow">
+<span id="hyperstream-workflow-workflow-module"></span><h2>hyperstream.workflow.workflow module<a class="headerlink" href="#module-hyperstream.workflow.workflow" title="Permalink to this headline">¶</a></h2>
+<p>Workflow and WorkflowManager definitions.</p>
+<dl class="class">
+<dt id="hyperstream.workflow.workflow.Workflow">
+<em class="property">class </em><code class="descclassname">hyperstream.workflow.workflow.</code><code class="descname">Workflow</code><span class="sig-paren">(</span><em>channels</em>, <em>plates</em>, <em>workflow_id</em>, <em>name</em>, <em>description</em>, <em>owner</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
+<p>Workflow.
+This defines the graph of operations through &#8220;nodes&#8221; and &#8220;factors&#8221;.</p>
+<dl class="method">
+<dt id="hyperstream.workflow.workflow.Workflow.cartesian_product">
+<code class="descname">cartesian_product</code><span class="sig-paren">(</span><em>plate_ids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.cartesian_product"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.cartesian_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the plate values that are the cartesian product of the plate values of the lists of plates given</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>plate_ids</strong> (<em>list[str] | list[unicode] | set[str] | set[unicode]</em>) &#8211; The list of plate ids</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The plate values</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="hyperstream.workflow.workflow.Workflow.check_multi_output_plate_compatibility">
+<em class="property">static </em><code class="descname">check_multi_output_plate_compatibility</code><span class="sig-paren">(</span><em>source_plates</em>, <em>sink_plate</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.check_multi_output_plate_compatibility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.check_multi_output_plate_compatibility" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="hyperstream.workflow.workflow.Workflow.check_plate_compatibility">
+<em class="property">static </em><code class="descname">check_plate_compatibility</code><span class="sig-paren">(</span><em>tool</em>, <em>source_plate</em>, <em>sink_plate</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.check_plate_compatibility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.check_plate_compatibility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether the source and sink plate are compatible given the tool</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tool</strong> (<a class="reference internal" href="hyperstream.html#hyperstream.tool.Tool" title="hyperstream.tool.Tool"><em>Tool</em></a>) &#8211; The tool</li>
+<li><strong>source_plate</strong> (<a class="reference internal" href="#hyperstream.workflow.plate.Plate" title="hyperstream.workflow.plate.Plate"><em>Plate</em></a>) &#8211; The source plate</li>
+<li><strong>sink_plate</strong> (<a class="reference internal" href="#hyperstream.workflow.plate.Plate" title="hyperstream.workflow.plate.Plate"><em>Plate</em></a>) &#8211; The sink plate</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Either an error, or None</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">None | str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.workflow.Workflow.create_factor">
+<code class="descname">create_factor</code><span class="sig-paren">(</span><em>tool</em>, <em>sources</em>, <em>sink</em>, <em>alignment_node=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.create_factor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.create_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a factor. Instantiates a single tool for all of the plates, and connects the source and sink nodes with
+that tool.</p>
+<p>Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,
+an extra input stream should be used</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>alignment_node</strong> (<em>Node | None</em>) &#8211; </li>
+<li><strong>tool</strong> (<em>Tool | dict</em>) &#8211; The tool to use. This is either an instantiated Tool object or a dict with &#8220;name&#8221; and &#8220;parameters&#8221;</li>
+<li><strong>sources</strong> (<em>list[Node] | tuple[Node] | None</em>) &#8211; The source nodes</li>
+<li><strong>sink</strong> (<a class="reference internal" href="#hyperstream.workflow.node.Node" title="hyperstream.workflow.node.Node"><em>Node</em></a>) &#8211; The sink node</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The factor object</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#hyperstream.workflow.factor.Factor" title="hyperstream.workflow.factor.Factor">Factor</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.workflow.Workflow.create_multi_output_factor">
+<code class="descname">create_multi_output_factor</code><span class="sig-paren">(</span><em>tool</em>, <em>source</em>, <em>sink</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.create_multi_output_factor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.create_multi_output_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a multi-output factor.
+This takes a single node, applies a MultiOutputTool to create multiple nodes on a new plate
+Instantiates a single tool for all of the input plate values,
+and connects the source and sink nodes with that tool.</p>
+<p>Note that the tool parameters these are currently fixed over a plate. For parameters that vary over a plate,
+an extra input stream should be used</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tool</strong> (<em>MultiOutputTool | dict</em>) &#8211; The tool to use. This is either an instantiated Tool object or a dict with &#8220;name&#8221; and &#8220;parameters&#8221;</li>
+<li><strong>source</strong> (<a class="reference internal" href="#hyperstream.workflow.node.Node" title="hyperstream.workflow.node.Node"><em>Node</em></a>) &#8211; The source node</li>
+<li><strong>sink</strong> (<a class="reference internal" href="#hyperstream.workflow.node.Node" title="hyperstream.workflow.node.Node"><em>Node</em></a>) &#8211; The sink node</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The factor object</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#hyperstream.workflow.factor.Factor" title="hyperstream.workflow.factor.Factor">Factor</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.workflow.Workflow.create_node">
+<code class="descname">create_node</code><span class="sig-paren">(</span><em>stream_name</em>, <em>channel</em>, <em>plate_ids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.create_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.create_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a node in the graph. Note: assumes that the streams already exist</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stream_name</strong> &#8211; The name of the stream</li>
+<li><strong>channel</strong> &#8211; The channel where this stream lives</li>
+<li><strong>plate_ids</strong> &#8211; The plate ids. The stream meta-data will be auto-generated from these</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The streams associated with this node</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.workflow.Workflow.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>time_interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Here we execute the factors over the streams in the workflow</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.workflow.Workflow.get_overlapping_plate_values">
+<code class="descname">get_overlapping_plate_values</code><span class="sig-paren">(</span><em>plate_ids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow.html#Workflow.get_overlapping_plate_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow.Workflow.get_overlapping_plate_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Need to find where in the tree the two plates intersect, e.g.</p>
+<p>We are given as input plates D, E, whose positions in the tree are:</p>
+<p>root -&gt; A -&gt; B -&gt; C -&gt; D
+root -&gt; A -&gt; B -&gt; E</p>
+<p>The results should then be the cartesian product between C, D, E looped over A and B</p>
+<p>If there&#8217;s a shared plate in the hierarchy, we need to join on this shared plate, e.g.:</p>
+<dl class="docutils">
+<dt>[self.plates[p].values for p in plate_ids][0] =</dt>
+<dd><dl class="first last docutils">
+<dt>[((&#8216;house&#8217;, &#8216;1&#8217;), (&#8216;location&#8217;, &#8216;hallway&#8217;), (&#8216;wearable&#8217;, &#8216;A&#8217;)),</dt>
+<dd>((&#8216;house&#8217;, &#8216;1&#8217;), (&#8216;location&#8217;, &#8216;kitchen&#8217;), (&#8216;wearable&#8217;, &#8216;A&#8217;))]</dd>
+</dl>
+</dd>
+<dt>[self.plates[p].values for p in plate_ids][1] =</dt>
+<dd><dl class="first last docutils">
+<dt>[((&#8216;house&#8217;, &#8216;1&#8217;), (&#8216;scripted&#8217;, &#8216;15&#8217;)),</dt>
+<dd>((&#8216;house&#8217;, &#8216;1&#8217;), (&#8216;scripted&#8217;, &#8216;13&#8217;))]</dd>
+</dl>
+</dd>
+<dt>Result should be one stream for each of:</dt>
+<dd><dl class="first last docutils">
+<dt>[((&#8216;house&#8217;, &#8216;1&#8217;), (&#8216;location&#8217;, &#8216;hallway&#8217;), (&#8216;wearable&#8217;, &#8216;A&#8217;), (&#8216;scripted&#8217;, &#8216;15)),</dt>
+<dd>((&#8216;house&#8217;, &#8216;1&#8217;), (&#8216;location&#8217;, &#8216;hallway&#8217;), (&#8216;wearable&#8217;, &#8216;A&#8217;), (&#8216;scripted&#8217;, &#8216;13)),
+((&#8216;house&#8217;, &#8216;1&#8217;), (&#8216;location&#8217;, &#8216;kitchen&#8217;), (&#8216;wearable&#8217;, &#8216;A&#8217;), (&#8216;scripted&#8217;, &#8216;15)),
+((&#8216;house&#8217;, &#8216;1&#8217;), (&#8216;location&#8217;, &#8216;kitchen&#8217;), (&#8216;wearable&#8217;, &#8216;A&#8217;), (&#8216;scripted&#8217;, &#8216;13))]</dd>
+</dl>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>plate_ids</strong> (<em>list[str] | list[unicode]</em>) &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The plate values</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-hyperstream.workflow.workflow_manager">
+<span id="hyperstream-workflow-workflow-manager-module"></span><h2>hyperstream.workflow.workflow_manager module<a class="headerlink" href="#module-hyperstream.workflow.workflow_manager" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="hyperstream.workflow.workflow_manager.WorkflowManager">
+<em class="property">class </em><code class="descclassname">hyperstream.workflow.workflow_manager.</code><code class="descname">WorkflowManager</code><span class="sig-paren">(</span><em>channel_manager</em>, <em>plates</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow_manager.html#WorkflowManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow_manager.WorkflowManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="hyperstream.utils.html#hyperstream.utils.utils.Printable" title="hyperstream.utils.utils.Printable"><code class="xref py py-class docutils literal"><span class="pre">hyperstream.utils.utils.Printable</span></code></a></p>
+<p>Workflow manager. Responsible for reading and writing workflows to the database, and can execute all of the
+workflows</p>
+<dl class="method">
+<dt id="hyperstream.workflow.workflow_manager.WorkflowManager.add_workflow">
+<code class="descname">add_workflow</code><span class="sig-paren">(</span><em>workflow</em>, <em>commit=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow_manager.html#WorkflowManager.add_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow_manager.WorkflowManager.add_workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new workflow and optionally commit it to the database
+:param workflow: The workflow
+:param commit: Whether to commit the workflow to the database
+:type workflow: Workflow
+:type commit: bool
+:return: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.workflow_manager.WorkflowManager.commit_all">
+<code class="descname">commit_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow_manager.html#WorkflowManager.commit_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow_manager.WorkflowManager.commit_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit all workflows to the database
+:return: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.workflow_manager.WorkflowManager.commit_workflow">
+<code class="descname">commit_workflow</code><span class="sig-paren">(</span><em>workflow_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow_manager.html#WorkflowManager.commit_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow_manager.WorkflowManager.commit_workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit the workflow to the database
+:param workflow_id: The workflow id
+:return: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperstream.workflow.workflow_manager.WorkflowManager.execute_all">
+<code class="descname">execute_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hyperstream/workflow/workflow_manager.html#WorkflowManager.execute_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hyperstream.workflow.workflow_manager.WorkflowManager.execute_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute all workflows</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-hyperstream.workflow">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-hyperstream.workflow" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">hyperstream.workflow package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-hyperstream.workflow.factor">hyperstream.workflow.factor module</a></li>
+<li><a class="reference internal" href="#module-hyperstream.workflow.node">hyperstream.workflow.node module</a></li>
+<li><a class="reference internal" href="#module-hyperstream.workflow.plate">hyperstream.workflow.plate module</a></li>
+<li><a class="reference internal" href="#module-hyperstream.workflow.plate_manager">hyperstream.workflow.plate_manager module</a></li>
+<li><a class="reference internal" href="#module-hyperstream.workflow.workflow">hyperstream.workflow.workflow module</a></li>
+<li><a class="reference internal" href="#module-hyperstream.workflow.workflow_manager">hyperstream.workflow.workflow_manager module</a></li>
+<li><a class="reference internal" href="#module-hyperstream.workflow">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="hyperstream.html">hyperstream package</a><ul>
+      <li>Previous: <a href="hyperstream.utils.html" title="previous chapter">hyperstream.utils package</a></li>
+      <li>Next: <a href="tests.html" title="next chapter">tests package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/hyperstream.workflow.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, SPHERE WP5.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/hyperstream.workflow.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
