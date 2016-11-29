@@ -20,6 +20,7 @@
 
 import unittest
 import logging
+from mongoengine.errors import NotUniqueError
 
 from hyperstream import TimeInterval, TimeIntervals, RelativeTimeInterval
 from hyperstream.itertools2 import online_average
@@ -187,9 +188,13 @@ class HyperStreamQueryTests(unittest.TestCase):
         # Simple querying
         ti = TimeInterval(t1, t1 + minute)
 
-        # Create the stream that lives in the database
-        env = D.create_stream(stream_id=StreamId('environmental_db', {"house": "1"}))
-        env_tool = channels.get_tool("sphere", dict(modality="environmental"))
+        # Get or create the stream that lives in the database
+        env = D.get_or_create_stream(stream_id=StreamId('environmental_db', {"house": "1"}))
+
+        D.purge_stream(env.stream_id)
+
+        env_tool = channels.get_tool("sphere", dict(modality="environmental", rename_keys=True, dedupe=True))
+
         env_tool.execute(
             source=None,
             splitting_stream=None,
@@ -202,7 +207,7 @@ class HyperStreamQueryTests(unittest.TestCase):
         # Create stream whose source will be the above database stream
         elec = M.create_stream(StreamId('electricity'))
 
-        env_tool = channels.get_tool("sphere", dict(modality="environmental"))
+        env_tool = channels.get_tool("sphere", dict(modality="environmental", rename_keys=True, dedupe=True))
         elec_tool = T[component].window((MIN_DATE, utcnow())).last().value(key='electricity-04063')
 
         env_tool.execute(
@@ -213,6 +218,7 @@ class HyperStreamQueryTests(unittest.TestCase):
             input_plate_value=None,
             output_plate=hyperstream.plate_manager.plates["H"]
         )
+
         elec_tool.execute(sources=[env], sink=elec, alignment_stream=None, interval=ti)
 
         q1 = "\n".join("=".join(map(str, ee)) for ee in elec.window(ti))
