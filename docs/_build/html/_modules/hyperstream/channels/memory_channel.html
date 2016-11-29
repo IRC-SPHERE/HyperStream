@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hyperstream.channels.memory_channel &#8212; HyperStream 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="HyperStream 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hyperstream.channels.memory_channel</h1><div class="highlight"><pre>
+<span></span><span class="c1"># The MIT License (MIT) # Copyright (c) 2014-2017 University of Bristol</span>
+<span class="c1">#</span>
+<span class="c1">#  Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1">#  of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1">#  in the Software without restriction, including without limitation the rights</span>
+<span class="c1">#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1">#  copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1">#  furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1">#  The above copyright notice and this permission notice shall be included in all</span>
+<span class="c1">#  copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1">#  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,</span>
+<span class="c1">#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span>
+<span class="c1">#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.</span>
+<span class="c1">#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,</span>
+<span class="c1">#  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR</span>
+<span class="c1">#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE</span>
+<span class="c1">#  OR OTHER DEALINGS IN THE SOFTWARE.</span>
+
+<span class="kn">from</span> <span class="nn">base_channel</span> <span class="k">import</span> <span class="n">BaseChannel</span>
+<span class="kn">from</span> <span class="nn">hyperstream.utils.errors</span> <span class="k">import</span> <span class="n">StreamNotFoundError</span><span class="p">,</span> <span class="n">StreamAlreadyExistsError</span>
+<span class="kn">from</span> <span class="nn">..stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">StreamInstance</span><span class="p">,</span> <span class="n">StreamInstanceCollection</span>
+<span class="kn">from</span> <span class="nn">..time_interval</span> <span class="k">import</span> <span class="n">TimeIntervals</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">MIN_DATE</span>
+
+
+<div class="viewcode-block" id="MemoryChannel"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.MemoryChannel">[docs]</a><span class="k">class</span> <span class="nc">MemoryChannel</span><span class="p">(</span><span class="n">BaseChannel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Channel whose data lives in memory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise the channel</span>
+<span class="sd">        :param channel_id: The channel id</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MemoryChannel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">can_calc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">can_create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_stream_id</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">non_empty_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+
+<div class="viewcode-block" id="MemoryChannel.create_stream"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.MemoryChannel.create_stream">[docs]</a>    <span class="k">def</span> <span class="nf">create_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">,</span> <span class="n">sandbox</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Must be overridden by deriving classes, must create the stream according to the tool and return its unique</span>
+<span class="sd">        identifier stream_id</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">stream_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">StreamAlreadyExistsError</span><span class="p">(</span><span class="s2">&quot;Stream with id &#39;</span><span class="si">{}</span><span class="s2">&#39; already exists&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stream_id</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">sandbox</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot use sandboxes with memory streams&quot;</span><span class="p">)</span>
+
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_id</span><span class="o">=</span><span class="n">stream_id</span><span class="p">,</span> <span class="n">calculated_intervals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sandbox</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">stream</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">StreamInstanceCollection</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">stream</span></div>
+
+<div class="viewcode-block" id="MemoryChannel.clear_stream"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.MemoryChannel.clear_stream">[docs]</a>    <span class="k">def</span> <span class="nf">clear_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clears all the data in a given stream</span>
+<span class="sd">        :param stream_id: The stream id</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">stream_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">StreamNotFoundError</span><span class="p">(</span><span class="n">stream_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">StreamInstanceCollection</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MemoryChannel.clear_all"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.MemoryChannel.clear_all">[docs]</a>    <span class="k">def</span> <span class="nf">clear_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clears all streams in the channel - use with caution!</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">stream_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">StreamInstanceCollection</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MemoryChannel.delete_stream"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.MemoryChannel.delete_stream">[docs]</a>    <span class="k">def</span> <span class="nf">delete_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">stream_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">StreamNotFoundError</span><span class="p">(</span><span class="n">stream_id</span><span class="p">)</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="MemoryChannel.update_streams"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.MemoryChannel.update_streams">[docs]</a>    <span class="k">def</span> <span class="nf">update_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">up_to_timestamp</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+    
+<div class="viewcode-block" id="MemoryChannel.check_calculation_times"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.MemoryChannel.check_calculation_times">[docs]</a>    <span class="k">def</span> <span class="nf">check_calculation_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="MemoryChannel.get_results"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.MemoryChannel.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates/receives the documents in the stream interval determined by the stream</span>
+<span class="sd">        :param stream: The stream reference</span>
+<span class="sd">        :param time_interval: The time interval</span>
+<span class="sd">        :return: The sorted data items</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">StreamInstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="p">][</span><span class="n">t</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="p">])</span> <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_interval</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="MemoryChannel.get_stream_writer"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.MemoryChannel.get_stream_writer">[docs]</a>    <span class="k">def</span> <span class="nf">get_stream_writer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">writer</span><span class="p">(</span><span class="n">document_collection</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Data slot does not exist for </span><span class="si">{}</span><span class="s2">, perhaps create_stream was not used?&quot;</span>
+                                   <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stream</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">document_collection</span><span class="p">,</span> <span class="n">StreamInstance</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">document_collection</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">document_collection</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">stream</span><span class="o">.</span><span class="n">stream_id</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">document_collection</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Expected: [StreamInstance, list&lt;StreamInstance&gt;], got </span><span class="si">{}</span><span class="s1">. &#39;</span>
+                                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">document_collection</span><span class="p">)))</span>
+        
+        <span class="k">return</span> <span class="n">writer</span></div></div>
+
+
+<div class="viewcode-block" id="ReadOnlyMemoryChannel"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel">[docs]</a><span class="k">class</span> <span class="nc">ReadOnlyMemoryChannel</span><span class="p">(</span><span class="n">BaseChannel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An abstract channel with a read-only set of memory-based streams.</span>
+<span class="sd">    By default it is constructed empty with the last update at MIN_DATE.</span>
+<span class="sd">    New streams and documents within streams are created with the update(up_to_timestamp) method,</span>
+<span class="sd">    which ensures that the channel is up to date until up_to_timestamp.</span>
+<span class="sd">    No documents nor streams are ever deleted.</span>
+<span class="sd">    Any deriving class must override update_streams(up_to_timestamp) which must update self.streams to be calculated</span>
+<span class="sd">    until up_to_timestamp exactly.</span>
+<span class="sd">    The data structure self.streams is a dict of streams indexed by stream_id, each stream is a list of tuples</span>
+<span class="sd">    (timestamp,data), in no specific order.</span>
+<span class="sd">    Names and identifiers are the same in this channel.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">up_to_timestamp</span><span class="o">=</span><span class="n">MIN_DATE</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ReadOnlyMemoryChannel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">can_calc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">can_create</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">up_to_timestamp</span> <span class="o">=</span> <span class="n">MIN_DATE</span>
+        <span class="k">if</span> <span class="n">up_to_timestamp</span> <span class="o">&gt;</span> <span class="n">MIN_DATE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_streams</span><span class="p">(</span><span class="n">up_to_timestamp</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">up_to_timestamp</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ReadOnlyMemoryChannel.create_stream"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.create_stream">[docs]</a>    <span class="k">def</span> <span class="nf">create_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">,</span> <span class="n">sandbox</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Read-only channel&quot;</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="ReadOnlyMemoryChannel.get_stream_writer"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.get_stream_writer">[docs]</a>    <span class="k">def</span> <span class="nf">get_stream_writer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Read-only channel&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReadOnlyMemoryChannel.update_streams"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.update_streams">[docs]</a>    <span class="k">def</span> <span class="nf">update_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">up_to_timestamp</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deriving classes must override this function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+    
+<div class="viewcode-block" id="ReadOnlyMemoryChannel.update_state"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.update_state">[docs]</a>    <span class="k">def</span> <span class="nf">update_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">up_to_timestamp</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call this function to ensure that the channel is up to date at the time of timestamp.</span>
+<span class="sd">        I.e., all the streams that have been created before or at that timestamp are calculated exactly until</span>
+<span class="sd">        up_to_timestamp.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">stream_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">[</span><span class="n">stream_id</span><span class="p">]</span><span class="o">.</span><span class="n">calculated_intervals</span> <span class="o">=</span> <span class="n">TimeIntervals</span><span class="p">([(</span><span class="n">MIN_DATE</span><span class="p">,</span> <span class="n">up_to_timestamp</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">up_to_timestamp</span> <span class="o">=</span> <span class="n">up_to_timestamp</span></div>
+    
+<div class="viewcode-block" id="ReadOnlyMemoryChannel.get_results"><a class="viewcode-back" href="../../../hyperstream.channels.html#hyperstream.channels.memory_channel.ReadOnlyMemoryChannel.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, SPHERE WP5.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
