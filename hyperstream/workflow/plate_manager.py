@@ -157,7 +157,8 @@ class PlateManager(Printable):
                         # This plate has parent plates, so we need to get parent data for the node
                         parent_plate_value = self.get_parent_plate_value(
                             self.meta_data_manager.global_plate_definitions, n)
-                        if tuple(parent_plate_value) not in self.plates[plate_definition.parent_plate].values:
+                        # if tuple(parent_plate_value) not in self.plates[plate_definition.parent_plate].values:
+                        if set(parent_plate_value) not in map(set,self.plates[plate_definition.parent_plate].values):
                             continue
                         values.insert(0, self.get_parent_data(
                             self.meta_data_manager.global_plate_definitions, n, {n.tag: n.data}))
