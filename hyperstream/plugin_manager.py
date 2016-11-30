@@ -27,15 +27,15 @@ import sys
 from collections import namedtuple
 
 from utils import Printable, utcnow
-from channels import ToolChannel
+from channels import ToolChannel, AssetsChannel2
 
 
-class Plugin(namedtuple("PluginBase", "channel_id_prefix path channel_names has_tools"), Printable):
+class Plugin(namedtuple("PluginBase", "channel_id_prefix path channel_names has_tools has_assets"), Printable):
     """
     Plugin class - simple wrapper over namedtuple
     """
 
-    def load(self):
+    def load_channels(self):
         """
         Loads the channels and tools given the plugin path specified
 
@@ -60,5 +60,14 @@ class Plugin(namedtuple("PluginBase", "channel_id_prefix path channel_names has_
             channel_id = self.channel_id_prefix + "_" + "tools"
             channel = ToolChannel(channel_id, tool_path, up_to_timestamp=utcnow())
             channels.append(channel)
+
+        if self.has_assets:
+            assset_path = os.path.join(os.path.abspath(self.path), "assets")
+            channel_id = self.channel_id_prefix + "_" + "assets"
+            channel = AssetsChannel2(channel_id, assset_path, up_to_timestamp=utcnow())
+            channels.append(channel)
+
+            from . import TimeInterval
+            channel.streams.values()[0].window(TimeInterval.up_to_now()).items()
 
         return channels

@@ -33,7 +33,7 @@ from stream import StreamId, DatabaseStream, AssetStream
 from time_interval import TimeIntervals
 from utils import Printable, utcnow, MIN_DATE, StreamAlreadyExistsError, ChannelNotFoundError, ToolNotFoundError, \
     ChannelAlreadyExistsError, ToolInitialisationError
-from channels import ToolChannel, MemoryChannel, DatabaseChannel, AssetsChannel
+from channels import ToolChannel, MemoryChannel, DatabaseChannel, AssetsChannel, AssetsChannel2
 
 
 class ChannelManager(dict, Printable):
@@ -54,7 +54,7 @@ class ChannelManager(dict, Printable):
         self.assets = AssetsChannel("assets")
 
         for plugin in plugins:
-            for channel in plugin.load():
+            for channel in plugin.load_channels():
                 if channel.channel_id in self:
                     raise ChannelAlreadyExistsError(channel.channel_id)
                 self[channel.channel_id] = channel
@@ -139,6 +139,27 @@ class ChannelManager(dict, Printable):
                         sandbox=s.sandbox)
                 else:
                     raise NotImplementedError
+
+    def populate_assets(self):
+        """
+        """
+        # Look in the main tool channel first
+        if tool_id in self.tools:
+            tool_stream_view = self.tools[tool_id].window((MIN_DATE, self.tools.up_to_timestamp))
+        else:
+            # Otherwise look through all the channels in the order they were defined
+            for tool_channel in self.tool_channels:
+                if tool_channel == self.tools:
+                    continue
+                if tool_id in tool_channel:
+                    # noinspection PyTypeChecker
+                    tool_stream_view = tool_channel[tool_id].window((MIN_DATE, tool_channel.up_to_timestamp))
+
+        if tool_stream_view is None:
+            raise ToolNotFoundError(tool)
+
+        # TODO: Use tool versions - here we just take the latest one
+        return tool_stream_view.last().value
 
     def get_tool_class(self, tool):
         """
