@@ -66,8 +66,8 @@ class Plugin(namedtuple("PluginBase", "channel_id_prefix path channel_names has_
             channel_id = self.channel_id_prefix + "_" + "assets"
             channel = AssetsChannel2(channel_id, assset_path, up_to_timestamp=utcnow())
             channels.append(channel)
-
-            from . import TimeInterval
-            channel.streams.values()[0].window(TimeInterval.up_to_now()).items()
+            #
+            # from . import TimeInterval
+            # channel.streams.values()[0].window(TimeInterval.up_to_now()).items()
 
         return channels
