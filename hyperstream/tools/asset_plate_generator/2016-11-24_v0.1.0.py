@@ -31,7 +31,7 @@ class AssetPlateGenerator(PlateCreationTool):
         super(AssetPlateGenerator, self).__init__(element=element)
 
     def _execute(self, source, interval):
-        timestamp, data = source.window(interval).last()
+        timestamp, data = source.window(interval, force_calculation=True).last()
         if self.element in data:
             for key, value in data[self.element].items():
                 yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value), key)
