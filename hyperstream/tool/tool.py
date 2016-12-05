@@ -85,8 +85,8 @@ class Tool(BaseTool):
             if not required_intervals.is_empty:
                 # raise ToolExecutionError(required_intervals)
                 logging.error("{} execution error for time interval {} on stream {}".format(
-                    self.name, required_intervals, sink))
+                    self.name, interval, sink))
 
             if not produced_data:
                 logging.debug("{} did not produce any data for time interval {} on stream {}".format(
-                    self.name, required_intervals, sink))
+                    self.name, interval, sink))

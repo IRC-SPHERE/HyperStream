@@ -316,7 +316,7 @@ class Workflow(Printable):
             tool = self.channels.get_tool(**tool)
 
         if not isinstance(tool, PlateCreationTool):
-            raise ValueError("Expected MultiOutputTool, got {}".format(type(tool)))
+            raise ValueError("Expected PlateCreationTool, got {}".format(type(tool)))
 
         input_plates = [self.plate_manager.plates[plate_id] for plate_id in source.plate_ids]
 
@@ -326,7 +326,7 @@ class Workflow(Printable):
         factor = NodeCreationFactor(
             tool=tool,
             source_node=source,
-            input_plate=input_plates[0],
+            input_plate=input_plates[0] if input_plates else None,
             output_plate=output_plate,
             plate_manager=plate_manager
         )

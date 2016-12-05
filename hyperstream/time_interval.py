@@ -66,19 +66,19 @@ class TimeIntervals(Printable):
 
     @property
     def start(self):
-        return min(self.intervals, key=lambda x: x.start).start
+        return min(self.intervals, key=lambda x: x.start).start if self.intervals else None
 
     @property
     def end(self):
-        return max(self.intervals, key=lambda x: x.end).end
+        return max(self.intervals, key=lambda x: x.end).end if self.intervals else None
 
     @property
     def span(self):
-        return TimeInterval(self.start, self.end)
+        return TimeInterval(self.start, self.end) if self.intervals else None
 
     @property
     def humanized(self):
-        return " U ".join(map(lambda x: x.humanized, self.intervals))
+        return " U ".join(map(lambda x: x.humanized, self.intervals)) if self.intervals else "Empty"
 
     def split(self, points):
         if len(points) == 0:

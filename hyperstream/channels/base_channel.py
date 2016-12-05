@@ -117,9 +117,9 @@ class BaseChannel(Printable):
         """
         found = list(self.find_streams(**kwargs).values())
         if not found:
-            raise StreamNotFoundError(**kwargs)
+            raise StreamNotFoundError(kwargs)
         if len(found) > 1:
-            raise MultipleStreamsFoundError(**kwargs)
+            raise MultipleStreamsFoundError(kwargs)
         return found[0]
 
     def purge_stream(self, stream_id, sandbox=None):

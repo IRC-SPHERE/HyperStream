@@ -97,8 +97,7 @@ class MultiOutputTool(BaseTool):
                     # Join the output meta data with the parent plate meta data
                     meta_data = input_plate_value + (item.meta_data,) if input_plate_value else (item.meta_data, )
                     try:
-                        sink = next(s for s in sinks if
-                                    tuple(sorted(s.stream_id.meta_data)) == tuple(sorted(meta_data)))
+                        sink = next(s for s in sinks if set(s.stream_id.meta_data) == set(meta_data))
                     except StopIteration:
                         logging.warn("A multi-output tool has produced a value which does not belong to the output plate")
                         continue
