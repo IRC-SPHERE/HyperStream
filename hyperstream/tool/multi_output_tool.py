@@ -100,7 +100,7 @@ class MultiOutputTool(BaseTool):
                         sink = next(s for s in sinks if
                                     tuple(sorted(s.stream_id.meta_data)) == tuple(sorted(meta_data)))
                     except StopIteration:
-                        # raise
+                        logging.warn("A multi-output tool has produced a value which does not belong to the output plate")
                         continue
                     sink.writer(item.stream_instance)
                     produced_data = True
