@@ -19,8 +19,9 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
+from hyperstream import TimeInterval, MIN_DATE
 from hyperstream.tool import MultiOutputTool
-from hyperstream.stream import StreamMetaInstance
+from hyperstream.stream import StreamMetaInstance, AssetStream
 import logging
 from copy import deepcopy
 
@@ -36,7 +37,18 @@ class SplitterFromStream(MultiOutputTool):
         if splitting_stream is None:
             raise ValueError("Splitting stream required for this tool")
 
-        mapping = splitting_stream.window(interval, force_calculation=True).last().value
+        if isinstance(splitting_stream, AssetStream):
+            time_interval = TimeInterval(MIN_DATE, interval.end)
+            splitter = splitting_stream.window(time_interval, force_calculation=True).last()
+        else:
+            splitter = splitting_stream.window(interval, force_calculation=True).last()
+
+        if not splitter:
+            logging.debug("No assets found for source {} and splitter {}"
+                          .format(source.stream_id, splitting_stream.stream_id))
+            return
+
+        mapping = splitter.value
 
         for timestamp, value in source.window(interval, force_calculation=True):
             if self.element not in value:

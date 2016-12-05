@@ -20,7 +20,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.tool import MultiOutputTool
-from hyperstream.stream import StreamInstance, StreamMetaInstance
+from hyperstream.stream import StreamInstance, StreamMetaInstance, AssetStream
 from hyperstream.time_interval import TimeInterval, MIN_DATE
 
 import logging
@@ -38,17 +38,26 @@ class StreamBroadcasterFromStream(MultiOutputTool):
         if splitting_stream is None:
             raise ValueError("Splitting stream required for this tool")
 
-        meta_data_list = splitting_stream.window(interval, force_calculation=True).last()
-        if not meta_data_list:
-            logging.warn("No assets found for source id {} and splitting stream id {}"
-                         .format(source.stream_id, splitting_stream.stream_id))
-            return
-        output_plate_values = meta_data_list.value.values()
+        if isinstance(splitting_stream, AssetStream):
+            time_interval = TimeInterval(MIN_DATE, interval.end)
+            splitter = splitting_stream.window(time_interval, force_calculation=True).last()
+        else:
+            splitter = splitting_stream.window(interval, force_calculation=True).last()
 
-        time_interval = TimeInterval(MIN_DATE, interval.end)
-        data = self.func(source.window(time_interval, force_calculation=True))
+        if not splitter:
+            logging.debug("No assets found for source {} and splitter {}"
+                          .format(source.stream_id, splitting_stream.stream_id))
+            return
+        try:
+            output_plate_values = sorted(set(splitter.value.values()))
+        except TypeError:
+            raise
+
+        data = self.func(source.window(interval, force_calculation=True))
 
         if data is None:
+            logging.debug("{} found no data for interval {} for source {} and splitter {}"
+                          .format(self.name, interval, source.stream_id, splitting_stream.stream_id))
             return
 
         if isinstance(data, StreamInstance):
