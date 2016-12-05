@@ -423,7 +423,8 @@ class NodeCreationFactor(Printable):
                 if ipv:
                     identifier = input_plate_value + "." + self.output_plate["meta_data_id"] + "_" + pv
                 else:
-                    identifier = self.output_plate["meta_data_id"] + "_" + pv
+                    # identifier = self.output_plate["meta_data_id"] + "_" + pv
+                    identifier = pv
                 if not self._meta_data_manager.contains(identifier):
                     self._meta_data_manager.insert(
                         tag=self.output_plate["meta_data_id"],
