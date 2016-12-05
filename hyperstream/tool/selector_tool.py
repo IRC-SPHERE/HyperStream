@@ -24,6 +24,7 @@ from ..time_interval import TimeInterval, TimeIntervals
 from ..stream import Stream
 
 import logging
+from collections import defaultdict
 
 
 class SelectorTool(BaseTool):
@@ -45,7 +46,6 @@ class SelectorTool(BaseTool):
         Execute the tool over the given time interval.
 
         :param sources: The source streams
-        :param selector: The selector stream
         :param sinks: The sink streams
         :param interval: The time interval
         :type sources: list[Stream] | tuple[Stream]
@@ -76,9 +76,9 @@ class SelectorTool(BaseTool):
         required_intervals = TimeIntervals([interval]) - calculated_intervals
 
         if not required_intervals.is_empty:
-            produced_data = False
-
             for interval in required_intervals:
+                produced_data = set()
+
                 for item in self._execute(sources=sources, interval=interval):
                     # Join the output meta data with the parent plate meta data
                     try:
@@ -88,7 +88,10 @@ class SelectorTool(BaseTool):
                         # raise
                         continue
                     sink.writer(item.stream_instance)
-                    produced_data = True
+                    produced_data.add(sink)
 
-            if not produced_data:
-                logging.debug("{} did not produce any data for time interval {}".format(self.name, required_intervals))
+                for sink in sinks:
+                    if sink not in produced_data:
+                        logging.debug("{} did not produce any data for time interval {} on sink {}".format(
+                            self.name, interval, sink))
+                    sink.calculated_intervals += TimeIntervals([interval])

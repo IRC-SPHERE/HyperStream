@@ -135,7 +135,10 @@ class Stream(Hashable):
         :return: a stream view object
         """
         if not time_interval:
-            time_interval = self.calculated_intervals[-1]
+            if self.calculated_intervals:
+                time_interval = self.calculated_intervals[-1]
+            else:
+                raise ValueError("No calculations have been performed and no time interval was provided")
         elif isinstance(time_interval, TimeInterval):
             time_interval = TimeInterval(time_interval.start, time_interval.end)
         elif isinstance(time_interval, Iterable):

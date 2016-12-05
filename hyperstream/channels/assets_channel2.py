@@ -23,10 +23,9 @@ Assets channel module.
 from . import FileChannel
 from ..utils import UTC
 from ..utils.errors import StreamAlreadyExistsError, StreamNotFoundError
-from ..stream import AssetStream, StreamInstance
+from ..stream import StreamId, AssetStream, StreamInstance
 
 import os
-from re import sub
 import json
 import logging
 from collections import namedtuple
@@ -49,6 +48,22 @@ class AssetsChannel2(FileChannel):
         """
         super(AssetsChannel2, self).__init__(channel_id=channel_id, path=path, up_to_timestamp=up_to_timestamp)
         # self.update_streams(utcnow())
+
+    def update_streams(self, up_to_timestamp):
+        path = self.path
+        for (long_path, dir_names, file_names) in os.walk(path):
+            file_names = filter(lambda ff: ff != '__init__.py', file_names)
+            if len(file_names) == 0:
+                continue
+
+            name = long_path[len(path) + 1:]
+            if not name:
+                # Empty folder
+                continue
+
+            stream_id = StreamId(name=name)
+            stream = AssetStream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=None)
+            self.streams[stream_id] = stream
 
     def file_filter(self, sorted_file_names):
         for file_long_name in sorted_file_names:
