@@ -28,9 +28,6 @@ from copy import deepcopy
 class SplitterWithUnlist(MultiOutputTool):
     def __init__(self, element, subelement, mapping):
         super(SplitterWithUnlist, self).__init__(element=element, subelement=subelement, mapping=mapping)
-        self.element = element
-        self.subelement = subelement
-        self.mapping = mapping
 
     def _execute(self, source, splitting_stream, interval, output_plate):
         if splitting_stream is not None:
