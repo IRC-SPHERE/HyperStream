@@ -24,6 +24,7 @@ import pickle
 import copy_reg
 import marshal
 import types
+from copy import deepcopy
 
 from mongoengine.context_managers import switch_db
 
@@ -167,7 +168,7 @@ class WorkflowManager(Printable):
                     )
 
                 elif f.factor_type == "NodeCreationFactor":
-                    if len(source_nodes) != 1:
+                    if len(source_nodes) > 1:
                         raise ValueError(
                             "NodeCreationFactor factors should have a single source node, received {}"
                             .format(len(source_nodes)))
@@ -183,7 +184,7 @@ class WorkflowManager(Printable):
 
                     workflow.create_node_creation_factor(
                         tool=tool,
-                        source=source_nodes[0],
+                        source=source_nodes[0] if source_nodes else None,
                         output_plate=output_plate.to_mongo().to_dict(),
                         plate_manager=self.plate_manager
                     )
@@ -299,7 +300,7 @@ class WorkflowManager(Printable):
                     output_plate = None
 
                 elif isinstance(f, NodeCreationFactor):
-                    sources = [f.source.node_id]
+                    sources = [f.source.node_id] if f.source else []
                     sinks = []
                     alignment_node = None
                     splitting_node = None
@@ -308,6 +309,8 @@ class WorkflowManager(Printable):
                 else:
                     raise NotImplementedError("Unsupported factor type")
 
+                output_plate_copy = deepcopy(output_plate)
+                del output_plate_copy['parent_plate']
                 factor = FactorDefinitionModel(
                     tool=tool,
                     factor_type=f.__class__.__name__,
@@ -315,7 +318,7 @@ class WorkflowManager(Printable):
                     sinks=sinks,
                     alignment_node=alignment_node,
                     splitting_node=splitting_node,
-                    output_plate=output_plate
+                    output_plate=output_plate_copy
                 )
 
                 factors.append(factor)

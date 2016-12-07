@@ -318,7 +318,7 @@ class Workflow(Printable):
         if not isinstance(tool, PlateCreationTool):
             raise ValueError("Expected PlateCreationTool, got {}".format(type(tool)))
 
-        input_plates = [self.plate_manager.plates[plate_id] for plate_id in source.plate_ids]
+        input_plates = [self.plate_manager.plates[plate_id] for plate_id in source.plate_ids] if source else []
 
         if len(input_plates) > 1:
             raise NotImplementedError
