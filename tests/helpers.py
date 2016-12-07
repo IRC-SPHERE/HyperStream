@@ -21,12 +21,12 @@
 import os
 from datetime import datetime, timedelta
 
-from hyperstream import HyperStream, UTC, StreamId
+from hyperstream import HyperStream, UTC, StreamId, TimeInterval
 from plugins.sphere.utils.sphere_helpers import PredefinedTools, scripted_experiments
 from sphere_connector_package.sphere_connector import SphereConnector
+from scripts.workflows.asset_splitter import create_asset_splitter
 
 os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".."))
-
 
 # Various constants
 t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
@@ -36,7 +36,6 @@ hour = timedelta(hours=1)
 minute = timedelta(minutes=1)
 second = timedelta(seconds=1)
 zero = timedelta(0)
-
 
 # Hyperstream setup
 hyperstream = HyperStream()
@@ -70,3 +69,8 @@ sphere_silhouette = StreamId('sphere_silhouette')
 sphere = StreamId('sphere')
 component = StreamId('component')
 component_filter = StreamId('component_filter')
+
+# A.purge_stream(StreamId("wearables_by_house", meta_data={'house': '1'}))
+# A.purge_stream(StreamId("access_points_by_house", meta_data={'house': '1'}))
+asset_splitter = create_asset_splitter(hyperstream, False)
+asset_splitter.execute(TimeInterval.up_to_now())
