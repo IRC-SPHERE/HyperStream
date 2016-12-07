@@ -447,7 +447,15 @@ class NodeCreationFactor(FactorBase):
                     source=source, interval=time_interval, input_plate_value=ipv)
         else:
             source = self.source.streams[None] if self.source else None
-            output_plate_values[None] = self.tool.execute(source=source, interval=time_interval, input_plate_value=None)
+            if "parent_plate" in self.output_plate:
+                # Get the parent plate values
+                parent_plate = self._plate_manager.plates[self.output_plate["parent_plate"]]
+                for ppv in parent_plate.values:
+                    output_plate_values[ppv] = self.tool.execute(
+                        source=source, interval=time_interval, input_plate_value=ppv)
+            else:
+                output_plate_values[None] = self.tool.execute(
+                    source=source, interval=time_interval, input_plate_value=None)
 
         # Ensure that the output plate values exist
         for ipv, opv in output_plate_values.items():
