@@ -409,7 +409,7 @@ class NodeCreationFactor(FactorBase):
 
         super(NodeCreationFactor, self).__init__(tool)
 
-        if not isinstance(source_node, Node):
+        if source_node is not None and not isinstance(source_node, Node):
             raise ValueError("Expected node, got {}".format(type(source_node)))
 
         if input_plate is not None and not isinstance(input_plate, Plate):
@@ -446,7 +446,7 @@ class NodeCreationFactor(FactorBase):
                 output_plate_values[ipv] = self.tool.execute(
                     source=source, interval=time_interval, input_plate_value=ipv)
         else:
-            source = self.source.streams[None]
+            source = self.source.streams[None] if self.source else None
             output_plate_values[None] = self.tool.execute(source=source, interval=time_interval, input_plate_value=None)
 
         # Ensure that the output plate values exist
@@ -471,13 +471,20 @@ class NodeCreationFactor(FactorBase):
 
         if self.output_plate["plate_id"] not in self._plate_manager.plates:
             # Create the output plate
+            if self.input_plate:
+                parent_plate = self.input_plate.plate_id
+            else:
+                if "parent_plate" in self.output_plate:
+                    parent_plate = self.output_plate['parent_plate']
+                else:
+                    parent_plate = None
             self._plate_manager.create_plate(
                 plate_id=self.output_plate["plate_id"],
                 description=self.output_plate["description"],
                 meta_data_id=self.output_plate["meta_data_id"],
                 values=[],
                 complement=True,
-                parent_plate=self.input_plate.plate_id
+                parent_plate=parent_plate
             )
 
             logging.info("Plate with ID {} created".format(self.output_plate["plate_id"]))

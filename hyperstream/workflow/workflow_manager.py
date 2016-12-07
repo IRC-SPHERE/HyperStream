@@ -24,6 +24,7 @@ import pickle
 import copy_reg
 import marshal
 import types
+from copy import deepcopy
 
 from mongoengine.context_managers import switch_db
 
@@ -299,7 +300,7 @@ class WorkflowManager(Printable):
                     output_plate = None
 
                 elif isinstance(f, NodeCreationFactor):
-                    sources = [f.source.node_id]
+                    sources = [f.source.node_id] if f.source else []
                     sinks = []
                     alignment_node = None
                     splitting_node = None
@@ -308,6 +309,8 @@ class WorkflowManager(Printable):
                 else:
                     raise NotImplementedError("Unsupported factor type")
 
+                output_plate_copy = deepcopy(output_plate)
+                del output_plate_copy['parent_plate']
                 factor = FactorDefinitionModel(
                     tool=tool,
                     factor_type=f.__class__.__name__,
@@ -315,7 +318,7 @@ class WorkflowManager(Printable):
                     sinks=sinks,
                     alignment_node=alignment_node,
                     splitting_node=splitting_node,
-                    output_plate=output_plate
+                    output_plate=output_plate_copy
                 )
 
                 factors.append(factor)
