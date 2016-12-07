@@ -167,9 +167,9 @@ class WorkflowManager(Printable):
                     )
 
                 elif f.factor_type == "NodeCreationFactor":
-                    if len(source_nodes) != 1:
+                    if len(source_nodes) > 1:
                         raise ValueError(
-                            "NodeCreationFactor factors should have a single source node, received {}"
+                            "NodeCreationFactor factors should no more than one source node, received {}"
                             .format(len(source_nodes)))
 
                     if len(sink_nodes) != 0:
@@ -183,7 +183,7 @@ class WorkflowManager(Printable):
 
                     workflow.create_node_creation_factor(
                         tool=tool,
-                        source=source_nodes[0],
+                        source=source_nodes[0] if source_nodes else None,
                         output_plate=output_plate.to_mongo().to_dict(),
                         plate_manager=self.plate_manager
                     )
