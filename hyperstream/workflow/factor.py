@@ -19,7 +19,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from ..utils import Printable, IncompatibleToolError
+from ..utils import Printable, IncompatibleToolError, IncompatiblePlatesError
 from node import Node
 from ..tool import BaseTool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
 from plate import Plate
@@ -320,12 +320,30 @@ class MultiOutputFactor(FactorBase):
                         raise ValueError("Splitting node cannot live on multiple plates for factor {}"
                                          .format(self.factor_id))
                     if len(self.splitting_node.plates) == 1:
-                        if self.input_plate != self.splitting_node.plates[0]:
-                            raise NotImplementedError(
-                                "Splitting node plate {} does not match input plate {} for factor {}"
-                                .format(self.input_plate, self.splitting_node.plates[0], self.factor_id))
-                        # Use matching plate value
-                        splitting_stream = self.splitting_node.streams[ipv]
+                        splitting_plate = self.splitting_node.plates[0]
+                        if self.input_plate == splitting_plate:
+                            # Use matching plate value
+                            splitting_stream = self.splitting_node.streams[ipv]
+                        else:
+                            # First check if it's a direct child
+                            if splitting_plate.is_child(self.input_plate):
+                                ppv = filter(lambda x: all(p in ipv for p in x), self.input_plate.parent.values)
+                                if len(ppv) != 1:
+                                    raise ValueError("Parent plate value not found")
+                                splitting_stream = self.splitting_node.streams[ppv[0]]
+                            # Then more generally if it's a descendant
+                            elif splitting_plate.is_descendant(self.input_plate):
+                                # Here we need to find the splitting plate value that is valid for the
+                                # current input plate value
+                                # TODO: This needs checking - is the logic still the same as for the case above?
+                                ppv = filter(lambda x: all(p in ipv for p in x), self.input_plate.parent.values)
+                                if len(ppv) != 1:
+                                    raise ValueError("Parent plate value not found")
+                                splitting_stream = self.splitting_node.streams[ppv]
+                            else:
+                                raise IncompatiblePlatesError(
+                                    "Splitting node plate {} does not match input plate {} for factor {}"
+                                    .format(self.input_plate, self.splitting_node.plates[0], self.factor_id))
                     else:
                         # Use global plate value
                         splitting_stream = self.splitting_node.streams[None]

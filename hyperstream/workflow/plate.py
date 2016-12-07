@@ -128,3 +128,42 @@ class Plate(Printable):
         :return: True if this plate is a super-plate of the other plate
         """
         return other.is_sub_plate(self)
+
+    def is_ancestor(self, other):
+        """
+        Determines if this plate is an ancestor plate of the other (i.e. other is contained in the ancestors)
+
+        :param other: The other plate
+        :return: True if this plate is a ancestor of the other plate
+        """
+        return other in self.ancestor_plates[:-1]
+
+    def is_descendant(self, other):
+        """
+        Determines if this plate is an descendant plate of the other (i.e. self is contained in the other's ancestors)
+
+        :param other: The other plate
+        :type other: Plate
+        :return: True if this plate is a descendant of the other plate
+        """
+        return self in other.ancestor_plates[:-1]
+
+    def is_parent(self, other):
+        """
+        Determines if this plate is a parent plate of the other
+
+        :param other: The other plate
+        :type other: Plate
+        :return: True if this plate is a parent of the other plate
+        """
+        return self.parent == other
+
+    def is_child(self, other):
+        """
+        Determines if this plate is a child plate of the other
+
+        :param other: The other plate
+        :type other: Plate
+        :return: True if this plate is a child of the other plate
+        """
+        return self == other.parent
