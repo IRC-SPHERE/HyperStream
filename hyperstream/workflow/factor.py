@@ -28,7 +28,16 @@ from ..time_interval import TimeIntervals
 import logging
 
 
-class Factor(Printable):
+class FactorBase(Printable):
+    def __init__(self, tool):
+        self.tool = tool
+
+    @property
+    def factor_id(self):
+        return "{}(tool={})".format(self.__class__.__name__, self.tool)
+
+
+class Factor(FactorBase):
     """
     A factor in the graph. This defines the element of computation: the tool along with the source and sink nodes.
     """
@@ -55,7 +64,8 @@ class Factor(Printable):
         if isinstance(tool, PlateCreationTool):
             raise IncompatibleToolError("Use NodeCreationFactor for PlateCreationTool")
 
-        self.tool = tool
+        super(Factor, self).__init__(tool)
+
         if source_nodes:
             for source in source_nodes:
                 if not isinstance(source, Node):
@@ -222,7 +232,7 @@ class Factor(Printable):
         return self.alignment_node.streams[plate]
 
 
-class MultiOutputFactor(Printable):
+class MultiOutputFactor(FactorBase):
     """
     A multi-output factor in the graph.
     As with a factor, this links source nodes to sink nodes. However in this case the source node is being split onto
@@ -247,8 +257,9 @@ class MultiOutputFactor(Printable):
         """
         if not isinstance(tool, MultiOutputTool):
             raise ValueError("Expected tool, got {}".format(type(tool)))
-        self.tool = tool
-        
+
+        super(MultiOutputFactor, self).__init__(tool)
+
         if source_node and not isinstance(source_node, Node):
             raise ValueError("Expected node, got {}".format(type(source_node)))
         self.source = source_node
@@ -272,7 +283,7 @@ class MultiOutputFactor(Printable):
             output_plates = (output_plates,)
         
         self.output_plates = output_plates
-    
+
     def execute(self, time_interval):
         """
         Execute the factor over the given time interval. Note that this is normally done by the workspace,
@@ -306,10 +317,13 @@ class MultiOutputFactor(Printable):
 
                 if self.splitting_node:
                     if len(self.splitting_node.plates) > 1:
-                        raise ValueError("Splitting node cannot live on multiple plates")
+                        raise ValueError("Splitting node cannot live on multiple plates for factor {}"
+                                         .format(self.factor_id))
                     if len(self.splitting_node.plates) == 1:
                         if self.input_plate != self.splitting_node.plates[0]:
-                            raise NotImplementedError("Splitting node plate does not match input plate")
+                            raise NotImplementedError(
+                                "Splitting node plate {} does not match input plate {} for factor {}"
+                                .format(self.input_plate, self.splitting_node.plates[0], self.factor_id))
                         # Use matching plate value
                         splitting_stream = self.splitting_node.streams[ipv]
                     else:
@@ -358,7 +372,7 @@ class MultiOutputFactor(Printable):
         return self.alignment_node.streams[plate]
 
 
-class NodeCreationFactor(Printable):
+class NodeCreationFactor(FactorBase):
     def __init__(self, tool, source_node, input_plate, output_plate, plate_manager):
         """
         Initialise this factor
@@ -374,7 +388,8 @@ class NodeCreationFactor(Printable):
         """
         if not isinstance(tool, PlateCreationTool):
             raise ValueError("Expected tool, got {}".format(type(tool)))
-        self.tool = tool
+
+        super(NodeCreationFactor, self).__init__(tool)
 
         if not isinstance(source_node, Node):
             raise ValueError("Expected node, got {}".format(type(source_node)))
