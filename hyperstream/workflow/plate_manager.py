@@ -165,7 +165,8 @@ class PlateManager(Printable):
                     else:
                         values.insert(0, {n.tag: n.data})
         if not values:
-            raise PlateEmptyError(plate_definition.plate_id)
+            # raise PlateEmptyError(plate_definition.plate_id)
+            logging.warn("Plate {} is empty during the creation".format(plate_definition.plate_id))
         return values
 
     @staticmethod
