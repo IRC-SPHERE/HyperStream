@@ -37,13 +37,15 @@ def basic_workflow(workflow_id):
     N = w.nodes
 
     nodes = (
-        ("rss_raw", M, ["H1"]),  # Raw RSS data
-        ("rss_aid", M, ["H1.L"]),  # RSS by access point id
-        ("rss_aid_uid", M, ["H1.L.W"]),  # RSS by access point id and device id
-        ("rss", M, ["H1.L.W"]),  # RSS values only (by access point id and device id)
-        ("rss_dev_avg", M, ["H1.L"]),  # Averaged RSS values by device, per location
-        ("rss_loc_avg", M, ["H1.W"]),  # Averaged RSS values by location, per device
-        ("rss_kitchen", M, ["H1.W"]),  # Averaged RSS values by location, per device
+        ("rss_raw",                             M, ["H1"]),  # Raw RSS data
+        ("rss_aid",                             M, ["H1.L"]),  # RSS by access point id
+        ("rss_aid_uid",                         M, ["H1.L.W"]),  # RSS by access point id and device id
+        ("rss",                                 M, ["H1.L.W"]),  # RSS values only (by access point id and device id)
+        ("rss_dev_avg",                         M, ["H1.L"]),  # Averaged RSS values by device, per location
+        ("rss_loc_avg",                         M, ["H1.W"]),  # Averaged RSS values by location, per device
+        ("rss_kitchen",                         M, ["H1.W"]),  # Averaged RSS values by location, per device
+        ("wearables_by_house",                  A, ["H1"]),
+        ("access_points_by_house",              A, ["H1"])
     )
 
     hyperstream.plate_manager.create_plate(
@@ -77,13 +79,13 @@ def basic_workflow(workflow_id):
     w.create_multi_output_factor(
         tool=tools.split_aid,
         source=N["rss_raw"],
-        splitting_node=None,
+        splitting_node=N["access_points_by_house"],
         sink=N["rss_aid"])
 
     w.create_multi_output_factor(
         tool=tools.split_uid,
         source=N["rss_aid"],
-        splitting_node=None,
+        splitting_node=N["wearables_by_house"],
         sink=N["rss_aid_uid"])
 
     w.create_factor(
@@ -167,16 +169,19 @@ RSS_LOC_AVG = {
 # noinspection PyMethodMayBeStatic
 class HyperStreamAggregatorTests(unittest.TestCase):
     def test_basic_aggregator(self):
-        w = basic_workflow(sys._getframe().f_code.co_name)
+        """
+        An average of RSS values per location
+        """
+        # access_points_by_wearable_and_house().execute(TimeInterval.up_to_now())
 
-        aggregate_dev = channels.get_tool(
-            name="aggregate",
-            parameters=dict(func=online_average, aggregation_meta_data="wearable")
-        )
+        w = basic_workflow(sys._getframe().f_code.co_name)
 
         N = w.nodes
         w.create_factor(
-            tool=aggregate_dev,
+            tool=channels.get_tool(
+                name="aggregate",
+                parameters=dict(func=online_average, aggregation_meta_data="wearable")
+            ),
             sources=[N["rss"]],
             sink=N["rss_dev_avg"]
         )
