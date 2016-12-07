@@ -253,7 +253,9 @@ def get_overlapping_plate_values(plates):
                 tmp = []
                 for v in last_values:
                     # Get the valid ones based on v
-                    valid = [filter(lambda x: all(xx in v for xx in x[:-1]), c.values)
+                    # valid = [filter(lambda x: all(xx in v for xx in x[:-1]), c.values)
+                    #          for c in current if c is not None]
+                    valid = [filter(lambda x: all(vv in x for vv in v), c.values)
                              for c in current if c is not None]
 
                     # Strip out v from the valid ones
@@ -270,7 +272,7 @@ def get_overlapping_plate_values(plates):
 
                 last_values = list(itertools.chain(*tmp))
                 if not last_values:
-                    raise Exception
+                    raise ValueError("Plate value computation failed - possibly there were no shared plate values")
             else:
                 raise NotImplementedError
 
