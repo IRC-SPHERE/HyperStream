@@ -23,18 +23,26 @@ from mongoengine import Document, StringField
 
 
 class MetaDataModel(Document):
-    identifier = StringField(required=True, min_length=1, max_length=512)
     tag = StringField(required=False, min_length=1, max_length=512)
     data = StringField(required=False, min_length=1, max_length=512)
     parent = StringField(required=False, min_length=1, max_length=512)
 
+    @property
+    def identifier(self):
+        if self.parent == "root":
+            return "{}_{}".format(self.tag, self.data)
+        else:
+            return "{}.{}_{}".format(self.parent, self.tag, self.data)
+
     meta = {
         'collection': 'meta_data',
-        'indexes': [{'fields': ['identifier'], 'unique': True}],
-        'ordering': ['identifier']
+        'indexes': [{'fields': ['tag', 'data', 'parent'], 'unique': True}],
+        'ordering': ['parent', 'tag', 'data']
     }
 
     def to_dict(self):
         d = self.to_mongo().to_dict()
         del d['_id']
+        d['data'] = str(d['data'])
+        d['identifier'] = self.identifier
         return d

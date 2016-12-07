@@ -309,8 +309,13 @@ class WorkflowManager(Printable):
                 else:
                     raise NotImplementedError("Unsupported factor type")
 
-                output_plate_copy = deepcopy(output_plate)
-                del output_plate_copy['parent_plate']
+                if output_plate:
+                    output_plate_copy = deepcopy(output_plate)
+                    if 'parent_plate' in output_plate_copy:
+                        del output_plate_copy['parent_plate']
+                else:
+                    output_plate_copy = None
+
                 factor = FactorDefinitionModel(
                     tool=tool,
                     factor_type=f.__class__.__name__,

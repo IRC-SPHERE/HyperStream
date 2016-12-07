@@ -60,6 +60,15 @@ class Plate(Printable):
     def values(self):
         return self._values
 
+    def _get_identifier(self, current=None):
+        if not current:
+            current = []
+        current.insert(0, self.identifier)
+
+    @property
+    def identifier(self):
+        return None
+
     def _get_ancestors(self, current=None):
         """
         Gets the ancestors of this node

@@ -459,13 +459,12 @@ class NodeCreationFactor(FactorBase):
 
         # Ensure that the output plate values exist
         for ipv, opv in output_plate_values.items():
-            input_plate_value = ipv[-1][1] if ipv else None
+            input_plate_value = ".".join("_".join(i) for i in ipv) if ipv else None
             for pv in opv:
                 if ipv:
                     identifier = input_plate_value + "." + self.output_plate["meta_data_id"] + "_" + pv
                 else:
-                    # identifier = self.output_plate["meta_data_id"] + "_" + pv
-                    identifier = pv
+                    identifier = self.output_plate["meta_data_id"] + "_" + pv
                 if not self._meta_data_manager.contains(identifier):
                     self._meta_data_manager.insert(
                         tag=self.output_plate["meta_data_id"],

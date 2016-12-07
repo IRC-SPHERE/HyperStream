@@ -321,7 +321,7 @@ class HyperStreamLogger(Printable):
             sys.excepthook = handle_exception
 
             # logging.config.dictConfig(LOGGING)
-            logging.debug("HyperStream version: " + __version__)
+            logging.info("HyperStream version: " + __version__)
 
     def setLevel(self, loglevel):
         self.root_logger.setLevel(loglevel)

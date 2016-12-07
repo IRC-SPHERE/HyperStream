@@ -25,14 +25,12 @@ from ..models import MetaDataModel
 import logging
 from mongoengine.context_managers import switch_db
 from treelib.tree import NodeIDAbsentError
-from collections import namedtuple
-
-# MetaData = namedtuple("MetaData", "tag identifier parent data")
 
 
 class MetaDataManager(Printable):
     def __init__(self):
         self.global_plate_definitions = MetaDataTree()
+        self.global_plate_definitions.create_node(identifier="root")
 
         to_be_added = dict((i, d) for i, d, in enumerate(self.global_meta_data))
         passes = 0
@@ -57,6 +55,7 @@ class MetaDataManager(Printable):
     def global_meta_data(self):
         """
         Get the global meta data, which will be stored in a tree structure
+
         :return: The global meta data
         """
         with switch_db(MetaDataModel, 'hyperstream'):
@@ -67,6 +66,7 @@ class MetaDataManager(Printable):
     def contains(self, identifier):
         """
         Determines if the meta data with the given identifier is in the database
+
         :param identifier: The identifier
         :return: Whether the identifier is present
         """
@@ -75,6 +75,7 @@ class MetaDataManager(Printable):
     def insert(self, tag, identifier, parent, data):
         """
         Insert the given meta data into the database
+
         :param tag: The tag (equates to meta_data_id)
         :param identifier: The identifier (a combination of the meta_data_id and the plate value)
         :param parent: The parent plate identifier
@@ -89,17 +90,20 @@ class MetaDataManager(Printable):
 
         # Now try to add it into the database
         with switch_db(MetaDataModel, 'hyperstream'):
-            meta_data = MetaDataModel(tag=tag, identifier=identifier, parent=parent, data=data)
+            meta_data = MetaDataModel(tag=tag, parent=parent, data=data)
             meta_data.save()
 
     def delete(self, identifier):
         """
         Delete the meta data with the given identifier from the database
+
         :param identifier: The identifier
         :return: None
         """
+
+        node = self.global_plate_definitions[identifier]
         self.global_plate_definitions.remove_node(identifier)
 
         with switch_db(MetaDataModel, 'hyperstream'):
-            meta_data = MetaDataModel.objects(identifier=identifier).first()
+            meta_data = MetaDataModel.objects(tag=node.tag, data=node.data, parent=node.parent).first()
             meta_data.delete()
