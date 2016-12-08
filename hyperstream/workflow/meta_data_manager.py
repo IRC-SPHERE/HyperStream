@@ -93,6 +93,8 @@ class MetaDataManager(Printable):
             meta_data = MetaDataModel(tag=tag, parent=parent, data=data)
             meta_data.save()
 
+        logging.info("Meta data {} inserted".format(identifier))
+
     def delete(self, identifier):
         """
         Delete the meta data with the given identifier from the database
