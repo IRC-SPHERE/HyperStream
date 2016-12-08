@@ -122,6 +122,17 @@ class BaseChannel(Printable):
             raise MultipleStreamsFoundError(kwargs)
         return found[0]
 
+    def purge_node(self, node_id, sandbox=None):
+        """
+        Purges a node (collection of streams)
+        :param node_id: The node identifier
+        :param sandbox: The sandbox
+        :return: None
+        """
+        for stream in self.streams:
+            if stream.parent_node.node_id == node_id:
+                self.purge_stream(stream.stream_id, sandbox=sandbox)
+
     def purge_stream(self, stream_id, sandbox=None):
         """
         Must be overridden by deriving classes, purges the stream and removes the calculated intervals
