@@ -238,6 +238,7 @@ class WorkflowManager(Printable):
 
         if workflow_id in self.workflows:
             del self.workflows[workflow_id]
+        logging.info("Deleted workflow with id {}".format(workflow_id))
 
     def commit_workflow(self, workflow_id):
         """
