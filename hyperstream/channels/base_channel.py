@@ -130,7 +130,10 @@ class BaseChannel(Printable):
         :return: None
         """
         for stream_id in self.streams:
-            if self.streams[stream_id].parent_node.node_id == node_id:
+            stream = self.streams[stream_id]
+            if not stream.parent_node:
+                continue
+            if stream.parent_node.node_id == node_id:
                 self.purge_stream(stream_id, sandbox=sandbox)
 
     def purge_stream(self, stream_id, sandbox=None):
