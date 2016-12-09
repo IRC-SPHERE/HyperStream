@@ -19,20 +19,33 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.stream import StreamInstance, StreamMetaInstance
-from hyperstream.tool import MultiOutputTool
+from hyperstream.tool import PlateCreationTool
 
 
-class AssetSplitter(MultiOutputTool):
+class AssetPlateGenerator(PlateCreationTool):
     def __init__(self, element=None):
         """
         Special tool to extract data from the asset channel
         :param element: The element to extract
         """
-        super(AssetSplitter, self).__init__(element=element)
+        super(AssetPlateGenerator, self).__init__(element=element)
 
-    def _execute(self, source, splitting_stream, interval, output_plate):
-        for timestamp, data in source.window(interval, force_calculation=True):
+    def _execute(self, source, interval):
+        source_last_doc = source.window(interval, force_calculation=True).last()
+        if not source_last_doc:
+            return
+        timestamp, data = source_last_doc
+        if self.element is None:
+            data_element = data
+        else:
             if self.element in data:
-                for key, value in data[self.element].items():
-                    yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value),
-                                             (output_plate.meta_data_id, key))
+                data_element = data[self.element]
+            else:
+                return
+        try: # try if data_element can be used as a dict
+            for key, value in data_element.items():
+                yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value), key)
+        except AttributeError: # otherwise assume that data_element can be used as a list
+            value = None
+            for key in data_element:
+                yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value), key)

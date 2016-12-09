@@ -32,7 +32,13 @@ class AssetSplitter(MultiOutputTool):
 
     def _execute(self, source, splitting_stream, interval, output_plate):
         for timestamp, data in source.window(interval, force_calculation=True):
-            if self.element in data:
-                for key, value in data[self.element].items():
-                    yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value),
-                                             (output_plate.meta_data_id, key))
+            if self.element is None:
+                data_element = data
+            else:
+                if self.element in data:
+                    data_element = data[self.element]
+                else:
+                    continue
+            for key, value in data_element.items():
+                yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value),
+                                         (output_plate.meta_data_id, key))
