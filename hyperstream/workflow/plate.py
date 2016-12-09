@@ -42,7 +42,9 @@ class Plate(Printable):
         self._values = []
         self._cardinality = 0
         for pv in values:
-            self._values.append(tuple(sorted(pv.items())))
+            # self._values.append(tuple(sorted(pv.items())))
+            # TD: take 'sorted' out
+            self._values.append(tuple(pv.items()))
             if self._cardinality == 0:
                 self._cardinality = len(pv)
             else:
