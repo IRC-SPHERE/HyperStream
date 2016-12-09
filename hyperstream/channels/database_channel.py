@@ -107,6 +107,7 @@ class DatabaseChannel(BaseChannel):
 
         # Also update the stream status
         stream.calculated_intervals = TimeIntervals([])
+        logging.info("Purged stream {}".format(stream_id))
 
     def get_stream_writer(self, stream):
         """
