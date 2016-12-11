@@ -158,12 +158,12 @@ class PlateManager(Printable):
                         parent_plate_value = self.get_parent_plate_value(
                             self.meta_data_manager.global_plate_definitions, n)
                         # if tuple(parent_plate_value) not in self.plates[plate_definition.parent_plate].values:
-                        if set(parent_plate_value) not in map(set,self.plates[plate_definition.parent_plate].values):
+                        if set(parent_plate_value) not in map(set, self.plates[plate_definition.parent_plate].values):
                             continue
                         values.insert(0, self.get_parent_data(
-                            self.meta_data_manager.global_plate_definitions, n, {n.tag: n.data}))
+                            self.meta_data_manager.global_plate_definitions, n, [(n.tag, n.data), ]))
                     else:
-                        values.insert(0, {n.tag: n.data})
+                        values.insert(0, [(n.tag, n.data), ])
         if not values:
             # raise PlateEmptyError(plate_definition.plate_id)
             logging.warn("Plate {} is empty during the creation".format(plate_definition.plate_id))
@@ -191,16 +191,20 @@ class PlateManager(Printable):
         return value
 
     @staticmethod
-    def get_parent_data(tree, node, d):
+    def get_parent_data(tree, node, current):
         """
         Recurse up the tree getting parent data
         :param tree: The tree
         :param node: The current node
-        :param d: The initial dictionary
+        :param current: The current list
         :return: The hierarchical dictionary
         """
+        if not current:
+            current = []
+
         parent = tree.parent(node.identifier)
         if parent.is_root():
-            return d
-        d[parent.tag] = parent.data
-        return PlateManager.get_parent_data(tree, parent, d)
+            return current
+
+        current.insert(0, (parent.tag, parent.data))
+        return PlateManager.get_parent_data(tree, parent, current)
