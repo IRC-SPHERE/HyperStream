@@ -84,6 +84,10 @@ class PlateDefinitionError(Exception):
     message = "Empty values in plate definition and complement=False"
 
 
+class PlateNotFoundError(Exception):
+    pass
+
+
 class LinkageError(Exception):
     pass
 

@@ -29,7 +29,8 @@ from factor import Factor, MultiOutputFactor, NodeCreationFactor
 from node import Node, get_overlapping_plate_values
 from ..stream import StreamId
 from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
-from ..utils import Printable, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError, utcnow
+from ..utils import Printable, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError, utcnow, \
+    PlateNotFoundError
 from ..models import TimeIntervalModel, WorkflowStatusModel
 from ..time_interval import TimeIntervals, TimeInterval
 
@@ -101,7 +102,10 @@ class Workflow(Printable):
         """
         streams = {}
 
-        plates = [self.plate_manager.plates[p] for p in plate_ids] if plate_ids else None
+        try:
+            plates = [self.plate_manager.plates[p] for p in plate_ids] if plate_ids else None
+        except KeyError as e:
+            raise PlateNotFoundError(e)
 
         plate_values = get_overlapping_plate_values(plates)
 
