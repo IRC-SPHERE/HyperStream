@@ -50,16 +50,16 @@ class SplitterTimeAware(MultiOutputTool):
                     ti = el
                 elif isinstance(el, (tuple, list)):
                     if len(el) != 2 or not isinstance(el[0], str) or not isinstance(el[1], TimeInterval):
-                        raise ValueError("SplitterTimeAware: Unknown data format")
+                        raise ValueError("{}: Unknown data format".format(self.name))
                     pv, ti = el
                 else:
-                    raise ValueError("SplitterTimeAware: Unknown data format")
+                    raise ValueError("{}: Unknown data format".format(self.name))
 
                 if ti not in interval:
                     # This means that the user has requested a time interval of
                     # calculation that doesn't cover the range of the intervals provided as parameters
-                    logging.warn("SplitterTimeAware: "
-                                 "Requested interval doesn't cover the range of the intervals provided as parameters")
+                    logging.warn("{}: Requested interval doesn't cover the range of the intervals provided"
+                                 .format(self.name))
                     continue
 
                 if pv in mapping:
@@ -75,5 +75,5 @@ class SplitterTimeAware(MultiOutputTool):
                 found_data = True
                 yield StreamMetaInstance(instance, (self.meta_data_id, pv))
             if not found_data:
-                logging.debug("SplitterTimeAware: no data for source {} with plate value {} and time interval {}"
-                              .format(source, pv, ti))
+                logging.debug("{}: no data for source {} with plate value {} and time interval {}"
+                              .format(self.name, source, pv, ti))

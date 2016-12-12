@@ -206,8 +206,6 @@ class AssetStream(DatabaseStream):
     def calculated_intervals(self):
         with switch_db(StreamStatusModel, 'hyperstream'):
             status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
-            # calculated_intervals = TimeIntervals(map(lambda x: TimeInterval(x.start, utcnow()),
-            #                                          status.calculated_intervals))
             calculated_intervals = TimeIntervals(map(lambda x: TimeInterval(x.start, x.end),
                                                      status.calculated_intervals))
             return calculated_intervals
