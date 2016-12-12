@@ -43,13 +43,13 @@ class PlateManager(Printable):
         H plate, want
 
         {'H': [
-          {'house': '1'},
+          (('house', '1'),),
           {'house': '2'}
         ]}
 
         H1 plate, want
 
-        {'H1': [{'house': '1'}]}
+        {'H1': [(('house', '1'),)]}
 
         H.R plate, want
 

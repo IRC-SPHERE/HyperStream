@@ -101,11 +101,18 @@ class BaseChannel(Printable):
         :return: The streams found
         """
         found = {}
+
+        if 'name' in kwargs:
+            name = kwargs.pop('name')
+        else:
+            name = None
+
         for stream_id, stream in self.streams.items():
-            d = stream_id.as_dict()
-            if all(d['name'] == str(v) if k == 'name'
-                   else k in d['meta_data'] and d['meta_data'][k] == str(v)
-                   for k, v in kwargs.items()):
+            if name is not None and stream_id.name != name:
+                continue
+
+            d = dict(stream_id.meta_data)
+            if all(k in d and d[k] == str(v) for k, v in kwargs.items()):
                 found[stream_id] = stream
         return found
 
