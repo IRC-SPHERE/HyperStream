@@ -189,7 +189,7 @@ class HyperStreamQueryTests(unittest.TestCase):
         ti = TimeInterval(t1, t1 + minute)
 
         # Get or create the stream that lives in the database
-        env = D.get_or_create_stream(stream_id=StreamId('environmental_db', {"house": "1"}))
+        env = D.get_or_create_stream(stream_id=StreamId('environmental_db', (("house", "1"),)))
 
         D.purge_stream(env.stream_id)
 
@@ -264,10 +264,10 @@ class HyperStreamQueryTests(unittest.TestCase):
 
     def test_chained_query(self):
         interval = TimeInterval(t1, t1 + 5 * minute)
-        
+
         # Define sliding window stream
         stream_memory_sliding_window = M.create_stream(StreamId('stream_id_memory_sliding_window'))
-        
+
         stream_tool_sliding_window = channels.get_tool(
             name="sliding_window",
             parameters=dict(
@@ -277,21 +277,21 @@ class HyperStreamQueryTests(unittest.TestCase):
                 increment=10.0
             )
         )
-        
+
         stream_tool_sliding_window.execute(
             sources=None,
             sink=stream_memory_sliding_window,
             alignment_stream=None,
             interval=interval
         )
-        
+
         assert str(stream_memory_sliding_window.window(interval).first().value) == \
             '(2016-04-28 20:00:00+00:00, 2016-04-28 20:00:30+00:00]'
-        
+
         # Define the motion in kitchen tool
-        
+
         stream_sphere_environmental = S.create_stream(StreamId(
-            name='stream_id_memory_environmental', meta_data=dict(house=1)))
+            name='stream_id_memory_environmental', meta_data=(('house', '1'),)))
         
         stream_tool_sphere_environmental = channels.get_tool(
             name='sphere',

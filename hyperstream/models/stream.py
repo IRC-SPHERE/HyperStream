@@ -18,14 +18,14 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from mongoengine import Document, DateTimeField, StringField, DictField, DynamicField, EmbeddedDocumentListField, \
-    EmbeddedDocument, EmbeddedDocumentField, IntField
+from mongoengine import Document, DateTimeField, StringField, DynamicField, EmbeddedDocumentListField, \
+    EmbeddedDocument, EmbeddedDocumentField, ListField
 from time_interval import TimeIntervalModel
 
 
 class StreamIdField(EmbeddedDocument):
     name = StringField(required=True, min_length=1, max_length=512)
-    meta_data = DictField(required=False)
+    meta_data = ListField(required=False)
 
 
 class StreamInstanceModel(Document):
@@ -53,7 +53,7 @@ class StreamDefinitionModel(Document):
     
     meta = {
         'collection': 'stream_definitions',
-        # 'indexes': [{'fields': ['stream_id'], 'unique': True}],
+        'indexes': [{'fields': ['stream_id'], 'unique': True}],
     }
 
 
@@ -70,6 +70,6 @@ class StreamStatusModel(Document):
     
     meta = {
         'collection': 'stream_status',
-        # 'indexes': [{'fields': ['stream_id'], 'unique': True}],
+        'indexes': [{'fields': ['stream_id'], 'unique': True}],
         'ordering': ['last_updated']
     }
