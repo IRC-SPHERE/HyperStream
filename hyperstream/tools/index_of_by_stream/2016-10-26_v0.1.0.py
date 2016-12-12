@@ -20,6 +20,7 @@
 
 from hyperstream.tool import SelectorTool
 from hyperstream import TimeInterval, StreamMetaInstance
+from hyperstream.utils import MIN_DATE
 
 
 class IndexOfByStream(SelectorTool):
@@ -31,8 +32,8 @@ class IndexOfByStream(SelectorTool):
         super(IndexOfByStream, self).__init__(index=index, selector_meta_data=None)
 
     def _execute(self, sources, interval):
-
-        selector_meta_data = sources[0].window(TimeInterval.up_to_now(), force_calculation=True).last().value
+        time_interval = TimeInterval(MIN_DATE, interval.end)
+        selector_meta_data = sources[0].window(time_interval, force_calculation=True).last().value
 
         found_source = False
         found_data_in_source = False
