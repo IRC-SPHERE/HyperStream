@@ -49,7 +49,8 @@ class StreamView(Printable):
     def __iter__(self):
         required_intervals = TimeIntervals([self.time_interval]) - self.stream.calculated_intervals
         from . import AssetStream
-        if not isinstance(self.stream, AssetStream) and not required_intervals.is_empty:
+        # if not isinstance(self.stream, AssetStream) and not required_intervals.is_empty:
+        if not required_intervals.is_empty:
             if self.force_calculation:
                 if self.stream.parent_node is not None and self.stream.parent_node.factor is not None:
                     # Try to request upstream computation
