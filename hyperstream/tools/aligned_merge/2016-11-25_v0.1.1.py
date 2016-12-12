@@ -24,6 +24,8 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool
 
+import logging
+
 
 class AlignedMerge(Tool):
     """
@@ -45,7 +47,11 @@ class AlignedMerge(Tool):
         timestamps = sorted(set().union(*([i.timestamp for i in s] for s in streams)))
 
         for timestamp in timestamps:
-            tt, values = zip(*[s[0] for s in streams])
+            try:
+                tt, values = zip(*[s[0] for s in streams])
+            except IndexError:
+                logging.warn("{}: Stream empty (lengths {})".format(self.name, ", ".join(map(str, map(len, streams)))))
+                return
 
             # If one of the streams doesn't have this timestamp, it's a misalignment
             matches = map(lambda t: t == timestamp, tt)
