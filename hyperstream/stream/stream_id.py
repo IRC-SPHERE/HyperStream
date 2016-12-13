@@ -30,16 +30,16 @@ class StreamId(Hashable):
     def __init__(self, name, meta_data=None):
         self.name = name
         if meta_data:
-            if isinstance(meta_data, dict):
-                keys = sorted(meta_data.keys())
-                self.meta_data = tuple(map(lambda key: (key, str(meta_data[key])), keys))
-            elif isinstance(meta_data, tuple):
+            # if isinstance(meta_data, dict):
+            #     keys = sorted(meta_data.keys())
+            #     self.meta_data = tuple(map(lambda key: (key, str(meta_data[key])), keys))
+            if isinstance(meta_data, (list, tuple)):
                 if not all(isinstance(x[1], (str, unicode)) for x in meta_data):
                     self.__init__(name, dict(meta_data))
                 else:
-                    self.meta_data = meta_data
+                    self.meta_data = map(tuple, meta_data)
             else:
-                raise ValueError("Expected dict or tuple, got {}".format(type(meta_data)))
+                raise ValueError("Expected list or tuple, got {}".format(type(meta_data)))
         else:
             self.meta_data = tuple()
 
@@ -63,7 +63,7 @@ class StreamId(Hashable):
                sorted(self.meta_data) == sorted(other.meta_data)
 
     def as_dict(self):
-        return dict(name=self.name, meta_data=dict(self.meta_data) if self.meta_data else {})
+        return dict(name=self.name, meta_data=self.meta_data)
 
     def as_raw(self):
         """
@@ -72,10 +72,8 @@ class StreamId(Hashable):
 
         >>> stream_id = StreamId(name='test', meta_data=((u'house', u'1'), (u'resident', u'1')))
         >>> stream_id.as_raw()
-        {u'stream_id.meta_data.house': u'1', u'stream_id.meta_data.resident': u'1', 'stream_id.name': 'test'}
+        {'stream_id.meta_data': [(u'house', u'1'), (u'resident', u'1')], 'stream_id.name': 'test'}
 
         :return: The raw representation of this object.
         """
-        d = dict(('stream_id.meta_data.' + k, v) for k, v in self.meta_data)
-        d['stream_id.name'] = self.name
-        return d
+        return dict(('stream_id.' + k, v) for k, v in self.as_dict().items())
