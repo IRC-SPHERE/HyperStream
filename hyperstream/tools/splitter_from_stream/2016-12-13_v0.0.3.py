@@ -32,8 +32,8 @@ class SplitterFromStream(MultiOutputTool):
     From version 0.0.2 onwards it supports element=None (the default value), in which case each document is assumed to
     be a dict with keys corresponding to plate values, the respective values will then be written into corresponding streams
     """
-    def __init__(self, element=None):
-        super(SplitterFromStream, self).__init__(element=element)
+    def __init__(self, element=None, use_mapping_keys_only=False):
+        super(SplitterFromStream, self).__init__(element=element, use_mapping_keys_only=use_mapping_keys_only)
 
     def _execute(self, source, splitting_stream, interval, output_plate):
         if splitting_stream is None:
@@ -52,13 +52,22 @@ class SplitterFromStream(MultiOutputTool):
 
         mapping = splitter.value
 
+        try: # try if mapping is a dict
+            if len(mapping.keys())==0:
+                logging.warn("The mapping provided to splitter_from_stream by the last element of the splitting stream is empty")
+            if self.use_mapping_keys_only:
+                mapping = dict([(x,x) for x in mapping.keys()])
+        except: # assume that mapping is a list
+            mapping = dict([(x,x) for x in mapping])
+
         for timestamp, value in source.window(interval, force_calculation=True):
             if self.element is None:
-                for plate_value, sub_value in value.items():
-                    if plate_value in mapping.keys():
-                        yield StreamMetaInstance((timestamp, sub_value), (output_plate.meta_data_id, plate_value))
-                    else:
-                        logging.error("Unexpected splitting value {}".format(plate_value))
+                for meta_data, sub_value in value.items():
+                    if meta_data not in mapping:
+                        logging.warn("Unexpected splitting value {}".format(meta_data))
+                        continue
+                    plate_value = mapping[meta_data]
+                    yield StreamMetaInstance((timestamp, sub_value), (output_plate.meta_data_id, plate_value))
             else:
                 if self.element not in value:
                     logging.debug("Mapping element {} not in instance".format(self.element))

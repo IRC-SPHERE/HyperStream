@@ -28,6 +28,7 @@ class AssetPlateGenerator(PlateCreationTool):
         Special tool to extract data from the asset channel
         :param element: The element to extract
         :param use_value_instead_of_key: The plate values are to be taken from the values of the dict, rather than from the keys (default: False)
+        Note that if the documents are lists instead of dicts then this option has no effect
         """
         super(AssetPlateGenerator, self).__init__(element=element, use_value_instead_of_key=use_value_instead_of_key)
 
@@ -50,10 +51,6 @@ class AssetPlateGenerator(PlateCreationTool):
                 else:
                     yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value), key)
         except AttributeError: # otherwise assume that data_element can be used as a list
-            value = None
-            for key in data_element:
-                if self.use_value_instead_of_key:
-                    yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value), value)
-                else:
-                    yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value), key)
+            for value in data_element:
+                yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value), value)
 
