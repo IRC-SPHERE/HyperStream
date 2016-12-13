@@ -25,17 +25,15 @@ from hyperstream.stream import StreamMetaInstance, AssetStream
 import logging
 from copy import deepcopy
 
+# the development of this tool has not been finished
 
-class SplitterFromStream(MultiOutputTool):
-    """
-    This version of the splitter assumes that the mapping exists as the last element in a (asset) stream
-    From version 0.0.2 onwards it supports element=None (the default value), in which case each document is assumed to
-    be a dict with keys corresponding to plate values, the respective values will then be written into corresponding streams
-    """
-    def __init__(self, element=None):
-        super(SplitterFromStream, self).__init__(element=element)
+class SplitterOfDictFromStream(MultiOutputTool):
+    def __init__(self):
+        super(SplitterOfDictFromStream, self).__init__()
 
     def _execute(self, source, splitting_stream, interval, output_plate):
+        raise NotImplementedError
+        # the development of this tool has not been finished
         if splitting_stream is None:
             raise ValueError("Splitting stream required for this tool")
 
@@ -47,26 +45,15 @@ class SplitterFromStream(MultiOutputTool):
 
         if not splitter:
             logging.debug("No assets found for source {} and splitter {}"
-                          .format(source.stream_id, splitting_stream.stream_id))
+                        .format(source.stream_id, splitting_stream.stream_id))
             return
 
         mapping = splitter.value
 
         for timestamp, value in source.window(interval, force_calculation=True):
-            if self.element is None:
-                for plate_value, sub_value in value.items():
-                    if plate_value in mapping.keys():
-                        yield StreamMetaInstance((timestamp, sub_value), (output_plate.meta_data_id, plate_value))
-                    else:
-                        logging.error("Unexpected splitting value {}".format(plate_value))
-            else:
-                if self.element not in value:
-                    logging.debug("Mapping element {} not in instance".format(self.element))
+            for key in value.keys():
+                if key not in mapping:
+                    logging.warn("Unknown value {} for meta data in SplitterOfDictFromStream".format(key))
                     continue
-                value = deepcopy(value)
-                meta_data = str(value.pop(self.element))
-                if meta_data not in mapping:
-                    logging.warn("Unknown value {} for meta data {}".format(meta_data, self.element))
-                    continue
-                plate_value = mapping[meta_data]
-                yield StreamMetaInstance((timestamp, value), (output_plate.meta_data_id, plate_value))
+                plate_value = mapping[key]
+                yield StreamMetaInstance((timestamp, value[key]), (output_plate.meta_data_id, plate_value))

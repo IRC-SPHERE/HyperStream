@@ -102,6 +102,9 @@ class MultiOutputTool(BaseTool):
                         logging.warn("A multi-output tool has produced a value {} "
                                      "which does not belong to the output plate".format(meta_data))
                         continue
+                    except TypeError:
+                        logging.error("A multi-output tool has produced a value {} "
+                                     "which cannot be hashed and does not belong to the output plate".format(meta_data))
                     sink.writer(item.stream_instance)
                     produced_data = True
 
