@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 from hyperstream import HyperStream, UTC, StreamId, TimeInterval
 from plugins.sphere.utils.sphere_helpers import PredefinedTools, scripted_experiments
 from sphere_connector_package.sphere_connector import SphereConnector
-from scripts.workflows.asset_splitter import create_asset_splitter
+from scripts.workflows.asset_splitter import split_sphere_assets
 
 os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".."))
 
@@ -54,7 +54,7 @@ A = hyperstream.channel_manager.assets
 tools = PredefinedTools(hyperstream)
 
 # Some useful Stream IDs
-environmental = StreamId('environmental', meta_data={'house': '1'})
+environmental = StreamId('environmental', meta_data=(('house', '1'),))
 clock = StreamId('clock')
 aggregate = StreamId('aggregate')
 every30s = StreamId('every30s')
@@ -70,7 +70,6 @@ sphere = StreamId('sphere')
 component = StreamId('component')
 component_filter = StreamId('component_filter')
 
-# A.purge_stream(StreamId("wearables_by_house", meta_data={'house': '1'}))
-# A.purge_stream(StreamId("access_points_by_house", meta_data={'house': '1'}))
-asset_splitter = create_asset_splitter(hyperstream, False)
-asset_splitter.execute(TimeInterval.up_to_now())
+# A.purge_stream(StreamId("wearables_by_house", meta_data=(('house', '1'),)))
+# A.purge_stream(StreamId("access_points_by_house", meta_data=(('house', '1'),)))
+split_sphere_assets(hyperstream)
