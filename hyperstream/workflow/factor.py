@@ -150,9 +150,9 @@ class Factor(FactorBase):
                         self.tool.execute(sources=sources, sink=sink, interval=time_interval,
                                           alignment_stream=self.get_alignment_stream(None, None))
                 else:
-                    if len(self.sources) != 1 and not all(s.plates == self.sources[0].plates for s in self.sources[1:]):
+                    if len(self.sources) != 1 and not all(s.plates == self.plates for s in self.sources):
                         raise NotImplementedError
-                    for pv in self.sources[0].plate_values:
+                    for pv in Node.get_overlapping_plate_values(self.plates):
                         sources = [source.streams[s] for source in self.sources for s in source.streams if pv == s]
                         sink = self.sink.streams[pv]
                         self.tool.execute(sources=sources, sink=sink, interval=time_interval,
