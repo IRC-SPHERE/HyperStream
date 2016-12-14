@@ -36,4 +36,4 @@ class PercentilesFromList(Tool):
         else:
             percentiles = [i*100.0/self.n_segments for i in range(self.n_segments+1)]
         for t, d in sources[0].window(interval, force_calculation=True):
-            yield StreamInstance(t, np.percentile(d, percentiles))
+            yield StreamInstance(t, np.percentile(d, percentiles).tolist())
