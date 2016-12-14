@@ -19,8 +19,8 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 from factor import Factor, NodeCreationFactor, MultiOutputFactor
-from node import Node
 from plate import Plate
+from node import Node
 from plate_manager import PlateManager
 from workflow import Workflow
 from workflow_manager import WorkflowManager

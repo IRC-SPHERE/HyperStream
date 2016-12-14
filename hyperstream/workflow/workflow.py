@@ -25,8 +25,7 @@ import itertools
 import logging
 from mongoengine.context_managers import switch_db
 
-from factor import Factor, MultiOutputFactor, NodeCreationFactor
-from node import Node
+from . import Factor, MultiOutputFactor, NodeCreationFactor, Plate, Node
 from ..stream import StreamId
 from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
 from ..utils import Printable, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError, utcnow, \
@@ -107,7 +106,7 @@ class Workflow(Printable):
         except KeyError as e:
             raise PlateNotFoundError(e)
 
-        plate_values = Node.get_overlapping_plate_values(plates)
+        plate_values = Plate.get_overlapping_values(plates)
 
         if plate_ids:
             if not plate_values:
