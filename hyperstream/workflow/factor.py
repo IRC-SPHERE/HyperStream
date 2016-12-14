@@ -71,7 +71,7 @@ class Factor(FactorBase):
                 if not isinstance(source, Node):
                     raise ValueError("Expected node, got {}".format(type(source)))
                 source.is_leaf = False
-        self.sources = source_nodes
+        self.sources = source_nodes if source_nodes else []
         if not isinstance(sink_node, Node):
             raise ValueError("Expected node, got {}".format(type(sink_node)))
         self.sink = sink_node
@@ -150,10 +150,10 @@ class Factor(FactorBase):
                         self.tool.execute(sources=sources, sink=sink, interval=time_interval,
                                           alignment_stream=self.get_alignment_stream(None, None))
                 else:
-                    if len(self.sources) != 1:
+                    if len(self.sources) != 1 and not all(s.plates == self.sources[0].plates for s in self.sources[1:]):
                         raise NotImplementedError
                     for pv in self.sources[0].plate_values:
-                        sources = [self.sources[0].streams[s] for s in self.sources[0].streams if pv == s]
+                        sources = [source.streams[s] for source in self.sources for s in source.streams if pv == s]
                         sink = self.sink.streams[pv]
                         self.tool.execute(sources=sources, sink=sink, interval=time_interval,
                                           alignment_stream=self.get_alignment_stream(None, None))
