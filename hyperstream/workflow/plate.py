@@ -22,6 +22,9 @@ Plate definition.
 """
 from ..utils import Printable
 
+import itertools
+from collections import deque
+
 
 class Plate(Printable):
     """
@@ -178,3 +181,125 @@ class Plate(Printable):
         :return: True if this plate is a child of the other plate
         """
         return self == other.parent
+
+    @staticmethod
+    def combine_values(parent_plate_value, plate_value):
+        """
+        Combine the plate value(s) with the parent plate value(s)
+        :param parent_plate_value: The parent plate value(s)
+        :param plate_value: The plate value(s)
+        :return: The combined plate values
+        """
+        if parent_plate_value:
+            if isinstance(plate_value[0], (str, unicode)):
+                combined_plate_value = parent_plate_value + (plate_value,)
+            elif isinstance(plate_value[0], tuple):
+                combined_plate_value = parent_plate_value + plate_value
+            else:
+                raise TypeError("Unknown plate value type")
+        else:
+            combined_plate_value = plate_value
+
+        return tuple(sorted(combined_plate_value))
+
+    @staticmethod
+    def get_overlapping_values(plates):
+        """
+        Need to find where in the tree the two plates intersect, e.g.
+
+        We are given as input plates D, E, whose positions in the tree are:
+
+        root -> A -> B -> C -> D
+        root -> A -> B -> E
+
+        The results should then be the cartesian product between C, D, E looped over A and B
+
+        If there's a shared plate in the hierarchy, we need to join on this shared plate, e.g.:
+
+        [self.plates[p].values for p in plate_ids][0] =
+          [(('house', '1'), ('location', 'hallway'), ('wearable', 'A')),
+           (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'))]
+        [self.plates[p].values for p in plate_ids][1] =
+          [(('house', '1'), ('scripted', '15')),
+           (('house', '1'), ('scripted', '13'))]
+
+        Result should be one stream for each of:
+          [(('house', '1'), ('location', 'hallway'), ('wearable', 'A'), ('scripted', '15)),
+           (('house', '1'), ('location', 'hallway'), ('wearable', 'A'), ('scripted', '13)),
+           (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'), ('scripted', '15)),
+           (('house', '1'), ('location', 'kitchen'), ('wearable', 'A'), ('scripted', '13))]
+
+        :param plates: The input plates
+        :return: The plate values
+        :type plates: list[Plate] | list[Plate]
+        """
+        if not plates:
+            return None
+
+        if len(plates) == 1:
+            return plates[0].values
+
+        if len(plates) > 2:
+            raise NotImplementedError
+
+        # First check for the simple case where one of the plates has no parent
+        # and does not share meta data with the other
+        plates_sorted = sorted(plates, key=lambda item: len(item.ancestor_plates))
+        if plates_sorted[0].is_root:
+            if plates_sorted[0].meta_data_id not in plates_sorted[1].ancestor_meta_data_ids:
+                return map(lambda x: tuple(itertools.chain(*x)), itertools.product(plates[0].values, plates[1].values))
+
+        # Get all of the ancestors zipped together, padded with None
+        ancestors = deque(itertools.izip_longest(*(p.ancestor_plates for p in plates)))
+
+        last_values = []
+        while len(ancestors) > 0:
+            current = ancestors.popleft()
+            if current[0] == current[1]:
+                # Plates are identical, take all values valid for matching parents
+                if last_values:
+                    raise NotImplementedError
+                else:
+                    last_values.extend(current[0].values)
+
+            elif current[0] is not None and current[1] is not None \
+                    and current[0].meta_data_id == current[1].meta_data_id:
+                # Not identical, but same meta data id. Take all overlapping values valid for matching parents
+                if last_values:
+                    raise NotImplementedError
+                else:
+                    raise NotImplementedError
+            else:
+                # Different plates, take cartesian product of values with matching parents.
+                # Note that one of them may be none
+                if last_values:
+                    tmp = []
+                    for v in last_values:
+                        # Get the valid ones based on v
+                        # valid = [filter(lambda x: all(xx in v for xx in x[:-1]), c.values)
+                        #          for c in current if c is not None]
+                        valid = [filter(lambda x: all(vv in x for vv in v), c.values)
+                                 for c in current if c is not None]
+
+                        # Strip out v from the valid ones
+                        stripped = [map(lambda y: tuple(itertools.chain(*(yy for yy in y if yy not in v))), val)
+                                    for val in valid]
+
+                        # Get the cartesian product. Note that this still works if one of the current is None
+                        prod = list(itertools.product(*stripped))
+
+                        # Now update the last values be the product with v put back in
+                        new_values = [v + p for p in prod]
+                        if new_values:
+                            tmp.append(new_values)
+
+                    last_values = list(itertools.chain(*tmp))
+                    if not last_values:
+                        raise ValueError("Plate value computation failed - possibly there were no shared plate values")
+                else:
+                    raise NotImplementedError
+
+        if not last_values:
+            raise ValueError("Plate value computation failed - possibly there were no shared plate values")
+
+        return last_values
