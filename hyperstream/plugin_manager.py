@@ -51,7 +51,10 @@ class Plugin(namedtuple("PluginBase", "channel_id_prefix path channel_names has_
             cls = getattr(mod, channel_name.title().replace("_", ""))
             channel_id = channel_name.split("_")[0]
             # TODO: what about up_to_timestamp?
-            channels.append(cls(channel_id, up_to_timestamp=None))
+            try:
+                channels.append(cls(channel_id, up_to_timestamp=None))
+            except TypeError:
+                channels.append(cls(channel_id))
 
         # Try to get tools
         if self.has_tools:
