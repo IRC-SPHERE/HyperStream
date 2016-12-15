@@ -22,16 +22,20 @@ from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 
 
-class Component(Tool):
+class DictArgmax(Tool):
     """
     Simple tool that picks out a component of the data dict
     """
-    def __init__(self, key):
-        super(Component, self).__init__(key=key)
-        self.key = key
+    def __init__(self):
+        super(DictArgmax, self).__init__()
 
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
         for time, data in sources[0].window(interval, force_calculation=True):
-            if self.key in data:
-                yield StreamInstance(time, data[self.key])
+            max_value = None
+            argmax = None
+            for key in data.keys():
+                if max_value is None or data[key]>max_value:
+                    max_value = data[key]
+                    argmax = key
+            yield StreamInstance(time, argmax)

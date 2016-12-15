@@ -22,20 +22,24 @@ from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 
 
-class DictArgmax(Tool):
+class ListDictMean(Tool):
     """
-    Simple tool that picks out a component of the data dict
+    Take the component-wise mean of dicts in the list
     """
     def __init__(self):
-        super(DictArgmax, self).__init__()
+        super(ListDictMean, self).__init__()
 
     @check_input_stream_count(1)
     def _execute(self, sources, alignment_stream, interval):
         for time, data in sources[0].window(interval, force_calculation=True):
-            max_value = None
-            argmax = None
-            for key in data.keys():
-                if max_value is None or data[key]>max_value:
-                    max_value = data[key]
-                    argmax = key
-            yield StreamInstance(time, argmax)
+            dict_mean = dict()
+            if len(data)==0:
+                yield StreamInstance(time, dict_mean)
+            inv_len_data = 1/float(len(data))
+            for item in data:
+                for key in item.keys():
+                    try:
+                        dict_mean[key] = dict_mean[key] + item[key]*inv_len_data
+                    except KeyError:
+                        dict_mean[key] = item[key]*inv_len_data
+            yield StreamInstance(time, dict_mean)
