@@ -23,6 +23,12 @@ from hyperstream.tool import Tool, check_input_stream_count
 import numpy as np
 from collections import Counter
 
+
+def safe_key(item):
+    k, v = item
+    return str(k).replace(".", "__dot__").replace("$", "__dollar__"), v
+
+
 class HistogramFromList(Tool):
     """
     For each document assumed to be a list of numbers, calculate the histogram
@@ -39,7 +45,7 @@ class HistogramFromList(Tool):
     def _execute(self, sources, alignment_stream, interval):
         if self.categorical:
             for t, d in sources[0].window(interval, force_calculation=True):
-                yield StreamInstance(t, dict(Counter(d).items()))
+                yield StreamInstance(t, dict(map(safe_key, Counter(d).items())))
         else:
             if self.breaks is not None:
                 breaks = self.breaks

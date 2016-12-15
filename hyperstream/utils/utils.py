@@ -245,9 +245,22 @@ class FrozenKeyDict(dict):
             if isinstance(value, dict) and isinstance(old, dict):
                 for k in value:
                     if k in old:
-                        if value[k] != old[k]:
-                            raise KeyError(
-                                "Key {} has already been set with value {}, new value {}".format(key, self[key], value))
+                        try:
+                            if value[k] != old[k]:
+                                raise KeyError(
+                                    "Key {} has already been set with value {}, new value {}"
+                                    .format(key, self[key], value))
+                        except ValueError:
+                            try:
+                                if not all(value[k] == old[k]):
+                                    raise KeyError(
+                                        "Key {} has already been set with value {}, new value {}"
+                                        .format(key, self[key], value))
+                            except ValueError as e:
+                                logging.error('Unable to compare values for key {}:'
+                                              ' old {}, new {}, error {}, overwriting'
+                                              .format(key, self[key], value, e.message))
+                                self[key][k] = value[k]
                         continue
                     self[key][k] = value[k]
             else:
