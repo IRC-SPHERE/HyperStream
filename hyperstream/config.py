@@ -31,14 +31,11 @@ from time_interval import RelativeTimeInterval
 
 
 class OnlineEngineConfig(Printable):
-    def __init__(self, interval, sleep=5, iterations=100):
+    def __init__(self, interval, sleep=5, iterations=100, alarm=None):
         self.interval = RelativeTimeInterval(**interval)
         self.sleep = sleep
         self.iterations = iterations
-
-    @property
-    def alarm(self):
-        return self.sleep * self.iterations
+        self.alarm = sleep * iterations if not alarm else alarm
 
 
 class HyperStreamConfig(Printable):
