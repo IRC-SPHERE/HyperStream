@@ -1,8 +1,12 @@
-![HyperStream logo](hyperstream.svg?raw=true)
+![HyperStream logo](https://cdn.rawgit.com/IRC-SPHERE/HyperStream/dfbac332/hyperstream.svg)
 
 # HyperStream #
 
 Software to control all of the data processing workflows (streams) for deployment and experimentation.
+
+```diff
+- NOTE: This software is in an stable but early beta, and hence the API may change significantly.
+```
 
 The system consists of the following 3 layers, from bottom up:
 
@@ -31,3 +35,25 @@ can be defined, in order to work with custom databases or file-based storage.
 Workflows define a graph of streams. Usually, the first stream will be a special "raw" stream that pulls in data from a 
 custom data source. Workflows can have multiple time ranges, which will cause the streams to be computed on all of the 
 ranges given.
+
+# Installation #
+
+```diff
+- TODO
+```
+
+# Running tests #
+
+```diff
+- TODO
+```
+
+# Running the examples #
+
+```diff
+- TODO
+```
+
+# License #
+
+This code is released under the [MIT license](https://github.com/IRC-SPHERE/Infer.NET-helpers/blob/master/LICENSE).
