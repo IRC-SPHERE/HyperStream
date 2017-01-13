@@ -1,5 +1,7 @@
 ![HyperStream logo](https://cdn.rawgit.com/IRC-SPHERE/HyperStream/dfbac332/hyperstream.svg)
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.242227.svg)](https://doi.org/10.5281/zenodo.242227)
+
 # HyperStream #
 
 Software to control all of the data processing workflows (streams) for deployment and experimentation.
