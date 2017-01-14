@@ -7,7 +7,7 @@
 Software to control all of the data processing workflows (streams) for deployment and experimentation.
 
 ```diff
-- NOTE: This software is in an stable but early beta, and hence the API may change significantly.
+- NOTE: This software is in a stable but early beta, and hence the API may change significantly.
 ```
 
 The system consists of the following 3 layers, from bottom up:
