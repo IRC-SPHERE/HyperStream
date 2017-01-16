@@ -17,7 +17,7 @@ Tools are the computation elements. They take in input data in a standard format
 hyperstream.instance.Instance objects) and output data in a standard format (list of 
 hyperstream.instance.Instance objects). Tools are version controlled. Minor version numbers should be used for updates
  that will not require recomputing streams, since the output should be identical (in expectation for stochastic 
- streams). Major version number changes will cause the stream to be recomputed.
+ streams). The output should be identical (again, in expectation for stochastic streams) regardless of whether the tool is run twice on time-ranges t1..t2 and t2..t3 or just once on the time-range t1..t3. Major version number changes will cause the stream to be recomputed.
 
 ### Tool Versions ###
 The tool versions form a major/minor/patch 3-tuple, e.g. v1.3.2. See https://pypi.python.org/pypi/semantic_version/ for details.
@@ -28,7 +28,7 @@ output or API in any way (e.g. speedups).
 # Streams #
 Streams are objects that use a particular kernel for computation, with fixed parameters and filters defined that can 
 reduce the amount of data that needs to be read from the database. The stream is physically manifested in the database 
-(mongodb) for the time ranges that it has been computed on. 
+(mongodb) for the time ranges that it has been computed on.
 
 There are special data streams, for which a custom hyperstream.interface.Input or hyperstream.interface.Output objects 
 can be defined, in order to work with custom databases or file-based storage.
