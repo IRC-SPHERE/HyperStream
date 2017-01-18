@@ -297,7 +297,9 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
 
 class HyperStreamLogger(Printable):
-    def __init__(self, path='/tmp', filename='hyperstream', loglevel=logging.DEBUG):
+    def __init__(self, path='/tmp', filename='hyperstream', loglevel=logging.DEBUG,
+                 console_logger=True,
+                 file_logger=True):
         # coloredlogs.install(level=loglevel)
         log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
         self.root_logger = logging.getLogger()
@@ -306,22 +308,24 @@ class HyperStreamLogger(Printable):
         if not self.root_logger.handlers:
             # create the handlers and call logger.addHandler(logging_handler)
 
-            if not os.path.exists(path):
-                os.makedirs(path)
+            if file_logger:
+                if not os.path.exists(path):
+                    os.makedirs(path)
 
-            if not filename.endswith('.log'):
-                filename += '.log'
-            full_name = os.path.join(path, filename)
-            touch(full_name)
+                if not filename.endswith('.log'):
+                    filename += '.log'
+                full_name = os.path.join(path, filename)
+                touch(full_name)
 
-            file_handler = logging.FileHandler(full_name)
-            file_handler.setFormatter(log_formatter)
-            self.root_logger.addHandler(file_handler)
+                file_handler = logging.FileHandler(full_name)
+                file_handler.setFormatter(log_formatter)
+                self.root_logger.addHandler(file_handler)
 
-            console_handler = logging.StreamHandler()
-            console_handler.setFormatter(log_formatter)
-            self.root_logger.addHandler(console_handler)
-            #
+            if console_logger:
+                console_handler = logging.StreamHandler()
+                console_handler.setFormatter(log_formatter)
+                self.root_logger.addHandler(console_handler)
+
             # stream_handler = logging.StreamHandler()
             # stream_handler.setFormatter(log_formatter)
             # memory_handler = logging.handlers.MemoryHandler(1024 * 10, root_logger.level, stream_handler)
