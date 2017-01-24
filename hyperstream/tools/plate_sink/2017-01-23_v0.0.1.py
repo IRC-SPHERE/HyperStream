@@ -26,8 +26,9 @@ class PlateSink(SelectorTool):
     """
     This tool inputs values on a plate and outputs nothing, can be used to propagate computations
     """
-    def __init__(self):
-        super(PlateSink, self).__init__(selector_meta_data=None)
+    def __init__(self,selector_meta_data=None):
+        assert selector_meta_data is None
+        super(PlateSink, self).__init__(selector_meta_data=selector_meta_data)
 
     def _execute(self, sources, interval):
         for source in sources:
