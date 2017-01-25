@@ -113,7 +113,8 @@ class Node(Printable):
         """
         diff = (tuple(set(self.plates) - set(other.plates)), tuple(set(other.plates) - set(self.plates)))
         counts = map(len, diff)
-        is_sub_plate = counts == [1, 1] and diff[1][0].is_sub_plate(diff[0][0])
+        # is_sub_plate = counts == [1, 1] and diff[1][0].is_sub_plate(diff[0][0])
+        is_sub_plate = counts == [1, 1] and diff[0][0].is_sub_plate(diff[1][0])  # MK fixed
         return diff, counts, is_sub_plate
 
     def print_head(self, parent_plate_value, plate_values, interval, n=10, print_func=logging.info):

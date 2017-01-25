@@ -138,7 +138,7 @@ class Factor(FactorBase):
                                           sinks=self.sink.streams.values(),
                                           interval=time_interval)
                 else:
-                    raise ValueError("Source and sink plates do not match")
+                    raise ValueError("Source and sink plates do not match within a Selector Tool")
             else:
                 # TODO: This loop over plates is probably not correct:
                 # What we probably want is to take the cartesian product of plate values

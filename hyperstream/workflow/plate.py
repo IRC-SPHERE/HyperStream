@@ -131,6 +131,8 @@ class Plate(Printable):
             return True
         if all(any(all(spv in m for spv in v) for m in map(set, other.values)) for v in self.values):
             return True
+        if other in self.ancestor_plates: # added by MK, but still not sure whether all cases are covered
+            return True
         return False
 
     def is_super_plate(self, other):
