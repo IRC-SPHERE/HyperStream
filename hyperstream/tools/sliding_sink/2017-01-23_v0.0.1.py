@@ -21,6 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+from hyperstream import TimeInterval
 from hyperstream.tool import Tool, check_input_stream_count
 
 class SlidingSink(Tool):
