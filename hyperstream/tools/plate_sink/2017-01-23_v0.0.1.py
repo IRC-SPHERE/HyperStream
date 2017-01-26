@@ -32,6 +32,6 @@ class PlateSink(SelectorTool):
 
     def _execute(self, sources, interval):
         for source in sources:
-            source.window(interval, force_calculation=True)
+            source.window(interval, force_calculation=True).first()
         return
         yield # required to make this function into a generator

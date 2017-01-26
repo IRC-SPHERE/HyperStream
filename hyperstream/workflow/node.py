@@ -115,6 +115,8 @@ class Node(Printable):
         counts = map(len, diff)
         # is_sub_plate = counts == [1, 1] and diff[1][0].is_sub_plate(diff[0][0])
         is_sub_plate = counts == [1, 1] and diff[0][0].is_sub_plate(diff[1][0])  # MK fixed
+        if len(other.plates)==1 and counts==[1,0] and diff[0][0].parent==other.plates[0].parent:
+            is_sub_plate = True
         return diff, counts, is_sub_plate
 
     def print_head(self, parent_plate_value, plate_values, interval, n=10, print_func=logging.info):

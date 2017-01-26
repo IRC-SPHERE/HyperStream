@@ -184,7 +184,18 @@ class Workflow(Printable):
                                     "Source and sink plates do not match. "
                                     "Did you intend a simplification of 2 source plates to a sink plate?")
                         else:
-                            raise IncompatiblePlatesError("Sink plate is not a simplification of source plate")
+                            if len(sink.plates)>1:
+                                raise NotImplementedError
+                            source_plates = sources[-1].plates
+                            sink_plate = sink.plates[0]
+                            if len(source_plates)!=2:
+                                raise IncompatiblePlatesError("Sink plate is not a simplification of source plate (source must be 2 plates)")
+                            plate_diff = set(source_plates).difference({sink_plate,})
+                            if len(plate_diff)!=1:
+                                raise IncompatiblePlatesError("Sink plate is not a simplification of source plate (the number of plates in the set difference of source and sink is not 1")
+                            plate_diff = list(plate_diff)[0]
+                            if plate_diff.parent!=sink_plate.parent:
+                                raise IncompatiblePlatesError("Sink plate is not a simplification of source plate (parents do not match)")
                 else:
                     # Check if the parent plate is valid instead
                     source_plate = sources[-1].plates[0]

@@ -32,12 +32,10 @@ class SlidingSink(Tool):
     @check_input_stream_count(2)
     def _execute(self, sources, alignment_stream, interval):
         sliding_window = sources[0].window(interval, force_calculation=True)
-        try:
-            t, doc = sliding_window.first()
-        except:
+        result = sliding_window.first()
+        if result is None:
             return
-        for t, doc in sources[1].window(TimeInterval(interval.start, interval.end), force_calculation=True):
-            pass
+        sources[1].window(TimeInterval(interval.start, interval.end), force_calculation=True).first()
         return
         yield # required to make this function into a generator
 

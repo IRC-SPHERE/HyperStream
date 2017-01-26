@@ -22,6 +22,7 @@ from hyperstream.stream import StreamInstance
 from hyperstream.tool import Tool, check_input_stream_count
 import numpy as np
 from collections import Counter
+import logging
 
 
 def safe_key(item):

@@ -94,8 +94,8 @@ class Factor(FactorBase):
         :param time_interval:
         :return:
         """
-        logging.info('{} running from {} to {}'.format(
-            self.tool.__class__.__name__, time_interval.start, time_interval.end))
+        logging.info('{} with sink node {} running from {} to {}'.format(
+            self.tool.__class__.__name__, self.sink.node_id, time_interval.start, time_interval.end))
 
         if self.plates:
             if isinstance(self.tool, AggregateTool):
@@ -130,6 +130,7 @@ class Factor(FactorBase):
                 # TODO: This sub-plate selection is deprecated
 
                 if (counts == [1, 1] and is_sub_plate) or \
+                    (len(self.sink.plates)==1 and counts == [1, 0] and is_sub_plate) or \
                     (next(p.is_root for p in self.sources[-1].plates)
                      and len(self.sink.plates) == 1
                      and self.sink.plates[0] in self.sources[-1].plates):
