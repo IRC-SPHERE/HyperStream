@@ -63,3 +63,8 @@ ranges given.
 # License #
 
 This code is released under the [MIT license](https://github.com/IRC-SPHERE/Infer.NET-helpers/blob/master/LICENSE).
+
+# Acknowledgements #
+
+This work has been funded by the UK Engineering and Physical Sciences Research Council (EPSRC) under Grant [EP/K031910/1](http://gow.epsrc.ac.uk/NGBOViewGrant.aspx?GrantRef=EP/K031910/1) -  "SPHERE Interdisciplinary Research Collaboration".
+
