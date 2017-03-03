@@ -4,7 +4,11 @@
 
 # HyperStream #
 
-Software to control all of the data processing workflows (streams) for deployment and experimentation.
+Hyperstream is a large-scale, flexible and robust software package for processing streaming data.
+
+Hyperstream overcomes the limitations of other computational engines and provides high-level interfaces to execute complex nesting, fusion, and prediction both in online and offline forms in streaming environments. Although developed specifically for SPHERE, Hyperstream is a general purpose tool that is well-suited for the design, development, and deployment of algorithms and predictive models in a wide space of sequential predictive problems.
+
+This software has been designed from the outset to be domain-independent, in order to provide maximum value to the wider community. Key aspects of the software include the capability to create complex interlinked workflows, and a computational engine that is designed to be "compute-on-request", meaning that no unnecessary resources are used. 
 
 ```diff
 - NOTE: This software is in a stable but early beta, and hence the API may change significantly.
@@ -59,3 +63,8 @@ ranges given.
 # License #
 
 This code is released under the [MIT license](https://github.com/IRC-SPHERE/Infer.NET-helpers/blob/master/LICENSE).
+
+# Acknowledgements #
+
+This work has been funded by the UK Engineering and Physical Sciences Research Council (EPSRC) under Grant [EP/K031910/1](http://gow.epsrc.ac.uk/NGBOViewGrant.aspx?GrantRef=EP/K031910/1) -  "SPHERE Interdisciplinary Research Collaboration".
+
