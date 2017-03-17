@@ -216,5 +216,5 @@ class AssetStream(DatabaseStream):
         """
         if len(intervals) > 1:
             raise ValueError("Only single calculated interval valid for AssetStream")
-        super(AssetStream, self).calculated_intervals.fset(intervals)
+        super(AssetStream, self.__class__).calculated_intervals.fset(self, intervals)
 
