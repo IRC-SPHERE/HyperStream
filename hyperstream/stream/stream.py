@@ -26,6 +26,8 @@ from ..models import TimeIntervalModel, StreamStatusModel, StreamDefinitionModel
 
 from collections import Iterable
 from mongoengine.context_managers import switch_db
+from mongoengine.errors import NotUniqueError
+import logging
 
 
 class Stream(Hashable):
@@ -160,7 +162,11 @@ class DatabaseStream(Stream):
     def __init__(self, channel, stream_id, calculated_intervals, sandbox):
         super(DatabaseStream, self).__init__(
             channel=channel, stream_id=stream_id, calculated_intervals=calculated_intervals, sandbox=sandbox)
-        self.save_definition()
+        try:
+            self.save_definition()
+        except NotUniqueError as e:
+            # logging.warn(e)
+            pass
 
     def save_definition(self):
         """
