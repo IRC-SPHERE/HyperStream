@@ -23,6 +23,7 @@ Assets channel module.
 from database_channel import DatabaseChannel
 from hyperstream.utils.errors import StreamAlreadyExistsError, StreamNotFoundError
 from ..stream import AssetStream, StreamInstance
+from ..utils import utcnow
 
 
 class AssetsChannel(DatabaseChannel):
@@ -45,6 +46,15 @@ class AssetsChannel(DatabaseChannel):
         """
         raise NotImplementedError
 
+    def purge_stream(self, stream_id, sandbox=None):
+        """
+        Purge the stream
+        :param stream_id: The stream identifier
+        :param sandbox: The sandbox for this stream
+        :return: None
+        """
+        super(AssetsChannel, self).purge_stream(stream_id=stream_id, sandbox=sandbox)
+
     def create_stream(self, stream_id, sandbox=None):
         """
         Create the stream
@@ -59,7 +69,8 @@ class AssetsChannel(DatabaseChannel):
         if stream_id in self.streams:
             raise StreamAlreadyExistsError("Stream with id '{}' already exists".format(stream_id))
 
-        stream = AssetStream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=sandbox)
+        stream = AssetStream(channel=self, stream_id=stream_id, calculated_intervals=None,
+                             last_accessed=utcnow(), last_updated=utcnow(), sandbox=sandbox)
         self.streams[stream_id] = stream
         return stream
 

@@ -22,11 +22,11 @@
 from ..time_interval import TimeInterval, TimeIntervals, RelativeTimeInterval, parse_time_tuple
 from ..utils import Hashable, utcnow
 from . import StreamView, StreamId
-from ..models import TimeIntervalModel, StreamStatusModel, StreamDefinitionModel
+from ..models import TimeIntervalModel, StreamDefinitionModel
 
 from collections import Iterable
 from mongoengine.context_managers import switch_db
-from mongoengine.errors import NotUniqueError
+from mongoengine.errors import NotUniqueError, DoesNotExist
 import logging
 
 
@@ -54,9 +54,9 @@ class Stream(Hashable):
         if calculated_intervals:
             if not isinstance(calculated_intervals, TimeIntervals):
                 raise TypeError(type(calculated_intervals))
-            self.calculated_intervals = calculated_intervals
+            self._calculated_intervals = calculated_intervals
         else:
-            self.calculated_intervals = TimeIntervals()
+            self._calculated_intervals = TimeIntervals()
         self.tool_reference = None  # needed to traverse the graph outside of workflows
         self.sandbox = sandbox
         self._node = None  # Back reference to node
@@ -159,35 +159,53 @@ class DatabaseStream(Stream):
     """
     Simple subclass that overrides the calculated intervals property
     """
-    def __init__(self, channel, stream_id, calculated_intervals, sandbox):
+    def __init__(self, channel, stream_id, calculated_intervals, last_accessed, last_updated, sandbox, commit=True):
         super(DatabaseStream, self).__init__(
-            channel=channel, stream_id=stream_id, calculated_intervals=calculated_intervals, sandbox=sandbox)
-        try:
-            self.save_definition()
-        except NotUniqueError as e:
-            # logging.warn(e)
-            pass
+            channel=channel,
+            stream_id=stream_id,
+            calculated_intervals=None,  # TODO: probably no point in having the actual calculated intervals here
+            sandbox=sandbox)
 
-    def save_definition(self):
+        # First try to load it from the database
+        try:
+            self.load()
+        except DoesNotExist:
+            self.mongo_model = StreamDefinitionModel(
+                stream_id=self.stream_id.as_dict(),
+                channel_id=self.channel.channel_id,
+                calculated_intervals=calculated_intervals,
+                last_accessed=last_accessed,
+                last_updated=last_updated,
+                sandbox=self.sandbox)
+            self.save()
+
+    def load(self):
         """
-        Saves the stream definition to the database. This assumes that the definition doesn't already exist, and will
-        raise an exception if it does.
+        Load the stream definition from the database
         :return: None
         """
         with switch_db(StreamDefinitionModel, 'hyperstream'):
-            stream_definition = StreamDefinitionModel(
-                stream_id=self.stream_id.as_dict(),
-                channel_id=self.channel.channel_id,
-                sandbox=self.sandbox)
-            stream_definition.save()
+            self.mongo_model = StreamDefinitionModel.objects.get(__raw__=self.stream_id.as_raw())
+
+    def save(self):
+        """
+        Saves the stream definition to the database. This assumes that the definition doesn't already exist, and will
+        raise an exception if it does.
+        :type upsert: bool
+        :return: None
+        """
+        with switch_db(StreamDefinitionModel, 'hyperstream'):
+            self.mongo_model.save()
 
     @property
     def calculated_intervals(self):
-        with switch_db(StreamStatusModel, 'hyperstream'):
-            status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
-            calculated_intervals = TimeIntervals(map(lambda x: TimeInterval(x.start, x.end),
-                                                     status.calculated_intervals))
-            return calculated_intervals
+        """
+        Gets the calculated intervals from the database
+        :return: The calculated intervals
+        """
+        logging.debug("get calculated intervals")
+        self.load()
+        return self.mongo_model.get_calculated_intervals()
 
     @calculated_intervals.setter
     def calculated_intervals(self, intervals):
@@ -196,13 +214,45 @@ class DatabaseStream(Stream):
         :param intervals: The calculated intervals
         :return: None
         """
-        with switch_db(StreamStatusModel, 'hyperstream'):
-            StreamStatusModel.objects(__raw__=self.stream_id.as_raw()).modify(
-                upsert=True,
-                set__stream_id=self.stream_id.as_dict(),
-                set__last_updated=utcnow(),
-                set__calculated_intervals=tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
-            )
+        logging.debug("set calculated intervals")
+        self.mongo_model.set_calculated_intervals(intervals)
+        self.save()
+
+    @property
+    def last_accessed(self):
+        """
+        Gets the last accessed time from the database
+        :return: The last accessed time
+        """
+        self.load()
+        return self.mongo_model.last_accessed
+
+    @last_accessed.setter
+    def last_accessed(self, dt):
+        """
+        Updates the last accessed time in the database. Performs an upsert
+        :param dt: The last accessed time
+        :return: None
+        """
+        self.mongo_model.last_accessed = dt
+
+    @property
+    def last_updated(self):
+        """
+        Gets the last updated time from the database
+        :return: The last updated time
+        """
+        self.load()
+        return self.mongo_model.last_updated
+
+    @last_updated.setter
+    def last_updated(self, dt):
+        """
+        Updates the last updated time in the database. Performs an upsert
+        :param dt: The last updated time
+        :return: None
+        """
+        self.mongo_model.last_updated = dt
 
 
 class AssetStream(DatabaseStream):
@@ -223,4 +273,3 @@ class AssetStream(DatabaseStream):
         if len(intervals) > 1:
             raise ValueError("Only single calculated interval valid for AssetStream")
         super(AssetStream, self.__class__).calculated_intervals.fset(self, intervals)
-

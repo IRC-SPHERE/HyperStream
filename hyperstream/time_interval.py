@@ -29,11 +29,23 @@ from collections import namedtuple
 import arrow
 
 
+def profile(ob):
+    """
+    Comment out this function to be able to use the line_profiler module. e.g. call:
+    kernprof -l scripts/deploy_summariser.py --loglevel=10
+    python -m line_profiler deploy_summariser.py.lprof > deploy_summariser.py.summary
+    :param ob: object
+    :return: object
+    """
+    return ob
+
+
 class TimeIntervals(Printable):
     """
     Container class for time intervals, that manages splitting and joining
     Example object: (t1,t2] U (t3,t4] U ...
     """
+    @profile
     def __init__(self, intervals=None):
         """
         Initialise the object with the given intervals.
@@ -41,7 +53,19 @@ class TimeIntervals(Printable):
 
         :param intervals: The time intervals
         """
-        self.intervals = []
+        self.intervals = self.parse(intervals)
+
+    # @profile
+    def __str__(self):
+        return " U ".join(map(str, self.intervals)) if self.intervals else "[]"
+
+    # @profile
+    def __repr__(self):
+        return "{}([{}])".format(self.__class__.__name__, ", ".join(map(repr, self.intervals)))
+
+    @profile
+    def parse(self, intervals):
+        parsed = []
         if intervals:
             for v in intervals:
                 if isinstance(v, (tuple, list)):
@@ -52,34 +76,44 @@ class TimeIntervals(Printable):
                     v = TimeInterval(v.start, v.end)
                 else:
                     raise TypeError("Expected tuple/list/TimeInterval ({} given)".format(type(v)))
-                self.intervals.append(v)
-    
-    def __str__(self):
-        return " U ".join(map(str, self.intervals)) if self.intervals else "[]"
-
-    def __repr__(self):
-        return "{}([{}])".format(self.__class__.__name__, ", ".join(map(repr, self.intervals)))
+                # try:
+                #     v = parse_time_tuple(*v)
+                # except Exception as e:
+                #     import logging
+                #     logging.debug(e)
+                #     if isinstance(v, TimeInterval):
+                #         v = TimeInterval(v.start, v.end)
+                #     else:
+                #         raise TypeError("Expected tuple/list/TimeInterval ({} given)".format(type(v)))
+                parsed.append(v)
+        return parsed
 
     @property
+    # @profile
     def is_empty(self):
         return len(self.intervals) == 0
 
     @property
+    # @profile
     def start(self):
         return min(self.intervals, key=lambda x: x.start).start if self.intervals else None
 
     @property
+    # @profile
     def end(self):
         return max(self.intervals, key=lambda x: x.end).end if self.intervals else None
 
     @property
+    # @profile
     def span(self):
         return TimeInterval(self.start, self.end) if self.intervals else None
 
     @property
+    # @profile
     def humanized(self):
         return " U ".join(map(lambda x: x.humanized, self.intervals)) if self.intervals else "Empty"
 
+    @profile
     def split(self, points):
         if len(points) == 0:
             return
@@ -91,6 +125,7 @@ class TimeIntervals(Printable):
                                  + self.intervals[(i + 1):]
         self.split(points[:-1])
 
+    # @profile
     def compress(self):
         if len(self.intervals) == 0:
             return
@@ -102,6 +137,7 @@ class TimeIntervals(Printable):
                 v.append(self.intervals[i])
         self.intervals = v
 
+    # @profile
     def __add__(self, other):
         self_points = [point for interval in self.intervals for point in (interval.start, interval.end)]
         other_points = [point for interval in other.intervals for point in (interval.start, interval.end)]
@@ -114,7 +150,8 @@ class TimeIntervals(Printable):
         other.compress()
         new.compress()
         return new
-    
+
+    @profile
     def __sub__(self, other):
         self_points = [point for interval in self.intervals for point in (interval.start, interval.end)]
         other_points = [point for interval in other.intervals for point in (interval.start, interval.end)]
@@ -128,15 +165,19 @@ class TimeIntervals(Printable):
         new.compress()
         return new
 
+    # @profile
     def __eq__(self, other):
         return isinstance(other, TimeIntervals) and all(z[0] == z[1] for z in zip(self.intervals, other.intervals))
 
+    # @profile
     def __ne__(self, other):
         return not self == other
 
+    # @profile
     def __iter__(self):
         return iter(sorted(self.intervals))
 
+    # @profile
     def __getitem__(self, key):
         if isinstance(key, slice):
             items = self.intervals[key]
@@ -145,11 +186,13 @@ class TimeIntervals(Printable):
             return TimeIntervals(items)
         return self.intervals[key]
 
+    # @profile
     def __bool__(self):
         return self.intervals is not None and len(self.intervals) > 0
 
     __nonzero__ = __bool__
 
+    # @profile
     def __len__(self):
         return len(self.intervals)
 
@@ -160,20 +203,24 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
     Thin wrapper around a (start, end) tuple of datetime objects that provides some validation
     """
     @classmethod
+    # @profile
     def all_time(cls):
         return TimeInterval(MIN_DATE, MAX_DATE)
 
     @classmethod
+    # @profile
     def up_to_now(cls):
         return TimeInterval(MIN_DATE, utcnow())
 
     @classmethod
+    # @profile
     def now_minus(cls, weeks=0, days=0, hours=0, minutes=0, seconds=0, milliseconds=0):
         delta = timedelta(weeks=weeks, days=days, hours=hours,
                           minutes=minutes, seconds=seconds, milliseconds=milliseconds, microseconds=0)
         now = utcnow()
         return TimeInterval(now - delta, now)
 
+    # @profile
     def __new__(cls, start, end):
         """
         Initialise the object with the start and end times
@@ -183,66 +230,86 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
         """
         return super(TimeInterval, cls).__new__(cls, start, end)
 
+    @profile
     def __init__(self, start, end):
         self._start = start
         self._end = end
         self._validate()
         super(TimeInterval, self).__init__()
 
+    # @profile
     def to_tuple(self):
         return self.start, self.end
-    
+
+    @profile
     def _validate(self):
-        if not isinstance(self._start, (date, datetime)):
-            raise TypeError("start should be datetime.datetime object")
-
-        if not isinstance(self._end, (date, datetime)):
-            raise TypeError("end should be datetime.datetime object")
-
         if self._start >= self._end:
             raise ValueError("start should be strictly less than end")
 
+        return
+
+        # TODO: Temporarily remove extra validation
+        #
+        # if not isinstance(self._start, (date, datetime)):
+        #     raise TypeError("start should be datetime.datetime object")
+        #
+        # if not isinstance(self._end, (date, datetime)):
+        #     raise TypeError("end should be datetime.datetime object")
+
+
     @property
+    # @profile
     def width(self):
         return self._end - self._start
 
     @property
+    # @profile
     def start(self):
         return self._start
 
     @start.setter
+    # @profile
     def start(self, value):
         self._start = value
         self._validate()
 
     @property
+    # @profile
     def end(self):
         return self._end
 
     @end.setter
+    # @profile
     def end(self, value):
         self._end = value
         self._validate()
 
     @property
+    # @profile
     def humanized(self):
         return "({0} to {1}]".format(arrow.get(self.start).humanize(), arrow.get(self.end).humanize())
 
+    # @profile
     def __str__(self):
         return "({0}, {1}]".format(self.start, self.end)
 
+    # @profile
     def __repr__(self):
         return "{}(start={}, end={})".format(self.__class__.__name__, repr(self.start), repr(self.end))
 
+    # @profile
     def __eq__(self, other):
         return isinstance(other, TimeInterval) and self.start == other.start and self.end == other.end
 
+    # @profile
     def __ne__(self, other):
         return not self == other
 
+    # @profile
     def __hash__(self):
         return hash((self.start, self.end))
 
+    # @profile
     def __contains__(self, item):
         if isinstance(item, (date, datetime)):
             return self.start < item <= self.end
@@ -250,6 +317,7 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
             return self.start < item.start and item.end <= self.end
         raise TypeError("can't compare datetime.datetime to {}".format(type(item)))
 
+    # @profile
     def __add__(self, other):
         if isinstance(other, timedelta):
             return TimeInterval(self.start + other, self.end + other)
@@ -326,6 +394,7 @@ class RelativeTimeInterval(TimeInterval):
         return TimeInterval(start=dt + self._start, end=dt + self._end)
 
 
+@profile
 def parse_time_tuple(start, end):
     """
     Parse a time tuple. These can be:

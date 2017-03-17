@@ -28,7 +28,7 @@ from mongoengine import DoesNotExist, MultipleObjectsReturned
 from mongoengine.context_managers import switch_db
 import os
 
-from models import StreamDefinitionModel, StreamStatusModel
+from models import StreamDefinitionModel
 from stream import StreamId, DatabaseStream, AssetStream
 from time_interval import TimeIntervals
 from utils import Printable, utcnow, MIN_DATE, StreamAlreadyExistsError, ChannelNotFoundError, ToolNotFoundError, \
@@ -101,51 +101,66 @@ class ChannelManager(dict, Printable):
         logging.info("Updating channels")
         with switch_db(StreamDefinitionModel, 'hyperstream'):
             for s in StreamDefinitionModel.objects():
-                logging.debug("Processing {}".format(s.stream_id))
-                stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
+                try:
+                    stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
+                except AttributeError as e:
+                    raise e
+                logging.debug("Processing {}".format(stream_id))
                 channel = self.get_channel(s.channel_id)
+                calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end), s.calculated_intervals))
+                last_accessed = utcnow()
+                last_updated = s.last_updated if s.last_updated else utcnow()
 
                 if stream_id in channel.streams:
+                    if isinstance(channel, (AssetsChannel, AssetsChannel2)):
+                        continue
                     raise StreamAlreadyExistsError(stream_id)
 
                 from channels import MemoryChannel, DatabaseChannel
                 if isinstance(channel, MemoryChannel):
                     channel.create_stream(stream_id)
                 elif isinstance(channel, DatabaseChannel):
-                    calculated_intervals = None
-                    with switch_db(StreamStatusModel, db_alias='hyperstream'):
-                        try:
-                            status = StreamStatusModel.objects.get(__raw__=stream_id.as_raw())
-                            calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end),
-                                                                     status.calculated_intervals))
-                        except DoesNotExist as e:
-                            logging.debug(e)
-                            status = StreamStatusModel(
-                                stream_id=stream_id.as_dict(),
-                                calculated_intervals=[],
-                                last_accessed=utcnow(),
-                                last_updated=utcnow())
-                            status.save()
-                        except MultipleObjectsReturned as e:
-                            raise e
+                    # calculated_intervals = None
+                    # with switch_db(StreamStatusModel, db_alias='hyperstream'):
+                    #     try:
+                    #         status = StreamStatusModel.objects.get(__raw__=stream_id.as_raw())
+                    #         calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end),
+                    #                                                  status.calculated_intervals))
+                    #     except DoesNotExist as e:
+                    #         logging.debug(e)
+                    #         status = StreamStatusModel(
+                    #             stream_id=stream_id.as_dict(),
+                    #             calculated_intervals=[],
+                    #             last_accessed=utcnow(),
+                    #             last_updated=utcnow())
+                    #         status.save()
+                    #     except MultipleObjectsReturned as e:
+                    #         raise e
 
                     if channel == self.assets:
                         stream_type = AssetStream
                     else:
                         stream_type = DatabaseStream
 
-                    logging.debug("Creating stream")
+                    # logging.debug("Creating stream")
                     channel.streams[stream_id] = stream_type(
                         channel=channel,
                         stream_id=stream_id,
                         calculated_intervals=calculated_intervals,
-                        sandbox=s.sandbox)
+                        last_accessed=last_accessed,
+                        last_updated=last_updated,
+                        sandbox=s.sandbox,
+                        commit=True
+                    )
                 else:
                     raise NotImplementedError
 
-    def populate_assets(self):
+    def populate_assets(self, tool_id):
         """
+        TODO: Unused?
         """
+        tool_stream_view = None
+
         # Look in the main tool channel first
         if tool_id in self.tools:
             tool_stream_view = self.tools[tool_id].window((MIN_DATE, self.tools.up_to_timestamp))

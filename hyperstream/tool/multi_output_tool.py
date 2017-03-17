@@ -98,16 +98,16 @@ class MultiOutputTool(BaseTool):
                     meta_data = input_plate_value + (item.meta_data,) if input_plate_value else (item.meta_data, )
                     try:
                         sink = next(s for s in sinks if set(s.stream_id.meta_data) == set(meta_data))
+                        sink.writer(item.stream_instance)
+                        produced_data = True
                     except StopIteration:
                         logging.warn("A multi-output tool has produced a value {} "
                                      "which does not belong to the output plate".format(meta_data))
                         continue
                     except TypeError:
                         logging.error("A multi-output tool has produced a value {} "
-                                     "which cannot be hashed and does not belong to the output plate".format(meta_data))
-                    sink.writer(item.stream_instance)
-                    produced_data = True
-
+                                      "which cannot be hashed and does not belong to the output plate"
+                                      .format(meta_data))
             if not produced_data:
                 logging.debug("{} did not produce any data for time interval {} on stream {}".format(
                     self.name, required_intervals, source))

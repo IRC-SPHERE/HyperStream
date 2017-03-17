@@ -30,6 +30,7 @@ from hyperstream.utils.errors import StreamAlreadyExistsError, StreamNotFoundErr
 from ..time_interval import TimeIntervals
 from ..models import StreamInstanceModel
 from ..stream import StreamInstance, DatabaseStream
+from ..utils import utcnow
 
 
 class DatabaseChannel(BaseChannel):
@@ -79,7 +80,8 @@ class DatabaseChannel(BaseChannel):
         if stream_id in self.streams:
             raise StreamAlreadyExistsError("Stream with id '{}' already exists".format(stream_id))
 
-        stream = DatabaseStream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=sandbox)
+        stream = DatabaseStream(channel=self, stream_id=stream_id, calculated_intervals=None,
+                                last_accessed=utcnow(), last_updated=utcnow(), sandbox=sandbox)
         self.streams[stream_id] = stream
         return stream
 

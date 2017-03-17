@@ -21,7 +21,7 @@
 Assets channel module.
 """
 from . import FileChannel
-from ..utils import UTC
+from ..utils import UTC, utcnow
 from ..utils.errors import StreamAlreadyExistsError, StreamNotFoundError
 from ..stream import StreamId, AssetStream, StreamInstance
 
@@ -62,9 +62,7 @@ class AssetsChannel2(FileChannel):
                 continue
 
             stream_id = StreamId(name=name)
-            logging.debug("Creating asset stream {}".format(stream_id))
-            stream = AssetStream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=None)
-            self.streams[stream_id] = stream
+            self.create_stream(stream_id, sandbox=None)
 
     def file_filter(self, sorted_file_names):
         for file_long_name in sorted_file_names:
@@ -94,10 +92,13 @@ class AssetsChannel2(FileChannel):
         if sandbox is not None:
             raise NotImplementedError
 
+        logging.debug("Creating asset stream {}".format(stream_id))
+
         if stream_id in self.streams:
             raise StreamAlreadyExistsError("Stream with id '{}' already exists".format(stream_id))
 
-        stream = AssetStream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=sandbox)
+        stream = AssetStream(channel=self, stream_id=stream_id, calculated_intervals=None,
+                             last_accessed=utcnow(), last_updated=utcnow(), sandbox=sandbox)
         self.streams[stream_id] = stream
         return stream
 
