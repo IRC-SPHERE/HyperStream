@@ -62,6 +62,7 @@ class AssetsChannel2(FileChannel):
                 continue
 
             stream_id = StreamId(name=name)
+            logging.debug("Creating asset stream {}".format(stream_id))
             stream = AssetStream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=None)
             self.streams[stream_id] = stream
 
@@ -97,7 +98,6 @@ class AssetsChannel2(FileChannel):
             raise StreamAlreadyExistsError("Stream with id '{}' already exists".format(stream_id))
 
         stream = AssetStream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=sandbox)
-        stream.save_definition()
         self.streams[stream_id] = stream
         return stream
 

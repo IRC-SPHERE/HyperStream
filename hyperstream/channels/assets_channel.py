@@ -60,7 +60,6 @@ class AssetsChannel(DatabaseChannel):
             raise StreamAlreadyExistsError("Stream with id '{}' already exists".format(stream_id))
 
         stream = AssetStream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=sandbox)
-        stream.save_definition()
         self.streams[stream_id] = stream
         return stream
 

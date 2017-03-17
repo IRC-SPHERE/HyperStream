@@ -160,6 +160,7 @@ class DatabaseStream(Stream):
     def __init__(self, channel, stream_id, calculated_intervals, sandbox):
         super(DatabaseStream, self).__init__(
             channel=channel, stream_id=stream_id, calculated_intervals=calculated_intervals, sandbox=sandbox)
+        self.save_definition()
 
     def save_definition(self):
         """
@@ -204,11 +205,7 @@ class AssetStream(DatabaseStream):
     """
     @property
     def calculated_intervals(self):
-        with switch_db(StreamStatusModel, 'hyperstream'):
-            status = StreamStatusModel.objects.get(__raw__=self.stream_id.as_raw())
-            calculated_intervals = TimeIntervals(map(lambda x: TimeInterval(x.start, x.end),
-                                                     status.calculated_intervals))
-            return calculated_intervals
+        return super(AssetStream, self).calculated_intervals
 
     @calculated_intervals.setter
     def calculated_intervals(self, intervals):
@@ -219,11 +216,5 @@ class AssetStream(DatabaseStream):
         """
         if len(intervals) > 1:
             raise ValueError("Only single calculated interval valid for AssetStream")
+        super(AssetStream, self).calculated_intervals.fset(intervals)
 
-        with switch_db(StreamStatusModel, 'hyperstream'):
-            StreamStatusModel.objects(__raw__=self.stream_id.as_raw()).modify(
-                upsert=True,
-                set__stream_id=self.stream_id.as_dict(),
-                set__last_updated=utcnow(),
-                set__calculated_intervals=tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
-            )

@@ -98,8 +98,10 @@ class ChannelManager(dict, Printable):
         """
         Pulls out all of the stream definitions from the database, and populates the channels with stream references
         """
+        logging.info("Updating channels")
         with switch_db(StreamDefinitionModel, 'hyperstream'):
             for s in StreamDefinitionModel.objects():
+                logging.debug("Processing {}".format(s.stream_id))
                 stream_id = StreamId(name=s.stream_id.name, meta_data=s.stream_id.meta_data)
                 channel = self.get_channel(s.channel_id)
 
@@ -132,6 +134,7 @@ class ChannelManager(dict, Printable):
                     else:
                         stream_type = DatabaseStream
 
+                    logging.debug("Creating stream")
                     channel.streams[stream_id] = stream_type(
                         channel=channel,
                         stream_id=stream_id,
