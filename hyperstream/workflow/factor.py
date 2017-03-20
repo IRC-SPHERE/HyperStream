@@ -370,7 +370,7 @@ class MultiOutputFactor(FactorBase):
         
         # Update computed intervals
         for sink in sinks:
-            sink.calculated_intervals += TimeIntervals([time_interval])
+            sink.calculated_intervals += time_interval
             required_intervals = TimeIntervals([time_interval]) - sink.calculated_intervals
             if not required_intervals.is_empty:
                 raise RuntimeError('Tool execution did not cover the time interval {}.'.format(required_intervals))

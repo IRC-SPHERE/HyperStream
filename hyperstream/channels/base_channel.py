@@ -58,7 +58,7 @@ class BaseChannel(Printable):
         if not required_intervals.is_empty:
             for interval in required_intervals:
                 stream.tool.execute(stream.input_streams, stream, interval)
-                stream.calculated_intervals += TimeIntervals([interval])
+                stream.calculated_intervals += interval
 
             if not stream.required_intervals.is_empty:
                 raise RuntimeError('Tool execution did not cover the specified time interval.')

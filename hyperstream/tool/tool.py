@@ -79,7 +79,7 @@ class Tool(BaseTool):
                         sources=sources, alignment_stream=alignment_stream, interval=interval):
                     sink.writer(stream_instance)
                     produced_data = True
-                sink.calculated_intervals += TimeIntervals([interval])
+                sink.calculated_intervals += interval
 
             required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
             if not required_intervals.is_empty:

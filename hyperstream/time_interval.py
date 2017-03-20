@@ -137,8 +137,24 @@ class TimeIntervals(Printable):
                 v.append(self.intervals[i])
         self.intervals = v
 
-    # @profile
+    @profile
     def __add__(self, other):
+        if isinstance(other, TimeInterval):
+            if self.is_empty:
+                return TimeIntervals([other])
+            if other.start > self.end:
+                self.intervals.append(other)
+            elif other.end < self.start:
+                self.intervals.insert(0, other)
+            else:
+                return self + TimeIntervals([other])
+
+        if self.is_empty:
+            return TimeIntervals(other.intervals)
+
+        if other.is_empty:
+            return TimeIntervals(self.intervals)
+
         self_points = [point for interval in self.intervals for point in (interval.start, interval.end)]
         other_points = [point for interval in other.intervals for point in (interval.start, interval.end)]
         self.split(other_points)
@@ -153,6 +169,9 @@ class TimeIntervals(Printable):
 
     @profile
     def __sub__(self, other):
+        if self == other:
+            return TimeIntervals([])
+
         self_points = [point for interval in self.intervals for point in (interval.start, interval.end)]
         other_points = [point for interval in other.intervals for point in (interval.start, interval.end)]
         self.split(other_points)

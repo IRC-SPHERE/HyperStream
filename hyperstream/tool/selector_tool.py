@@ -94,4 +94,4 @@ class SelectorTool(BaseTool):
                     if sink not in produced_data:
                         logging.debug("{} did not produce any data for time interval {} on sink {}".format(
                             self.name, interval, sink))
-                    sink.calculated_intervals += TimeIntervals([interval])
+                    sink.calculated_intervals += interval
