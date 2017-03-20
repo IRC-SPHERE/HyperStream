@@ -146,6 +146,10 @@ class TimeIntervals(Printable):
                 self.intervals.append(other)
             elif other.end < self.start:
                 self.intervals.insert(0, other)
+            elif other.start == self.end:
+                self.intervals[-1].end = other.end
+            elif other.end == self.start:
+                self.intervals[0].start = other.start
             else:
                 return self + TimeIntervals([other])
 
