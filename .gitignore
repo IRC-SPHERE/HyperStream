@@ -102,8 +102,8 @@ ENV/
 .ropeproject
 exportToHTML
 config.json
-docs/_static/
-docs/_templates/
+#docs/_static/
+#docs/_templates/
 output/
 .Rhistory
 docs_tmp
