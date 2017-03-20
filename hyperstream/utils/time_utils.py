@@ -20,6 +20,7 @@
 
 import pytz
 from datetime import datetime, timedelta
+import udatetime
 
 
 class UTC(pytz.UTC):
@@ -36,7 +37,7 @@ def utcnow():
     Gets the current datetime in UTC format with millisecond precision
     :return:
     """
-    now = datetime.utcnow().replace(tzinfo=UTC)
+    now = udatetime.utcnow().replace(tzinfo=UTC)
     return datetime(now.year, now.month, now.day, now.hour, now.minute, now.second, now.microsecond / 1000 * 1000, UTC)
 
 
@@ -50,7 +51,7 @@ def get_timedelta(value):
 
 
 def unix2datetime(u):
-    return datetime.fromtimestamp(u / 1000.0, tz=UTC) + timedelta(hours=0)
+    return udatetime.fromtimestamp(u / 1000.0, tz=UTC) + timedelta(hours=0)
 
 
 def duration2str(x):
@@ -66,7 +67,7 @@ def construct_experiment_id(time_interval):
     :rtype: str
     """
     # Construct id based on unix epoch timestamps
-    epoch = datetime.utcfromtimestamp(0).replace(tzinfo=UTC)
+    epoch = udatetime.utcfromtimestamp(0).replace(tzinfo=UTC)
     start = int((time_interval.start - epoch).total_seconds() * 1000.0)
     end = int((time_interval.end - epoch).total_seconds() * 1000.0)
     return "{}-{}".format(start, end)
@@ -78,6 +79,6 @@ def reconstruct_interval(experiment_id):
     :param experiment_id: The experiment id
     :return: time interval
     """
-    start, end = map(lambda x: datetime.utcfromtimestamp(x / 1000.0), map(float, experiment_id.split("-")))
+    start, end = map(lambda x: udatetime.utcfromtimestamp(x / 1000.0), map(float, experiment_id.split("-")))
     from ..time_interval import TimeInterval
     return TimeInterval(start, end)

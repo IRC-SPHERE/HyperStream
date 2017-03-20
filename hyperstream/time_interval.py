@@ -265,8 +265,6 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
         if self._start >= self._end:
             raise ValueError("start should be strictly less than end")
 
-        return
-
         # TODO: Temporarily remove extra validation
         #
         # if not isinstance(self._start, (date, datetime)):
@@ -274,7 +272,6 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
         #
         # if not isinstance(self._end, (date, datetime)):
         #     raise TypeError("end should be datetime.datetime object")
-
 
     @property
     # @profile
