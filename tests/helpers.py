@@ -21,12 +21,10 @@
 import os
 from datetime import datetime, timedelta
 
-from hyperstream import HyperStream, UTC, StreamId, TimeInterval
-from plugins.sphere.utils.sphere_helpers import PredefinedTools, scripted_experiments
-from sphere_connector_package.sphere_connector import SphereConnector
-from scripts.workflows.asset_splitter import split_sphere_assets
+from hyperstream import HyperStream, UTC, StreamId
 
-os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".."))
+# os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".."))
+os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
 
 # Various constants
 t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
@@ -39,19 +37,14 @@ zero = timedelta(0)
 
 # Hyperstream setup
 hyperstream = HyperStream()
-sphere_connector = SphereConnector(include_mongo=True, include_redcap=False)
 
 channels = hyperstream.channel_manager
 
-# Various channel_manager
+# Various channels
 M = hyperstream.channel_manager.memory
-S = hyperstream.channel_manager.sphere
 T = hyperstream.channel_manager.tools
 D = hyperstream.channel_manager.mongo
 A = hyperstream.channel_manager.assets
-
-# Some predefined tools
-tools = PredefinedTools(hyperstream)
 
 # Some useful Stream IDs
 environmental = StreamId('environmental', meta_data=(('house', '1'),))
@@ -65,11 +58,5 @@ kitchen_motion = StreamId('kitchen_motion')
 m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
 average = StreamId('average')
 count = StreamId('count')
-sphere_silhouette = StreamId('sphere_silhouette')
-sphere = StreamId('sphere')
 component = StreamId('component')
 component_filter = StreamId('component_filter')
-
-# A.purge_stream(StreamId("wearables_by_house", meta_data=(('house', '1'),)))
-# A.purge_stream(StreamId("access_points_by_house", meta_data=(('house', '1'),)))
-split_sphere_assets(hyperstream)

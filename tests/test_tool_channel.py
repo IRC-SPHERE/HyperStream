@@ -18,10 +18,10 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
+import unittest
+
 from hyperstream import Stream
 from hyperstream.utils import MIN_DATE, utcnow
-
-import unittest
 from helpers import *
 
 
@@ -31,9 +31,6 @@ class TestToolChannel(unittest.TestCase):
         clock_stream = T[clock]
         assert(isinstance(clock_stream, Stream))
         # assert(clock_stream.modifier == Last() + IData())
-
-        sphere_silhouette_stream = channels["sphere_tools"].streams[sphere_silhouette]
-        assert(sphere_silhouette_stream.channel.can_create is False)
 
         agg = T[aggregate].window((MIN_DATE, utcnow())).items()
         assert(len(agg) > 0)
