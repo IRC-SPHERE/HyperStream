@@ -174,7 +174,7 @@ class ChannelManager(dict, Printable):
                     tool_stream_view = tool_channel[tool_id].window((MIN_DATE, tool_channel.up_to_timestamp))
 
         if tool_stream_view is None:
-            raise ToolNotFoundError(tool)
+            raise ToolNotFoundError(tool_id)
 
         # TODO: Use tool versions - here we just take the latest one
         return tool_stream_view.last().value

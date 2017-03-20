@@ -24,7 +24,7 @@ Module for dealing with time intervals containing TimeInterval, TimeIntervals, a
 from utils import MIN_DATE, MAX_DATE, utcnow, UTC, Printable, get_timedelta
 
 from datetime import date, datetime, timedelta
-from dateutil.parser import parse
+import ciso8601
 from collections import namedtuple
 import arrow
 
@@ -434,7 +434,7 @@ def parse_time_tuple(start, end):
     elif isinstance(start, (date, datetime)):
         start_time = start.replace(tzinfo=UTC)
     else:
-        start_time = parse(start).replace(tzinfo=UTC)
+        start_time = ciso8601.parse_datetime(start).replace(tzinfo=UTC)
     
     if isinstance(end, int):
         # TODO: add check for future (negative values) and ensure that start < end
@@ -450,7 +450,7 @@ def parse_time_tuple(start, end):
     elif isinstance(end, datetime):
         end_time = end.replace(tzinfo=UTC)
     else:
-        end_time = parse(end).replace(tzinfo=UTC)
+        end_time = ciso8601.parse_datetime(end).replace(tzinfo=UTC)
 
     if isinstance(start_time, timedelta):
         return RelativeTimeInterval(start=start_time, end=end_time)

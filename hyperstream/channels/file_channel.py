@@ -20,12 +20,9 @@
 
 from memory_channel import ReadOnlyMemoryChannel
 from ..stream import StreamId, Stream, StreamInstance
-
-# from ..modifiers import Last, IData
 from ..utils import Printable, MIN_DATE, UTC
-from ..time_interval import TimeInterval, TimeIntervals
 
-from dateutil.parser import parse
+import ciso8601
 import os
 from semantic_version import Version
 import logging
@@ -40,7 +37,7 @@ class FileDateTimeVersion(Printable):
         self.long_filename = filename
         self.filename_no_extension, self.extension = os.path.splitext(filename)
         self.timestamp, self.version = self.filename_no_extension.split(split_char, 1)
-        self.timestamp = parse(self.timestamp).replace(tzinfo=UTC)
+        self.timestamp = ciso8601.parse_datetime(self.timestamp).replace(tzinfo=UTC)
         self.version = Version(self.version[1:])
     
     @property
