@@ -1,0 +1,492 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hyperstream.workflow.workflow_manager &#8212; HyperStream 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="HyperStream 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hyperstream.workflow.workflow_manager</h1><div class="highlight"><pre>
+<span></span><span class="c1"># The MIT License (MIT)</span>
+<span class="c1"># Copyright (c) 2014-2017 University of Bristol</span>
+<span class="c1"># </span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1"># </span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in all</span>
+<span class="c1"># copies or substantial portions of the Software.</span>
+<span class="c1"># </span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,</span>
+<span class="c1"># EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span>
+<span class="c1"># MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.</span>
+<span class="c1"># IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,</span>
+<span class="c1"># DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR</span>
+<span class="c1"># OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE</span>
+<span class="c1"># OR OTHER DEALINGS IN THE SOFTWARE.</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">copy_reg</span>
+<span class="kn">import</span> <span class="nn">marshal</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">from</span> <span class="nn">mongoengine.context_managers</span> <span class="k">import</span> <span class="n">switch_db</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Workflow</span>
+<span class="kn">from</span> <span class="nn">..time_interval</span> <span class="k">import</span> <span class="n">TimeInterval</span><span class="p">,</span> <span class="n">TimeIntervals</span>
+<span class="kn">from</span> <span class="nn">..models</span> <span class="k">import</span> <span class="n">WorkflowDefinitionModel</span><span class="p">,</span> <span class="n">FactorDefinitionModel</span><span class="p">,</span> <span class="n">NodeDefinitionModel</span><span class="p">,</span> <span class="n">ToolModel</span><span class="p">,</span> \
+    <span class="n">ToolParameterModel</span><span class="p">,</span> <span class="n">WorkflowStatusModel</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">Printable</span><span class="p">,</span> <span class="n">FrozenKeyDict</span><span class="p">,</span> <span class="n">StreamNotFoundError</span><span class="p">,</span> <span class="n">utcnow</span><span class="p">,</span> <span class="n">func_dump</span><span class="p">,</span> <span class="n">func_load</span><span class="p">,</span> \
+    <span class="n">ToolInitialisationError</span><span class="p">,</span> <span class="n">ToolNotFoundError</span><span class="p">,</span> <span class="n">IncompatibleToolError</span>
+<span class="kn">from</span> <span class="nn">..workflow</span> <span class="k">import</span> <span class="n">Factor</span><span class="p">,</span> <span class="n">NodeCreationFactor</span><span class="p">,</span> <span class="n">MultiOutputFactor</span>
+
+
+<div class="viewcode-block" id="code_unpickler"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow_manager.code_unpickler">[docs]</a><span class="k">def</span> <span class="nf">code_unpickler</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">marshal</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="code_pickler"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow_manager.code_pickler">[docs]</a><span class="k">def</span> <span class="nf">code_pickler</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">code_unpickler</span><span class="p">,</span> <span class="p">(</span><span class="n">marshal</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">code</span><span class="p">),)</span></div>
+
+
+<span class="c1"># Register the code_pickler and code_unpickler handlers for code objects. See http://effbot.org/librarybook/copy-reg.htm</span>
+<span class="n">copy_reg</span><span class="o">.</span><span class="n">pickle</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">CodeType</span><span class="p">,</span> <span class="n">code_pickler</span><span class="p">,</span> <span class="n">code_unpickler</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="WorkflowManager"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow_manager.WorkflowManager">[docs]</a><span class="k">class</span> <span class="nc">WorkflowManager</span><span class="p">(</span><span class="n">Printable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Workflow manager. Responsible for reading and writing workflows to the database, and can execute all of the</span>
+<span class="sd">    workflows</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_manager</span><span class="p">,</span> <span class="n">plate_manager</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise the workflow object</span>
+<span class="sd">        :param channel_manager: The channel manager</span>
+<span class="sd">        :param plate_manager: The plate manager</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_manager</span> <span class="o">=</span> <span class="n">channel_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plate_manager</span> <span class="o">=</span> <span class="n">plate_manager</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span> <span class="o">=</span> <span class="n">FrozenKeyDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uncommitted_workflows</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="n">switch_db</span><span class="p">(</span><span class="n">WorkflowDefinitionModel</span><span class="p">,</span> <span class="n">db_alias</span><span class="o">=</span><span class="s1">&#39;hyperstream&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">workflow_definition</span> <span class="ow">in</span> <span class="n">WorkflowDefinitionModel</span><span class="o">.</span><span class="n">objects</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">load_workflow</span><span class="p">(</span><span class="n">workflow_definition</span><span class="o">.</span><span class="n">workflow_id</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="n">StreamNotFoundError</span><span class="p">,</span> <span class="n">ToolInitialisationError</span><span class="p">,</span> <span class="n">ToolNotFoundError</span><span class="p">,</span> <span class="n">IncompatibleToolError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+<div class="viewcode-block" id="WorkflowManager.load_workflow"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow_manager.WorkflowManager.load_workflow">[docs]</a>    <span class="k">def</span> <span class="nf">load_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load workflow from the database and store in memory</span>
+<span class="sd">        :param workflow_id: The workflow id</span>
+<span class="sd">        :return: The workflow</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">switch_db</span><span class="p">(</span><span class="n">WorkflowDefinitionModel</span><span class="p">,</span> <span class="n">db_alias</span><span class="o">=</span><span class="s1">&#39;hyperstream&#39;</span><span class="p">):</span>
+            <span class="n">workflow_definition</span> <span class="o">=</span> <span class="n">WorkflowDefinitionModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">workflow_id</span><span class="o">=</span><span class="n">workflow_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">workflow_definition</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Attempted to load workflow with id </span><span class="si">{}</span><span class="s2">, but not found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workflow_id</span><span class="p">))</span>
+
+            <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span>
+                <span class="n">channels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_manager</span><span class="p">,</span>
+                <span class="n">plate_manager</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">plate_manager</span><span class="p">,</span>
+                <span class="n">workflow_id</span><span class="o">=</span><span class="n">workflow_id</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">workflow_definition</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">workflow_definition</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                <span class="n">owner</span><span class="o">=</span><span class="n">workflow_definition</span><span class="o">.</span><span class="n">owner</span><span class="p">,</span>
+                <span class="n">online</span><span class="o">=</span><span class="n">workflow_definition</span><span class="o">.</span><span class="n">online</span>
+            <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">workflow_definition</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+                <span class="n">workflow</span><span class="o">.</span><span class="n">create_node</span><span class="p">(</span>
+                    <span class="n">stream_name</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">stream_name</span><span class="p">,</span>
+                    <span class="n">channel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_manager</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">channel_id</span><span class="p">),</span>
+                    <span class="n">plate_ids</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">plate_ids</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">workflow_definition</span><span class="o">.</span><span class="n">factors</span><span class="p">:</span>
+                <span class="n">source_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">workflow</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span> <span class="k">for</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">sources</span><span class="p">]</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">sources</span> <span class="k">else</span> <span class="p">[]</span>
+                <span class="n">sink_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">workflow</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span> <span class="k">for</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">sinks</span><span class="p">]</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">sinks</span> <span class="k">else</span> <span class="p">[]</span>
+                <span class="n">alignment_node</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">alignment_node</span><span class="p">]</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">alignment_node</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">splitting_node</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">splitting_node</span><span class="p">]</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">splitting_node</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">output_plate</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">output_plate</span>
+
+                <span class="n">parameters</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">tool</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_function</span><span class="p">:</span>
+                        <span class="n">code</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">closure</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                        <span class="n">parameters</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">func_load</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">globs</span><span class="o">=</span><span class="nb">globals</span><span class="p">())</span>
+                    <span class="k">elif</span> <span class="n">p</span><span class="o">.</span><span class="n">is_set</span><span class="p">:</span>
+                        <span class="n">parameters</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">parameters</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">value</span>
+
+                <span class="n">tool</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">tool</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">factor_type</span> <span class="o">==</span> <span class="s2">&quot;Factor&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sink_nodes</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;Standard factors should have a single sink node, received </span><span class="si">{}</span><span class="s2">&quot;</span>
+                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sink_nodes</span><span class="p">)))</span>
+
+                    <span class="k">if</span> <span class="n">splitting_node</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;Standard factors do not support splitting nodes&quot;</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">output_plate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;Standard factors do not support output plates&quot;</span><span class="p">)</span>
+
+                    <span class="n">workflow</span><span class="o">.</span><span class="n">create_factor</span><span class="p">(</span>
+                        <span class="n">tool</span><span class="o">=</span><span class="n">tool</span><span class="p">,</span>
+                        <span class="n">sources</span><span class="o">=</span><span class="n">source_nodes</span><span class="p">,</span>
+                        <span class="n">sink</span><span class="o">=</span><span class="n">sink_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="n">alignment_node</span><span class="o">=</span><span class="n">alignment_node</span>
+                    <span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">f</span><span class="o">.</span><span class="n">factor_type</span> <span class="o">==</span> <span class="s2">&quot;MultiOutputFactor&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">source_nodes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;MultiOutputFactor factors should have at most one source node, received </span><span class="si">{}</span><span class="s2">&quot;</span>
+                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">source_nodes</span><span class="p">)))</span>
+
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sink_nodes</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;MultiOutputFactor factors should have a single sink node, received </span><span class="si">{}</span><span class="s2">&quot;</span>
+                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sink_nodes</span><span class="p">)))</span>
+
+                    <span class="k">if</span> <span class="n">alignment_node</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;MultiOutputFactor does not support alignment nodes&quot;</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">output_plate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;MultiOutputFactor does not support output plates&quot;</span><span class="p">)</span>
+
+                    <span class="n">workflow</span><span class="o">.</span><span class="n">create_multi_output_factor</span><span class="p">(</span>
+                        <span class="n">tool</span><span class="o">=</span><span class="n">tool</span><span class="p">,</span>
+                        <span class="n">source</span><span class="o">=</span><span class="n">source_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">source_nodes</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">splitting_node</span><span class="o">=</span><span class="n">splitting_node</span><span class="p">,</span>
+                        <span class="n">sink</span><span class="o">=</span><span class="n">sink_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">f</span><span class="o">.</span><span class="n">factor_type</span> <span class="o">==</span> <span class="s2">&quot;NodeCreationFactor&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">source_nodes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;NodeCreationFactor factors should no more than one source node, received </span><span class="si">{}</span><span class="s2">&quot;</span>
+                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">source_nodes</span><span class="p">)))</span>
+
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sink_nodes</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;NodeCreationFactor factors should not have sink nodes&quot;</span>
+                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sink_nodes</span><span class="p">)))</span>
+
+                    <span class="k">if</span> <span class="n">output_plate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;NodeCreationFactor requires an output plate definition&quot;</span><span class="p">)</span>
+
+                    <span class="n">workflow</span><span class="o">.</span><span class="n">create_node_creation_factor</span><span class="p">(</span>
+                        <span class="n">tool</span><span class="o">=</span><span class="n">tool</span><span class="p">,</span>
+                        <span class="n">source</span><span class="o">=</span><span class="n">source_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">source_nodes</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">output_plate</span><span class="o">=</span><span class="n">output_plate</span><span class="o">.</span><span class="n">to_mongo</span><span class="p">()</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
+                        <span class="n">plate_manager</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">plate_manager</span>
+                    <span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Unsupported factor type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">factor_type</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_workflow</span><span class="p">(</span><span class="n">workflow</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">workflow</span></div>
+
+<div class="viewcode-block" id="WorkflowManager.add_workflow"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow_manager.WorkflowManager.add_workflow">[docs]</a>    <span class="k">def</span> <span class="nf">add_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a new workflow and optionally commit it to the database</span>
+<span class="sd">        :param workflow: The workflow</span>
+<span class="sd">        :param commit: Whether to commit the workflow to the database</span>
+<span class="sd">        :type workflow: Workflow</span>
+<span class="sd">        :type commit: bool</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">workflow</span><span class="o">.</span><span class="n">workflow_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Workflow with id </span><span class="si">{}</span><span class="s2"> already exists&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">workflow_id</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">[</span><span class="n">workflow</span><span class="o">.</span><span class="n">workflow_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">workflow</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Added workflow </span><span class="si">{}</span><span class="s2"> to workflow manager&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">workflow_id</span><span class="p">))</span>
+
+        <span class="c1"># Optionally also save the workflow to database</span>
+        <span class="k">if</span> <span class="n">commit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">commit_workflow</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">workflow_id</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">uncommitted_workflows</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">workflow_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WorkflowManager.delete_workflow"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow_manager.WorkflowManager.delete_workflow">[docs]</a>    <span class="k">def</span> <span class="nf">delete_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete a workflow from the database</span>
+<span class="sd">        :param workflow_id:</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">switch_db</span><span class="p">(</span><span class="n">WorkflowDefinitionModel</span><span class="p">,</span> <span class="s2">&quot;hyperstream&quot;</span><span class="p">):</span>
+            <span class="n">workflows</span> <span class="o">=</span> <span class="n">WorkflowDefinitionModel</span><span class="o">.</span><span class="n">objects</span><span class="p">(</span><span class="n">workflow_id</span><span class="o">=</span><span class="n">workflow_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">workflows</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">workflows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Workflow with id </span><span class="si">{}</span><span class="s2"> does not exist&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workflow_id</span><span class="p">))</span>
+
+        <span class="k">with</span> <span class="n">switch_db</span><span class="p">(</span><span class="n">WorkflowStatusModel</span><span class="p">,</span> <span class="s2">&quot;hyperstream&quot;</span><span class="p">):</span>
+            <span class="n">workflows</span> <span class="o">=</span> <span class="n">WorkflowStatusModel</span><span class="o">.</span><span class="n">objects</span><span class="p">(</span><span class="n">workflow_id</span><span class="o">=</span><span class="n">workflow_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">workflows</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">workflows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Workflow status with id </span><span class="si">{}</span><span class="s2"> does not exist&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workflow_id</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">workflow_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">[</span><span class="n">workflow_id</span><span class="p">]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Deleted workflow with id </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workflow_id</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="WorkflowManager.commit_workflow"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow_manager.WorkflowManager.commit_workflow">[docs]</a>    <span class="k">def</span> <span class="nf">commit_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Commit the workflow to the database</span>
+<span class="sd">        :param workflow_id: The workflow id</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: We should also be committing the Stream definitions if there are new ones</span>
+
+        <span class="n">workflow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">[</span><span class="n">workflow_id</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="n">switch_db</span><span class="p">(</span><span class="n">WorkflowDefinitionModel</span><span class="p">,</span> <span class="s2">&quot;hyperstream&quot;</span><span class="p">):</span>
+            <span class="n">workflows</span> <span class="o">=</span> <span class="n">WorkflowDefinitionModel</span><span class="o">.</span><span class="n">objects</span><span class="p">(</span><span class="n">workflow_id</span><span class="o">=</span><span class="n">workflow_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">workflows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Workflow with id </span><span class="si">{}</span><span class="s2"> already exists in database&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workflow_id</span><span class="p">))</span>
+                <span class="k">return</span>
+
+            <span class="n">factors</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">workflow</span><span class="o">.</span><span class="n">factors</span><span class="p">:</span>
+                <span class="c1"># TODO: Tool version</span>
+
+                <span class="n">parameters</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">tool</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+                        <span class="k">continue</span>
+
+                    <span class="n">is_function</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="n">is_set</span> <span class="o">=</span> <span class="kc">False</span>
+
+                    <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">func_dump</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                        <span class="n">is_function</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                        <span class="n">is_set</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">v</span>
+
+                    <span class="n">parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ToolParameterModel</span><span class="p">(</span>
+                        <span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+                        <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+                        <span class="n">is_function</span><span class="o">=</span><span class="n">is_function</span><span class="p">,</span>
+                        <span class="n">is_set</span><span class="o">=</span><span class="n">is_set</span>
+                    <span class="p">))</span>
+
+                <span class="n">tool</span> <span class="o">=</span> <span class="n">ToolModel</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">tool</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;0.0.0&quot;</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Factor</span><span class="p">):</span>
+                    <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">node_id</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">sources</span><span class="p">]</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">sources</span> <span class="k">else</span> <span class="p">[]</span>
+                    <span class="n">sinks</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">node_id</span><span class="p">]</span>
+                    <span class="n">alignment_node</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">alignment_node</span><span class="o">.</span><span class="n">node_id</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">alignment_node</span> <span class="k">else</span> <span class="kc">None</span>
+                    <span class="n">splitting_node</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">output_plate</span> <span class="o">=</span> <span class="kc">None</span>
+
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">MultiOutputFactor</span><span class="p">):</span>
+                    <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">node_id</span><span class="p">]</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">source</span> <span class="k">else</span> <span class="p">[]</span>
+                    <span class="n">sinks</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">node_id</span><span class="p">]</span>
+                    <span class="n">alignment_node</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">splitting_node</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">splitting_node</span><span class="o">.</span><span class="n">node_id</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">splitting_node</span> <span class="k">else</span> <span class="kc">None</span>
+                    <span class="n">output_plate</span> <span class="o">=</span> <span class="kc">None</span>
+
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">NodeCreationFactor</span><span class="p">):</span>
+                    <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">node_id</span><span class="p">]</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">source</span> <span class="k">else</span> <span class="p">[]</span>
+                    <span class="n">sinks</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">alignment_node</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">splitting_node</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">output_plate</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">output_plate</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Unsupported factor type&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">output_plate</span><span class="p">:</span>
+                    <span class="n">output_plate_copy</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">output_plate</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="s1">&#39;parent_plate&#39;</span> <span class="ow">in</span> <span class="n">output_plate_copy</span><span class="p">:</span>
+                        <span class="k">del</span> <span class="n">output_plate_copy</span><span class="p">[</span><span class="s1">&#39;parent_plate&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">output_plate_copy</span> <span class="o">=</span> <span class="kc">None</span>
+
+                <span class="n">factor</span> <span class="o">=</span> <span class="n">FactorDefinitionModel</span><span class="p">(</span>
+                    <span class="n">tool</span><span class="o">=</span><span class="n">tool</span><span class="p">,</span>
+                    <span class="n">factor_type</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                    <span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span>
+                    <span class="n">sinks</span><span class="o">=</span><span class="n">sinks</span><span class="p">,</span>
+                    <span class="n">alignment_node</span><span class="o">=</span><span class="n">alignment_node</span><span class="p">,</span>
+                    <span class="n">splitting_node</span><span class="o">=</span><span class="n">splitting_node</span><span class="p">,</span>
+                    <span class="n">output_plate</span><span class="o">=</span><span class="n">output_plate_copy</span>
+                <span class="p">)</span>
+
+                <span class="n">factors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span>
+
+            <span class="n">nodes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">workflow</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NodeDefinitionModel</span><span class="p">(</span>
+                    <span class="n">stream_name</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">node_id</span><span class="p">,</span>
+                    <span class="n">plate_ids</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">plate_ids</span><span class="p">,</span>
+                    <span class="n">channel_id</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">_channel</span><span class="o">.</span><span class="n">channel_id</span>
+                <span class="p">))</span>
+
+            <span class="n">workflow_definition</span> <span class="o">=</span> <span class="n">WorkflowDefinitionModel</span><span class="p">(</span>
+                <span class="n">workflow_id</span><span class="o">=</span><span class="n">workflow</span><span class="o">.</span><span class="n">workflow_id</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">workflow</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">workflow</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                <span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">,</span>
+                <span class="n">factors</span><span class="o">=</span><span class="n">factors</span><span class="p">,</span>
+                <span class="n">owner</span><span class="o">=</span><span class="n">workflow</span><span class="o">.</span><span class="n">owner</span><span class="p">,</span>
+                <span class="n">online</span><span class="o">=</span><span class="n">workflow</span><span class="o">.</span><span class="n">online</span>
+            <span class="p">)</span>
+
+            <span class="n">workflow_definition</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="n">switch_db</span><span class="p">(</span><span class="n">WorkflowStatusModel</span><span class="p">,</span> <span class="n">db_alias</span><span class="o">=</span><span class="s1">&#39;hyperstream&#39;</span><span class="p">):</span>
+            <span class="n">workflow_status</span> <span class="o">=</span> <span class="n">WorkflowStatusModel</span><span class="p">(</span>
+                <span class="n">workflow_id</span><span class="o">=</span><span class="n">workflow</span><span class="o">.</span><span class="n">workflow_id</span><span class="p">,</span>
+                <span class="n">last_updated</span><span class="o">=</span><span class="n">utcnow</span><span class="p">(),</span>
+                <span class="n">last_accessed</span><span class="o">=</span><span class="n">utcnow</span><span class="p">(),</span>
+                <span class="n">requested_intervals</span><span class="o">=</span><span class="p">[]</span>
+            <span class="p">)</span>
+
+            <span class="n">workflow_status</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">uncommitted_workflows</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">workflow_id</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Committed workflow </span><span class="si">{}</span><span class="s2"> to database&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workflow_id</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="WorkflowManager.commit_all"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow_manager.WorkflowManager.commit_all">[docs]</a>    <span class="k">def</span> <span class="nf">commit_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Commit all workflows to the database</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">workflow_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">uncommitted_workflows</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">commit_workflow</span><span class="p">(</span><span class="n">workflow_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WorkflowManager.execute_all"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow_manager.WorkflowManager.execute_all">[docs]</a>    <span class="k">def</span> <span class="nf">execute_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute all workflows</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">workflow_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">[</span><span class="n">workflow_id</span><span class="p">]</span><span class="o">.</span><span class="n">online</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">interval</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">[</span><span class="n">workflow_id</span><span class="p">]</span><span class="o">.</span><span class="n">requested_intervals</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executing workflow </span><span class="si">{}</span><span class="s2"> over interval </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workflow_id</span><span class="p">,</span> <span class="n">interval</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">[</span><span class="n">workflow_id</span><span class="p">]</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span></div>
+                    <span class="c1"># self.workflows[workflow_id].requested_intervals -= interval</span>
+
+<div class="viewcode-block" id="WorkflowManager.set_requested_intervals"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow_manager.WorkflowManager.set_requested_intervals">[docs]</a>    <span class="k">def</span> <span class="nf">set_requested_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow_id</span><span class="p">,</span> <span class="n">requested_intervals</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the requested intervals for a given workflow</span>
+<span class="sd">        :param workflow_id: The workflow id</span>
+<span class="sd">        :param requested_intervals: The requested intervals</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :type requested_intervals: TimeIntervals</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">workflow_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Workflow </span><span class="si">{}</span><span class="s2"> not found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workflow_id</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">[</span><span class="n">workflow_id</span><span class="p">]</span><span class="o">.</span><span class="n">requested_intervals</span> <span class="o">=</span> <span class="n">requested_intervals</span></div>
+
+<div class="viewcode-block" id="WorkflowManager.set_all_requested_intervals"><a class="viewcode-back" href="../../../hyperstream.workflow.html#hyperstream.workflow.workflow_manager.WorkflowManager.set_all_requested_intervals">[docs]</a>    <span class="k">def</span> <span class="nf">set_all_requested_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_intervals</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the requested intervals for all workflow</span>
+<span class="sd">        :param requested_intervals: The requested intervals</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :type requested_intervals: TimeIntervals</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">workflow_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">[</span><span class="n">workflow_id</span><span class="p">]</span><span class="o">.</span><span class="n">online</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workflows</span><span class="p">[</span><span class="n">workflow_id</span><span class="p">]</span><span class="o">.</span><span class="n">requested_intervals</span> <span class="o">=</span> <span class="n">requested_intervals</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, SPHERE WP5.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

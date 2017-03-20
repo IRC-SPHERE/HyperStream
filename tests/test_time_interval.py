@@ -19,7 +19,8 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 import unittest
-from hyperstream import TimeInterval, TimeIntervals, RelativeTimeInterval
+
+from hyperstream import TimeIntervals, RelativeTimeInterval, TimeInterval
 from helpers import *
 
 

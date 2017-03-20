@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hyperstream.utils.decorators &#8212; HyperStream 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="HyperStream 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hyperstream.utils.decorators</h1><div class="highlight"><pre>
+<span></span><span class="c1"># The MIT License (MIT) # Copyright (c) 2014-2017 University of Bristol</span>
+<span class="c1">#</span>
+<span class="c1">#  Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1">#  of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1">#  in the Software without restriction, including without limitation the rights</span>
+<span class="c1">#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1">#  copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1">#  furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1">#  The above copyright notice and this permission notice shall be included in all</span>
+<span class="c1">#  copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1">#  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,</span>
+<span class="c1">#  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span>
+<span class="c1">#  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.</span>
+<span class="c1">#  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,</span>
+<span class="c1">#  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR</span>
+<span class="c1">#  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE</span>
+<span class="c1">#  OR OTHER DEALINGS IN THE SOFTWARE.</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+
+<div class="viewcode-block" id="timeit"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.utils.decorators.timeit">[docs]</a><span class="k">def</span> <span class="nf">timeit</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">timed</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+        <span class="n">te</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;func:</span><span class="si">{}</span><span class="s1"> args:[</span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">] took: </span><span class="si">{:2.4f}</span><span class="s1"> sec&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kw</span><span class="p">,</span> <span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">return</span> <span class="n">timed</span></div>
+
+
+<div class="viewcode-block" id="check_output_format"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.utils.decorators.check_output_format">[docs]</a><span class="k">def</span> <span class="nf">check_output_format</span><span class="p">(</span><span class="n">expected_formats</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator for stream outputs that checks the format of the outputs after modifiers have been applied</span>
+<span class="sd">    :param expected_formats: The expected output formats</span>
+<span class="sd">    :type expected_formats: tuple, set</span>
+<span class="sd">    :return: the decorator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">output_format_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="bp">self</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">expected_formats</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;expected output format </span><span class="si">{}</span><span class="s2">, got </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;doc_gen&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func_wrapper</span>
+    <span class="k">return</span> <span class="n">output_format_decorator</span></div>
+
+
+<div class="viewcode-block" id="check_tool_defined"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.utils.decorators.check_tool_defined">[docs]</a><span class="k">def</span> <span class="nf">check_tool_defined</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator to check whether a tool stream has been defined before execution</span>
+<span class="sd">    :return: the decorator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># Deferred import to avoid circular dependency</span>
+        <span class="kn">from</span> <span class="nn">..channels</span> <span class="k">import</span> <span class="n">ToolChannel</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">,</span> <span class="n">ToolChannel</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">defined</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Tool not yet defined&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">func_wrapper</span></div>
+
+
+<div class="viewcode-block" id="check_input_stream_count"><a class="viewcode-back" href="../../../hyperstream.utils.html#hyperstream.utils.decorators.check_input_stream_count">[docs]</a><span class="k">def</span> <span class="nf">check_input_stream_count</span><span class="p">(</span><span class="n">expected_number_of_streams</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator for Tool._execute that checks the number of input streams</span>
+
+<span class="sd">    :param expected_number_of_streams: The expected number of streams</span>
+<span class="sd">    :return: the decorator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">stream_count_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="bp">self</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">sources</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;sources&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;sources&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="k">else</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">expected_number_of_streams</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">sources</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No input streams expected&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">given_number_of_streams</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span> <span class="k">if</span> <span class="n">sources</span> <span class="k">else</span> <span class="mi">0</span>
+                <span class="k">if</span> <span class="n">given_number_of_streams</span> <span class="o">!=</span> <span class="n">expected_number_of_streams</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> tool takes </span><span class="si">{}</span><span class="s2"> stream(s) as input (</span><span class="si">{}</span><span class="s2"> given)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">expected_number_of_streams</span><span class="p">,</span> <span class="n">given_number_of_streams</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">func_wrapper</span>
+
+    <span class="k">return</span> <span class="n">stream_count_decorator</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, SPHERE WP5.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

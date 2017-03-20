@@ -181,12 +181,12 @@ class ChannelManager(dict, Printable):
 
     def get_tool_class(self, tool):
         """
-        Gets the actual class which cna then be instantiated with its parameters
+        Gets the actual class which can then be instantiated with its parameters
 
         :param tool: The tool name or id
-        :return: The tool class
         :type tool: str | unicode | StreamId
-        :rtype Tool | MultiOutputTool
+        :rtype: Tool | MultiOutputTool
+        :return: The tool class
         """
         if isinstance(tool, (str, unicode)):
             tool_id = StreamId(tool)

@@ -124,7 +124,8 @@ class Node(Printable):
         Print the first n values from the streams in the given time interval.
         The parent plate value is the value of the parent plate,
         and then the plate values are the values for the plate that are to be printed.
-         e.g. print_head()
+        e.g. print_head()
+
         :param parent_plate_value: The (fixed) parent plate value
         :param plate_values: The plate values over which to loop
         :param interval: The time interval

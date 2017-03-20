@@ -422,7 +422,8 @@ def parse_time_tuple(start, end):
       relative in timedelta,     e.g. (timedelta(seconds=-4), timedelta(0))
       absolute in date/datetime, e.g. (datetime(2016, 4, 28, 20, 0, 0, 0, UTC), datetime(2016, 4, 28, 21, 0, 0, 0, UTC))
       absolute in iso strings,   e.g. ("2016-04-28T20:00:00.000Z", "2016-04-28T20:01:00.000Z")
-    Mixtures of relative and absolute are not allowed
+      Mixtures of relative and absolute are not allowed
+
     :param start: Start time
     :param end: End time
     :type start: int | timedelta | datetime | str

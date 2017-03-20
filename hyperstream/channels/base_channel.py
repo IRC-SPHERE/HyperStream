@@ -154,14 +154,19 @@ class BaseChannel(Printable):
         """
         Must be overridden by deriving classes, must return a function(document_collection) which writes all the
         given documents of the form (timestamp,data) from document_collection to the stream
-           Example:
-           if stream_id==1:
-         def f(document_collection):
-           for (timestamp,data) in document_collection:
-             database[timestamp] = data
-             return(f)
-           else:
-             raise Exception('No stream with id '+str(stream_id))
+        Example::
+
+        .. code-block:: python
+
+            if stream_id==1:
+                def f(document_collection):
+                    for (timestamp,data) in document_collection:
+                        database[timestamp] = data
+                return(f)
+            else:
+                raise Exception('No stream with id '+str(stream_id))
+
+
         """
         raise NotImplementedError
 
