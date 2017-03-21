@@ -152,11 +152,12 @@ class TimeIntervals(Printable):
                 self.intervals[0].start = other.start
             else:
                 return self + TimeIntervals([other])
+            return self
 
         if self.is_empty:
             return TimeIntervals(other.intervals)
 
-        if isinstance(other, TimeIntervals) and other.is_empty:
+        if other.is_empty:
             return TimeIntervals(self.intervals)
 
         self_points = [point for interval in self.intervals for point in (interval.start, interval.end)]
