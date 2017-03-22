@@ -39,7 +39,7 @@ class SlidingSink(Tool):
             last_window = list(sliding_window)[-1]
         except:
             last_window = first_window
-        sources[1].window(TimeInterval(first_window.start, last_window.end), force_calculation=True).first()
+        sources[1].window(TimeInterval(first_window.timestamp.start, last_window.timestamp.end), force_calculation=True).first()
         return
         yield # required to make this function into a generator
 
