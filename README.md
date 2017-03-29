@@ -44,8 +44,13 @@ ranges given.
 
 # Installation #
 
-```diff
-- TODO
+``` Bash
+git clone git@github.com:IRC-SPHERE/HyperStream.git
+cd HyperStream
+virtuenv venv
+. venv/bin/activate
+pip install -r requirements.txt
+python -c 'from hyperstream import HyperStream'
 ```
 
 # Running tests #
