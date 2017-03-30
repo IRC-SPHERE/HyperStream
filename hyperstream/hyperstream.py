@@ -57,6 +57,25 @@ class HyperStream(object):
         self.plate_manager = PlateManager()
         self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager, plate_manager=self.plate_manager)
 
+    def __del__(self):
+        self._cleanup()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._cleanup()
+        return self
+
+    def _cleanup(self):
+        """
+        Clean-up operations
+        """
+        for handler in list(self.logger.root_logger.handlers):
+            self.logger.root_logger.removeHandler(handler)
+            handler.flush()
+            handler.close()
+
     def create_workflow(self, workflow_id, name, owner, description, online=False):
         """
         Create a new workflow. Simple wrapper for creating a workflow and adding it to the workflow manager.

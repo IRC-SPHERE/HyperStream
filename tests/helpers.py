@@ -21,33 +21,23 @@
 import os
 from datetime import datetime, timedelta
 
-from hyperstream import UTC, StreamId, HyperStream
-from hyperstream.utils.hyperstream_logger import MON
+from hyperstream import UTC, StreamId
+from subprocess import check_output
+import paho.mqtt.client as mqtt
 
 # os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".."))
 os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
 
 # Various constants
+# noinspection PyTypeChecker
 t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
+# noinspection PyTypeChecker
 t2 = datetime(2016, 4, 29, 13, 0, 0, 0, UTC)
 now = datetime(2016, 1, 1, 0, 0, 0)
 hour = timedelta(hours=1)
 minute = timedelta(minutes=1)
 second = timedelta(seconds=1)
 zero = timedelta(0)
-
-# Hyperstream setup
-# noinspection PyTypeChecker
-mqtt_logger = dict(host="127.0.0.1", port=1883, topic="topics/test", loglevel=MON, qos=1)
-hyperstream = HyperStream(file_logger=False, console_logger=False, mqtt_logger=mqtt_logger)
-
-channels = hyperstream.channel_manager
-
-# Various channels
-M = hyperstream.channel_manager.memory
-T = hyperstream.channel_manager.tools
-D = hyperstream.channel_manager.mongo
-A = hyperstream.channel_manager.assets
 
 # Some useful Stream IDs
 environmental = StreamId('environmental', meta_data=(('house', '1'),))
@@ -63,3 +53,59 @@ average = StreamId('average')
 count = StreamId('count')
 component = StreamId('component')
 component_filter = StreamId('component_filter')
+
+
+class MqttClient(object):
+    last_messages = {}
+
+    def __enter__(self):
+        self.client = mqtt.Client()
+        self.client.on_connect = self.on_connect
+        self.client.on_message = self.on_message
+
+        self.client.connect("127.0.0.1", 1883, 60)
+        # Blocking call that processes network traffic, dispatches callbacks and
+        # handles reconnecting.
+        # Other loop*() functions are available that give a threaded interface and a
+        # manual interface.
+        self.client.loop_start()
+        self.client.subscribe("topics/test")
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is not None:
+            # print exc_type, exc_value, traceback
+            return False # uncomment to pass exception through
+        self.client.loop_stop(force=True)
+        return self
+
+    # The callback for when the client receives a CONNACK response from the server.
+    def on_connect(self, client, userdata, flags, rc):
+        print("Connected with result code " + str(rc))
+
+        # Subscribing in on_connect() means that if we lose the connection and
+        # reconnect then subscriptions will be renewed.
+        client.subscribe("$SYS/#")
+
+    # The callback for when a PUBLISH message is received from the server.
+    def on_message(self, client, userdata, msg):
+        self.last_messages[msg.topic] = msg.payload
+        if msg.topic[:4] != "$SYS":
+            print(msg.topic + " " + str(msg.payload))
+
+
+# noinspection SpellCheckingInspection
+def mosquitto_is_running():
+    # If you get "No such file or directory on OS-X, brew install pidof
+    pids = check_output(["pidof", 'mosquitto'])
+    if not pids:
+        raise RuntimeError("mosquitto not running")
+
+    pids = map(int, pids.strip().split(" "))
+
+    for pid in pids:
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            return False
+    return True

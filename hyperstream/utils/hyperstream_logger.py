@@ -23,6 +23,10 @@ import logging
 import os
 import sys
 from mqtthandler import MQTTHandler
+from ordereddict import OrderedDict
+from collections import namedtuple
+import json
+from datetime import datetime
 
 from hyperstream import __version__
 from hyperstream.utils import Printable
@@ -103,8 +107,13 @@ class HyperStreamLogger(Printable):
                 else:
                     level = default_loglevel
 
+                if 'formatter' in mqtt_logger:
+                    formatter = mqtt_logger.pop('formatter')
+                else:
+                    formatter = log_formatter
+
                 mqtt_handler = MQTTHandler(**mqtt_logger)
-                mqtt_handler.setFormatter(log_formatter)
+                mqtt_handler.setFormatter(formatter)
                 mqtt_handler.setLevel(level)
                 self.root_logger.addHandler(mqtt_handler)
 
@@ -159,3 +168,30 @@ def monitor(msg, *args, **kwargs):
 
 
 logging.monitor = monitor
+
+cls = namedtuple("SenMLValue", "n v")
+
+
+class SenMLFormatter(logging.Formatter):
+    """
+    Formatter that matches the SenML format https://tools.ietf.org/html/draft-jennings-senml-10
+    """
+
+    def format(self, record):
+        """
+        The formatting function
+        :param record: The record object 
+        :return: The string representation of the record 
+        """
+
+        if not hasattr(record, 'n'):
+            record.n = 'default'
+
+        senml = OrderedDict(
+            uid="hyperstream",
+            bt=datetime.utcfromtimestamp(record.created).isoformat()[:-3] + 'Z',
+            e=[OrderedDict(n=record.n, v=record.message)]
+        )
+
+        formatted_json = json.dumps(senml)
+        return formatted_json

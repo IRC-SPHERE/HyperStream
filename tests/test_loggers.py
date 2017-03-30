@@ -21,70 +21,16 @@
 
 import unittest
 import logging
-from subprocess import check_output
-import paho.mqtt.client as mqtt
 from time import sleep
+import json
+import mqtthandler
 
+from hyperstream import HyperStream
+from hyperstream.utils.hyperstream_logger import MON, SenMLFormatter
 from helpers import *
 
 
-class MqttClient(object):
-    last_messages = {}
-
-    def __enter__(self):
-        self.client = mqtt.Client()
-        self.client.on_connect = self.on_connect
-        self.client.on_message = self.on_message
-
-        self.client.connect("127.0.0.1", 1883, 60)
-        # Blocking call that processes network traffic, dispatches callbacks and
-        # handles reconnecting.
-        # Other loop*() functions are available that give a threaded interface and a
-        # manual interface.
-        self.client.loop_start()
-        self.client.subscribe("topics/test")
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        if exc_type is not None:
-            # print exc_type, exc_value, traceback
-            return False # uncomment to pass exception through
-        self.client.loop_stop(force=True)
-        return self
-
-    # The callback for when the client receives a CONNACK response from the server.
-    def on_connect(self, client, userdata, flags, rc):
-        print("Connected with result code " + str(rc))
-
-        # Subscribing in on_connect() means that if we lose the connection and
-        # reconnect then subscriptions will be renewed.
-        client.subscribe("$SYS/#")
-
-    # The callback for when a PUBLISH message is received from the server.
-    def on_message(self, client, userdata, msg):
-        self.last_messages[msg.topic] = msg.payload
-        if msg.topic[:4] != "$SYS":
-            print(msg.topic + " " + str(msg.payload))
-
-
-# noinspection SpellCheckingInspection
-def mosquitto_is_running():
-    # If you get "No such file or directory on OS-X, brew install pidof
-    pids = check_output(["pidof", 'mosquitto'])
-    if not pids:
-        raise RuntimeError("mosquitto not running")
-
-    pids = map(int, pids.strip().split(" "))
-
-    for pid in pids:
-        try:
-            os.kill(pid, 0)
-        except OSError:
-            return False
-    return True
-
-
-# noinspection PyMethodMayBeStatic
+# noinspection PyMethodMayBeStatic,SpellCheckingInspection
 class HyperStreamLoggingTests(unittest.TestCase):
     def test_mqtt_logger(self):
         """
@@ -96,13 +42,18 @@ class HyperStreamLoggingTests(unittest.TestCase):
         
         """
         assert(mosquitto_is_running())
+        logging.raiseExceptions = True
 
-        with MqttClient() as client:
-            # client.client.publish("topics/test", "{} ABC".format(utcnow()))
-            logging.monitor("1234567890")
-            sleep(1)
-            print(client.last_messages["topics/test"])
-            assert(client.last_messages["topics/test"][24:] == '[MON  ]  1234567890')
+        # noinspection PyTypeChecker
+        mqtt_logger = dict(host="127.0.0.1", port=1883, topic="topics/test", loglevel=MON, qos=1)
+
+        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=mqtt_logger):
+            with MqttClient() as client:
+                # client.client.publish("topics/test", "{} ABC".format(utcnow()))
+                logging.monitor("1234567890")
+                sleep(1)
+                print(client.last_messages["topics/test"])
+                assert(client.last_messages["topics/test"][24:] == '[MON  ]  1234567890')
 
     def test_mqtt_logger_json(self):
         """
@@ -114,13 +65,36 @@ class HyperStreamLoggingTests(unittest.TestCase):
 
         """
         assert (mosquitto_is_running())
+        logging.raiseExceptions = True
+
+        def handleError(self, record):
+            raise
+
+        mqtthandler.MQTTHandler.handleError = handleError
+
+        # noinspection PyTypeChecker
+        mqtt_logger = dict(host="127.0.0.1", port=1883, topic="topics/test", loglevel=MON, qos=1,
+                           formatter=SenMLFormatter())
+
+        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=mqtt_logger)
 
         with MqttClient() as client:
             # client.client.publish("topics/test", "{} ABC".format(utcnow()))
+            logging.monitor("1234567890", extra=dict(n="blah"))
+            sleep(1)
+            # print(client.last_messages["topics/test"])
+            msg = json.loads(client.last_messages["topics/test"])
+            assert(msg['e'][0]['n'] == 'blah')
+            assert(msg['e'][0]['v'] == '1234567890')
+            assert(msg['uid'] == 'hyperstream')
+
             logging.monitor("1234567890")
             sleep(1)
-            print(client.last_messages["topics/test"])
-            assert (client.last_messages["topics/test"][24:] == '[MON  ]  1234567890')
+            # print(client.last_messages["topics/test"])
+            msg = json.loads(client.last_messages["topics/test"])
+            assert(msg['e'][0]['n'] == 'default')
+            assert(msg['e'][0]['v'] == '1234567890')
+            assert(msg['uid'] == 'hyperstream')
 
 
 if __name__ == "__main__":

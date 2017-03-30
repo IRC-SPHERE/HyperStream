@@ -20,13 +20,17 @@
 
 import unittest
 
-from hyperstream import Stream
+from hyperstream import HyperStream, Stream
 from hyperstream.utils import MIN_DATE, utcnow
 from helpers import *
 
 
 class TestToolChannel(unittest.TestCase):
     def test_tool_channel(self):
+
+        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
+        T = hs.channel_manager.tools
+
         # Load in the objects and print them
         clock_stream = T[clock]
         assert(isinstance(clock_stream, Stream))
@@ -34,5 +38,6 @@ class TestToolChannel(unittest.TestCase):
 
         agg = T[aggregate].window((MIN_DATE, utcnow())).items()
         assert(len(agg) > 0)
+        # noinspection PyTypeChecker
         assert(agg[0].timestamp == datetime(2016, 10, 26, 0, 0, tzinfo=UTC))
         assert(isinstance(agg[0].value, type))
