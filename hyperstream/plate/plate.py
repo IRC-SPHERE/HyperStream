@@ -20,7 +20,7 @@
 """
 Plate definition.
 """
-from ..utils import Printable
+from hyperstream.utils import Printable
 
 import itertools
 from collections import deque

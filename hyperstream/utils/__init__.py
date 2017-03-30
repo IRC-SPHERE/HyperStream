@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from utils import MetaDataTree, Hashable, Printable, TypedBiDict, FrozenKeyDict, TypedFrozenKeyDict
-from hyperstream.utils.hyperstream_logger import HyperStreamLogger
+from hyperstream_logger import HyperStreamLogger
 from time_utils import UTC, MIN_DATE, MAX_DATE, utcnow, get_timedelta, unix2datetime, construct_experiment_id, \
     duration2str, reconstruct_interval
 from decorators import timeit, check_output_format, check_tool_defined, check_input_stream_count

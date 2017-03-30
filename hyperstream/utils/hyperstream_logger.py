@@ -28,9 +28,9 @@ from collections import namedtuple
 import json
 from datetime import datetime
 
-from hyperstream import __version__
-from hyperstream.utils import Printable
-from hyperstream.utils.utils import touch, handle_exception
+from . import Printable
+from utils import touch, handle_exception
+from ..version import __version__
 
 
 class HyperStreamLogger(Printable):

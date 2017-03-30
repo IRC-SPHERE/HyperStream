@@ -18,14 +18,16 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 """
-Workflow and WorkflowManager definitions.
+Workflow and WorkflowMonitor definitions.
 """
 
 import itertools
 import logging
 from mongoengine.context_managers import switch_db
 
-from . import Factor, MultiOutputFactor, NodeCreationFactor, Plate, Node
+from ..factor import Factor, MultiOutputFactor, NodeCreationFactor
+from ..plate import Plate
+from ..node import Node
 from ..stream import StreamId
 from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
 from ..utils import Printable, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError, utcnow, \
@@ -39,7 +41,8 @@ class Workflow(Printable):
     Workflow.
     This defines the graph of operations through "nodes" and "factors".
     """
-    def __init__(self, channels, plate_manager, workflow_id, name, description, owner, online=False):
+
+    def __init__(self, channels, plate_manager, workflow_id, name, description, owner, online=False, monitor=False):
         """
         Initialise the workflow
 
@@ -50,6 +53,7 @@ class Workflow(Printable):
         :param description: A human readable description
         :param owner: The owner/author of the workflow
         :param online: Whether this workflow should be executed by the online engine
+        :param monitor: Whether to log monitoring messages for this workflow
         """
         self.channels = channels
         self.plate_manager = plate_manager
@@ -60,9 +64,10 @@ class Workflow(Printable):
         self.nodes = {}
         self.factors = []
         self.online = online
+        self.monitor = monitor
 
         logging.info("New workflow created with id {}".format(workflow_id))
-    
+
     def execute(self, time_interval):
         """
         Here we execute the factors over the streams in the workflow
@@ -73,14 +78,15 @@ class Workflow(Printable):
         """
         # TODO: What if the leaf nodes have different time intervals?
 
-        # First look for asset writers
-        for factor in self.factors[::-1]:
-            if factor.tool.name == "asset_writer":
-                factor.execute(time_interval)
+        with WorkflowMonitor(self):
+            # First look for asset writers
+            for factor in self.factors[::-1]:
+                if factor.tool.name == "asset_writer":
+                    factor.execute(time_interval)
 
-        for factor in self.factors[::-1]:
-            if factor.sink is None or factor.sink.is_leaf and factor.tool.name != "asset_writer":
-                factor.execute(time_interval)
+            for factor in self.factors[::-1]:
+                if factor.sink is None or factor.sink.is_leaf and factor.tool.name != "asset_writer":
+                    factor.execute(time_interval)
 
     def _add_node(self, node):
         self.nodes[node.node_id] = node
@@ -184,18 +190,22 @@ class Workflow(Printable):
                                     "Source and sink plates do not match. "
                                     "Did you intend a simplification of 2 source plates to a sink plate?")
                         else:
-                            if len(sink.plates)>1:
+                            if len(sink.plates) > 1:
                                 raise NotImplementedError
                             source_plates = sources[-1].plates
                             sink_plate = sink.plates[0]
-                            if len(source_plates)!=2:
-                                raise IncompatiblePlatesError("Sink plate is not a simplification of source plate (source must be 2 plates)")
-                            plate_diff = set(source_plates).difference({sink_plate,})
-                            if len(plate_diff)!=1:
-                                raise IncompatiblePlatesError("Sink plate is not a simplification of source plate (the number of plates in the set difference of source and sink is not 1")
+                            if len(source_plates) != 2:
+                                raise IncompatiblePlatesError(
+                                    "Sink plate is not a simplification of source plate (source must be 2 plates)")
+                            plate_diff = set(source_plates).difference({sink_plate, })
+                            if len(plate_diff) != 1:
+                                raise IncompatiblePlatesError(
+                                    "Sink plate is not a simplification of source plate "
+                                    "(the number of plates in the set difference of source and sink is not 1")
                             plate_diff = list(plate_diff)[0]
-                            if plate_diff.parent!=sink_plate.parent:
-                                raise IncompatiblePlatesError("Sink plate is not a simplification of source plate (parents do not match)")
+                            if plate_diff.parent != sink_plate.parent:
+                                raise IncompatiblePlatesError(
+                                    "Sink plate is not a simplification of source plate (parents do not match)")
                 else:
                     # Check if the parent plate is valid instead
                     source_plate = sources[-1].plates[0]
@@ -426,3 +436,33 @@ class Workflow(Printable):
                 map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
 
             workflow_status.save()
+
+
+# noinspection PyUnresolvedReferences
+class WorkflowMonitor(object):
+    """
+    Small helper class that provides logging output to monitor workflow progress
+    """
+
+    def __init__(self, workflow):
+        """
+        Initialise the workflow monitor
+
+        :type workflow: Workflow
+        """
+        self.monitor = workflow.monitor
+        self.name = workflow.name
+
+    def __enter__(self):
+        if self.monitor:
+            try:
+                logging.monitor(self.name, extra=dict(n="workflow_start"))
+            except AttributeError:
+                pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.monitor:
+            try:
+                logging.monitor(self.name, extra=dict(n="workflow_end"))
+            except AttributeError:
+                pass

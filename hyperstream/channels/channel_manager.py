@@ -24,16 +24,16 @@ Channel manager module. Defines the ChannelManager - a container for channels, t
 
 import inspect
 import logging
-from mongoengine import DoesNotExist, MultipleObjectsReturned
+# from mongoengine import DoesNotExist, MultipleObjectsReturned
 from mongoengine.context_managers import switch_db
 import os
 
-from models import StreamDefinitionModel
-from stream import StreamId, DatabaseStream, AssetStream
-from time_interval import TimeIntervals
-from utils import Printable, utcnow, MIN_DATE, StreamAlreadyExistsError, ChannelNotFoundError, ToolNotFoundError, \
-    ChannelAlreadyExistsError, ToolInitialisationError
-from channels import ToolChannel, MemoryChannel, DatabaseChannel, AssetsChannel, AssetsChannel2
+from hyperstream.models import StreamDefinitionModel
+from hyperstream.stream import StreamId, DatabaseStream, AssetStream
+from hyperstream.time_interval import TimeIntervals
+from hyperstream.utils import Printable, utcnow, MIN_DATE, StreamAlreadyExistsError, ChannelNotFoundError, \
+    ToolNotFoundError, ChannelAlreadyExistsError, ToolInitialisationError
+from hyperstream.channels import ToolChannel, MemoryChannel, DatabaseChannel, AssetsChannel, AssetsChannel2
 
 
 class ChannelManager(dict, Printable):
@@ -46,7 +46,7 @@ class ChannelManager(dict, Printable):
         # See this answer http://stackoverflow.com/a/14620633 for why we do the following:
         self.__dict__ = self
 
-        tool_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'tools'))
+        tool_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tools'))
 
         self.tools = ToolChannel("tools", tool_path, up_to_timestamp=utcnow())
         self.memory = MemoryChannel("memory")
@@ -116,7 +116,7 @@ class ChannelManager(dict, Printable):
                         continue
                     raise StreamAlreadyExistsError(stream_id)
 
-                from channels import MemoryChannel, DatabaseChannel
+                from . import MemoryChannel, DatabaseChannel
                 if isinstance(channel, MemoryChannel):
                     channel.create_stream(stream_id)
                 elif isinstance(channel, DatabaseChannel):

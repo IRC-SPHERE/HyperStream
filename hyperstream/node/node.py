@@ -24,11 +24,11 @@ Node module.
 Nodes are a collection of streams defined by shared meta-data keys (plates), and are connected in the
 computational graph by factors.
 """
+import logging
+
+from ..plate import Plate
 from ..stream import StreamId
 from ..utils import Printable
-from plate import Plate
-
-import logging
 
 
 class Node(Printable):

@@ -34,7 +34,7 @@ from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinit
     ToolParameterModel, WorkflowStatusModel
 from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow, func_dump, func_load, \
     ToolInitialisationError, ToolNotFoundError, IncompatibleToolError
-from ..workflow import Factor, NodeCreationFactor, MultiOutputFactor
+from ..factor import Factor, NodeCreationFactor, MultiOutputFactor
 
 
 def code_unpickler(data):
@@ -92,7 +92,8 @@ class WorkflowManager(Printable):
                 name=workflow_definition.name,
                 description=workflow_definition.description,
                 owner=workflow_definition.owner,
-                online=workflow_definition.online
+                online=workflow_definition.online,
+                monitor=workflow_definition.monitor
             )
 
             for n in workflow_definition.nodes:
@@ -344,7 +345,8 @@ class WorkflowManager(Printable):
                 nodes=nodes,
                 factors=factors,
                 owner=workflow.owner,
-                online=workflow.online
+                online=workflow.online,
+                monitor=workflow.monitor
             )
 
             workflow_definition.save()

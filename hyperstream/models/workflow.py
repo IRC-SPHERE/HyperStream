@@ -32,6 +32,7 @@ class WorkflowDefinitionModel(Document):
     factors = EmbeddedDocumentListField(document_type=FactorDefinitionModel, required=True)
     owner = StringField(required=False, min_length=1, max_length=512)
     online = BooleanField(required=True)
+    monitor = BooleanField(required=True)
 
     meta = {
         'collection': 'workflow_definitions',

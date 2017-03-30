@@ -19,13 +19,13 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from ..utils import Printable, IncompatibleToolError, IncompatiblePlatesError
-from node import Node
-from ..tool import BaseTool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
-from plate import Plate
-from ..time_interval import TimeIntervals
-
 import logging
+
+from ..node import Node
+from ..plate import Plate
+from ..time_interval import TimeIntervals
+from ..tool import BaseTool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
+from ..utils import Printable, IncompatibleToolError, IncompatiblePlatesError
 
 
 class FactorBase(Printable):

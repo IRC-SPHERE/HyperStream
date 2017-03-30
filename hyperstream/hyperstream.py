@@ -76,7 +76,7 @@ class HyperStream(object):
             handler.flush()
             handler.close()
 
-    def create_workflow(self, workflow_id, name, owner, description, online=False):
+    def create_workflow(self, workflow_id, name, owner, description, online=False, monitor=False):
         """
         Create a new workflow. Simple wrapper for creating a workflow and adding it to the workflow manager.
 
@@ -85,6 +85,7 @@ class HyperStream(object):
         :param owner: The owner/creator of the workflow
         :param description: A human readable description
         :param online: Whether this workflow should be executed by the online engine
+        :param monitor: 
         :return: The workflow
         """
         w = Workflow(
@@ -94,7 +95,8 @@ class HyperStream(object):
             name=name,
             owner=owner,
             description=description,
-            online=online
+            online=online,
+            monitor=monitor
         )
 
         self.workflow_manager.add_workflow(w)

@@ -19,14 +19,15 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from ..utils import Printable, PlateEmptyError, PlateDefinitionError
-from ..models import PlateDefinitionModel
-from plate import Plate
-from meta_data_manager import MetaDataManager
-
 import logging
-from mongoengine.context_managers import switch_db
+
 from mongoengine import DoesNotExist, MultipleObjectsReturned
+from mongoengine.context_managers import switch_db
+
+from ..meta_data import MetaDataManager
+from ..models import PlateDefinitionModel
+from ..plate import Plate
+from ..utils import Printable, PlateDefinitionError
 
 
 class PlateManager(Printable):
