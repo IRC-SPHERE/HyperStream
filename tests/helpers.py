@@ -21,7 +21,8 @@
 import os
 from datetime import datetime, timedelta
 
-from hyperstream import HyperStream, UTC, StreamId
+from hyperstream import UTC, StreamId, HyperStream
+from hyperstream.utils.hyperstream_logger import MON
 
 # os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".."))
 os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
@@ -36,7 +37,9 @@ second = timedelta(seconds=1)
 zero = timedelta(0)
 
 # Hyperstream setup
-hyperstream = HyperStream()
+# noinspection PyTypeChecker
+mqtt_logger = dict(host="127.0.0.1", port=1883, topic="topics/test", loglevel=MON, qos=1)
+hyperstream = HyperStream(file_logger=False, console_logger=False, mqtt_logger=mqtt_logger)
 
 channels = hyperstream.channel_manager
 

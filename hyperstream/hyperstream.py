@@ -22,7 +22,8 @@
 Main HyperStream class
 """
 
-from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, Client, Workflow, HyperStreamLogger
+from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, Client, Workflow
+from utils import HyperStreamLogger
 
 import logging
 
@@ -31,13 +32,23 @@ class HyperStream(object):
     """
     HyperStream class: can be instantiated simply with hyperstream = HyperStream() for default operation
     """
-    def __init__(self, loglevel=logging.DEBUG, file_logger=True, console_logger=True):
+    def __init__(self, loglevel=logging.DEBUG, file_logger=True, console_logger=True, mqtt_logger=None):
         """
         Initialise the HyperStream class. This starts the logger, loads the config files, connects to the main mongodb,
         and initialises the managers (channels, plates, workflows).
+        
+        :type console_logger: bool | dict | None
+        :type file_logger: bool | dict | None
+        :type mqtt_logger: dict | None
+        :param loglevel: The default logging level 
+        :param file_logger: Whether to use a file logger. Either specify "True" in which case defaults are used, 
+        otherwise a dict optionally containing path, filename, loglevel
+        :param console_logger: The console logger. Either specify "True" in which case defaults are used, 
+        otherwise a dict optionally containing loglevel
+        :param mqtt_logger: Dict containing mqtt server, topic, and optionally loglevel
         """
-        self.logger = HyperStreamLogger(path='/tmp', filename='hyperstream', loglevel=loglevel,
-                                        file_logger=file_logger, console_logger=console_logger)
+        self.logger = HyperStreamLogger(
+            default_loglevel=loglevel, file_logger=file_logger, console_logger=console_logger, mqtt_logger=mqtt_logger)
         self.config = HyperStreamConfig()
         self.client = Client(self.config.mongo)
 

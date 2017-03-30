@@ -21,7 +21,7 @@
 from version import __version__
 from utils import MIN_DATE, UTC, StreamNotAvailableError, StreamAlreadyExistsError, StreamDataNotAvailableError, \
     StreamNotFoundError, IncompatiblePlatesError, ToolNotFoundError, ChannelNotFoundError, ToolExecutionError, \
-    HyperStreamLogger, ChannelAlreadyExistsError, FactorAlreadyExistsError, FactorDefinitionError, LinkageError, \
+    ChannelAlreadyExistsError, FactorAlreadyExistsError, FactorDefinitionError, LinkageError, \
     NodeAlreadyExistsError, PlateDefinitionError, PlateEmptyError
 from channel_manager import ChannelManager
 from config import HyperStreamConfig
@@ -32,4 +32,4 @@ from stream import StreamId, Stream, StreamInstance, StreamMetaInstance, Databas
     StreamInstanceCollection, StreamView
 from time_interval import TimeInterval, TimeIntervals, RelativeTimeInterval
 from online_engine import OnlineEngine
-from hyperstream import HyperStream
+from hyperstream import HyperStream, HyperStreamLogger

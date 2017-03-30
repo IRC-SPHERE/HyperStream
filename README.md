@@ -55,9 +55,26 @@ python -c 'from hyperstream import HyperStream'
 
 # Running tests #
 
-```diff
-- TODO
+Run the following command
 ```
+nosetests
+```
+
+Note that for the MQTT logging test to succeed, you will need to have an MQTT broker running (e.g. Mosquitto). For example:
+
+```
+docker run -ti -p 1883:1883 -p 9001:9001 toke/mosquitto
+```
+
+or on OSX you will need pidof and mosquitto:
+
+```
+brew install pidof
+brew install mosquitto
+brew services start mosquitto
+```
+
+
 
 # Running the examples #
 

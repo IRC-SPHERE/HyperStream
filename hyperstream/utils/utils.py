@@ -21,18 +21,18 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
-from future.utils import python_2_unicode_compatible
-# import pprint
-from treelib.tree import Tree, NodePropertyAbsentError, NodeIDAbsentError
-import simplejson as json
-from bidict import bidict, ValueDuplicationError
+
 import logging
 import os
 import sys
-from datetime import datetime
-# import coloredlogs
 
-from .. import __version__
+import simplejson as json
+from bidict import bidict, ValueDuplicationError
+from future.utils import python_2_unicode_compatible
+# import pprint
+from treelib.tree import Tree, NodePropertyAbsentError, NodeIDAbsentError
+
+# import coloredlogs
 
 # The next two lines are to fix the "UnicodeDecodeError: 'ascii' codec can't decode byte" error
 #  http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
@@ -252,6 +252,7 @@ class FrozenKeyDict(dict):
                                     .format(key, self[key], value))
                         except ValueError:
                             try:
+                                # TODO: possible bug below - using all() on bool?
                                 if not all(value[k] == old[k]):
                                     raise KeyError(
                                         "Key {} has already been set with value {}, new value {}"
@@ -296,49 +297,3 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
-class HyperStreamLogger(Printable):
-    def __init__(self, path='/tmp', filename='hyperstream', loglevel=logging.DEBUG,
-                 console_logger=True,
-                 file_logger=True):
-        # coloredlogs.install(level=loglevel)
-        log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
-        self.root_logger = logging.getLogger()
-        self.root_logger.setLevel(loglevel)
-
-        if not self.root_logger.handlers:
-            # create the handlers and call logger.addHandler(logging_handler)
-
-            if file_logger:
-                if not os.path.exists(path):
-                    os.makedirs(path)
-
-                if not filename.endswith('.log'):
-                    filename += '.log'
-                full_name = os.path.join(path, filename)
-                touch(full_name)
-
-                file_handler = logging.FileHandler(full_name)
-                file_handler.setFormatter(log_formatter)
-                self.root_logger.addHandler(file_handler)
-
-            if console_logger:
-                console_handler = logging.StreamHandler()
-                console_handler.setFormatter(log_formatter)
-                self.root_logger.addHandler(console_handler)
-
-            # stream_handler = logging.StreamHandler()
-            # stream_handler.setFormatter(log_formatter)
-            # memory_handler = logging.handlers.MemoryHandler(1024 * 10, root_logger.level, stream_handler)
-            # root_logger.addHandler(memory_handler)
-
-            # Capture warnings
-            logging.captureWarnings(True)
-
-            # Capture uncaught exceptions
-            sys.excepthook = handle_exception
-
-            # logging.config.dictConfig(LOGGING)
-            logging.info("HyperStream version: " + __version__)
-
-    def setLevel(self, loglevel):
-        self.root_logger.setLevel(loglevel)
