@@ -1,12 +1,12 @@
 ![HyperStream logo](https://cdn.rawgit.com/IRC-SPHERE/HyperStream/dfbac332/hyperstream.svg)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.242227.svg)](https://doi.org/10.5281/zenodo.242227)
 
-[![Build Status](https://travis-ci.org/IRC-SPHERE/HyperStream.svg?branch=master)](https://travis-ci.org/IRC-SPHERE/HyperStream)
 
 # HyperStream #
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.242227.svg)](https://doi.org/10.5281/zenodo.242227)
 [![Join the chat at https://gitter.im/IRC-SPHERE-HyperStream/Lobby](https://badges.gitter.im/IRC-SPHERE-HyperStream/Lobby.svg)](https://gitter.im/IRC-SPHERE-HyperStream/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/IRC-SPHERE/HyperStream.svg?branch=master)](https://travis-ci.org/IRC-SPHERE/HyperStream)
 
 Hyperstream is a large-scale, flexible and robust software package for processing streaming data.
 
