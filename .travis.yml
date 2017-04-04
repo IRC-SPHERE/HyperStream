@@ -4,5 +4,13 @@ python:
   - "3.6"
 # command to install dependencies
 install: "pip install -r requirements.txt"
+
+addons:
+  apt:
+    packages:
+    - mosquitto
+
+before_script: mosquitto
+
 # command to run tests
 script: nosetests
