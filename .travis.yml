@@ -5,19 +5,22 @@ python:
 # command to install dependencies
 install: "pip install -r requirements.txt"
 
-#sudo: required
+sudo: required
 
-addons:
-  apt:
-    packages:
-    - mosquitto
+#addons:
+#  apt:
+#    packages:
+#    - mosquitto
 
 services:
   - mongodb
-  - mosquitto
+  - docker
+#  - mosquitto
 #  - rabbitmq
 
 #before_script: mosquitto
+
+before_script: docker run -ti -p 1883:1883 -p 9001:9001 toke/mosquitto
 
 # command to run tests
 script: nosetests
