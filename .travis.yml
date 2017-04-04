@@ -20,7 +20,7 @@ services:
 
 #before_script: mosquitto
 
-before_script: docker run -ti -p 1883:1883 -p 9001:9001 toke/mosquitto
+before_script: docker run -dti -p 1883:1883 -p 9001:9001 toke/mosquitto
 
 # command to run tests
 script: nosetests
