@@ -10,7 +10,5 @@ addons:
     packages:
     - mosquitto
 
-before_script: mosquitto
-
 # command to run tests
 script: nosetests
