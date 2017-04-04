@@ -7,11 +7,14 @@ install: "pip install -r requirements.txt"
 
 services:
   - mongodb
+  - activemq
 
-addons:
-  apt:
-    packages:
-    - mosquitto
+#addons:
+#  apt:
+#    packages:
+#    - mosquitto
+#
+#before_script: mosquitto
 
 # command to run tests
 script: nosetests
