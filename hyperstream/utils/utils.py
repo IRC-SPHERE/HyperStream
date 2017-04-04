@@ -26,7 +26,7 @@ import logging
 import os
 import sys
 
-import simplejson as json
+import json
 from bidict import bidict, ValueDuplicationError
 from future.utils import python_2_unicode_compatible
 # import pprint

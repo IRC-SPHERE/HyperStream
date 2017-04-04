@@ -23,8 +23,7 @@ import logging
 import os
 import sys
 from mqtthandler import MQTTHandler
-from ordereddict import OrderedDict
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 import json
 from datetime import datetime
 

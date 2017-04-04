@@ -22,7 +22,7 @@ HyperStream configuration module.
 """
 
 import logging
-import simplejson as json
+import json
 import os
 
 from utils import Printable
