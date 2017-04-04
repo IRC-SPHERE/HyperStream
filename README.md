@@ -6,6 +6,8 @@
 
 # HyperStream #
 
+[![Join the chat at https://gitter.im/IRC-SPHERE-HyperStream/Lobby](https://badges.gitter.im/IRC-SPHERE-HyperStream/Lobby.svg)](https://gitter.im/IRC-SPHERE-HyperStream/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Hyperstream is a large-scale, flexible and robust software package for processing streaming data.
 
 Hyperstream overcomes the limitations of other computational engines and provides high-level interfaces to execute complex nesting, fusion, and prediction both in online and offline forms in streaming environments. Although developed specifically for SPHERE, Hyperstream is a general purpose tool that is well-suited for the design, development, and deployment of algorithms and predictive models in a wide space of sequential predictive problems.
