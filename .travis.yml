@@ -27,4 +27,4 @@ script:
   - nosetests
 
 after_sucess:
-  - CODECLIMATE_REPO_TOKEN=<token> codeclimate-test-reporter
+  - CODECLIMATE_REPO_TOKEN=0094217581eeecc7f1622c352d98eb0fc75629de codeclimate-test-reporter
