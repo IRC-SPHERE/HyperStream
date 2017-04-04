@@ -7,7 +7,11 @@ install: "pip install -r requirements.txt"
 
 services:
   - mongodb
-  - rabbitmq
+
+addons:
+  apt:
+    packages:
+    - mosquitto
 
 # command to run tests
 script: nosetests
