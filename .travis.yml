@@ -24,7 +24,7 @@ before_script: docker run -dti -p 1883:1883 -p 9001:9001 toke/mosquitto
 
 # command to run tests
 script:
-  - nosetests
+  - nosetests --with-coverage
 
 after_sucess:
   - CODECLIMATE_REPO_TOKEN=0094217581eeecc7f1622c352d98eb0fc75629de codeclimate-test-reporter
