@@ -41,7 +41,7 @@ class HyperStreamLoggingTests(unittest.TestCase):
         $ brew services start mosquitto
         
         """
-        # assert(mosquitto_is_running())
+        assert(mosquitto_is_running())
         logging.raiseExceptions = True
 
         # noinspection PyTypeChecker
@@ -64,7 +64,7 @@ class HyperStreamLoggingTests(unittest.TestCase):
         $ brew services start mosquitto
 
         """
-        # assert (mosquitto_is_running())
+        assert (mosquitto_is_running())
         logging.raiseExceptions = True
 
         def handleError(self, record):
