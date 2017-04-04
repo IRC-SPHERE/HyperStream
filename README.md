@@ -7,6 +7,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.242227.svg)](https://doi.org/10.5281/zenodo.242227)
 [![Join the chat at https://gitter.im/IRC-SPHERE-HyperStream/Lobby](https://badges.gitter.im/IRC-SPHERE-HyperStream/Lobby.svg)](https://gitter.im/IRC-SPHERE-HyperStream/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/IRC-SPHERE/HyperStream.svg?branch=master)](https://travis-ci.org/IRC-SPHERE/HyperStream)
+[![Dependency Status](https://www.versioneye.com/user/projects/58e423cb26a5bb005220301e/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/58e423cb26a5bb005220301e)
 
 Hyperstream is a large-scale, flexible and robust software package for processing streaming data.
 
@@ -20,7 +21,7 @@ This software has been designed from the outset to be domain-independent, in ord
 
 The system consists of the following 3 layers, from bottom up:
 
-# Tools #
+## Tools ##
 Tools are the computation elements. They take in input data in a standard format (dict of list of 
 hyperstream.instance.Instance objects) and output data in a standard format (list of 
 hyperstream.instance.Instance objects). Tools are version controlled. Minor version numbers should be used for updates
@@ -33,7 +34,7 @@ In our setting the major version number is treated as a binary flag: 0 for devel
 numbers indicate changes that affect the output, or in the API. The patch number indicates changes that do not affect the 
 output or API in any way (e.g. speedups).
 
-# Streams #
+## Streams ##
 Streams are objects that use a particular kernel for computation, with fixed parameters and filters defined that can 
 reduce the amount of data that needs to be read from the database. The stream is physically manifested in the database 
 (mongodb) for the time ranges that it has been computed on.
@@ -41,7 +42,7 @@ reduce the amount of data that needs to be read from the database. The stream is
 There are special data streams, for which a custom hyperstream.interface.Input or hyperstream.interface.Output objects 
 can be defined, in order to work with custom databases or file-based storage.
 
-# Workflows #
+## Workflows ##
 Workflows define a graph of streams. Usually, the first stream will be a special "raw" stream that pulls in data from a 
 custom data source. Workflows can have multiple time ranges, which will cause the streams to be computed on all of the 
 ranges given.
