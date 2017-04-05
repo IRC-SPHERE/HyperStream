@@ -29,3 +29,4 @@ ratings:
 exclude_paths:
 - tests/
 - docs/
+- docs_src/
