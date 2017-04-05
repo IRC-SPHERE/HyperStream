@@ -1,31 +1,35 @@
 ---
 engines:
-  csslint:
-    enabled: true
+#  csslint:
+#    enabled: true
   duplication:
     enabled: true
     config:
       languages:
-      - ruby
-      - javascript
+#      - ruby
+#      - javascript
       - python
-      - php
+#      - php
   eslint:
     enabled: true
   fixme:
     enabled: true
   radon:
     enabled: true
+    config:
+      python_version: 2
+  pep8:
+    enabled: true
 ratings:
   paths:
-  - "**.css"
-  - "**.inc"
-  - "**.js"
-  - "**.jsx"
-  - "**.module"
-  - "**.php"
+#  - "**.css"
+#  - "**.inc"
+#  - "**.js"
+#  - "**.jsx"
+#  - "**.module"
+#  - "**.php"
   - "**.py"
-  - "**.rb"
+#  - "**.rb"
 exclude_paths:
 - tests/
 - docs/

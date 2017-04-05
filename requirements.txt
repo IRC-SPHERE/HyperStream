@@ -1,6 +1,7 @@
 arrow==0.10.0
 bidict==0.13.1
 ciso8601==1.0.3
+codeclimate-test-reporter==0.2.1
 coverage==4.3.4
 fasteners==0.14.1
 future==0.16.0
