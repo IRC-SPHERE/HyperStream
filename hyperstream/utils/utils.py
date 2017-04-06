@@ -29,14 +29,13 @@ import sys
 import json
 from bidict import bidict, ValueDuplicationError
 from future.utils import python_2_unicode_compatible
-# import pprint
 from treelib.tree import Tree, NodePropertyAbsentError, NodeIDAbsentError
 
-# import coloredlogs
 
 # The next two lines are to fix the "UnicodeDecodeError: 'ascii' codec can't decode byte" error
 #  http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
 reload(sys)
+# noinspection PyUnresolvedReferences
 sys.setdefaultencoding('utf8')
 
 
@@ -60,6 +59,7 @@ class MetaDataTree(Tree):
     def tree_depth(self):
         return max(self.depth(n) for n in self.nodes)
 
+    # noinspection PyPep8Naming,SpellCheckingInspection
     def _Tree__print_backend(self, nid=None, level=ROOT, idhidden=True, queue_filter=None,
                              key=None, reverse=False, line_type='ascii-ex',
                              data_property=None, func=print, iflast=None):
@@ -286,6 +286,14 @@ class TypedFrozenKeyDict(FrozenKeyDict):
 
 
 def touch(full_name, times=None):
+    """
+    Touch the file
+    
+    :type full_name: str | unicode
+    :type times: tuple | None
+    :param full_name: The full file path
+    :param times: Tuple of (atime, mtime) access and modified time of the file
+    """
     with open(full_name, 'a'):
         os.utime(full_name, times)
 
@@ -295,5 +303,3 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
     logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-
-
