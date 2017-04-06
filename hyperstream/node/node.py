@@ -124,7 +124,7 @@ class Node(Printable):
         Print the first n values from the streams in the given time interval.
         The parent plate value is the value of the parent plate,
         and then the plate values are the values for the plate that are to be printed.
-        e.g. print_head()
+        e.g. print_head(None, ("house", "1"))
 
         :param parent_plate_value: The (fixed) parent plate value
         :param plate_values: The plate values over which to loop
@@ -133,8 +133,6 @@ class Node(Printable):
         :param print_func: The function used for printing (e.g. logging.info() or print())
         :return: None
         """
-        # Deferred import to avoid circular dependence
-        from . import Plate
         if isinstance(plate_values, Plate):
             self.print_head(parent_plate_value, plate_values.values, interval, n, print_func)
             return

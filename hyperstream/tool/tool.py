@@ -67,7 +67,7 @@ class Tool(BaseTool):
         # logging.info(self.message(interval))
 
         if interval.end > sink.channel.up_to_timestamp:
-            raise StreamNotAvailableError(self.up_to_timestamp)
+            raise StreamNotAvailableError(sink.channel.up_to_timestamp)
 
         required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
 
