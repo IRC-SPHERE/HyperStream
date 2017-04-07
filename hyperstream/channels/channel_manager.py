@@ -153,7 +153,8 @@ class ChannelManager(dict, Printable):
                         commit=True
                     )
                 else:
-                    raise NotImplementedError
+                    logging.warn("Unable to parse stream {}".format(stream_id))
+                    # raise NotImplementedError
 
     def populate_assets(self, tool_id):
         """
