@@ -81,9 +81,31 @@ class AssetsChannel2(FileChannel):
         data = json.load(open(filename))
         return data
 
+    def get_stream_writer(self, stream):
+        def writer(document_collection):
+            if stream.stream_id not in self:
+                raise RuntimeError("Data slot does not exist for {}, perhaps create_stream was not used?"
+                                   .format(stream))
+            if isinstance(document_collection, StreamInstance):
+                document_collection = [document_collection]
+
+            for t, doc in document_collection:
+                t_str = t.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+                filename = os.path.join(self.path, stream.stream_id.name, t_str + ".json")
+
+                try:
+                    with open(filename, 'w') as f:
+                        json.dump(doc, f, indent=4, separators=(',', ': '), sort_keys=True)
+                except IOError as e:
+                    # Something wrong with writing the document - log the error
+                    logging.error(e)
+
+        return writer
+
     def create_stream(self, stream_id, sandbox=None):
         """
         Create the stream
+        
         :param stream_id: The stream identifier
         :param sandbox: The sandbox for this stream
         :return: None
@@ -104,7 +126,8 @@ class AssetsChannel2(FileChannel):
 
     def write_to_stream(self, stream_id, data, sandbox=None):
         """
-        Create the stream
+        Write an instance to the stream
+        
         :param stream_id: The stream identifier
         :param data: The stream instances
         :param sandbox: The sandbox for this stream
