@@ -70,6 +70,7 @@ class PlateManager(Printable):
                 
     def delete_plate(self, plate_id):
         """
+        Delete a plate from the database
         
         :param plate_id:
         :return:
@@ -85,6 +86,7 @@ class PlateManager(Printable):
     def create_plate(self, plate_id, description, meta_data_id, values, complement, parent_plate):
         """
         Create a new plate, and commit it to the database
+
         :param plate_id: The plate id - required to be unique
         :param description: A human readable description
         :param meta_data_id: The meta data id, which should correspond to the tag in the global meta data
