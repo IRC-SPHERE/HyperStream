@@ -28,7 +28,7 @@ authors = [
     'Peter Flach'
 ]
 
-packages = find_packages() + ['tools']
+packages = find_packages()
 
 setup(
    name='hyperstream',
