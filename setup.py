@@ -12,18 +12,34 @@ with open(ver_path) as ver_file:
 with open('requirements.txt') as f:
     required = f.read().splitlines()
 
-description = 'Hyperstream is a large-scale, flexible and robust software package for processing streaming data'
-    
+description = (
+    'Hyperstream is a large-scale, '
+    'flexible and robust software '
+    'package for processing streaming data'
+)
+
+authors = [
+    'Tom Diethe',
+    'Meelis Kull', 
+    'Niall Twomey',
+    'Kacper Sokol',
+    'Hao Song',
+    'Emma Tonkin',
+    'Peter Flach'
+]
+
+packages = find_packages() + ['tools']
+
 setup(
    name='hyperstream',
    version=main_ns['__version__'],
    description=description,
    license="MIT",
    long_description=long_description,
-   author='Tom Diethe; Meelis Kull; Niall Twomey; Kacper Sokol; Hao Song; Emma Tonkin; Peter Flach',
+   author='; '.join(authors),
    author_email='hyperstreamhq@googlegroups.com',
    url="https://irc-sphere.github.io/HyperStream/",
-   packages=find_packages(),  # same as name
-   install_requires=required, # external packages as dependencies
+   packages=packages,
+   install_requires=required,
    scripts=[]
 )
