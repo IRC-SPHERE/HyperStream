@@ -81,13 +81,14 @@ brew install mosquitto
 brew services start mosquitto
 ```
 
-
-
 # Running the examples #
 
 ```diff
 - TODO
 ```
+
+# HyperStream Viewer #
+The [HyperStream Viewer](https://github.com/IRC-SPHERE/HyperStreamViewer) is a python/Flask web-app for interacting with HyperStream. In order to keep HyperStream to a minimum, this web-app is released as a separate repository that takes the core as a dependency.
 
 # License #
 
