@@ -74,7 +74,7 @@ class BaseTool(Printable, Hashable):
             else:
                 value = v
 
-            parameters.append(ToolParameterModel(
+            parameters.append(dict(
                 key=k,
                 value=value,
                 is_function=is_function,
@@ -103,4 +103,8 @@ class BaseTool(Printable, Hashable):
         """
 
         # TODO: Tool version
-        return ToolModel(name=self.name, version="0.0.0", parameters=self.parameters)
+        return ToolModel(
+            name=self.name,
+            version="0.0.0",
+            parameters=map(lambda p: ToolParameterModel(**p), self.parameters)
+        )
