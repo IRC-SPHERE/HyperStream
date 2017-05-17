@@ -20,8 +20,11 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from ..utils import Printable, Hashable
+from ..models import ToolModel, ToolParameterModel
+from ..utils import func_dump, func_load
 
 import logging
+import pickle
 
 
 class BaseTool(Printable, Hashable):
@@ -51,3 +54,53 @@ class BaseTool(Printable, Hashable):
     @name.setter
     def name(self, value):
         self._name = value
+
+    @property
+    def parameters(self):
+        parameters = []
+        for k, v in self.__dict__.items():
+            if k.startswith("_"):
+                continue
+
+            is_function = False
+            is_set = False
+
+            if callable(v):
+                value = pickle.dumps(func_dump(v))
+                is_function = True
+            elif isinstance(v, set):
+                value = list(v)
+                is_set = True
+            else:
+                value = v
+
+            parameters.append(ToolParameterModel(
+                key=k,
+                value=value,
+                is_function=is_function,
+                is_set=is_set
+            ))
+
+        return parameters
+
+    @staticmethod
+    def load_parameters(parameters_model):
+        parameters = {}
+        for p in parameters_model:
+            if p.is_function:
+                code, defaults, closure = pickle.loads(p.value)
+                parameters[p.key] = func_load(code, defaults, closure, globs=globals())
+            elif p.is_set:
+                parameters[p.key] = set(p.value)
+            else:
+                parameters[p.key] = p.value
+        return parameters
+
+    def get_model(self):
+        """
+        Gets the mongoengine model for this tool, which serializes parameters that are functions
+        :return: 
+        """
+
+        # TODO: Tool version
+        return ToolModel(name=self.name, version="0.0.0", parameters=self.parameters)

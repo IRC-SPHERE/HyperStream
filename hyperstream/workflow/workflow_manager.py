@@ -29,12 +29,12 @@ from copy import deepcopy
 from mongoengine.context_managers import switch_db
 
 from . import Workflow
-from ..time_interval import TimeInterval, TimeIntervals
-from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, ToolModel, \
-    ToolParameterModel, WorkflowStatusModel
-from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow, func_dump, func_load, \
-    ToolInitialisationError, ToolNotFoundError, IncompatibleToolError
+from ..time_interval import TimeIntervals
+from ..models import WorkflowDefinitionModel, FactorDefinitionModel, NodeDefinitionModel, WorkflowStatusModel
+from ..utils import Printable, FrozenKeyDict, StreamNotFoundError, utcnow, ToolInitialisationError, ToolNotFoundError, \
+    IncompatibleToolError
 from ..factor import Factor, NodeCreationFactor, MultiOutputFactor
+from ..tool import Tool
 
 
 def code_unpickler(data):
@@ -109,16 +109,7 @@ class WorkflowManager(Printable):
                 splitting_node = workflow.nodes[f.splitting_node] if f.splitting_node else None
                 output_plate = f.output_plate
 
-                parameters = {}
-                for p in f.tool.parameters:
-                    if p.is_function:
-                        code, defaults, closure = pickle.loads(p.value)
-                        parameters[p.key] = func_load(code, defaults, closure, globs=globals())
-                    elif p.is_set:
-                        parameters[p.key] = set(p.value)
-                    else:
-                        parameters[p.key] = p.value
-
+                parameters = Tool.load_parameters(f.tool.parameters)
                 tool = dict(name=f.tool.name, parameters=parameters)
 
                 if f.factor_type == "Factor":
@@ -259,33 +250,7 @@ class WorkflowManager(Printable):
 
             factors = []
             for f in workflow.factors:
-                # TODO: Tool version
-
-                parameters = []
-                for k, v in f.tool.__dict__.items():
-                    if k.startswith("_"):
-                        continue
-
-                    is_function = False
-                    is_set = False
-
-                    if callable(v):
-                        value = pickle.dumps(func_dump(v))
-                        is_function = True
-                    elif isinstance(v, set):
-                        value = list(v)
-                        is_set = True
-                    else:
-                        value = v
-
-                    parameters.append(ToolParameterModel(
-                        key=k,
-                        value=value,
-                        is_function=is_function,
-                        is_set=is_set
-                    ))
-
-                tool = ToolModel(name=f.tool.name, version="0.0.0", parameters=parameters)
+                tool = f.tool.get_model()
 
                 if isinstance(f, Factor):
                     sources = [s.node_id for s in f.sources] if f.sources else []
