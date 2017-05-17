@@ -84,7 +84,7 @@ class BaseTool(Printable, Hashable):
         return parameters
 
     @staticmethod
-    def load_parameters(parameters_model):
+    def parameters_from_model(parameters_model):
         parameters = {}
         for p in parameters_model:
             if p.is_function:
@@ -96,6 +96,10 @@ class BaseTool(Printable, Hashable):
                 parameters[p.key] = p.value
         return parameters
 
+    @staticmethod
+    def parameters_from_dicts(parameters):
+        return map(lambda p: ToolParameterModel(**p), parameters)
+
     def get_model(self):
         """
         Gets the mongoengine model for this tool, which serializes parameters that are functions
@@ -106,5 +110,5 @@ class BaseTool(Printable, Hashable):
         return ToolModel(
             name=self.name,
             version="0.0.0",
-            parameters=map(lambda p: ToolParameterModel(**p), self.parameters)
+            parameters=self.parameters_from_dicts(self.parameters)
         )

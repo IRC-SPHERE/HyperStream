@@ -109,7 +109,7 @@ class WorkflowManager(Printable):
                 splitting_node = workflow.nodes[f.splitting_node] if f.splitting_node else None
                 output_plate = f.output_plate
 
-                parameters = Tool.load_parameters(f.tool.parameters)
+                parameters = Tool.parameters_from_model(f.tool.parameters)
                 tool = dict(name=f.tool.name, parameters=parameters)
 
                 if f.factor_type == "Factor":
