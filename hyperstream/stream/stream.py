@@ -186,6 +186,7 @@ class DatabaseStream(Stream):
         """
         with switch_db(StreamDefinitionModel, 'hyperstream'):
             self.mongo_model = StreamDefinitionModel.objects.get(__raw__=self.stream_id.as_raw())
+            self._calculated_intervals = self.mongo_model.get_calculated_intervals()
 
     def save(self):
         """
@@ -203,9 +204,11 @@ class DatabaseStream(Stream):
         Gets the calculated intervals from the database
         :return: The calculated intervals
         """
-        logging.debug("get calculated intervals")
-        self.load()
-        return self.mongo_model.get_calculated_intervals()
+        if self._calculated_intervals is None:
+            logging.debug("get calculated intervals")
+            self.load()
+            return self.mongo_model.get_calculated_intervals()
+        return self._calculated_intervals
 
     @calculated_intervals.setter
     def calculated_intervals(self, intervals):
@@ -217,6 +220,7 @@ class DatabaseStream(Stream):
         logging.debug("set calculated intervals")
         self.mongo_model.set_calculated_intervals(intervals)
         self.save()
+        self._calculated_intervals = intervals
 
     @property
     def last_accessed(self):
