@@ -168,6 +168,7 @@ class DatabaseStream(Stream):
             sandbox=sandbox)
 
         if mongo_model:
+            self.mongo_model = mongo_model
             self._calculated_intervals = self.mongo_model.get_calculated_intervals()
         else:
             # First try to load it from the database
