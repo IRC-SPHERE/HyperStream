@@ -107,7 +107,7 @@ class ChannelManager(dict, Printable):
                     raise e
                 logging.debug("Processing {}".format(stream_id))
                 channel = self.get_channel(s.channel_id)
-                calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end), s.calculated_intervals))
+                # calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end), s.calculated_intervals))
                 last_accessed = utcnow()
                 last_updated = s.last_updated if s.last_updated else utcnow()
 
@@ -120,41 +120,22 @@ class ChannelManager(dict, Printable):
                 if isinstance(channel, MemoryChannel):
                     channel.create_stream(stream_id)
                 elif isinstance(channel, DatabaseChannel):
-                    # calculated_intervals = None
-                    # with switch_db(StreamStatusModel, db_alias='hyperstream'):
-                    #     try:
-                    #         status = StreamStatusModel.objects.get(__raw__=stream_id.as_raw())
-                    #         calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end),
-                    #                                                  status.calculated_intervals))
-                    #     except DoesNotExist as e:
-                    #         logging.debug(e)
-                    #         status = StreamStatusModel(
-                    #             stream_id=stream_id.as_dict(),
-                    #             calculated_intervals=[],
-                    #             last_accessed=utcnow(),
-                    #             last_updated=utcnow())
-                    #         status.save()
-                    #     except MultipleObjectsReturned as e:
-                    #         raise e
-
                     if channel == self.assets:
                         stream_type = AssetStream
                     else:
                         stream_type = DatabaseStream
 
-                    # logging.debug("Creating stream")
                     channel.streams[stream_id] = stream_type(
                         channel=channel,
                         stream_id=stream_id,
-                        calculated_intervals=calculated_intervals,
+                        calculated_intervals=None,  # Not required since it's initialised from mongo_model in __init__
                         last_accessed=last_accessed,
                         last_updated=last_updated,
                         sandbox=s.sandbox,
-                        commit=True
+                        mongo_model=s
                     )
                 else:
                     logging.warn("Unable to parse stream {}".format(stream_id))
-                    # raise NotImplementedError
 
     def populate_assets(self, tool_id):
         """
