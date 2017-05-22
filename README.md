@@ -92,8 +92,16 @@ brew services start mosquitto
 
 # Running the examples #
 
+Super simple example:
+
+```
+from hyperstream import HyperStream
+hyperstream = HyperStream()
+```
+
+
 ```diff
-- TODO
+- TODO: more examples
 ```
 
 # HyperStream Viewer #
