@@ -64,6 +64,8 @@ Or install via pip
 
 ```
 pip install -U git+git://github.com/IRC-SPHERE/HyperStream.git#egg=hyperstream
+pip install -r requirements.txt
+python -c 'from hyperstream import HyperStream'
 ```
 
 
