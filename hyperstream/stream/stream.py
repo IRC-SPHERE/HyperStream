@@ -159,25 +159,30 @@ class DatabaseStream(Stream):
     """
     Simple subclass that overrides the calculated intervals property
     """
-    def __init__(self, channel, stream_id, calculated_intervals, last_accessed, last_updated, sandbox, commit=True):
+    def __init__(self, channel, stream_id, calculated_intervals, last_accessed, last_updated, sandbox,
+                 mongo_model=None):
         super(DatabaseStream, self).__init__(
             channel=channel,
             stream_id=stream_id,
             calculated_intervals=None,  # TODO: probably no point in having the actual calculated intervals here
             sandbox=sandbox)
 
-        # First try to load it from the database
-        try:
-            self.load()
-        except DoesNotExist:
-            self.mongo_model = StreamDefinitionModel(
-                stream_id=self.stream_id.as_dict(),
-                channel_id=self.channel.channel_id,
-                calculated_intervals=calculated_intervals,
-                last_accessed=last_accessed,
-                last_updated=last_updated,
-                sandbox=self.sandbox)
-            self.save()
+        if mongo_model:
+            self.mongo_model = mongo_model
+            self._calculated_intervals = self.mongo_model.get_calculated_intervals()
+        else:
+            # First try to load it from the database
+            try:
+                self.load()
+            except DoesNotExist:
+                self.mongo_model = StreamDefinitionModel(
+                    stream_id=self.stream_id.as_dict(),
+                    channel_id=self.channel.channel_id,
+                    calculated_intervals=calculated_intervals,
+                    last_accessed=last_accessed,
+                    last_updated=last_updated,
+                    sandbox=self.sandbox)
+                self.save()
 
     def load(self):
         """

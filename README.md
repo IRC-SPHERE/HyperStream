@@ -54,11 +54,20 @@ ranges given.
 ``` Bash
 git clone git@github.com:IRC-SPHERE/HyperStream.git
 cd HyperStream
-virtuenv venv
+virtualenv venv
 . venv/bin/activate
 pip install -r requirements.txt
 python -c 'from hyperstream import HyperStream'
 ```
+
+Or install via pip
+
+```
+pip install -U git+git://github.com/IRC-SPHERE/HyperStream.git#egg=hyperstream
+pip install -r requirements.txt
+python -c 'from hyperstream import HyperStream'
+```
+
 
 # Running tests #
 
@@ -83,8 +92,16 @@ brew services start mosquitto
 
 # Running the examples #
 
+Super simple example:
+
+```
+from hyperstream import HyperStream
+hyperstream = HyperStream()
+```
+
+
 ```diff
-- TODO
+- TODO: more examples
 ```
 
 # HyperStream Viewer #
