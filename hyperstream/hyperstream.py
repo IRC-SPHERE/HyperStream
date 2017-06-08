@@ -23,6 +23,7 @@ Main HyperStream class
 """
 
 from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, Client, Workflow
+from version import __version__
 from utils import HyperStreamLogger
 
 import logging
@@ -56,6 +57,20 @@ class HyperStream(object):
         self.channel_manager = ChannelManager(self.config.plugins)
         self.plate_manager = PlateManager()
         self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager, plate_manager=self.plate_manager)
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        values = ", ".join("{}={}".format(k, repr(v)) for k, v in sorted(self.__dict__.items())
+                           if k[0] != "_" and not k.endswith('manager'))
+        return "{}({})".format(name, values)
+
+    def __str__(self):
+        return "HyperStream version {version}, connected to mongodb://{host}:{port}/{db}".format(
+            version=__version__,
+            host=self.config.mongo['host'],
+            port=self.config.mongo['port'],
+            db=self.config.mongo['db']
+        )
 
     def __del__(self):
         self._cleanup()

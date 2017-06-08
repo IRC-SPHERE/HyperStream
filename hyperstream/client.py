@@ -32,8 +32,10 @@ try:
 except ImportError:
     ServerSelectionTimeoutError = None
 
+from utils import Printable
 
-class Client(object):
+
+class Client(Printable):
     """
     The main mongo client
     """
