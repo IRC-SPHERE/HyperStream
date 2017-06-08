@@ -68,6 +68,18 @@ pip install -r requirements.txt
 python -c 'from hyperstream import HyperStream'
 ```
 
+In addition, it will require a MongoDB sever by default running on the
+localhost in the port 27017. To install in a Debian based OS run
+
+``` Bash
+sudo apt-get install mongodb
+```
+
+And start the server with
+
+``` Bash
+service mongodb start
+```
 
 # Running tests #
 
