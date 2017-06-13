@@ -25,6 +25,10 @@ import logging
 from hyperstream import HyperStream
 from hyperstream.workflow.workflow import Workflow
 
+from hyperstream import StreamId, TimeInterval
+from pytz import UTC
+from datetime import datetime, timedelta
+
 
 class HyperStreamTests(unittest.TestCase):
     def test___init__(self):
@@ -55,6 +59,27 @@ class HyperStreamTests(unittest.TestCase):
         self.assertEqual(w.name, name)
         self.assertEqual(w.owner, owner)
         self.assertEqual(w.description, description)
+
+    def test_usecase_1(self):
+        hs = HyperStream(loglevel=20)
+        M = hs.channel_manager.memory
+        T = hs.channel_manager.tools
+        clock = StreamId(name="clock")
+        clock_tool = T[clock].window().last().value()
+        ticker = M.get_or_create_stream(stream_id=StreamId(name="ticker"))
+        now = datetime.utcnow().replace(tzinfo=UTC)
+        before = (now - timedelta(seconds=30)).replace(tzinfo=UTC)
+        ti = TimeInterval(before, now)
+        clock_tool.execute(sources=[], sink=ticker, interval=ti,
+                           alignment_stream=None)
+        items = ticker.window().items()
+        timestamps, values = zip(*[(it.timestamp, it.value) for it in items])
+
+        self.assertItemsEqual(timestamps, values)
+
+        before_s = before.replace(microsecond=0)
+        expected = [before_s + timedelta(seconds=i) for i in range(1, 31)]
+        self.assertItemsEqual(values, expected)
 
 
 if __name__ == "__main__":
