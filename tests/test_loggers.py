@@ -1,16 +1,16 @@
 # The MIT License (MIT)
 # Copyright (c) 2014-2017 University of Bristol
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -39,13 +39,13 @@ class HyperStreamLoggingTests(unittest.TestCase):
         $ docker run -ti -p 1883:1883 -p 9001:9001 toke/mosquitto
         or
         $ brew services start mosquitto
-        
+
         """
         # assert(mosquitto_is_running())
         logging.raiseExceptions = True
 
         # noinspection PyTypeChecker
-        mqtt_logger = dict(host="127.0.0.1", port=1883, topic="topics/test", loglevel=MON, qos=1)
+        mqtt_logger = dict(host=mqtt_ip, port=1883, topic="topics/test", loglevel=MON, qos=1)
 
         with HyperStream(file_logger=False, console_logger=False, mqtt_logger=mqtt_logger):
             with MqttClient() as client:
@@ -73,7 +73,7 @@ class HyperStreamLoggingTests(unittest.TestCase):
         mqtthandler.MQTTHandler.handleError = handleError
 
         # noinspection PyTypeChecker
-        mqtt_logger = dict(host="127.0.0.1", port=1883, topic="topics/test", loglevel=MON, qos=1,
+        mqtt_logger = dict(host=mqtt_ip, port=1883, topic="topics/test", loglevel=MON, qos=1,
                            formatter=SenMLFormatter())
 
         hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=mqtt_logger)
