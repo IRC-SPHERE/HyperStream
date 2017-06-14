@@ -32,12 +32,22 @@ from future.utils import python_2_unicode_compatible
 from treelib.tree import Tree, NodePropertyAbsentError, NodeIDAbsentError
 
 
-# The next two lines are to fix the "UnicodeDecodeError: 'ascii' codec can't decode byte" error
-#  http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
+# To restore default stdout and stderr channels after reloading sys
+# source: https://github.com/ipython/ipython/issues/8354
+# Backing up references to the current stdout and stderr
+default_stdout = sys.stdout
+default_stderr = sys.stderr
+
+# The next two lines are to fix the "UnicodeDecodeError: 'ascii' codec can't
+# decode byte" error
+# http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
 reload(sys)
 # noinspection PyUnresolvedReferences
 sys.setdefaultencoding('utf8')
 
+# Restoring references to the previous stdout and stderr
+sys.stdout = default_stdout
+sys.stderr = default_stderr
 
 @python_2_unicode_compatible
 class MetaDataTree(Tree):
