@@ -19,6 +19,10 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+class ConfigurationError(Exception):
+    pass
+
+
 class StreamNotFoundError(Exception):
     pass
 

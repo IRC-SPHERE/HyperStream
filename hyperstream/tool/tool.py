@@ -47,7 +47,7 @@ class Tool(BaseTool):
         """
         raise NotImplementedError
 
-    def execute(self, sources, sink, alignment_stream, interval):
+    def execute(self, sources, sink, interval, alignment_stream=None):
         """
         Execute the tool over the given time interval.
         If an alignment stream is given, the output instances will be aligned to this stream

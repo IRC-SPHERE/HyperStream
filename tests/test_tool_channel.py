@@ -20,7 +20,7 @@
 
 import unittest
 
-from hyperstream import HyperStream, Stream
+from hyperstream import HyperStream, Stream, StreamId, TimeInterval
 from hyperstream.utils import MIN_DATE, utcnow
 from helpers import *
 
@@ -41,3 +41,30 @@ class TestToolChannel(unittest.TestCase):
         # noinspection PyTypeChecker
         assert(agg[0].timestamp == datetime(2016, 10, 26, 0, 0, tzinfo=UTC))
         assert(isinstance(agg[0].value, type))
+
+    def test_tool_channel_new_api(self):
+
+        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
+        M = hs.channel_manager.memory
+
+        # new way of loading tools
+        clock_new = hs.tools.clock()
+
+        # old way of loading tools
+        clock_old = hs.channel_manager.tools[clock].window((MIN_DATE, utcnow())).last().value()
+
+        # TODO: NOTE THAT IF WE DO IT THE OLD WAY FIRST, THEN THE NEW WAY FAILS WITH:
+        # TypeError: super(type, obj): obj must be an instance or subtype of type
+        # which possibly relates to: https://stackoverflow.com/questions/9722343/python-super-behavior-not-dependable
+
+        ticker_old = M.get_or_create_stream(StreamId("ticker_old"))
+        ticker_new = M.get_or_create_stream(StreamId("ticker_new"))
+
+        now = utcnow()
+        before = (now - timedelta(seconds=30)).replace(tzinfo=UTC)
+        ti = TimeInterval(before, now)
+
+        clock_old.execute(sources=[], sink=ticker_old, interval=ti)
+        clock_new.execute(sources=[], sink=ticker_new, interval=ti)
+
+        assert(all(map(lambda (old, new): old.value == new.value, zip(ticker_old.window(), ticker_new.window()))))

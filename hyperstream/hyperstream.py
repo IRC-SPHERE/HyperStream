@@ -24,7 +24,7 @@ Main HyperStream class
 
 from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, Client, Workflow
 from version import __version__
-from utils import HyperStreamLogger
+from utils import HyperStreamLogger, ToolContainer
 
 import logging
 
@@ -57,6 +57,7 @@ class HyperStream(object):
         self.channel_manager = ChannelManager(self.config.plugins)
         self.plate_manager = PlateManager()
         self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager, plate_manager=self.plate_manager)
+        self.populate_tools()
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -117,3 +118,14 @@ class HyperStream(object):
         self.workflow_manager.add_workflow(w)
 
         return w
+
+    def populate_tools(self):
+        for tool_channel in self.channel_manager.tool_channels:
+            setattr(self, tool_channel.channel_id, ToolContainer())
+            tool_container = getattr(self, tool_channel.channel_id)
+            for tool_stream in tool_channel.streams:
+                try:
+                    setattr(tool_container, tool_stream.name,
+                            self.channel_manager.get_tool_class(tool_stream.name))
+                except (NameError, AttributeError, ImportError) as e:
+                    logging.warn('Error loading tool {}: {}'.format(tool_stream.name, e))

@@ -285,6 +285,10 @@ class TypedFrozenKeyDict(FrozenKeyDict):
         super(TypedFrozenKeyDict, self).__setitem__(key, value)
 
 
+class ToolContainer(Printable):
+    pass
+
+
 def touch(full_name, times=None):
     """
     Touch the file
