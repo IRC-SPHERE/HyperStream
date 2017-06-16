@@ -49,6 +49,7 @@ sys.setdefaultencoding('utf8')
 sys.stdout = default_stdout
 sys.stderr = default_stderr
 
+
 @python_2_unicode_compatible
 class MetaDataTree(Tree):
     (ROOT, DEPTH, WIDTH, ZIGZAG) = list(range(4))

@@ -101,8 +101,7 @@ class Client(Printable):
 
         self.session = connect(alias="hyperstream", **d)
 
-        # TODO: This sets the default connection of mongoengine, but seems to
-        # be a bit of a hack
+        # TODO: This sets the default connection of mongoengine, but seems to be a bit of a hack
         if "default" not in connection._connections:
             connection._connections["default"] = connection._connections["hyperstream"]
             connection._connection_settings["default"] = connection._connection_settings["hyperstream"]
