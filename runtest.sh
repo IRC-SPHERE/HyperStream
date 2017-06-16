@@ -3,30 +3,41 @@
 echo "Activating virtual environment"
 . ./venv/bin/activate
 
-echo "Starting MongoDB server"
-sudo service mongodb start
-#
-#MONGODB_CONTAINER=`docker run --name hs_mongodb -p 27017:27017 -d library/mongo`
-## Wait for the MONGODB port to be available
-#until nc -z $(docker inspect --format='{{.NetworkSettings.IPAddress}}' $MONGODB_CONTAINER) 27017
-#do
-#    echo "waiting for docker MongoDB container..."
-#    sleep 0.5
-#done
+function stop_container
+{
+    NAME=$1
+    if [ `docker inspect -f '{{.State.Running}}' $NAME` ]
+    then
+        echo "Stopping docker $NAME container"
+        docker stop $NAME
+    fi
+    echo "Removing docker $NAME container"
+    docker rm $NAME
+}
 
-echo "Starting docker MQTT container"
-MQTT_CONTAINER=`docker run --name hs_mqtt -d -ti -p 1883:1883 -p 9001:9001 toke/mosquitto`
-# Wait for the MQTT port to be available
-until nc -z $(docker inspect --format='{{.NetworkSettings.IPAddress}}' $MQTT_CONTAINER) 9001
-do
-    echo "waiting for docker MQTT container..."
-    sleep 0.5
-done
+function start_container
+{
+    NAME=$1
+    ARGUMENTS=$2
+    WAIT_PORT=$3
+    if [ `docker ps -a --format="{{ .Names }}" | grep $NAME` ]
+    then
+        stop_container $NAME
+    fi
+    CONTAINER=`docker run --name $NAME $ARGUMENTS`
+    until nc -z $(docker inspect --format='{{.NetworkSettings.IPAddress}}' $CONTAINER) $WAIT_PORT
+    do
+        echo "waiting for docker $NAME container..."
+        sleep 0.5
+    done
+}
+
+DOCKER_ARGUMENTS='-d -p 27017:27017 library/mongo'
+start_container "hs_mongodb" "${DOCKER_ARGUMENTS}" 27017
+DOCKER_ARGUMENTS='-d -ti -p 1883:1883 -p 9001:9001 toke/mosquitto'
+start_container "hs_mqtt" "${DOCKER_ARGUMENTS}" 9001
+
 nosetests --with-coverage
 
-echo "Stopping docker MQTT container"
-docker stop hs_mqtt
-echo "Removing docker MQTT container"
-docker rm hs_mqtt
-echo "Stopping MongoDB server"
-sudo service mongodb stop
+stop_container "hs_mqtt"
+stop_container "hs_mongodb"
