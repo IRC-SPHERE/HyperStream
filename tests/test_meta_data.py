@@ -21,53 +21,27 @@
 
 import unittest
 
+from helpers import *
 from hyperstream import HyperStream
-
-hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
-
-
-def insert_meta_data():
-    for data in map(str, range(4)):
-        identifier = 'test_{}'.format(data)
-        hs.plate_manager.meta_data_manager.insert(
-            tag='test', identifier=identifier, parent='root', data=data)
-
-
-def delete_meta_data():
-    for data in map(str, range(4)):
-        identifier = 'test_{}'.format(data)
-        hs.plate_manager.meta_data_manager.delete(identifier)
-
-
-def get_meta_data():
-    return sorted(x.identifier for x in hs.plate_manager.meta_data_manager.global_plate_definitions.all_nodes())
-
-
-def create_plate():
-    hs.plate_manager.create_plate(
-        plate_id="T",
-        description="test",
-        meta_data_id="test",
-        values=[],
-        complement=True,
-        parent_plate=None)
-
-
-def delete_plate():
-    hs.plate_manager.delete_plate("T")
 
 
 class TestMetaData(unittest.TestCase):
     def test_meta_data(self):
-        insert_meta_data()
-        self.assertListEqual(get_meta_data(), ['root', 'test_0', 'test_1', 'test_2', 'test_3'])
-        delete_meta_data()
-        self.assertListEqual(get_meta_data(), ['root'])
+        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
+        insert_meta_data(hs)
+        self.assertListEqual(get_meta_data(hs), ['root', 'test_0', 'test_1', 'test_2', 'test_3'])
+        delete_meta_data(hs)
+        self.assertListEqual(get_meta_data(hs), ['root'])
 
     def test_plate_creation(self):
-        insert_meta_data()
-        create_plate()
+        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
+        insert_meta_data(hs)
+        create_plate(hs)
         expected = [(('test', '0'),), (('test', '1'),), (('test', '2'),), (('test', '3'),)]
         self.assertListEqual(hs.plate_manager.plates["T"].values, expected)
-        delete_plate()
-        delete_meta_data()
+        delete_plate(hs)
+        delete_meta_data(hs)
+
+
+if __name__ == '__main__':
+    unittest.main()

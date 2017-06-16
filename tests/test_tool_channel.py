@@ -67,7 +67,7 @@ class TestToolChannel(unittest.TestCase):
         clock_old.execute(sources=[], sink=ticker_old, interval=ti)
         clock_new.execute(sources=[], sink=ticker_new, interval=ti)
 
-        assert(all(map(lambda (old, new): old.value == new.value, zip(ticker_old.window(), ticker_new.window()))))
+        self.assertListEqual(ticker_old.window().values(), ticker_new.window().values())
 
     def test_plugins(self):
         hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)

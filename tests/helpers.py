@@ -26,7 +26,7 @@ from subprocess import check_output
 import paho.mqtt.client as mqtt
 
 # os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".."))
-os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
+# os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
 
 # Various constants
 mqtt_ip = "127.0.0.1"
@@ -41,19 +41,49 @@ second = timedelta(seconds=1)
 zero = timedelta(0)
 
 # Some useful Stream IDs
-environmental = StreamId('environmental', meta_data=(('house', '1'),))
 clock = StreamId('clock')
 aggregate = StreamId('aggregate')
-every30s = StreamId('every30s')
-motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
-env_kitchen_30_s_window = StreamId('env_kitchen_30_s_window')
-kitchen = StreamId("kitchen")
-kitchen_motion = StreamId('kitchen_motion')
-m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
-average = StreamId('average')
-count = StreamId('count')
-component = StreamId('component')
-component_filter = StreamId('component_filter')
+# every30s = StreamId('every30s')
+# motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
+# env_kitchen_30_s_window = StreamId('env_kitchen_30_s_window')
+# kitchen = StreamId("kitchen")
+# kitchen_motion = StreamId('kitchen_motion')
+# m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
+# average = StreamId('average')
+# count = StreamId('count')
+# component = StreamId('component')
+# component_filter = StreamId('component_filter')
+
+
+def insert_meta_data(hs):
+    for data in map(str, range(4)):
+        identifier = 'test_{}'.format(data)
+        hs.plate_manager.meta_data_manager.insert(
+            tag='test', identifier=identifier, parent='root', data=data)
+
+
+def delete_meta_data(hs):
+    for data in map(str, range(4)):
+        identifier = 'test_{}'.format(data)
+        hs.plate_manager.meta_data_manager.delete(identifier)
+
+
+def get_meta_data(hs):
+    return sorted(x.identifier for x in hs.plate_manager.meta_data_manager.global_plate_definitions.all_nodes())
+
+
+def create_plate(hs):
+    hs.plate_manager.create_plate(
+        plate_id="T",
+        description="test",
+        meta_data_id="test",
+        values=[],
+        complement=True,
+        parent_plate=None)
+
+
+def delete_plate(hs):
+    hs.plate_manager.delete_plate("T")
 
 
 class MqttClient(object):

@@ -27,7 +27,7 @@ from .errors import StreamNotFoundError
 import logging
 import os
 import sys
-
+import re
 import json
 from bidict import bidict, ValueDuplicationError
 from future.utils import python_2_unicode_compatible
@@ -326,3 +326,12 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
     logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+
+FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')
+ALL_CAP_RE = re.compile('([a-z0-9])([A-Z])')
+
+
+def camel_to_snake(name):
+    s1 = FIRST_CAP_RE.sub(r'\1_\2', name)
+    return ALL_CAP_RE.sub(r'\1_\2', s1).lower()
