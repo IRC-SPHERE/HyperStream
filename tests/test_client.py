@@ -27,20 +27,21 @@ from hyperstream import HyperStreamConfig
 
 
 class ClientTests(unittest.TestCase):
+    def setUp(self):
+        self.config = HyperStreamConfig()
+
+
     def test___init__(self):
-        config = HyperStreamConfig()
-        client = Client(config.mongo, auto_connect=False)
+        client = Client(self.config.mongo, auto_connect=False)
         self.assertIs(type(client), Client)
 
     def test_connect(self):
-        config = HyperStreamConfig()
-        client = Client(config.mongo, auto_connect=False)
-        client.connect(config.mongo)
+        client = Client(self.config.mongo, auto_connect=False)
+        client.connect(self.config.mongo)
         self.assertIs(type(client), Client)
 
     def test_get_config_value(self):
-        config = HyperStreamConfig()
-        client = Client(config.mongo)
+        client = Client(self.config.mongo)
         key = ''.join(key for key in client.server_config.keys())
         expected = 'default_value'
         self.assertEqual(client.get_config_value(key, expected), expected)
