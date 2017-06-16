@@ -31,29 +31,25 @@ from datetime import datetime, timedelta
 
 
 class HyperStreamTests(unittest.TestCase):
+    def setUp(self):
+        self.hs = HyperStream(loglevel=logging.INFO, file_logger=False,
+                              console_logger=False)
+
     def test___init__(self):
-        hyperstream = HyperStream(loglevel=logging.INFO, file_logger=False,
-                                  console_logger=False)
-        self.assertIs(type(hyperstream), HyperStream)
+        self.assertIs(type(self.hs), HyperStream)
 
     def test___repr__(self):
-        hyperstream = HyperStream(loglevel=logging.INFO, file_logger=False,
-                                  console_logger=False)
-        self.assertIs(type(hyperstream.__repr__()), str)
+        self.assertIs(type(self.hs.__repr__()), str)
 
     def test___str__(self):
-        hyperstream = HyperStream(loglevel=logging.INFO, file_logger=False,
-                                  console_logger=False)
-        self.assertIs(type(hyperstream.__str__()), str)
+        self.assertIs(type(self.hs.__str__()), str)
 
     def test_create_workflow(self):
-        hyperstream = HyperStream(loglevel=logging.INFO, file_logger=False,
-                                  console_logger=False)
         workflow_id = 1
         name = 'test_workflow'
         owner = 'unittest'
         description = 'test of workflow'
-        w = hyperstream.create_workflow(workflow_id, name, owner, description)
+        w = self.hs.create_workflow(workflow_id, name, owner, description)
         self.assertIs(type(w), Workflow)
         self.assertEqual(w.workflow_id, workflow_id)
         self.assertEqual(w.name, name)
@@ -61,18 +57,19 @@ class HyperStreamTests(unittest.TestCase):
         self.assertEqual(w.description, description)
 
     def test_usecase_1(self):
-        hs = HyperStream(loglevel=20)
-        M = hs.channel_manager.memory
-        T = hs.channel_manager.tools
+        M = self.hs.channel_manager.memory
+        T = self.hs.channel_manager.tools
+
         clock = StreamId(name="clock")
         clock_tool = T[clock].window().last().value()
-        ticker = M.get_or_create_stream(stream_id=StreamId(name="ticker"))
+        s_ticker = M.get_or_create_stream(stream_id=StreamId(name="ticker"))
+
         now = datetime.utcnow().replace(tzinfo=UTC)
         before = (now - timedelta(seconds=30)).replace(tzinfo=UTC)
         ti = TimeInterval(before, now)
-        clock_tool.execute(sources=[], sink=ticker, interval=ti,
+        clock_tool.execute(sources=[], sink=s_ticker, interval=ti,
                            alignment_stream=None)
-        items = ticker.window().items()
+        items = s_ticker.window().items()
         timestamps, values = zip(*[(it.timestamp, it.value) for it in items])
 
         self.assertItemsEqual(timestamps, values)
