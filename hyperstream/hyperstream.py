@@ -24,7 +24,7 @@ Main HyperStream class
 
 from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, Client, Workflow
 from version import __version__
-from utils import HyperStreamLogger, ToolContainer
+from utils import HyperStreamLogger, ToolContainer, PluginContainer, PluginWrapper
 
 import logging
 
@@ -48,6 +48,13 @@ class HyperStream(object):
         otherwise a dict optionally containing loglevel
         :param mqtt_logger: Dict containing mqtt server, topic, and optionally loglevel
         """
+        self.parameters = dict(
+            loglevel=loglevel,
+            file_logger=file_logger,
+            console_logger=console_logger,
+            mqtt_logger=mqtt_logger
+        )
+
         self.logger = HyperStreamLogger(
             default_loglevel=loglevel, file_logger=file_logger, console_logger=console_logger, mqtt_logger=mqtt_logger)
         self.config = HyperStreamConfig()
@@ -57,12 +64,14 @@ class HyperStream(object):
         self.channel_manager = ChannelManager(self.config.plugins)
         self.plate_manager = PlateManager()
         self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager, plate_manager=self.plate_manager)
+        self.plugins = PluginContainer()
         self.populate_tools()
 
     def __repr__(self):
         name = self.__class__.__name__
-        values = ", ".join("{}={}".format(k, repr(v)) for k, v in sorted(self.__dict__.items())
-                           if k[0] != "_" and not k.endswith('manager'))
+        # values = ", ".join("{}={}".format(k, repr(v)) for k, v in sorted(self.__dict__.items())
+        #                    if k[0] != "_" and not k.endswith('manager'))
+        values = ", ".join("{}={}".format(k, v) for k, v in self.parameters.items())
         return "{}({})".format(name, values)
 
     def __str__(self):
@@ -121,8 +130,16 @@ class HyperStream(object):
 
     def populate_tools(self):
         for tool_channel in self.channel_manager.tool_channels:
-            setattr(self, tool_channel.channel_id, ToolContainer())
-            tool_container = getattr(self, tool_channel.channel_id)
+            if tool_channel.channel_id == "tools":
+                # These are the core tools
+                setattr(self, tool_channel.channel_id, ToolContainer())
+                tool_container = getattr(self, tool_channel.channel_id)
+            else:
+                # This is a plugin, so ends in "_tools"
+                plugin_name = "_".join(tool_channel.channel_id.split("_")[:-1])
+                setattr(self.plugins, plugin_name, PluginWrapper())
+                plugin = getattr(self.plugins, plugin_name)
+                tool_container = plugin.tools
             for tool_stream in tool_channel.streams:
                 try:
                     setattr(tool_container, tool_stream.name,

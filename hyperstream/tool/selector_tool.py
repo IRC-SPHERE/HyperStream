@@ -24,7 +24,6 @@ from ..time_interval import TimeInterval, TimeIntervals
 from ..stream import Stream
 
 import logging
-from collections import defaultdict
 
 
 class SelectorTool(BaseTool):

@@ -57,8 +57,8 @@ class TestToolChannel(unittest.TestCase):
         # TypeError: super(type, obj): obj must be an instance or subtype of type
         # which possibly relates to: https://stackoverflow.com/questions/9722343/python-super-behavior-not-dependable
 
-        ticker_old = M.get_or_create_stream(StreamId("ticker_old"))
-        ticker_new = M.get_or_create_stream(StreamId("ticker_new"))
+        ticker_old = M.get_or_create_stream("ticker_old")
+        ticker_new = M.get_or_create_stream("ticker_new")
 
         now = utcnow()
         before = (now - timedelta(seconds=30)).replace(tzinfo=UTC)
@@ -68,3 +68,22 @@ class TestToolChannel(unittest.TestCase):
         clock_new.execute(sources=[], sink=ticker_new, interval=ti)
 
         assert(all(map(lambda (old, new): old.value == new.value, zip(ticker_old.window(), ticker_new.window()))))
+
+    def test_plugins(self):
+        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
+        M = hs.channel_manager.memory
+
+        clock_tool = hs.tools.clock()
+        dummy_tool = hs.plugins.example.tools.dummy()
+
+        ticker = M.get_or_create_stream("ticker")
+        ticker_copy = M.get_or_create_stream("ticker_copy")
+
+        now = utcnow()
+        before = (now - timedelta(seconds=30)).replace(tzinfo=UTC)
+        ti = TimeInterval(before, now)
+
+        clock_tool.execute(sources=[], sink=ticker, interval=ti)
+        dummy_tool.execute(sources=[ticker], sink=ticker_copy, interval=ti)
+
+        assert (all(map(lambda (old, new): old.value == new.value, zip(ticker.window(), ticker_copy.window()))))

@@ -22,6 +22,8 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from .errors import StreamNotFoundError
+
 import logging
 import os
 import sys
@@ -200,9 +202,9 @@ class TypedBiDict(Printable):
             raise TypeError("expected {}, got {}".format(self.key_type, type(key)))
         try:
             return self._store[key]
-        except KeyError as e:
+        except KeyError:
             # for debugging
-            raise e
+            raise StreamNotFoundError(repr(key))
 
     def __setitem__(self, key, value):
         if not isinstance(key, self.key_type):
@@ -286,7 +288,24 @@ class TypedFrozenKeyDict(FrozenKeyDict):
 
 
 class ToolContainer(Printable):
+    """
+    Dummy class for holding tool objects for easy access
+    """
     pass
+
+
+class PluginContainer(Printable):
+    """
+    Dummy class for holding plugins
+    """
+
+
+class PluginWrapper(Printable):
+    """
+    Dummy class for a plugins containing tool objects for easy access
+    """
+    def __init__(self):
+        self.tools = ToolContainer()
 
 
 def touch(full_name, times=None):
