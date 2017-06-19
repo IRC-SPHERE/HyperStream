@@ -22,6 +22,7 @@ function start_container
     WAIT_PORT=$3
     if [ `docker ps -a --format="{{ .Names }}" | grep $NAME` ]
     then
+        echo "The docker container $NAME already exists"
         stop_container $NAME
     fi
     CONTAINER=`docker run --name $NAME $ARGUMENTS`
