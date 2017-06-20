@@ -22,10 +22,19 @@
 import unittest
 
 from helpers import *
-from hyperstream import HyperStream
+from hyperstream import HyperStream, NodeIDAbsentError
 
 
 class TestMetaData(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestMetaData, self).__init__(*args, **kwargs)
+        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
+        try:
+            delete_meta_data(hs)
+            delete_plates(hs)
+        except NodeIDAbsentError:
+            pass
+
     def test_meta_data(self):
         hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
         insert_meta_data(hs)
@@ -36,10 +45,10 @@ class TestMetaData(unittest.TestCase):
     def test_plate_creation(self):
         hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
         insert_meta_data(hs)
-        create_plate(hs)
+        create_plates(hs)
         expected = [(('test', '0'),), (('test', '1'),), (('test', '2'),), (('test', '3'),)]
         self.assertListEqual(hs.plate_manager.plates["T"].values, expected)
-        delete_plate(hs)
+        delete_plates(hs)
         delete_meta_data(hs)
 
 

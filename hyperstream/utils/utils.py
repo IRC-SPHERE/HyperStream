@@ -294,6 +294,12 @@ class ToolContainer(Printable):
     pass
 
 
+class FactorContainer(Printable):
+    """
+    Dummy class for holding factor creation functions
+    """
+
+
 class PluginContainer(Printable):
     """
     Dummy class for holding plugins
@@ -306,6 +312,7 @@ class PluginWrapper(Printable):
     """
     def __init__(self):
         self.tools = ToolContainer()
+        self.factors = FactorContainer()
 
 
 def touch(full_name, times=None):

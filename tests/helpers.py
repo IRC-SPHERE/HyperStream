@@ -72,7 +72,7 @@ def get_meta_data(hs):
     return sorted(x.identifier for x in hs.plate_manager.meta_data_manager.global_plate_definitions.all_nodes())
 
 
-def create_plate(hs):
+def create_plates(hs):
     hs.plate_manager.create_plate(
         plate_id="T",
         description="test",
@@ -81,9 +81,18 @@ def create_plate(hs):
         complement=True,
         parent_plate=None)
 
+    hs.plate_manager.create_plate(
+        plate_id="T.U",
+        description="nested test",
+        meta_data_id="under",
+        values=[],
+        complement=True,
+        parent_plate="T")
 
-def delete_plate(hs):
+
+def delete_plates(hs):
     hs.plate_manager.delete_plate("T")
+    hs.plate_manager.delete_plate("T.U")
 
 
 class MqttClient(object):

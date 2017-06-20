@@ -37,7 +37,10 @@ class FileDateTimeVersion(Printable):
         self.long_filename = filename
         self.filename_no_extension, self.extension = os.path.splitext(filename)
         self.timestamp, self.version = self.filename_no_extension.split(split_char, 1)
-        self.timestamp = ciso8601.parse_datetime(self.timestamp).replace(tzinfo=UTC)
+        self.timestamp = ciso8601.parse_datetime(self.timestamp)
+        if not self.timestamp:
+            raise ValueError("Invalid timestamp {}".format(self.timestamp))
+        self.timestamp = self.timestamp.replace(tzinfo=UTC)
         self.version = Version(self.version[1:])
     
     @property

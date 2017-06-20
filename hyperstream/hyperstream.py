@@ -24,7 +24,7 @@ Main HyperStream class
 
 from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, Client, Workflow
 from version import __version__
-from utils import HyperStreamLogger, ToolContainer, PluginContainer, PluginWrapper
+from utils import HyperStreamLogger, ToolContainer, PluginContainer, PluginWrapper, FactorContainer
 
 import logging
 
@@ -65,7 +65,12 @@ class HyperStream(object):
         self.plate_manager = PlateManager()
         self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager, plate_manager=self.plate_manager)
         self.plugins = PluginContainer()
-        self.populate_tools()
+
+        # The following are to keep pep happy - will be populated below
+        self.tools = None
+        self.factors = None
+
+        self.populate_tools_and_factors()
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -128,21 +133,56 @@ class HyperStream(object):
 
         return w
 
-    def populate_tools(self):
+    def populate_tools_and_factors(self):
+        """
+        Function to populate factory functions for the tools and factors for ease of access.
+        :return: None
+        """
         for tool_channel in self.channel_manager.tool_channels:
             if tool_channel.channel_id == "tools":
                 # These are the core tools
-                setattr(self, tool_channel.channel_id, ToolContainer())
-                tool_container = getattr(self, tool_channel.channel_id)
+                setattr(self, "tools", ToolContainer())
+                setattr(self, "factors", FactorContainer())
+                tool_container = getattr(self, "tools")
+                factor_container = getattr(self, "factors")
             else:
                 # This is a plugin, so ends in "_tools"
                 plugin_name = "_".join(tool_channel.channel_id.split("_")[:-1])
                 setattr(self.plugins, plugin_name, PluginWrapper())
                 plugin = getattr(self.plugins, plugin_name)
                 tool_container = plugin.tools
+                factor_container = plugin.factors
             for tool_stream in tool_channel.streams:
                 try:
-                    setattr(tool_container, tool_stream.name,
-                            self.channel_manager.get_tool_class(tool_stream.name))
+                    # This is the tool initializer
+                    tool_function = self.channel_manager.get_tool_class(tool_stream.name)
+                    setattr(tool_container, tool_stream.name, tool_function)
+
+                    def create_factory_function(tool_function):
+                        """
+                        This wrapper is needed to capture the tool_function closure
+                            
+                        :param tool_function: 
+                        :return: 
+                        """
+                        def factory_function(w, sources, alignment_node=None, **parameters):
+                            """
+                            Factory function for creating factors inside a workflow
+                            :param w: workflow
+                            :param sources: source nodes
+                            :param alignment_node: alignment node
+                            :return: the created factor
+                            :type w: Workflow
+                            :type sources: list[Node] | tuple[Node] | None
+                            """
+                            return dict(
+                                workflow=w,
+                                tool=tool_function(**parameters),
+                                sources=sources,
+                                alignment_node=alignment_node)
+                        return factory_function
+
+                    setattr(factor_container, tool_stream.name, create_factory_function(tool_function))
+
                 except (NameError, AttributeError, ImportError) as e:
                     logging.warn('Error loading tool {}: {}'.format(tool_stream.name, e))
