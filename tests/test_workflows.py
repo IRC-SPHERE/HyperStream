@@ -24,8 +24,9 @@ from __future__ import print_function
 
 import sys
 import unittest
+from nose import with_setup
 
-from hyperstream import HyperStream, TimeInterval, NodeIDAbsentError
+from hyperstream import TimeInterval
 from helpers import *
 
 
@@ -56,8 +57,8 @@ def workflow_with_plates(hs, workflow_id):
 
 def workflow_with_nested_plates(hs, workflow_id):
     w = hs.create_workflow(
-        workflow_id=workflow_id, name="Test with plates", owner="Tests",
-        description="Nose test generated workflow with plates"
+        workflow_id=workflow_id, name="Test with nested plates", owner="Tests",
+        description="Nose test generated workflow with nested plates"
     )
 
     ticker_repeated = w.create_node(stream_name="ticker_repeated", channel=hs.channel_manager.memory, plate_ids=["T"])
@@ -75,67 +76,44 @@ def print_head(w, node_id, parent_plate_values, plate_values, interval, n=10, pr
 
 # noinspection PyMethodMayBeStatic
 class HyperStreamWorkflowTests(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super(HyperStreamWorkflowTests, self).__init__(*args, **kwargs)
-        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
-        try:
-            delete_meta_data(hs)
-            delete_plates(hs)
-        except NodeIDAbsentError:
-            pass
-
+    # @with_setup(setup, teardown)
     def test_save_workflow(self):
-        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
-        workflow_id = sys._getframe().f_code.co_name
+        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
+            workflow_id = sys._getframe().f_code.co_name
 
-        # hyperstream.logger.setLevel(logging.WARN)
+            # First delete the workflow if it's there
+            hs.workflow_manager.delete_workflow(workflow_id)
 
-        # First delete the workflow if it's there
-        hs.workflow_manager.delete_workflow(workflow_id)
+            w = basic_workflow(hs, workflow_id)
 
-        w1 = basic_workflow(hs, workflow_id)
+            time_interval = TimeInterval(t1, t2)
+            w.execute(time_interval)
 
-        time_interval = TimeInterval(t1, t2)
-        w1.execute(time_interval)
+            hs.workflow_manager.commit_workflow(workflow_id)
 
-        hs.workflow_manager.commit_workflow(workflow_id)
+            # Now remove it from the workflow manager
+            del hs.workflow_manager.workflows[workflow_id]
 
-        # Now remove it from the workflow manager
-        del hs.workflow_manager.workflows[workflow_id]
+            # And then reload it
+            hs.workflow_manager.load_workflow(workflow_id)
 
-        # And then reload it
-        w2 = hs.workflow_manager.load_workflow(workflow_id)
-
-        # print_head(w, "rss", h1 + wA, locs, time_interval, 10, print)
-        # print_head(w, "rss_dev_avg", h1, locs, time_interval, 10, print)
-
+    # @with_setup(setup, teardown)
     def test_new_api(self):
-        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
-        workflow_id = sys._getframe().f_code.co_name
+        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
+            workflow_id = sys._getframe().f_code.co_name
 
-        insert_meta_data(hs)
-        create_plates(hs)
+            w = workflow_with_plates(hs, workflow_id)
+            time_interval = TimeInterval(t1, t2)
+            w.execute(time_interval)
 
-        w = workflow_with_plates(hs, workflow_id)
-        time_interval = TimeInterval(t1, t2)
-        w.execute(time_interval)
-
-        delete_plates(hs)
-        delete_meta_data(hs)
-
+    # @with_setup(setup, teardown)
     def test_new_api2(self):
-        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
-        workflow_id = sys._getframe().f_code.co_name
+        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
+            workflow_id = sys._getframe().f_code.co_name
 
-        insert_meta_data(hs)
-        create_plates(hs)
-
-        w = workflow_with_nested_plates(hs, workflow_id)
-        time_interval = TimeInterval(t1, t2)
-        w.execute(time_interval)
-
-        delete_plates(hs)
-        delete_meta_data(hs)
+            w = workflow_with_nested_plates(hs, workflow_id)
+            time_interval = TimeInterval(t1, t2)
+            w.execute(time_interval)
 
 if __name__ == '__main__':
     unittest.main()

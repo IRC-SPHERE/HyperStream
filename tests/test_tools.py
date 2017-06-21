@@ -234,55 +234,80 @@ def rng_helper(tester, hs, ticker, ti, tool_name, **kwargs):
     tool = getattr(hs.plugins.data_generators.tools, tool_name)
     tool(**kwargs).execute(sources=[], sink=random, interval=ti, alignment_stream=ticker)
     values = random.window().values()
-    print(values)
+    # print(values)
     tester.assertListEqual(values, RANDOM_VALUES[tool_name])
+    return random
 
 
 class TestTools(unittest.TestCase):
     def test_data_generators(self):
-        hs = HyperStream()
+        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
+            ti = TimeInterval(t1, t1 + minute)
 
-        ti = TimeInterval(t1, t1 + minute)
+            M = hs.channel_manager.memory
 
-        M = hs.channel_manager.memory
+            # Create a clock stream to align the random numbers to
+            ticker = M.get_or_create_stream("ticker")
+            hs.tools.clock().execute(sources=[], sink=ticker, interval=ti)
 
-        # Create a clock stream to align the random numbers to
-        ticker = M.get_or_create_stream("ticker")
-        hs.tools.clock().execute(sources=[], sink=ticker, interval=ti)
+            # Test random number generators
+            rng_helper(self, hs, ticker, ti, "betavariate", alpha=1.0, beta=1.0, seed=1234)
+            rng_helper(self, hs, ticker, ti, "expovariate", lambd=1.0, seed=1234)
+            rng_helper(self, hs, ticker, ti, "gammavariate", alpha=1.0, beta=1.0, seed=1234)
+            rng_helper(self, hs, ticker, ti, "gauss", seed=1234)
+            rng_helper(self, hs, ticker, ti, "lognormvariate", mu=0.0, sigma=1.0, seed=1234)
+            rng_helper(self, hs, ticker, ti, "normalvariate", mu=0.0, sigma=1.0, seed=1234)
+            rng_helper(self, hs, ticker, ti, "paretovariate", alpha=1.0, seed=1234)
+            rng_helper(self, hs, ticker, ti, "randint", a=1, b=5, seed=1234)
+            rng_helper(self, hs, ticker, ti, "random", seed=1234)
+            rng_helper(self, hs, ticker, ti, "randrange", start=10, stop=20, step=2, seed=1234)
+            rng_helper(self, hs, ticker, ti, "triangular", low=2, high=5, mode=4, seed=1234)
+            rng_helper(self, hs, ticker, ti, "uniform", a=2, b=5, seed=1234)
+            rng_helper(self, hs, ticker, ti, "vonmisesvariate", mu=0.0, kappa=1.0, seed=1234)
+            rng_helper(self, hs, ticker, ti, "weibullvariate", alpha=1.0, beta=1.0, seed=1234)
 
-        # Test random number generators
-        rng_helper(self, hs, ticker, ti, "betavariate", alpha=1.0, beta=1.0, seed=1234)
-        rng_helper(self, hs, ticker, ti, "expovariate", lambd=1.0, seed=1234)
-        rng_helper(self, hs, ticker, ti, "gammavariate", alpha=1.0, beta=1.0, seed=1234)
-        rng_helper(self, hs, ticker, ti, "gauss", seed=1234)
-        rng_helper(self, hs, ticker, ti, "lognormvariate", mu=0.0, sigma=1.0, seed=1234)
-        rng_helper(self, hs, ticker, ti, "normalvariate", mu=0.0, sigma=1.0, seed=1234)
-        rng_helper(self, hs, ticker, ti, "paretovariate", alpha=1.0, seed=1234)
-        rng_helper(self, hs, ticker, ti, "randint", a=1, b=5, seed=1234)
-        rng_helper(self, hs, ticker, ti, "random", seed=1234)
-        rng_helper(self, hs, ticker, ti, "randrange", start=10, stop=20, step=2, seed=1234)
-        rng_helper(self, hs, ticker, ti, "triangular", low=2, high=5, mode=4, seed=1234)
-        rng_helper(self, hs, ticker, ti, "uniform", a=2, b=5, seed=1234)
-        rng_helper(self, hs, ticker, ti, "vonmisesvariate", mu=0.0, kappa=1.0, seed=1234)
-        rng_helper(self, hs, ticker, ti, "weibullvariate", alpha=1.0, beta=1.0, seed=1234)
+            # Test custom random function
+            import math
+            rng_helper(self, hs, ticker, ti, "custom", func=lambda dt: math.sin(datetime2unix(dt)))
 
-        # Test custom random function
-        import math
-        rng_helper(self, hs, ticker, ti, "custom", func=lambda dt: math.sin(datetime2unix(dt)))
+    def test_combine_generators(self):
+        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
+            ti = TimeInterval(t1, t1 + minute)
+
+            M = hs.channel_manager.memory
+
+            # Create a clock stream to align the random numbers to
+            ticker = M.get_or_create_stream("ticker")
+            hs.tools.clock().execute(sources=[], sink=ticker, interval=ti)
+
+            gauss = rng_helper(self, hs, ticker, ti, "gauss", seed=1234)
+            import math
+            custom = rng_helper(self, hs, ticker, ti, "custom", func=lambda dt: math.sin(datetime2unix(dt)))
+
+            merged = M.get_or_create_stream("merged")
+            hs.tools.aligned_merge().execute(sources=[gauss, custom], sink=merged, interval=ti)
+
+            summed = M.get_or_create_stream("summed")
+            hs.tools.list_sum().execute(sources=[merged], sink=summed, interval=ti)
+
+            self.assertListEqual(
+                summed.window().values(),
+                list(map(sum, zip(gauss.window().values(), custom.window().values())))
+            )
 
     def test_data_importers(self):
-        hs = HyperStream()
-        reader = hs.plugins.data_importers.tools.csv_reader('plugins/data_importers/data/sea_ice.csv')
-        ti = TimeInterval(datetime(1990, 1, 1).replace(tzinfo=UTC), datetime(2011, 4, 1).replace(tzinfo=UTC))
+        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
+            reader = hs.plugins.data_importers.tools.csv_reader('plugins/data_importers/data/sea_ice.csv')
+            ti = TimeInterval(datetime(1990, 1, 1).replace(tzinfo=UTC), datetime(2011, 4, 1).replace(tzinfo=UTC))
 
-        # TODO: More complicated tests, including headers, different delimiters, messy data etc etc.
-        sea_ice = hs.channel_manager.memory.get_or_create_stream("sea_ice")
+            # TODO: More complicated tests, including headers, different delimiters, messy data etc etc.
+            sea_ice = hs.channel_manager.memory.get_or_create_stream("sea_ice")
 
-        reader.execute(sources=[], sink=sea_ice, interval=ti)
+            reader.execute(sources=[], sink=sea_ice, interval=ti)
 
-        sea_ice_sums = hs.channel_manager.mongo.get_or_create_stream("sea_ice_sums")
-        hs.tools.list_sum().execute(sources=[sea_ice], sink=sea_ice_sums, interval=ti)
+            sea_ice_sums = hs.channel_manager.mongo.get_or_create_stream("sea_ice_sums")
+            hs.tools.list_sum().execute(sources=[sea_ice], sink=sea_ice_sums, interval=ti)
 
-        print(sea_ice_sums.window().values())
+            # print(sea_ice_sums.window().values())
 
-        self.assertListEqual(sea_ice_sums.window().values(), map(sum, sea_ice.window().values()))
+            self.assertListEqual(sea_ice_sums.window().values(), map(sum, sea_ice.window().values()))

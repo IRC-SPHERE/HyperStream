@@ -21,7 +21,7 @@
 import os
 from datetime import datetime, timedelta
 
-from hyperstream import UTC, StreamId
+from hyperstream import HyperStream, UTC, NodeIDAbsentError
 from subprocess import check_output
 import paho.mqtt.client as mqtt
 
@@ -40,59 +40,65 @@ minute = timedelta(minutes=1)
 second = timedelta(seconds=1)
 zero = timedelta(0)
 
-# Some useful Stream IDs
-clock = StreamId('clock')
-aggregate = StreamId('aggregate')
-# every30s = StreamId('every30s')
-# motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
-# env_kitchen_30_s_window = StreamId('env_kitchen_30_s_window')
-# kitchen = StreamId("kitchen")
-# kitchen_motion = StreamId('kitchen_motion')
-# m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
-# average = StreamId('average')
-# count = StreamId('count')
-# component = StreamId('component')
-# component_filter = StreamId('component_filter')
+
+def setup():
+    with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
+        for plate_id, tag in (('T', 'test'), (None, 'test_meta_data'), ('T1', 'test_plate_creation')):
+            try:
+                delete_meta_data(hs, tag)
+            except NodeIDAbsentError:
+                pass
+            if plate_id:
+                delete_plates(hs, plate_id)
+        insert_meta_data(hs, 'test')
+        create_plates(hs, 'T', 'test')
 
 
-def insert_meta_data(hs):
+def teardown():
+    with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
+        delete_plates(hs, 'T')
+        delete_meta_data(hs, 'test')
+
+
+def insert_meta_data(hs, tag):
     for data in map(str, range(4)):
-        identifier = 'test_{}'.format(data)
-        hs.plate_manager.meta_data_manager.insert(
-            tag='test', identifier=identifier, parent='root', data=data)
+        identifier = '{}_{}'.format(tag, data)
+        hs.plate_manager.meta_data_manager.insert(tag=tag, identifier=identifier, parent='root', data=data)
 
 
-def delete_meta_data(hs):
+def delete_meta_data(hs, tag):
     for data in map(str, range(4)):
-        identifier = 'test_{}'.format(data)
+        identifier = '{}_{}'.format(tag, data)
         hs.plate_manager.meta_data_manager.delete(identifier)
 
 
-def get_meta_data(hs):
-    return sorted(x.identifier for x in hs.plate_manager.meta_data_manager.global_plate_definitions.all_nodes())
+def get_meta_data(hs, tag):
+    return sorted(x.identifier
+                  for x in hs.plate_manager.meta_data_manager.global_plate_definitions.all_nodes()
+                  if "_".join(x.identifier.split('_')[:-1]) == tag)
 
 
-def create_plates(hs):
+def create_plates(hs, plate_id, tag):
     hs.plate_manager.create_plate(
-        plate_id="T",
-        description="test",
-        meta_data_id="test",
+        plate_id=plate_id,
+        description=tag,
+        meta_data_id=tag,
         values=[],
         complement=True,
         parent_plate=None)
 
     hs.plate_manager.create_plate(
-        plate_id="T.U",
+        plate_id=plate_id + ".U",
         description="nested test",
-        meta_data_id="under",
+        meta_data_id="under_" + tag,
         values=[],
         complement=True,
-        parent_plate="T")
+        parent_plate=plate_id)
 
 
-def delete_plates(hs):
-    hs.plate_manager.delete_plate("T")
-    hs.plate_manager.delete_plate("T.U")
+def delete_plates(hs, plate_id):
+    hs.plate_manager.delete_plate(plate_id)
+    hs.plate_manager.delete_plate(plate_id + ".U")
 
 
 class MqttClient(object):

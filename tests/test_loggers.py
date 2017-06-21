@@ -76,27 +76,25 @@ class HyperStreamLoggingTests(unittest.TestCase):
         mqtt_logger = dict(host=mqtt_ip, port=1883, topic="topics/test", loglevel=MON, qos=1,
                            formatter=SenMLFormatter())
 
-        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=mqtt_logger)
+        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=mqtt_logger):
+            with MqttClient() as client:
+                # client.client.publish("topics/test", "{} ABC".format(utcnow()))
+                logging.monitor("1234567890", extra=dict(n="blah"))
+                sleep(1)
+                # print(client.last_messages["topics/test"])
+                msg = json.loads(client.last_messages["topics/test"])
+                assert(msg['e'][0]['n'] == 'blah')
+                assert(msg['e'][0]['v'] == '1234567890')
+                assert(msg['uid'] == 'hyperstream')
 
-        with MqttClient() as client:
-            # client.client.publish("topics/test", "{} ABC".format(utcnow()))
-            logging.monitor("1234567890", extra=dict(n="blah"))
-            sleep(1)
-            # print(client.last_messages["topics/test"])
-            msg = json.loads(client.last_messages["topics/test"])
-            assert(msg['e'][0]['n'] == 'blah')
-            assert(msg['e'][0]['v'] == '1234567890')
-            assert(msg['uid'] == 'hyperstream')
-
-            logging.monitor("1234567890")
-            sleep(1)
-            # print(client.last_messages["topics/test"])
-            msg = json.loads(client.last_messages["topics/test"])
-            assert(msg['e'][0]['n'] == 'default')
-            assert(msg['e'][0]['v'] == '1234567890')
-            assert(msg['uid'] == 'hyperstream')
+                logging.monitor("1234567890")
+                sleep(1)
+                # print(client.last_messages["topics/test"])
+                msg = json.loads(client.last_messages["topics/test"])
+                assert(msg['e'][0]['n'] == 'default')
+                assert(msg['e'][0]['v'] == '1234567890')
+                assert(msg['uid'] == 'hyperstream')
 
 
 if __name__ == "__main__":
-    tests = HyperStreamLoggingTests()
-    tests.test_mqtt_logger()
+    unittest.main()
