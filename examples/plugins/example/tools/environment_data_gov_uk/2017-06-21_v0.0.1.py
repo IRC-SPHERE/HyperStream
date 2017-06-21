@@ -41,11 +41,17 @@ class EnvironmentDataGovUk(Tool):
         response = urllib2.urlopen('http://environment.data.gov.uk/flood-monitoring/data/readings?latest')
         data = json.load(response)
 
+	data_dict = {}
         for item in data['items']:
             dt = parse(item.get('dateTime'))
             if dt in interval:
+                value = data_dict.get(dt, [])
                 measure = item.get('measure').split('/')[-1]
-                # FIXME there are repeated times that correspond to different
-                # sensors (different measure name).
-                yield StreamInstance(dt, {'measure': measure,
-                                          'value': float(item.get('value'))})
+                value.append({'measure': measure,
+			      'value': float(item.get('value'))})
+                data_dict[dt] = value
+
+	data_list = [(k, data_dict[k]) for k in sorted(data_dict, key=data_dict.get, reverse=False)]
+
+        for dt, value in data_list:
+            yield StreamInstance(dt, value)
