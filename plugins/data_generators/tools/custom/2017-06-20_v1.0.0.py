@@ -22,20 +22,13 @@
 from hyperstream import Tool, StreamInstance, ToolExecutionError
 from hyperstream.utils import check_input_stream_count
 
-import random
 
-
-class Triangular(Tool):
+class Custom(Tool):
     """
-    Return a random floating point number N such that low <= N <= high and with the specified mode between those bounds. 
-    The low and high bounds default to zero and one. The mode argument defaults to the midpoint between the bounds, 
-    giving a symmetric distribution.
-    
-    Optionally initialize internal state of the random number generator using seed.
+    Custom generator: uses a function to generate instances
     """
-    def __init__(self, low=0.0, high=1.0, mode=None, seed=None):
-        super(Triangular, self).__init__(low=low, high=high, mode=mode, seed=seed)
-        random.seed(self.seed)
+    def __init__(self, func):
+        super(Custom, self).__init__(func=func)
 
     @check_input_stream_count(0)
     def _execute(self, sources, alignment_stream, interval):
@@ -43,4 +36,4 @@ class Triangular(Tool):
             raise ToolExecutionError("Alignment stream expected")
 
         for ti, _ in alignment_stream.window(interval, force_calculation=True):
-            yield StreamInstance(ti, random.triangular(low=self.low, high=self.high, mode=self.mode))
+            yield StreamInstance(ti, self.func())
