@@ -25,20 +25,25 @@ from hyperstream.utils import check_input_stream_count
 import random
 
 
-class Random(Tool):
+class Expovariate(Tool):
     """
-    Return the next random floating point number in the range [0.0, 1.0)
+    Exponential distribution.
+
+    lambd is 1.0 divided by the desired mean.  It should be nonzero.  
+    (The parameter would be called "lambda", but that is a reserved word in Python.)  
+    Returned values range from 0 to positive infinity if lambd is positive, and from negative infinity to 0 if 
+    lambd is negative.
+    
     Optionally initialize internal state of the random number generator using seed.
     """
-    def __init__(self, seed=None):
-        super(Random, self).__init__(seed=seed)
+    def __init__(self, lambd, seed=None):
+        super(Expovariate, self).__init__(lambd=lambd, seed=seed)
+        random.seed(self.seed)
 
     @check_input_stream_count(0)
     def _execute(self, sources, alignment_stream, interval):
         if alignment_stream is None:
             raise ToolExecutionError("Alignment stream expected")
 
-        random.seed(self.seed)
-
         for ti, _ in alignment_stream.window(interval, force_calculation=True):
-            yield StreamInstance(ti, random.random())
+            yield StreamInstance(ti, random.expovariate(lambd=self.lambd))

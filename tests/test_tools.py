@@ -91,6 +91,7 @@ class TestTools(unittest.TestCase):
         reader = hs.plugins.data_importers.tools.csv_reader('plugins/data_importers/data/sea_ice.csv')
         ti = TimeInterval(datetime(1990, 1, 1).replace(tzinfo=UTC), datetime(2011, 4, 1).replace(tzinfo=UTC))
 
+        # TODO: More complicated tests, including headers, different delimiters, messy data etc etc.
         sea_ice = hs.channel_manager.memory.get_or_create_stream("sea_ice")
 
         reader.execute(sources=[], sink=sea_ice, interval=ti)
