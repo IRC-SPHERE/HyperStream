@@ -21,12 +21,13 @@
 Module for dealing with time intervals containing TimeInterval, TimeIntervals, and RelativeTimeInterval
 """
 
-from utils import MIN_DATE, MAX_DATE, utcnow, UTC, Printable, get_timedelta
+from utils import MIN_DATE, MAX_DATE, utcnow, UTC, Printable, get_timedelta, is_naive
 
 from datetime import date, datetime, timedelta
 import ciso8601
 from collections import namedtuple
 import arrow
+import json
 
 
 def profile(ob):
@@ -220,6 +221,9 @@ class TimeIntervals(Printable):
     def __len__(self):
         return len(self.intervals)
 
+    def to_json(self):
+        return json.dumps({'intervals': self.intervals})
+
 
 class TimeInterval(namedtuple("TimeInterval", "start end")):
     """
@@ -267,8 +271,16 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
 
     @profile
     def _validate(self):
-        if self._start >= self._end:
-            raise ValueError("start should be strictly less than end")
+        if is_naive(self._start):
+            self._start = self._start.replace(tzinfo=UTC)
+        if is_naive(self._end):
+            self._end = self._end.replace(tzinfo=UTC)
+
+        try:
+            if self._start >= self._end:
+                raise ValueError("start should be strictly less than end")
+        except TypeError:
+            raise  # for debugging
 
         # TODO: Temporarily remove extra validation
         #
@@ -347,6 +359,9 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
         if not isinstance(other, RelativeTimeInterval):
             raise ValueError("Can only add a relative time interval to a time interval")
         return TimeInterval(self.start + timedelta(other.start), self.end + timedelta(other.end))
+
+    def to_json(self):
+        return json.dumps((self._start, self._end))
 
     # def resize(self, *args):
     #     if len(args) == 1:

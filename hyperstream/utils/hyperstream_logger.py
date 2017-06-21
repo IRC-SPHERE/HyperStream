@@ -27,8 +27,8 @@ from collections import namedtuple, OrderedDict
 import json
 from datetime import datetime
 
-from . import Printable
-from utils import touch, handle_exception
+from containers import Printable
+from errors import handle_exception
 from ..version import __version__
 
 
@@ -194,3 +194,16 @@ class SenMLFormatter(logging.Formatter):
 
         formatted_json = json.dumps(senml)
         return formatted_json
+
+
+def touch(full_name, times=None):
+    """
+    Touch the file
+
+    :type full_name: str | unicode
+    :type times: tuple | None
+    :param full_name: The full file path
+    :param times: Tuple of (atime, mtime) access and modified time of the file
+    """
+    with open(full_name, 'a'):
+        os.utime(full_name, times)

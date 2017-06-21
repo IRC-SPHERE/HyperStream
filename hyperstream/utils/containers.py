@@ -23,16 +23,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from .errors import StreamNotFoundError
+from .time_utils import json_serial
 
 import logging
-import os
 import sys
 import re
-import json
 from bidict import bidict, ValueDuplicationError
 from future.utils import python_2_unicode_compatible
 from treelib.tree import Tree, NodePropertyAbsentError, NodeIDAbsentError
-
+import json
 
 # The next two lines are to fix the "UnicodeDecodeError: 'ascii' codec can't decode byte" error
 #  http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
@@ -164,7 +163,7 @@ class Hashable(object):
 
     def __hash__(self):
         try:
-            return hash((self.name, json.dumps(self.__dict__, sort_keys=True)))
+            return hash((self.name, json.dumps(self.__dict__, sort_keys=True, default=json_serial)))
         except TypeError:
             return hash((self.name, repr(sorted(self.__dict__.items()))))
 
@@ -216,6 +215,10 @@ class TypedBiDict(Printable):
         except ValueDuplicationError as e:
             # TODO: debugging
             raise e
+
+    def __delitem__(self, key):
+        self._store.__delitem__(key)
+        # del self._store[key]
 
     def __contains__(self, item):
         return item in self._store
@@ -313,26 +316,6 @@ class PluginWrapper(Printable):
     def __init__(self):
         self.tools = ToolContainer()
         self.factors = FactorContainer()
-
-
-def touch(full_name, times=None):
-    """
-    Touch the file
-    
-    :type full_name: str | unicode
-    :type times: tuple | None
-    :param full_name: The full file path
-    :param times: Tuple of (atime, mtime) access and modified time of the file
-    """
-    with open(full_name, 'a'):
-        os.utime(full_name, times)
-
-
-def handle_exception(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, KeyboardInterrupt):
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
 FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')

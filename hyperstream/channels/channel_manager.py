@@ -136,30 +136,6 @@ class ChannelManager(dict, Printable):
                 else:
                     logging.warn("Unable to parse stream {}".format(stream_id))
 
-    def populate_assets(self, tool_id):
-        """
-        TODO: Unused?
-        """
-        tool_stream_view = None
-
-        # Look in the main tool channel first
-        if tool_id in self.tools:
-            tool_stream_view = self.tools[tool_id].window((MIN_DATE, self.tools.up_to_timestamp))
-        else:
-            # Otherwise look through all the channels in the order they were defined
-            for tool_channel in self.tool_channels:
-                if tool_channel == self.tools:
-                    continue
-                if tool_id in tool_channel:
-                    # noinspection PyTypeChecker
-                    tool_stream_view = tool_channel[tool_id].window((MIN_DATE, tool_channel.up_to_timestamp))
-
-        if tool_stream_view is None:
-            raise ToolNotFoundError(tool_id)
-
-        # TODO: Use tool versions - here we just take the latest one
-        return tool_stream_view.last().value
-
     def get_tool_class(self, tool):
         """
         Gets the actual class which can then be instantiated with its parameters

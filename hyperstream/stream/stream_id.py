@@ -21,6 +21,8 @@
 
 from ..utils import Hashable
 
+import json
+
 
 def get_stream_id(item):
     if isinstance(item, StreamId):
@@ -71,6 +73,9 @@ class StreamId(Hashable):
         return isinstance(other, StreamId) and \
                self.name == other.name and \
                sorted(self.meta_data) == sorted(other.meta_data)
+
+    def to_json(self):
+        return json.dumps(self.as_dict())
 
     def as_dict(self):
         return dict(name=self.name, meta_data=self.meta_data)

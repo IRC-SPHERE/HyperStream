@@ -17,9 +17,9 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
-
+import json
 import pytz
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 import udatetime
 
 
@@ -86,3 +86,29 @@ def reconstruct_interval(experiment_id):
     start, end = map(lambda x: udatetime.utcfromtimestamp(x / 1000.0), map(float, experiment_id.split("-")))
     from ..time_interval import TimeInterval
     return TimeInterval(start, end)
+
+
+def is_naive(dt):
+    return dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None
+
+
+def json_serial(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, (datetime, date)):
+        serial = obj.isoformat()
+        return serial
+
+    from ..time_interval import TimeInterval, TimeIntervals
+    if isinstance(obj, (TimeInterval, TimeIntervals)):
+        return obj.to_json()
+
+    from ..stream import StreamId
+    if isinstance(obj, StreamId):
+        return obj.to_json()
+
+    from ..channels import BaseChannel
+    if isinstance(obj, BaseChannel):
+        return json.dumps({'channel_id': obj.channel_id})
+
+    raise TypeError("Type %s not serializable" % type(obj))
