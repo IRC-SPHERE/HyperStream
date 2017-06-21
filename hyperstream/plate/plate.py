@@ -23,7 +23,10 @@ Plate definition.
 from hyperstream.utils import Printable
 
 import itertools
-from collections import deque
+from collections import deque, namedtuple
+
+
+PlateValue = namedtuple("PlateValue", "plate value")
 
 
 class Plate(Printable):
@@ -64,6 +67,10 @@ class Plate(Printable):
     @property
     def values(self):
         return self._values
+
+    @property
+    def value_tuples(self):
+        return [PlateValue(self, v) for v in self.values]
 
     def _get_identifier(self, current=None):
         if not current:
@@ -131,7 +138,7 @@ class Plate(Printable):
             return True
         if all(any(all(spv in m for spv in v) for m in map(set, other.values)) for v in self.values):
             return True
-        if other in self.ancestor_plates: # added by MK, but still not sure whether all cases are covered
+        if other in self.ancestor_plates:  # added by MK, but still not sure whether all cases are covered
             return True
         return False
 
@@ -305,3 +312,12 @@ class Plate(Printable):
             raise ValueError("Plate value computation failed - possibly there were no shared plate values")
 
         return last_values
+
+    def __iter__(self):
+        """
+        Iterator that returns tuples of self and value so that for ... in notation can be used
+        
+        :return: Plate
+        """
+        # return iter(self.value_tuples)
+        yield self

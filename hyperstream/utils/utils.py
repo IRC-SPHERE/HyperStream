@@ -22,10 +22,12 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from .errors import StreamNotFoundError
+
 import logging
 import os
 import sys
-
+import re
 import json
 from bidict import bidict, ValueDuplicationError
 from future.utils import python_2_unicode_compatible
@@ -211,9 +213,9 @@ class TypedBiDict(Printable):
             raise TypeError("expected {}, got {}".format(self.key_type, type(key)))
         try:
             return self._store[key]
-        except KeyError as e:
+        except KeyError:
             # for debugging
-            raise e
+            raise StreamNotFoundError(repr(key))
 
     def __setitem__(self, key, value):
         if not isinstance(key, self.key_type):
@@ -296,6 +298,34 @@ class TypedFrozenKeyDict(FrozenKeyDict):
         super(TypedFrozenKeyDict, self).__setitem__(key, value)
 
 
+class ToolContainer(Printable):
+    """
+    Dummy class for holding tool objects for easy access
+    """
+    pass
+
+
+class FactorContainer(Printable):
+    """
+    Dummy class for holding factor creation functions
+    """
+
+
+class PluginContainer(Printable):
+    """
+    Dummy class for holding plugins
+    """
+
+
+class PluginWrapper(Printable):
+    """
+    Dummy class for a plugins containing tool objects for easy access
+    """
+    def __init__(self):
+        self.tools = ToolContainer()
+        self.factors = FactorContainer()
+
+
 def touch(full_name, times=None):
     """
     Touch the file
@@ -314,3 +344,12 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
     logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+
+FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')
+ALL_CAP_RE = re.compile('([a-z0-9])([A-Z])')
+
+
+def camel_to_snake(name):
+    s1 = FIRST_CAP_RE.sub(r'\1_\2', name)
+    return ALL_CAP_RE.sub(r'\1_\2', s1).lower()

@@ -80,6 +80,7 @@ class PlateManager(Printable):
             try:
                 p = PlateDefinitionModel.objects.get(plate_id=plate_id)
                 p.delete()
+                del self.plates[plate_id]
             except DoesNotExist as e:
                 logging.warn(e.message)
 

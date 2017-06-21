@@ -18,7 +18,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from ..stream import StreamDict
+from ..stream import StreamDict, get_stream_id
 from ..time_interval import TimeIntervals
 from ..utils import Printable, MAX_DATE, StreamNotFoundError, MultipleStreamsFoundError
 
@@ -79,6 +79,7 @@ class BaseChannel(Printable):
         :param try_create: Whether to try to create the stream if not found
         :return: The stream object
         """
+        stream_id = get_stream_id(stream_id)
         if stream_id in self.streams:
             logging.debug("found {}".format(stream_id))
             return self.streams[stream_id]
@@ -182,10 +183,10 @@ class BaseChannel(Printable):
         return s
     
     def __getitem__(self, item):
-        return self.streams[item]
+        return self.streams[get_stream_id(item)]
 
     def __setitem__(self, key, value):
-        self.streams[key] = value
+        self.streams[get_stream_id(key)] = value
 
     def __contains__(self, item):
-        return item in self.streams
+        return get_stream_id(item) in self.streams

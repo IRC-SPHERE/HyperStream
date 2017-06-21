@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.stream import StreamInstance
-from hyperstream.tool import Tool, check_input_stream_count
+from hyperstream.tool import SelectorTool
 import numpy as np
 from collections import Counter
 

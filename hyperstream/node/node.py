@@ -28,7 +28,7 @@ import logging
 
 from ..plate import Plate
 from ..stream import StreamId
-from ..utils import Printable
+from ..utils import Printable, IncompatiblePlatesError
 
 
 class Node(Printable):
@@ -160,3 +160,23 @@ class Node(Printable):
             print_func("")
         if not found:
             print_func("No streams found for the given plate values")
+
+    def __setitem__(self, key, value):
+        """
+        This is used in the new API to help write workflows, so that you can write e.g.:
+        
+        rss_raw[house] = hs.factors.sphere(sources=None, channel=memory, modality="wearable", elements={"rss"})
+        
+        :param key: the plate value
+        :param value: the Lazily initialised factor 
+        :return: The NodeView object on the given plate
+        """
+        # TODO: Check that the plate value is valid
+        if key not in self.plates:
+            raise IncompatiblePlatesError("{} not in plates for node {}".format(key, self))
+
+        value['workflow'].create_factor(
+            tool=value['tool'],
+            sources=value['sources'],
+            sink=self,
+            alignment_node=value['alignment_node'])

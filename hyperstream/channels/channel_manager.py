@@ -30,7 +30,6 @@ import os
 
 from hyperstream.models import StreamDefinitionModel
 from hyperstream.stream import StreamId, DatabaseStream, AssetStream
-from hyperstream.time_interval import TimeIntervals
 from hyperstream.utils import Printable, utcnow, MIN_DATE, StreamAlreadyExistsError, ChannelNotFoundError, \
     ToolNotFoundError, ChannelAlreadyExistsError, ToolInitialisationError
 from hyperstream.channels import ToolChannel, MemoryChannel, DatabaseChannel, AssetsChannel, AssetsChannel2

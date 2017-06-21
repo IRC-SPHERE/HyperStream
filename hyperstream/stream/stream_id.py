@@ -22,6 +22,16 @@
 from ..utils import Hashable
 
 
+def get_stream_id(item):
+    if isinstance(item, StreamId):
+        return item
+    if isinstance(item, (str, unicode)):
+        # Assume this is a simple stream definition with no metadata
+        return StreamId(name=item)
+    # Assume that this is a dict containing the name and metadata
+    return StreamId(**item)
+
+
 class StreamId(Hashable):
     """
     Helper class for stream identifiers. A stream identifier contains the stream name and any meta-data

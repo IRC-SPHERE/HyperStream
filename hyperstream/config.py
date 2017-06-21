@@ -25,7 +25,7 @@ import logging
 import json
 import os
 
-from utils import Printable
+from utils import Printable, ConfigurationError
 from plugin_manager import Plugin
 from time_interval import RelativeTimeInterval
 
@@ -55,8 +55,8 @@ class HyperStreamConfig(Printable):
                 config = json.load(f)
                 self.mongo = config['mongo']
                 self.output_path = config['output_path'] if 'output_path' in config else 'output'
-                self.plugins = [Plugin(**p) for p in config['plugins']]
+                self.plugins = [Plugin(**p) for p in config.get('plugins', [])]
                 self.online_engine = OnlineEngineConfig(**config["online_engine"])
         except (OSError, IOError, TypeError) as e:
-            # raise
-            logging.error("Configuration error: " + str(e))
+            raise ConfigurationError(str(e))
+            # logging.error("Configuration error: " + str(e))
