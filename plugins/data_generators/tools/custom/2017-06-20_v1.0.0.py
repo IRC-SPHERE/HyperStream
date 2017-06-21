@@ -35,5 +35,5 @@ class Custom(Tool):
         if alignment_stream is None:
             raise ToolExecutionError("Alignment stream expected")
 
-        for ti, _ in alignment_stream.window(interval, force_calculation=True):
-            yield StreamInstance(ti, self.func())
+        for timestamp, _ in alignment_stream.window(interval, force_calculation=True):
+            yield StreamInstance(timestamp, self.func(timestamp))

@@ -21,6 +21,7 @@
 import unittest
 
 from hyperstream import HyperStream, TimeInterval
+from hyperstream.utils import datetime2unix
 from helpers import *
 
 RANDOM_VALUES = {
@@ -188,7 +189,19 @@ RANDOM_VALUES = {
                        0.17913052205554167, 0.8149312439067005, 0.15577200199556818, 2.769506831287718,
                        1.4739458186400172, 3.1450010773061314, 0.15225154281602005, 0.364408641013038,
                        0.04039461109902167, 0.32404692423975834, 1.6425423945210784, 0.1952159759825008,
-                       0.16791051413423777, 3.0948601569765564, 0.16788790502727166, 1.795100810202958]
+                       0.16791051413423777, 3.0948601569765564, 0.16788790502727166, 1.795100810202958],
+    'custom': [-0.9879823236817447, -0.40374556195170525, 0.5516930074686762, 0.9999075700850145, 0.5288117240752075,
+               -0.4284711823091324, -0.9918196596745521, -0.6432937159458958, 0.2966735035224489, 0.9638804720322135,
+               0.7449001797181029, -0.15893790254564819, -0.9166492101886217, -0.8315974613285945, 0.018021158368760136,
+               0.8510712081707065, 0.9016503140964724, 0.12325627941540647, -0.7684590101347287, -0.9536566296972906,
+               -0.2620667419290408, 0.6704660997860677, 0.9865755013707022, 0.395631936821145, -0.5590538058916165,
+               -0.9997480576763446, -0.5212785558078294, 0.43645204627117656, 0.9929106498101988, 0.6364917809557903,
+               -0.30511469597713414, -0.9662001285371942, -0.738965618780344, 0.1676704729686012, 0.9201511051222175,
+               0.8266490547207012, -0.026870324303591892, -0.855685251082012, -0.8977871042103464, -0.11446763408504809,
+               0.7740928509235026, 0.9509559387050692, 0.2535145219991979, -0.6770069770906174, -0.9850913836209568,
+               -0.3874873150318608, 0.5663708040082194, 0.9995102177959272, 0.5137045468195927, -0.44439871543277987,
+               -0.9939238481659332, -0.629639978609997, 0.3135319835464381, 0.9684440859571012, 0.7329731619475314,
+               -0.17638990687767608, -0.9235809087832809, -0.8216358824651214, 0.035717385023463166, 0.8602322534406359]
 }
 
 SEA_ICE_SUMS = [
@@ -216,20 +229,20 @@ SEA_ICE_SUMS = [
 ]
 
 
-def rng_helper(tester, hs, ticker, ti, func, **kwargs):
-    random = hs.channel_manager.memory.get_or_create_stream(func)
-    tool = getattr(hs.plugins.data_generators.tools, func)
-    tool(seed=1234, **kwargs).execute(sources=[], sink=random, interval=ti, alignment_stream=ticker)
+def rng_helper(tester, hs, ticker, ti, tool_name, **kwargs):
+    random = hs.channel_manager.memory.get_or_create_stream(tool_name)
+    tool = getattr(hs.plugins.data_generators.tools, tool_name)
+    tool(**kwargs).execute(sources=[], sink=random, interval=ti, alignment_stream=ticker)
     values = random.window().values()
     print(values)
-    tester.assertListEqual(values, RANDOM_VALUES[func])
+    tester.assertListEqual(values, RANDOM_VALUES[tool_name])
 
 
 class TestTools(unittest.TestCase):
     def test_data_generators(self):
         hs = HyperStream()
 
-        ti = TimeInterval.now_minus(minutes=1)
+        ti = TimeInterval(t1, t1 + minute)
 
         M = hs.channel_manager.memory
 
@@ -238,22 +251,24 @@ class TestTools(unittest.TestCase):
         hs.tools.clock().execute(sources=[], sink=ticker, interval=ti)
 
         # Test random number generators
-        rng_helper(self, hs, ticker, ti, "betavariate", alpha=1.0, beta=1.0)
-        rng_helper(self, hs, ticker, ti, "expovariate", lambd=1.0)
-        rng_helper(self, hs, ticker, ti, "gammavariate", alpha=1.0, beta=1.0)
-        rng_helper(self, hs, ticker, ti, "gauss")
-        rng_helper(self, hs, ticker, ti, "lognormvariate", mu=0.0, sigma=1.0)
-        rng_helper(self, hs, ticker, ti, "normalvariate", mu=0.0, sigma=1.0)
-        rng_helper(self, hs, ticker, ti, "paretovariate", alpha=1.0)
-        rng_helper(self, hs, ticker, ti, "randint", a=1, b=5)
-        rng_helper(self, hs, ticker, ti, "random")
-        rng_helper(self, hs, ticker, ti, "randrange", start=10, stop=20, step=2)
-        rng_helper(self, hs, ticker, ti, "triangular", low=2, high=5, mode=4)
-        rng_helper(self, hs, ticker, ti, "uniform", a=2, b=5)
-        rng_helper(self, hs, ticker, ti, "vonmisesvariate", mu=0.0, kappa=1.0)
-        rng_helper(self, hs, ticker, ti, "weibullvariate", alpha=1.0, beta=1.0)
+        rng_helper(self, hs, ticker, ti, "betavariate", alpha=1.0, beta=1.0, seed=1234)
+        rng_helper(self, hs, ticker, ti, "expovariate", lambd=1.0, seed=1234)
+        rng_helper(self, hs, ticker, ti, "gammavariate", alpha=1.0, beta=1.0, seed=1234)
+        rng_helper(self, hs, ticker, ti, "gauss", seed=1234)
+        rng_helper(self, hs, ticker, ti, "lognormvariate", mu=0.0, sigma=1.0, seed=1234)
+        rng_helper(self, hs, ticker, ti, "normalvariate", mu=0.0, sigma=1.0, seed=1234)
+        rng_helper(self, hs, ticker, ti, "paretovariate", alpha=1.0, seed=1234)
+        rng_helper(self, hs, ticker, ti, "randint", a=1, b=5, seed=1234)
+        rng_helper(self, hs, ticker, ti, "random", seed=1234)
+        rng_helper(self, hs, ticker, ti, "randrange", start=10, stop=20, step=2, seed=1234)
+        rng_helper(self, hs, ticker, ti, "triangular", low=2, high=5, mode=4, seed=1234)
+        rng_helper(self, hs, ticker, ti, "uniform", a=2, b=5, seed=1234)
+        rng_helper(self, hs, ticker, ti, "vonmisesvariate", mu=0.0, kappa=1.0, seed=1234)
+        rng_helper(self, hs, ticker, ti, "weibullvariate", alpha=1.0, beta=1.0, seed=1234)
 
         # Test custom random function
+        import math
+        rng_helper(self, hs, ticker, ti, "custom", func=lambda dt: math.sin(datetime2unix(dt)))
 
     def test_data_importers(self):
         hs = HyperStream()

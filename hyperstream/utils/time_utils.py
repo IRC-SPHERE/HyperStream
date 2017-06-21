@@ -54,6 +54,10 @@ def unix2datetime(u):
     return udatetime.fromtimestamp(u / 1000.0, tz=UTC) + timedelta(hours=0)
 
 
+def datetime2unix(dt):
+    return (dt - datetime(1970, 1, 1, tzinfo=UTC)).total_seconds()
+
+
 def duration2str(x):
     minutes, seconds = divmod(x.total_seconds(), 60)
     return '{} min {} sec'.format(int(minutes), int(seconds))
