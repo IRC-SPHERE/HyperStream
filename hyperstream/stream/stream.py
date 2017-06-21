@@ -225,7 +225,7 @@ class DatabaseStream(Stream):
         logging.debug("set calculated intervals")
         self.mongo_model.set_calculated_intervals(intervals)
         self.save()
-        self._calculated_intervals = intervals
+        self._calculated_intervals = TimeIntervals(intervals)
 
     @property
     def last_accessed(self):

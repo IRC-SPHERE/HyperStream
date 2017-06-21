@@ -29,6 +29,7 @@ import paho.mqtt.client as mqtt
 os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
 
 # Various constants
+mqtt_ip = "127.0.0.1"
 # noinspection PyTypeChecker
 t1 = datetime(2016, 4, 28, 20, 0, 0, 0, UTC)
 # noinspection PyTypeChecker
@@ -63,7 +64,7 @@ class MqttClient(object):
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
 
-        self.client.connect("127.0.0.1", 1883, 60)
+        self.client.connect(mqtt_ip, 1883, 60)
         # Blocking call that processes network traffic, dispatches callbacks and
         # handles reconnecting.
         # Other loop*() functions are available that give a threaded interface and a

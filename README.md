@@ -68,6 +68,21 @@ pip install -r requirements.txt
 python -c 'from hyperstream import HyperStream'
 ```
 
+Additionally, one of the requirements to run Hyperstream is a MongoDB server. By default, Hyperstream tries to connect to the port 27017 on the localhost.
+
+To see the installation steps of MongoDB go to the [official documentation][1]. E.g. in a Debian OS it is possible to install with the following command
+
+[1]: https://docs.mongodb.com/manual/installation/
+
+``` Bash
+sudo apt-get install mongodb
+```
+
+Once the MongoDB server is installed, it can be started with the following command
+
+``` Bash
+service mongod start
+```
 
 # Running tests #
 
