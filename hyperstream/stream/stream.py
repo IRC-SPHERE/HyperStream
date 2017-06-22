@@ -79,6 +79,9 @@ class Stream(Hashable):
     def __eq__(self, other):
         return str(self) == str(other)
 
+    def __hash__(self):
+        return hash(str(self))
+
     @property
     def parent_node(self):
         return self._node
@@ -197,7 +200,6 @@ class DatabaseStream(Stream):
         """
         Saves the stream definition to the database. This assumes that the definition doesn't already exist, and will
         raise an exception if it does.
-        :type upsert: bool
         :return: None
         """
         with switch_db(StreamDefinitionModel, 'hyperstream'):

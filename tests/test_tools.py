@@ -20,9 +20,9 @@
 
 import unittest
 
-from hyperstream import HyperStream, TimeInterval
+from hyperstream import TimeInterval
 from hyperstream.utils import datetime2unix
-from helpers import *
+from .helpers import *
 
 RANDOM_VALUES = {
     'betavariate': [0.03998183409782358, 0.9813044943431838, 0.10380855496305717, 0.13844628987627133,

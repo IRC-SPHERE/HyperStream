@@ -32,7 +32,7 @@ try:
 except ImportError:
     ServerSelectionTimeoutError = None
 
-from utils import Printable
+from .utils import Printable
 
 
 class Client(Printable):

@@ -21,7 +21,7 @@
 Module for dealing with time intervals containing TimeInterval, TimeIntervals, and RelativeTimeInterval
 """
 
-from utils import MIN_DATE, MAX_DATE, utcnow, UTC, Printable, get_timedelta, is_naive
+from .utils import MIN_DATE, MAX_DATE, utcnow, UTC, Printable, get_timedelta, is_naive
 
 from datetime import date, datetime, timedelta
 import ciso8601

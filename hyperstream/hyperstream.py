@@ -23,8 +23,8 @@ Main HyperStream class
 """
 
 from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, Client, Workflow
-from version import __version__
-from utils import HyperStreamLogger, ToolContainer, PluginContainer, PluginWrapper, FactorContainer
+from .version import __version__
+from .utils import HyperStreamLogger, ToolContainer, PluginContainer, PluginWrapper, FactorContainer
 
 import logging
 

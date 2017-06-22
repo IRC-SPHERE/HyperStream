@@ -21,7 +21,7 @@
 
 import unittest
 
-from helpers import *
+from .helpers import *
 
 
 class TestMetaData(unittest.TestCase):
@@ -29,7 +29,7 @@ class TestMetaData(unittest.TestCase):
         with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
             tag = 'test_meta_data'
             insert_meta_data(hs, tag)
-            self.assertListEqual(get_meta_data(hs, tag), ["{}_{}".format(tag, i) for i in xrange(4)])
+            self.assertListEqual(get_meta_data(hs, tag), ["{}_{}".format(tag, i) for i in range(4)])
             delete_meta_data(hs, tag)
             self.assertListEqual(get_meta_data(hs, tag), [])
 
@@ -38,7 +38,7 @@ class TestMetaData(unittest.TestCase):
             tag = 'test_plate_creation'
             insert_meta_data(hs, tag)
             create_plates(hs, "T1", tag)
-            expected = [((tag, str(i)),) for i in xrange(4)]
+            expected = [((tag, str(i)),) for i in range(4)]
             self.assertListEqual(sorted(hs.plate_manager.plates["T1"].values), expected)
             delete_plates(hs, "T1")
             delete_meta_data(hs, tag)

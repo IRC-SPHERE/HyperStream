@@ -18,7 +18,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from file_channel import FileChannel
+from .file_channel import FileChannel
 
 from os.path import join
 from re import sub

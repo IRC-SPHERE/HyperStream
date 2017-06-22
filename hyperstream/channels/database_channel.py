@@ -25,12 +25,11 @@ from mongoengine.context_managers import switch_db
 from pymongo.errors import InvalidDocument
 import logging
 
-from base_channel import BaseChannel
-from hyperstream.utils.errors import StreamAlreadyExistsError, StreamNotFoundError
+from .base_channel import BaseChannel
 from ..time_interval import TimeIntervals
 from ..models import StreamInstanceModel
 from ..stream import StreamInstance, DatabaseStream
-from ..utils import utcnow
+from ..utils import utcnow, StreamNotFoundError, StreamAlreadyExistsError
 
 
 class DatabaseChannel(BaseChannel):

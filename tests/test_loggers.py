@@ -25,9 +25,8 @@ from time import sleep
 import json
 import mqtthandler
 
-from hyperstream import HyperStream
 from hyperstream.utils.hyperstream_logger import MON, SenMLFormatter
-from helpers import *
+from .helpers import *
 
 
 # noinspection PyMethodMayBeStatic,SpellCheckingInspection

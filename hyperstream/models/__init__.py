@@ -18,11 +18,11 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from stream import StreamDefinitionModel, StreamInstanceModel, StreamIdField, SummaryInstanceModel
-from workflow import WorkflowDefinitionModel, WorkflowStatusModel
-from plate import PlateDefinitionModel
-from node import NodeDefinitionModel
-from factor import FactorDefinitionModel
-from tool import ToolModel, ToolParameterModel
-from time_interval import TimeIntervalModel
-from meta_data import MetaDataModel
+from .stream import StreamDefinitionModel, StreamInstanceModel, StreamIdField, SummaryInstanceModel
+from .workflow import WorkflowDefinitionModel, WorkflowStatusModel
+from .plate import PlateDefinitionModel
+from .node import NodeDefinitionModel
+from .factor import FactorDefinitionModel
+from .tool import ToolModel, ToolParameterModel
+from .time_interval import TimeIntervalModel
+from .meta_data import MetaDataModel

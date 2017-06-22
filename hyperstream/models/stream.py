@@ -20,7 +20,7 @@
 
 from mongoengine import Document, DateTimeField, StringField, DynamicField, EmbeddedDocumentListField, \
     EmbeddedDocument, EmbeddedDocumentField, ListField
-from time_interval import TimeIntervalModel
+from .time_interval import TimeIntervalModel
 from ..time_interval import TimeInterval, TimeIntervals
 
 

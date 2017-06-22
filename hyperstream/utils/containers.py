@@ -35,9 +35,11 @@ import json
 
 # The next two lines are to fix the "UnicodeDecodeError: 'ascii' codec can't decode byte" error
 #  http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
-reload(sys)
-# noinspection PyUnresolvedReferences
-sys.setdefaultencoding('utf8')
+try:
+    reload(sys)  # Python 2.7
+    sys.setdefaultencoding('utf8')
+except NameError:
+    pass
 
 
 @python_2_unicode_compatible

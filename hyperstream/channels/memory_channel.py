@@ -18,11 +18,10 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from base_channel import BaseChannel
-from hyperstream.utils.errors import StreamNotFoundError, StreamAlreadyExistsError
+from .base_channel import BaseChannel
 from ..stream import Stream, StreamInstance, StreamInstanceCollection
 from ..time_interval import TimeIntervals
-from ..utils import MIN_DATE
+from ..utils import MIN_DATE, StreamNotFoundError, StreamAlreadyExistsError
 
 
 class MemoryChannel(BaseChannel):

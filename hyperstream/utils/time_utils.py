@@ -38,7 +38,8 @@ def utcnow():
     :return:
     """
     now = udatetime.utcnow().replace(tzinfo=UTC)
-    return datetime(now.year, now.month, now.day, now.hour, now.minute, now.second, now.microsecond / 1000 * 1000, UTC)
+    milliseconds = int(now.microsecond / 1000 * 1000)
+    return datetime(now.year, now.month, now.day, now.hour, now.minute, now.second, milliseconds, UTC)
 
 
 def get_timedelta(value):

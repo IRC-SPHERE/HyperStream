@@ -27,8 +27,8 @@ from collections import namedtuple, OrderedDict
 import json
 from datetime import datetime
 
-from containers import Printable
-from errors import handle_exception
+from .containers import Printable
+from .errors import handle_exception
 from ..version import __version__
 
 

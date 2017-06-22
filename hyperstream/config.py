@@ -25,9 +25,9 @@ import logging
 import json
 import os
 
-from utils import Printable, ConfigurationError
-from plugin_manager import Plugin
-from time_interval import RelativeTimeInterval
+from .utils import Printable, ConfigurationError
+from .plugin_manager import Plugin
+from .time_interval import RelativeTimeInterval
 
 
 class OnlineEngineConfig(Printable):

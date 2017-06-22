@@ -18,7 +18,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from module_channel import ModuleChannel
+from .module_channel import ModuleChannel
 from ..stream import StreamInstance
 
 

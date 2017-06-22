@@ -24,10 +24,9 @@ from __future__ import print_function
 
 import sys
 import unittest
-from nose import with_setup
 
 from hyperstream import TimeInterval
-from helpers import *
+from .helpers import *
 
 
 def basic_workflow(hs, workflow_id):

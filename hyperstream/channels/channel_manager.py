@@ -27,6 +27,7 @@ import logging
 # from mongoengine import DoesNotExist, MultipleObjectsReturned
 from mongoengine.context_managers import switch_db
 import os
+from six import string_types
 
 from hyperstream.models import StreamDefinitionModel
 from hyperstream.stream import StreamId, DatabaseStream, AssetStream
@@ -145,7 +146,7 @@ class ChannelManager(dict, Printable):
         :rtype: Tool | MultiOutputTool
         :return: The tool class
         """
-        if isinstance(tool, (str, unicode)):
+        if isinstance(tool, string_types):
             tool_id = StreamId(tool)
         elif isinstance(tool, StreamId):
             tool_id = tool

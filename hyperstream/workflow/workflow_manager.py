@@ -21,7 +21,13 @@
 
 import logging
 import pickle
-import copy_reg
+try:
+    # python 2.7.x
+    import copy_reg
+except ImportError:
+    # python 3.x
+    import copyreg as copy_reg
+
 import marshal
 import types
 from copy import deepcopy

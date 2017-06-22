@@ -18,7 +18,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from memory_channel import ReadOnlyMemoryChannel
+from .memory_channel import ReadOnlyMemoryChannel
 from ..stream import StreamId, Stream, StreamInstance
 from ..utils import Printable, MIN_DATE, UTC
 
@@ -78,7 +78,7 @@ class FileChannel(ReadOnlyMemoryChannel):
     def update_streams(self, up_to_timestamp):
         path = self.path
         for (long_path, dir_names, file_names) in os.walk(path):
-            file_names = filter(lambda ff: ff != '__init__.py', file_names)
+            file_names = list(filter(lambda ff: ff != '__init__.py', file_names))
             if len(file_names) == 0:
                 continue
             

@@ -20,10 +20,9 @@
 """
 Assets channel module.
 """
-from database_channel import DatabaseChannel
-from hyperstream.utils.errors import StreamAlreadyExistsError, StreamNotFoundError
+from .database_channel import DatabaseChannel
 from ..stream import AssetStream, StreamInstance
-from ..utils import utcnow
+from ..utils import utcnow, StreamNotFoundError, StreamAlreadyExistsError
 
 
 class AssetsChannel(DatabaseChannel):
