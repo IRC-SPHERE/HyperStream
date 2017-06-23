@@ -66,10 +66,9 @@ class FileChannel(ReadOnlyMemoryChannel):
 
     def file_filter(self, sorted_file_names):
         for file_long_name in sorted_file_names:
-            if file_long_name[:11] != '__init__.py' and file_long_name[-3:] != 'pyc':
+            if not file_long_name.startswith('__') and file_long_name[-3:] == '.py':
                 try:
                     tool_info = FileDateTimeVersion(file_long_name)
-                    
                     yield tool_info
                 
                 except ValueError as e:
@@ -78,7 +77,7 @@ class FileChannel(ReadOnlyMemoryChannel):
     def update_streams(self, up_to_timestamp):
         path = self.path
         for (long_path, dir_names, file_names) in os.walk(path):
-            file_names = list(filter(lambda ff: ff != '__init__.py', file_names))
+            file_names = list(filter(lambda ff: not ff.startswith('__'), file_names))
             if len(file_names) == 0:
                 continue
             
