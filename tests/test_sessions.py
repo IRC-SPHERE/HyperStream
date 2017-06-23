@@ -48,7 +48,7 @@ class SessionTests(unittest.TestCase):
         hs = HyperStream(loglevel=logging.CRITICAL)
         print_sessions(hs)
         # hs.clear_sessions(inactive_only=False)
-        hs.clear_sessions()
+        hs.clear_sessions(clear_history=True)
         print("after clearing")
         print_sessions(hs)
         assert (len(hs.sessions) == 0)
@@ -59,6 +59,11 @@ class SessionTests(unittest.TestCase):
             print_sessions(hs)
             assert (len(hs.sessions) == 1)
             assert hs.current_session.active
+
+            assert (hs.current_session.history[0].value.tool == 'clock')
+            assert (hs.current_session.history[1].value.tool == 'random')
+            assert (hs.current_session.history[0].value.document_count == 60)
+            assert (hs.current_session.history[1].value.document_count == 60)
 
         print("exit ...")
         hs = HyperStream(loglevel=logging.CRITICAL)
