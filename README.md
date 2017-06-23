@@ -50,6 +50,10 @@ custom data source. Workflows can have multiple time ranges, which will cause th
 ranges given.
 
 # Installation #
+## Docker images ##
+If you do not want to install all the packages separately you can use our Docker bundle available [here](https://github.com/IRC-SPHERE/Hyperstream-Dockerfiles).
+
+## Local machine ##
 
 ``` Bash
 git clone git@github.com:IRC-SPHERE/HyperStream.git
