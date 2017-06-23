@@ -86,19 +86,3 @@ class StreamDefinitionModel(Document):
             intervals = []
         self.calculated_intervals = tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
 
-# class StreamStatusModel(Document):
-#     """
-#     Stream status model
-#     Note that the calculated intervals is not required, since at first instantiation it is empty, so is equally
-#     represented by None or an empty list
-#     """
-#     stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)  # , unique=True)
-#     last_updated = DateTimeField(required=True)
-#     last_accessed = DateTimeField(required=False)
-#     calculated_intervals = EmbeddedDocumentListField(document_type=TimeIntervalModel, required=False)
-#
-#     meta = {
-#         'collection': 'stream_status',
-#         'indexes': [{'fields': ['stream_id'], 'unique': True}],
-#         'ordering': ['last_updated']
-#     }

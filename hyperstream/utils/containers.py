@@ -25,6 +25,7 @@ from __future__ import unicode_literals
 from .errors import StreamNotFoundError
 from .time_utils import json_serial
 
+from datetime import datetime
 import logging
 import sys
 import re
@@ -144,8 +145,20 @@ class Printable(object):
 
     def __repr__(self):
         name = self.__class__.__name__
-        values = ", ".join("{}={}".format(k, repr(v)) for k, v in sorted(self.__dict__.items()) if k[0] != "_")
+        values = ", ".join("{}={}".format(k, self.format(v)) for k, v in sorted(self.__dict__.items()) if k[0] != "_")
         return "{}({})".format(name, values)
+
+    @staticmethod
+    def format(v):
+        if isinstance(v, datetime):
+            if v.tzname() == 'UTC':
+                return 'datetime.datetime({}, {}, {}, {}, {}, {}, {}, tzinfo={}'.format(
+                    v.year, v.month, v.day, v.hour, v.minute, v.second, v.microsecond, 'UTC'
+                )
+            else:
+                return repr(v)
+        else:
+            return repr(v)
 
 
 class Hashable(object):
@@ -292,14 +305,30 @@ class TypedFrozenKeyDict(FrozenKeyDict):
         super(TypedFrozenKeyDict, self).__setitem__(key, value)
 
 
-class ToolContainer(Printable):
+class BaseContainer(Printable):
+    """
+    Base class for tool and factor containers
+    """
+    def __init__(self, hyperstream):
+        self._hyperstream = hyperstream
+
+    def __getattribute__(self, item):
+        if item in ('__class__', '_hyperstream'):
+            pass
+        else:
+            logging.debug("{} {}".format(self.__class__.__name__, item))
+            self._hyperstream.current_session
+        return super(BaseContainer, self).__getattribute__(item)
+
+
+class ToolContainer(BaseContainer):
     """
     Dummy class for holding tool objects for easy access
     """
     pass
 
 
-class FactorContainer(Printable):
+class FactorContainer(BaseContainer):
     """
     Dummy class for holding factor creation functions
     """
@@ -315,9 +344,9 @@ class PluginWrapper(Printable):
     """
     Dummy class for a plugins containing tool objects for easy access
     """
-    def __init__(self):
-        self.tools = ToolContainer()
-        self.factors = FactorContainer()
+    def __init__(self, hyperstream):
+        self.tools = ToolContainer(hyperstream)
+        self.factors = FactorContainer(hyperstream)
 
 
 FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')
