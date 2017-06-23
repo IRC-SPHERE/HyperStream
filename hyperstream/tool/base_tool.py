@@ -111,3 +111,10 @@ class BaseTool(Printable, Hashable):
             version="0.0.0",
             parameters=self.parameters_from_dicts(self.parameters)
         )
+
+    @staticmethod
+    def write_to_history(**kwargs):
+        from hyperstream import HyperStream
+        hs = HyperStream()
+        if hs.current_session:
+            hs.current_session.write_to_history(**kwargs)

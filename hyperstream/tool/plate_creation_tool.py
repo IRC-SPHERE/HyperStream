@@ -72,4 +72,10 @@ class PlateCreationTool(BaseTool):
             logging.debug("{} did not produce any data for time interval {} on stream {}".format(
                 self.name, interval, source))
 
+        self.write_to_history(
+            interval=interval,
+            tool=self.name,
+            document_count=len(output_plate_values)
+        )
+
         return output_plate_values

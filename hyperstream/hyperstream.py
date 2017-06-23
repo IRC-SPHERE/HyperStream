@@ -24,16 +24,24 @@ Main HyperStream class
 
 from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, Client, Workflow
 from .version import __version__
-from .utils import HyperStreamLogger, ToolContainer, PluginContainer, PluginWrapper, FactorContainer
+from .utils import HyperStreamLogger, ToolContainer, PluginContainer, PluginWrapper, FactorContainer, Singleton
 from .session import Session
 
 import logging
 
 
 class HyperStream(object):
+    # noinspection PyUnresolvedReferences
     """
-    HyperStream class: can be instantiated simply with hyperstream = HyperStream() for default operation
+    HyperStream class: can be instantiated simply with hyperstream = HyperStream() for default operation. 
+    Use in the following way to create a session (and store history of execution etc). 
+    >>> with Hyperstream():
+    >>>    pass
+    
+    Note that HyperStream uses the singleton pattern described here: https://stackoverflow.com/a/33201/1038264
     """
+    __metaclass__ = Singleton
+
     def __init__(self, loglevel=logging.INFO, file_logger=True, console_logger=True, mqtt_logger=None):
         """
         Initialise the HyperStream class. This starts the logger, loads the config files, connects to the main mongodb,
@@ -113,7 +121,7 @@ class HyperStream(object):
             handler.close()
 
     def new_session(self):
-        self.current_session = Session(self)
+        self.current_session = Session(self, history_channel=self.config.history_channel)
         return self.current_session
 
     @property
@@ -133,11 +141,11 @@ class HyperStream(object):
                 self._session.active = False
                 self._session = session
 
-    def clear_sessions(self, inactive_only=True):
+    def clear_sessions(self, inactive_only=True, clear_history=False):
         """
         Clears all stored sessions, optionally excluding active sessions
         """
-        Session.clear_inactive_sessions(self.current_session, inactive_only)
+        Session.clear_sessions(self, inactive_only, clear_history)
 
     def create_workflow(self, workflow_id, name, owner, description, online=False, monitor=False):
         """
@@ -150,6 +158,7 @@ class HyperStream(object):
         :param online: Whether this workflow should be executed by the online engine
         :param monitor: 
         :return: The workflow
+        
         """
         w = Workflow(
             channels=self.channel_manager,
@@ -169,19 +178,21 @@ class HyperStream(object):
     def populate_tools_and_factors(self):
         """
         Function to populate factory functions for the tools and factors for ease of access.
+        
         :return: None
+        
         """
         for tool_channel in self.channel_manager.tool_channels:
             if tool_channel.channel_id == "tools":
                 # These are the core tools
-                setattr(self, "tools", ToolContainer(self))
-                setattr(self, "factors", FactorContainer(self))
+                setattr(self, "tools", ToolContainer())
+                setattr(self, "factors", FactorContainer())
                 tool_container = getattr(self, "tools")
                 factor_container = getattr(self, "factors")
             else:
                 # This is a plugin, so ends in "_tools"
                 plugin_name = "_".join(tool_channel.channel_id.split("_")[:-1])
-                setattr(self.plugins, plugin_name, PluginWrapper(self))
+                setattr(self.plugins, plugin_name, PluginWrapper())
                 plugin = getattr(self.plugins, plugin_name)
                 tool_container = plugin.tools
                 factor_container = plugin.factors
@@ -191,26 +202,29 @@ class HyperStream(object):
                     tool_function = self.channel_manager.get_tool_class(tool_stream.name)
                     setattr(tool_container, tool_stream.name, tool_function)
 
-                    def create_factory_function(tool_function):
+                    def create_factory_function(tool_func):
                         """
                         This wrapper is needed to capture the tool_function closure
                             
-                        :param tool_function: 
-                        :return: 
+                        :param tool_func: The tool function
+                        :return: The factory function 
+                         
                         """
                         def factory_function(w, sources, alignment_node=None, **parameters):
                             """
                             Factory function for creating factors inside a workflow
+                            
                             :param w: workflow
                             :param sources: source nodes
                             :param alignment_node: alignment node
                             :return: the created factor
                             :type w: Workflow
                             :type sources: list[Node] | tuple[Node] | None
+                            
                             """
                             return dict(
                                 workflow=w,
-                                tool=tool_function(**parameters),
+                                tool=tool_func(**parameters),
                                 sources=sources,
                                 alignment_node=alignment_node)
                         return factory_function

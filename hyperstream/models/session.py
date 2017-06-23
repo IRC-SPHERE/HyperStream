@@ -37,6 +37,7 @@ class SessionModel(Document):
     start = DateTimeField(required=True)
     active = BooleanField()
     end = DateTimeField(required=False)
+    history_channel = StringField(min_length=1, max_length=512, required=True)
 
     meta = {
         'collection': 'sessions',

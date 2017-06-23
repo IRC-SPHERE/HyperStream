@@ -64,17 +64,14 @@ class MemoryChannel(BaseChannel):
         :param stream_id: The stream id
         :return: None
         """
-        if stream_id not in self.streams:
-            raise StreamNotFoundError(stream_id)
-        self.data[stream_id] = StreamInstanceCollection()
 
-    def clear_all(self):
+    def purge_all(self):
         """
         Clears all streams in the channel - use with caution!
         :return: None
         """
-        for stream_id in self.streams:
-            self.data[stream_id] = StreamInstanceCollection()
+        for stream_id in self.streams.keys():
+            self.purge_stream(stream_id)
 
     def delete_stream(self, stream_id):
         if stream_id not in self.streams:
@@ -87,6 +84,24 @@ class MemoryChannel(BaseChannel):
     
     def check_calculation_times(self):
         pass
+
+    def purge_stream(self, stream_id, sandbox=None):
+        """
+        Clears all the data in a given stream and the calculated intervals
+        
+        :param stream_id: The stream id
+        :param sandbox: The sandbox id
+        :return: None
+        """
+
+        if sandbox is not None:
+            raise NotImplementedError
+
+        if stream_id not in self.streams:
+            raise StreamNotFoundError(stream_id)
+
+        self.data[stream_id] = StreamInstanceCollection()
+        self.streams[stream_id].calculated_intervals = TimeIntervals()
 
     def get_results(self, stream, time_interval):
         """

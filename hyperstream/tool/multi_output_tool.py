@@ -89,7 +89,7 @@ class MultiOutputTool(BaseTool):
         required_intervals = TimeIntervals([interval]) - calculated_intervals
 
         if not required_intervals.is_empty:
-            produced_data = False
+            document_count = 0
 
             for interval in required_intervals:
                 for item in self._execute(source=source, splitting_stream=splitting_stream,
@@ -99,7 +99,7 @@ class MultiOutputTool(BaseTool):
                     try:
                         sink = next(s for s in sinks if set(s.stream_id.meta_data) == set(meta_data))
                         sink.writer(item.stream_instance)
-                        produced_data = True
+                        document_count += 1
                     except StopIteration:
                         logging.warn("A multi-output tool has produced a value {} "
                                      "which does not belong to the output plate".format(meta_data))
@@ -108,6 +108,12 @@ class MultiOutputTool(BaseTool):
                         logging.error("A multi-output tool has produced a value {} "
                                       "which cannot be hashed and does not belong to the output plate"
                                       .format(meta_data))
-            if not produced_data:
+            if not document_count:
                 logging.debug("{} did not produce any data for time interval {} on stream {}".format(
                     self.name, required_intervals, source))
+
+            self.write_to_history(
+                interval=interval,
+                tool=self.name,
+                document_count=document_count
+            )

@@ -38,6 +38,7 @@ import json
 #  http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
 try:
     reload(sys)  # Python 2.7
+    # noinspection PyUnresolvedReferences
     sys.setdefaultencoding('utf8')
 except NameError:
     pass
@@ -272,8 +273,7 @@ class FrozenKeyDict(dict):
                                     .format(key, self[key], value))
                         except ValueError:
                             try:
-                                # TODO: possible bug below - using all() on bool?
-                                if not all(value[k] == old[k]):
+                                if not all(map(lambda a, b: a == b, zip(value, old))):
                                     raise KeyError(
                                         "Key {} has already been set with value {}, new value {}"
                                         .format(key, self[key], value))
@@ -305,30 +305,26 @@ class TypedFrozenKeyDict(FrozenKeyDict):
         super(TypedFrozenKeyDict, self).__setitem__(key, value)
 
 
-class BaseContainer(Printable):
-    """
-    Base class for tool and factor containers
-    """
-    def __init__(self, hyperstream):
-        self._hyperstream = hyperstream
+class Singleton(type):
+    # noinspection PyInitNewSignature
+    def __init__(cls, name, bases, dict):
+        super(Singleton, cls).__init__(name, bases, dict)
+        cls.instance = None
 
-    def __getattribute__(self, item):
-        if item in ('__class__', '_hyperstream'):
-            pass
-        else:
-            logging.debug("{} {}".format(self.__class__.__name__, item))
-            self._hyperstream.current_session
-        return super(BaseContainer, self).__getattribute__(item)
+    def __call__(cls, *args, **kwargs):
+        if cls.instance is None:
+            cls.instance = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls.instance
 
 
-class ToolContainer(BaseContainer):
+class ToolContainer(Printable):
     """
     Dummy class for holding tool objects for easy access
     """
     pass
 
 
-class FactorContainer(BaseContainer):
+class FactorContainer(Printable):
     """
     Dummy class for holding factor creation functions
     """
@@ -344,9 +340,9 @@ class PluginWrapper(Printable):
     """
     Dummy class for a plugins containing tool objects for easy access
     """
-    def __init__(self, hyperstream):
-        self.tools = ToolContainer(hyperstream)
-        self.factors = FactorContainer(hyperstream)
+    def __init__(self):
+        self.tools = ToolContainer()
+        self.factors = FactorContainer()
 
 
 FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')

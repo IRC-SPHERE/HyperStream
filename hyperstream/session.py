@@ -19,9 +19,10 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .utils import Printable, utcnow
+from .utils import Printable, utcnow, StreamNotFoundError
 from .models import SessionModel, UnameField
-from .stream import StreamId
+from .stream import StreamId, StreamInstance
+from .time_interval import TimeInterval
 
 import os
 import uuid
@@ -29,14 +30,14 @@ from mongoengine.context_managers import switch_db
 
 
 class Session(object):
-    def __init__(self, hyperstream, model=None):
+    def __init__(self, hyperstream, model=None, history_channel='mongo'):
         """
         Initialise the session object. A hyperstream session is used to store execution history
         :param hyperstream: The hyperstream object.
         :param model: The mongo model.
         
         :type hyperstream: HyperStream
-        :type model: [SessionModel | None]
+        :type model: SessionModel
         """
 
         if model:
@@ -48,16 +49,18 @@ class Session(object):
                     uname=UnameField(**self.get_uname()),
                     start=utcnow(),
                     active=True,
-                    end=None
+                    end=None,
+                    history_channel=history_channel
                 )
 
                 self._model.save()
 
         self._hyperstream = hyperstream
-        self._history = None
+        self._history_stream = None
+        self._history_channel = self._hyperstream.channel_manager[history_channel]
 
-        # TODO: Change the below to mongo stream when we're done
-        self._history = self._hyperstream.channel_manager.memory.get_or_create_stream(StreamId("session"))
+        stream_id = StreamId("session", meta_data=(('uuid', str(self.session_id)), ))
+        self._history_stream = self._history_channel.get_or_create_stream(stream_id)
 
     def __str__(self):
         return repr(self)
@@ -68,14 +71,6 @@ class Session(object):
                            for k, v in sorted(self._model.to_dict().items())
                            if k[0] != "_")
         return "{}({})".format(name, values)
-
-    # def __del__(self):
-    #     with switch_db(SessionModel, "hyperstream"):
-    #         self._model.end = utcnow()
-    #         self._model.active = False
-    #         self._model.save()
-    #         if self._hyperstream:
-    #             self._hyperstream.current_session = None
 
     @property
     def session_id(self):
@@ -109,16 +104,42 @@ class Session(object):
                 yield Session(hyperstream=hyperstream, model=s)
 
     @staticmethod
-    def clear_inactive_sessions(current_session, inactive_only=True):
+    def clear_sessions(hyperstream, inactive_only=True, clear_history=False):
+        """
+        Clear all (inactive) sessions and (optionally) their history
+        
+        :param hyperstream: The hyperstream object
+        :param inactive_only: Whether to only clear inactive sessions (active sessions may be owned by another process)
+        :param clear_history: Whether to clear the history of the session. Note that this will only clear the history 
+        if the creator is the same process: there could feasibly be a history stored in a file channel that is not 
+         accessible by this process.
+        
+        """
         query = dict()
         if inactive_only:
             query['active'] = False
-        if current_session is not None:
-            query['session_id__ne'] = current_session.session_id
+        if hyperstream.current_session is not None:
+            query['session_id__ne'] = hyperstream.current_session.session_id
 
         with switch_db(SessionModel, "hyperstream"):
-            SessionModel.objects(**query).delete()
+            for s in SessionModel.objects(**query):
+                if clear_history:
+                    channel = hyperstream.channel_manager[s.history_channel]
+                    stream_id = StreamId("session", meta_data=(('uuid', str(s.session_id)),))
+                    try:
+                        channel.purge_stream(stream_id)
+                    except StreamNotFoundError:
+                        pass
+                s.delete()
 
     @staticmethod
     def get_uname():
         return dict(zip(("sysname", "nodename", "release", "version", "machine"), os.uname()))
+
+    @property
+    def history(self):
+        return self._history_stream.window(TimeInterval.up_to_now()).items()
+
+    def write_to_history(self, **kwargs):
+        instance = StreamInstance(utcnow(), kwargs)
+        self._history_stream.writer(instance)

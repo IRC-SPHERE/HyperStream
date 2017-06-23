@@ -19,7 +19,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from .containers import MetaDataTree, Hashable, Printable, TypedBiDict, FrozenKeyDict, TypedFrozenKeyDict, \
-    ToolContainer, PluginContainer, PluginWrapper, FactorContainer, camel_to_snake, NodeIDAbsentError
+    ToolContainer, PluginContainer, PluginWrapper, FactorContainer, camel_to_snake, NodeIDAbsentError, Singleton
 from .hyperstream_logger import HyperStreamLogger
 from .time_utils import UTC, MIN_DATE, MAX_DATE, utcnow, get_timedelta, unix2datetime, construct_experiment_id, \
     duration2str, reconstruct_interval, datetime2unix, is_naive
