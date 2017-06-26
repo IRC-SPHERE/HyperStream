@@ -48,6 +48,8 @@ class SessionTests(unittest.TestCase):
         hs = HyperStream(loglevel=logging.CRITICAL)
         print_sessions(hs)
         # hs.clear_sessions(inactive_only=False)
+
+        # TODO: this needs to clear stream definitions as well
         hs.clear_sessions(clear_history=True)
         print("after clearing")
         print_sessions(hs)
@@ -66,7 +68,11 @@ class SessionTests(unittest.TestCase):
             assert (hs.current_session.history[1].value.document_count == 60)
 
         print("exit ...")
+
         hs = HyperStream(loglevel=logging.CRITICAL)
+
+        assert hs.current_session is None
         print_sessions(hs)
         assert (len(hs.sessions) == 1)
+        assert hs.sessions[0].end is not None
         assert not hs.sessions[0].active

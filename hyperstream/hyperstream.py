@@ -114,7 +114,10 @@ class HyperStream(object):
         """
         Clean-up operations
         """
-        self.current_session = None
+        if self.current_session is not None:
+            self.current_session.close()
+            self.current_session = None
+
         for handler in list(self.logger.root_logger.handlers):
             self.logger.root_logger.removeHandler(handler)
             handler.flush()

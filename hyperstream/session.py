@@ -88,14 +88,27 @@ class Session(object):
     def end(self):
         return self._model.end
 
+    @end.setter
+    def end(self, value):
+        """
+        Setter for session end time. Not that _model.save() is not called (to avoid multiple db round-trips)
+
+        :param value: The end time 
+        """
+        self._model.end = value
+
     @property
     def active(self):
         return self._model.active
 
     @active.setter
     def active(self, value):
+        """
+        Setter for session active status. Not that _model.save() is not called (to avoid multiple db round-trips)
+        
+        :param value: The active flag 
+        """
         self._model.active = value
-        self._model.save()
 
     @staticmethod
     def get_sessions(hyperstream):
@@ -143,3 +156,11 @@ class Session(object):
     def write_to_history(self, **kwargs):
         instance = StreamInstance(utcnow(), kwargs)
         self._history_stream.writer(instance)
+
+    def close(self):
+        """
+        Close the current session
+        """
+        self.active = False
+        self.end = utcnow()
+        self._model.save()
