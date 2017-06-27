@@ -57,6 +57,8 @@ class HyperStream(object):
         otherwise a dict optionally containing loglevel
         :param mqtt_logger: Dict containing mqtt server, topic, and optionally loglevel
         """
+        self._session = None
+
         self.parameters = dict(
             loglevel=loglevel,
             file_logger=file_logger,
@@ -74,8 +76,6 @@ class HyperStream(object):
         self.plate_manager = PlateManager()
         self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager, plate_manager=self.plate_manager)
         self.plugins = PluginContainer()
-
-        self._session = None
 
         # The following are to keep pep happy - will be populated below
         self.tools = None

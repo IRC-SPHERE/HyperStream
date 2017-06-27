@@ -240,35 +240,43 @@ def rng_helper(tester, hs, ticker, ti, tool_name, **kwargs):
 
 
 class TestTools(unittest.TestCase):
+    def run(self, result=None):
+        with resource_manager() as resource:
+            self.hs = resource
+            super(TestTools, self).run(result)
+
     def test_data_generators(self):
-        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
-            ti = TimeInterval(t1, t1 + minute)
+        # with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
+        ti = TimeInterval(t1, t1 + minute)
 
-            M = hs.channel_manager.memory
+        M = self.hs.channel_manager.memory
 
-            # Create a clock stream to align the random numbers to
-            ticker = M.get_or_create_stream("ticker")
-            hs.tools.clock().execute(sources=[], sink=ticker, interval=ti)
+        # Create a clock stream to align the random numbers to
+        ticker = M.get_or_create_stream("ticker")
+        try:
+            self.hs.tools.clock().execute(sources=[], sink=ticker, interval=ti)
+        except AttributeError:
+            raise
 
-            # Test random number generators
-            rng_helper(self, hs, ticker, ti, "betavariate", alpha=1.0, beta=1.0, seed=1234)
-            rng_helper(self, hs, ticker, ti, "expovariate", lambd=1.0, seed=1234)
-            rng_helper(self, hs, ticker, ti, "gammavariate", alpha=1.0, beta=1.0, seed=1234)
-            rng_helper(self, hs, ticker, ti, "gauss", seed=1234)
-            rng_helper(self, hs, ticker, ti, "lognormvariate", mu=0.0, sigma=1.0, seed=1234)
-            rng_helper(self, hs, ticker, ti, "normalvariate", mu=0.0, sigma=1.0, seed=1234)
-            rng_helper(self, hs, ticker, ti, "paretovariate", alpha=1.0, seed=1234)
-            rng_helper(self, hs, ticker, ti, "randint", a=1, b=5, seed=1234)
-            rng_helper(self, hs, ticker, ti, "random", seed=1234)
-            rng_helper(self, hs, ticker, ti, "randrange", start=10, stop=20, step=2, seed=1234)
-            rng_helper(self, hs, ticker, ti, "triangular", low=2, high=5, mode=4, seed=1234)
-            rng_helper(self, hs, ticker, ti, "uniform", a=2, b=5, seed=1234)
-            rng_helper(self, hs, ticker, ti, "vonmisesvariate", mu=0.0, kappa=1.0, seed=1234)
-            rng_helper(self, hs, ticker, ti, "weibullvariate", alpha=1.0, beta=1.0, seed=1234)
+        # Test random number generators
+        rng_helper(self, self.hs, ticker, ti, "betavariate", alpha=1.0, beta=1.0, seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "expovariate", lambd=1.0, seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "gammavariate", alpha=1.0, beta=1.0, seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "gauss", seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "lognormvariate", mu=0.0, sigma=1.0, seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "normalvariate", mu=0.0, sigma=1.0, seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "paretovariate", alpha=1.0, seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "randint", a=1, b=5, seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "random", seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "randrange", start=10, stop=20, step=2, seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "triangular", low=2, high=5, mode=4, seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "uniform", a=2, b=5, seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "vonmisesvariate", mu=0.0, kappa=1.0, seed=1234)
+        rng_helper(self, self.hs, ticker, ti, "weibullvariate", alpha=1.0, beta=1.0, seed=1234)
 
-            # Test custom random function
-            import math
-            rng_helper(self, hs, ticker, ti, "custom", func=lambda dt: math.sin(datetime2unix(dt)))
+        # Test custom random function
+        import math
+        rng_helper(self, self.hs, ticker, ti, "custom", func=lambda dt: math.sin(datetime2unix(dt)))
 
     def test_combine_generators(self):
         with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:

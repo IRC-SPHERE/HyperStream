@@ -58,26 +58,14 @@ class MemoryChannel(BaseChannel):
         self.data[stream_id] = StreamInstanceCollection()
         return stream
 
-    def clear_stream(self, stream_id):
-        """
-        Clears all the data in a given stream
-        :param stream_id: The stream id
-        :return: None
-        """
-
-    def purge_all(self):
+    def purge_all(self, remove_definitions=False):
         """
         Clears all streams in the channel - use with caution!
+
         :return: None
         """
         for stream_id in self.streams.keys():
-            self.purge_stream(stream_id)
-
-    def delete_stream(self, stream_id):
-        if stream_id not in self.streams:
-            raise StreamNotFoundError(stream_id)
-        del self.streams[stream_id]
-        del self.data[stream_id]
+            self.purge_stream(stream_id, remove_definition=remove_definitions)
 
     def update_streams(self, up_to_timestamp):
         raise NotImplementedError
@@ -85,11 +73,12 @@ class MemoryChannel(BaseChannel):
     def check_calculation_times(self):
         pass
 
-    def purge_stream(self, stream_id, sandbox=None):
+    def purge_stream(self, stream_id, remove_definition=False, sandbox=None):
         """
         Clears all the data in a given stream and the calculated intervals
         
         :param stream_id: The stream id
+        :param remove_definition: Whether to remove the stream definition as well
         :param sandbox: The sandbox id
         :return: None
         """
@@ -102,6 +91,10 @@ class MemoryChannel(BaseChannel):
 
         self.data[stream_id] = StreamInstanceCollection()
         self.streams[stream_id].calculated_intervals = TimeIntervals()
+
+        if remove_definition:
+            del self.data[stream_id]
+            del self.streams[stream_id]
 
     def get_results(self, stream, time_interval):
         """

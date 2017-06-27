@@ -33,7 +33,7 @@ class TestChannels(unittest.TestCase):
             sid = StreamId(sys._getframe().f_code.co_name)
             M.create_stream(sid)
             self.assertRaises(StreamAlreadyExistsError, M.create_stream, sid)
-            M.delete_stream(sid)
+            M.purge_stream(sid, remove_definition=True)
             self.assertRaises(StreamNotFoundError, M.find_stream, name=sid.name)
 
     def test_tool_channel(self):

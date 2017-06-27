@@ -140,7 +140,7 @@ class Session(object):
                     channel = hyperstream.channel_manager[s.history_channel]
                     stream_id = StreamId("session", meta_data=(('uuid', str(s.session_id)),))
                     try:
-                        channel.purge_stream(stream_id)
+                        channel.purge_stream(stream_id, remove_definition=True, sandbox=None)
                     except StreamNotFoundError:
                         pass
                 s.delete()

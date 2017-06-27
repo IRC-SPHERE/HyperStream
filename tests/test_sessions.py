@@ -47,7 +47,7 @@ class SessionTests(unittest.TestCase):
     def test_sessions(self):
         hs = HyperStream(loglevel=logging.CRITICAL)
         print_sessions(hs)
-        # hs.clear_sessions(inactive_only=False)
+        # hs.clear_sessions(inactive_only=False, clear_history=True)
 
         # TODO: this needs to clear stream definitions as well
         hs.clear_sessions(clear_history=True)
@@ -62,10 +62,14 @@ class SessionTests(unittest.TestCase):
             assert (len(hs.sessions) == 1)
             assert hs.current_session.active
 
-            assert (hs.current_session.history[0].value.tool == 'clock')
-            assert (hs.current_session.history[1].value.tool == 'random')
-            assert (hs.current_session.history[0].value.document_count == 60)
-            assert (hs.current_session.history[1].value.document_count == 60)
+            history = hs.current_session.history
+            for item in history:
+                print(item)
+
+            assert (history[0].value.tool == 'clock')
+            assert (history[1].value.tool == 'random')
+            assert (history[0].value.document_count == 60)
+            assert (history[1].value.document_cunt == 60)
 
         print("exit ...")
 

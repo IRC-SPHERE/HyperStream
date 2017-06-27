@@ -108,6 +108,7 @@ class MetaDataManager(Printable):
 
         with switch_db(MetaDataModel, 'hyperstream'):
             meta_data = MetaDataModel.objects(tag=node.tag, data=node.data, parent=node.bpointer).first()
-            meta_data.delete()
+            if meta_data is not None:
+                meta_data.delete()
 
         logging.info("Meta data {} deleted".format(identifier))

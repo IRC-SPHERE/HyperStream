@@ -27,7 +27,7 @@ import logging
 
 from .base_channel import BaseChannel
 from ..time_interval import TimeIntervals
-from ..models import StreamInstanceModel
+from ..models import StreamInstanceModel, StreamDefinitionModel
 from ..stream import StreamInstance, DatabaseStream
 from ..utils import utcnow, StreamNotFoundError, StreamAlreadyExistsError
 
@@ -39,6 +39,7 @@ class DatabaseChannel(BaseChannel):
     def __init__(self, channel_id):
         """
         Initialise this channel
+
         :param channel_id: The channel identifier
         """
         super(DatabaseChannel, self).__init__(channel_id=channel_id, can_calc=True, can_create=False)
@@ -47,6 +48,7 @@ class DatabaseChannel(BaseChannel):
     def update_streams(self, up_to_timestamp):
         """
         Update the streams
+
         :param up_to_timestamp:
         :return:
         """
@@ -55,6 +57,7 @@ class DatabaseChannel(BaseChannel):
     def get_results(self, stream, time_interval):
         """
         Get the results for a given stream
+
         :param time_interval: The time interval
         :param stream: The stream object
         :return: A generator over stream instances
@@ -68,6 +71,7 @@ class DatabaseChannel(BaseChannel):
     def create_stream(self, stream_id, sandbox=None):
         """
         Create the stream
+
         :param stream_id: The stream identifier
         :param sandbox: The sandbox for this stream
         :return: None
@@ -84,10 +88,12 @@ class DatabaseChannel(BaseChannel):
         self.streams[stream_id] = stream
         return stream
 
-    def purge_stream(self, stream_id, sandbox=None):
+    def purge_stream(self, stream_id, remove_definition=False, sandbox=None):
         """
         Purge the stream
+
         :param stream_id: The stream identifier
+        :param remove_definition: Whether to remove the stream definition as well
         :param sandbox: The sandbox for this stream
         :return: None
         :raises: NotImplementedError
@@ -107,6 +113,11 @@ class DatabaseChannel(BaseChannel):
 
         # Also update the stream status
         stream.calculated_intervals = TimeIntervals([])
+
+        if remove_definition:
+            with switch_db(StreamDefinitionModel, 'hyperstream'):
+                StreamDefinitionModel.objects(__raw__=query).delete()
+
         logging.info("Purged stream {}".format(stream_id))
 
     def get_stream_writer(self, stream):
@@ -114,6 +125,7 @@ class DatabaseChannel(BaseChannel):
         Gets the database channel writer
         The mongoengine model checks whether a stream_id/datetime pair already exists in the DB (unique pairs)
         Should be overridden by users' personal channels - allows for non-mongo outputs.
+
         :param stream: The stream
         :return: The stream writer function
         """

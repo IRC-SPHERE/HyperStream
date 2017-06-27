@@ -20,6 +20,8 @@
 
 import os
 from datetime import datetime, timedelta
+from contextlib import contextmanager
+import logging
 
 from hyperstream import HyperStream, UTC, NodeIDAbsentError
 from subprocess import check_output
@@ -41,23 +43,28 @@ second = timedelta(seconds=1)
 zero = timedelta(0)
 
 
+@contextmanager
+def resource_manager():
+    yield HyperStream(loglevel=logging.CRITICAL)
+
+
 def setup():
-    with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
-        for plate_id, tag in (('T', 'test'), (None, 'test_meta_data'), ('T1', 'test_plate_creation')):
-            try:
-                delete_meta_data(hs, tag)
-            except NodeIDAbsentError:
-                pass
-            if plate_id:
-                delete_plates(hs, plate_id)
-        insert_meta_data(hs, 'test')
-        create_plates(hs, 'T', 'test')
+    hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
+    for plate_id, tag in (('T', 'test'), (None, 'test_meta_data'), ('T1', 'test_plate_creation')):
+        try:
+            delete_meta_data(hs, tag)
+        except NodeIDAbsentError:
+            pass
+        if plate_id:
+            delete_plates(hs, plate_id)
+    insert_meta_data(hs, 'test')
+    create_plates(hs, 'T', 'test')
 
 
 def teardown():
-    with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
-        delete_plates(hs, 'T')
-        delete_meta_data(hs, 'test')
+    hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
+    delete_plates(hs, 'T')
+    delete_meta_data(hs, 'test')
 
 
 def insert_meta_data(hs, tag):
