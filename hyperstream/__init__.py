@@ -32,6 +32,6 @@ from tool import Tool
 from utils import MIN_DATE, UTC, StreamNotAvailableError, StreamAlreadyExistsError, StreamDataNotAvailableError, \
     StreamNotFoundError, IncompatiblePlatesError, ToolNotFoundError, ChannelNotFoundError, ToolExecutionError, \
     ChannelAlreadyExistsError, FactorAlreadyExistsError, FactorDefinitionError, LinkageError, \
-    NodeAlreadyExistsError, PlateDefinitionError, PlateEmptyError
+    NodeAlreadyExistsError, PlateDefinitionError, PlateEmptyError, MultipleStreamsFoundError
 from version import __version__
 

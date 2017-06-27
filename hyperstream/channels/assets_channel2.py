@@ -71,10 +71,13 @@ class AssetsChannel2(FileChannel):
 
             filename_no_extension, extension = os.path.splitext(file_long_name)
             if extension != ".json":
-                logging.warn('Filename in incorrect format {0}'.format(file_long_name))
+                logging.debug('Filename in incorrect format {0}'.format(file_long_name))
 
-            if filename_no_extension != '__init__' and extension != '.pyc':
-                yield cls(file_long_name, parse(filename_no_extension).replace(tzinfo=UTC))
+            if filename_no_extension != '__init__' and extension == '.json':
+                try:
+                    yield cls(file_long_name, parse(filename_no_extension).replace(tzinfo=UTC))
+                except ValueError as e:
+                    logging.warn("Failed to load {}: {}".format(file_long_name, e.message))
 
     def data_loader(self, short_path, file_info):
         filename = os.path.join(self.path, short_path, file_info.long_filename)

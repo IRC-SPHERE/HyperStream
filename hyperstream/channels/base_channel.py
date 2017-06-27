@@ -139,7 +139,8 @@ class BaseChannel(Printable):
         for stream_id in self.streams:
             stream = self.streams[stream_id]
             if not stream.parent_node:
-                logging.warn("cannot purge the stream with id {} because it has no parent node".format(stream_id))
+                # This can happen if streams have been defined outside of nodes - generally nothing to worry about
+                logging.debug("cannot purge the stream with id {} because it has no parent node".format(stream_id))
                 continue
             if stream.parent_node.node_id == node_id:
                 self.purge_stream(stream_id, sandbox=sandbox)
