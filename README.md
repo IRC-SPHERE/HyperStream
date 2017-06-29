@@ -10,6 +10,7 @@
 [![Dependency Status](https://www.versioneye.com/user/projects/58e423cb26a5bb005220301e/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/58e423cb26a5bb005220301e)
 [![Test Coverage](https://codeclimate.com/github/IRC-SPHERE/HyperStream/badges/coverage.svg)](https://codeclimate.com/github/IRC-SPHERE/HyperStream/coverage)
 [![Issue Count](https://codeclimate.com/github/IRC-SPHERE/HyperStream/badges/issue_count.svg)](https://codeclimate.com/github/IRC-SPHERE/HyperStream)
+[![Documentation Status](https://readthedocs.org/projects/hyperstream/badge/?version=latest)](http://hyperstream.readthedocs.io/en/latest/?badge=latest)
 
 Hyperstream is a large-scale, flexible and robust software package for processing streaming data.
 
