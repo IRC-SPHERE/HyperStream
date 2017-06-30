@@ -115,13 +115,26 @@ brew services start mosquitto
 Super simple example:
 
 ```
-from hyperstream import HyperStream
-hyperstream = HyperStream()
+from hyperstream import HyperStream, StreamId, TimeInterval, UTC
+from datetime import datetime, timedelta
+
+hs = HyperStream(loglevel=20)
+M = hs.channel_manager.memory
+T = hs.channel_manager.tools
+clock = StreamId(name="clock")
+clock_tool = T[clock].window().last().value()
+ticker = M.get_or_create_stream(stream_id=StreamId(name="ticker"))
+now = datetime.utcnow().replace(tzinfo=UTC)
+before = (now - timedelta(seconds=30)).replace(tzinfo=UTC)
+ti = TimeInterval(before, now)
+clock_tool.execute(sources=[], sink=ticker, interval=ti, alignment_stream=None)
+print(list(ticker.window().tail(5)))
+
+[StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 39, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 39, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 40, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 40, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 41, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 41, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 42, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 42, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 43, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 43, tzinfo=<UTC>))]
 ```
 
-
 ```diff
-- TODO: more examples
+- more examples in the [tutorials branch](https://github.com/IRC-SPHERE/HyperStream/tree/tutorials/examples) (to be merged): 
 ```
 
 # HyperStream Viewer #
