@@ -133,9 +133,7 @@ print(list(ticker.window().tail(5)))
 [StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 39, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 39, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 40, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 40, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 41, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 41, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 42, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 42, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 43, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 43, tzinfo=<UTC>))]
 ```
 
-```diff
 - more examples in the [tutorials branch](https://github.com/IRC-SPHERE/HyperStream/tree/tutorials/examples) (to be merged): 
-```
 
 # HyperStream Viewer #
 The [HyperStream Viewer](https://github.com/IRC-SPHERE/HyperStreamViewer) is a python/Flask web-app for interacting with HyperStream. In order to keep HyperStream to a minimum, this web-app is released as a separate repository that takes the core as a dependency.
