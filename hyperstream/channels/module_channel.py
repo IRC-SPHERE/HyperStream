@@ -53,7 +53,7 @@ class ModuleChannel(FileChannel):
 
                 if module_name in sys.modules:
                     logging.debug("module {} already loaded ... skipping".format(module_name))
-                    return sys.modules['module_name']
+                    return sys.modules[module_name]
 
                 mod = imp.load_module(
                     module_name, fp, module_file,
