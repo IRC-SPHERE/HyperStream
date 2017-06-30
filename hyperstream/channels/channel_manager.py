@@ -106,7 +106,15 @@ class ChannelManager(dict, Printable):
                 except AttributeError as e:
                     raise e
                 logging.debug("Processing {}".format(stream_id))
-                channel = self.get_channel(s.channel_id)
+
+                try:
+                    # This can fail if a plugin has been defined by a different instantiation of HyperStream on the same
+                    # database.
+                    channel = self.get_channel(s.channel_id)
+                except ChannelNotFoundError as e:
+                    logging.warn(e)
+                    continue
+
                 # calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end), s.calculated_intervals))
                 last_accessed = utcnow()
                 last_updated = s.last_updated if s.last_updated else utcnow()

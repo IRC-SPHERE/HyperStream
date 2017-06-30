@@ -51,9 +51,9 @@ class ModuleChannel(FileChannel):
                 # logging.debug('importing: ' + module_file)
                 module_name = '_'.join(map(lambda pp: sub(r'[^a-zA-Z0-9]', '_', pp), module_file_components))
 
-                # if module_name in sys.modules:
-                #     logging.debug("module {} already loaded ... skipping".format(module_name))
-                #     return None
+                if module_name in sys.modules:
+                    logging.debug("module {} already loaded ... skipping".format(module_name))
+                    return sys.modules['module_name']
 
                 mod = imp.load_module(
                     module_name, fp, module_file,
