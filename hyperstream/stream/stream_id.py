@@ -50,7 +50,7 @@ class StreamId(Hashable):
                 if not all(isinstance(x[1], string_types) for x in meta_data):
                     self.__init__(name, dict(meta_data))
                 else:
-                    self.meta_data = map(tuple, meta_data)
+                    self.meta_data = tuple(map(tuple, meta_data))
             else:
                 raise ValueError("Expected list or tuple, got {}".format(type(meta_data)))
         else:

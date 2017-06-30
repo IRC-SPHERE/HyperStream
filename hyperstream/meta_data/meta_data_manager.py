@@ -41,7 +41,8 @@ class MetaDataManager(Printable):
             if passes > 1000:
                 raise NodeIDAbsentError("Nodes absent for ids {}"
                                         .format(", ".join(map(lambda x: x['identifier'], to_be_added.values()))))
-            for i, item in to_be_added.items():
+            items = list(to_be_added.items())
+            for i, item in items:
                 try:
                     self.global_plate_definitions.create_node(**item)
                     del to_be_added[i]
