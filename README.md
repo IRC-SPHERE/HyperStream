@@ -115,8 +115,9 @@ brew services start mosquitto
 Super simple example:
 
 ```
-from hyperstream import HyperStream, StreamId, TimeInterval, UTC
-from datetime import datetime, timedelta
+from hyperstream import HyperStream, StreamId, TimeInterval
+from hyperstream.utils import utcnow, UTC
+from datetime import timedelta
 
 hs = HyperStream(loglevel=20)
 M = hs.channel_manager.memory
@@ -124,7 +125,7 @@ T = hs.channel_manager.tools
 clock = StreamId(name="clock")
 clock_tool = T[clock].window().last().value()
 ticker = M.get_or_create_stream(stream_id=StreamId(name="ticker"))
-now = datetime.utcnow().replace(tzinfo=UTC)
+now = utcnow()
 before = (now - timedelta(seconds=30)).replace(tzinfo=UTC)
 ti = TimeInterval(before, now)
 clock_tool.execute(sources=[], sink=ticker, interval=ti, alignment_stream=None)
