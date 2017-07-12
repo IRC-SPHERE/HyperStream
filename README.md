@@ -141,7 +141,7 @@ The [HyperStream Viewer](https://github.com/IRC-SPHERE/HyperStreamViewer) is a p
 
 # License #
 
-This code is released under the [MIT license](https://github.com/IRC-SPHERE/Infer.NET-helpers/blob/master/LICENSE).
+This code is released under the [MIT license](https://github.com/IRC-SPHERE/HyperStream/blob/master/LICENSE).
 
 # Acknowledgements #
 
