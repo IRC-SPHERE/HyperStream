@@ -19,11 +19,16 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from hyperstream import Tool, StreamInstance
+from datetime import datetime
+from datetime import datetime, timedelta
+
+from hyperstream import Tool, StreamInstance, StreamInstanceCollection
 from hyperstream.utils import check_input_stream_count
+from hyperstream.utils import UTC
 
 from dateutil.parser import parse
 
+import urllib
 import urllib2
 import json
 
@@ -32,26 +37,26 @@ import json
 # For questions on the APIs please contact data.info@environment-agency.gov.uk,
 # a forum for announcements and discussion is under consideration.
 class EnvironmentDataGovUk(Tool):
-    def __init__(self):
+    def __init__(self, station):
+        self.station = station
         super(EnvironmentDataGovUk, self).__init__()
 
     @check_input_stream_count(0)
     def _execute(self, sources, alignment_stream, interval):
+        startdate = interval[0].strftime("%Y-%m-%d")
+        enddate = interval[1].strftime("%Y-%m-%d")
 
-        response = urllib2.urlopen('http://environment.data.gov.uk/flood-monitoring/data/readings?latest')
+        url = "https://environment.data.gov.uk/flood-monitoring/id/stations/{}/readings".format(self.station)
+        values = {'startdate' : startdate,
+                  'enddate' : enddate}
+        url_parameters = urllib.urlencode(values)
+
+        full_url = url + '?' + url_parameters
+        response = urllib2.urlopen(full_url)
         data = json.load(response)
 
-	data_dict = {}
         for item in data['items']:
             dt = parse(item.get('dateTime'))
             if dt in interval:
-                value = data_dict.get(dt, [])
-                measure = item.get('measure').split('/')[-1]
-                value.append({'measure': measure,
-			      'value': float(item.get('value'))})
-                data_dict[dt] = value
-
-	data_list = [(k, data_dict[k]) for k in sorted(data_dict, key=data_dict.get, reverse=False)]
-
-        for dt, value in data_list:
-            yield StreamInstance(dt, value)
+                value = float(item.get('value'))
+                yield StreamInstance(dt, value)
