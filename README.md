@@ -105,19 +105,21 @@ brew install mosquitto
 brew services start mosquitto
 ```
 
-# Running the examples #
+# Tutorials #
 
-Super simple example:
+The following tutorials show how to use HyperStream in a step-by-step guide.
 
-```
-from hyperstream import HyperStream
-hyperstream = HyperStream()
-```
+- [Tutorial 1: Introduction][1]
+- [Tutorial 2: Creating tools][2]
+- [Tutorial 3: Stream composition][3]
+- [Tutorial 4: Real-time streams][4]
+- [Tutorial 5: Workflows][5]
 
-
-```diff
-- TODO: more examples
-```
+[1]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_01.ipynb
+[2]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_02.ipynb
+[3]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_03.ipynb
+[4]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_04.ipynb
+[5]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_05.ipynb
 
 # HyperStream Viewer #
 The [HyperStream Viewer](https://github.com/IRC-SPHERE/HyperStreamViewer) is a python/Flask web-app for interacting with HyperStream. In order to keep HyperStream to a minimum, this web-app is released as a separate repository that takes the core as a dependency.
