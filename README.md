@@ -72,8 +72,6 @@ Additionally, one of the requirements to run Hyperstream is a MongoDB server. By
 
 To see the installation steps of MongoDB go to the [official documentation][1]. E.g. in a Debian OS it is possible to install with the following command
 
-[1]: https://docs.mongodb.com/manual/installation/
-
 ``` Bash
 sudo apt-get install mongodb
 ```
@@ -109,17 +107,11 @@ brew services start mosquitto
 
 The following tutorials show how to use HyperStream in a step-by-step guide.
 
-- [Tutorial 1: Introduction][1]
-- [Tutorial 2: Creating tools][2]
-- [Tutorial 3: Stream composition][3]
-- [Tutorial 4: Real-time streams][4]
-- [Tutorial 5: Workflows][5]
-
-[1]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_01.ipynb
-[2]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_02.ipynb
-[3]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_03.ipynb
-[4]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_04.ipynb
-[5]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_05.ipynb
+- [Tutorial 1: Introduction][2]
+- [Tutorial 2: Creating tools][3]
+- [Tutorial 3: Stream composition][4]
+- [Tutorial 4: Real-time streams][5]
+- [Tutorial 5: Workflows][6]
 
 # HyperStream Viewer #
 The [HyperStream Viewer](https://github.com/IRC-SPHERE/HyperStreamViewer) is a python/Flask web-app for interacting with HyperStream. In order to keep HyperStream to a minimum, this web-app is released as a separate repository that takes the core as a dependency.
@@ -132,3 +124,11 @@ This code is released under the [MIT license](https://github.com/IRC-SPHERE/Infe
 
 This work has been funded by the UK Engineering and Physical Sciences Research Council (EPSRC) under Grant [EP/K031910/1](http://gow.epsrc.ac.uk/NGBOViewGrant.aspx?GrantRef=EP/K031910/1) -  "SPHERE Interdisciplinary Research Collaboration".
 
+
+[1]: https://docs.mongodb.com/manual/installation/
+
+[2]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_01.ipynb
+[3]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_02.ipynb
+[4]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_03.ipynb
+[5]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_04.ipynb
+[6]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_05.ipynb
