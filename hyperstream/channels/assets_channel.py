@@ -81,7 +81,7 @@ class AssetsChannel(DatabaseChannel):
 
     def write_to_stream(self, stream_id, data, sandbox=None):
         """
-        Create the stream
+        Write to the stream
 
         :param stream_id: The stream identifier
         :param data: The stream instances
