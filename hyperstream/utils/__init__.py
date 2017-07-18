@@ -30,3 +30,4 @@ from .errors import StreamNotAvailableError, StreamAlreadyExistsError, StreamDat
     FactorDefinitionError, ChannelAlreadyExistsError, NodeDefinitionError, ToolInitialisationError, \
     IncompatibleToolError, MultipleStreamsFoundError, PlateNotFoundError, ConfigurationError, handle_exception
 from .serialization import func_dump, func_load
+from .histogram import histogram
