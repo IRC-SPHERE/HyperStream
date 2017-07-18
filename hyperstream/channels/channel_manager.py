@@ -179,6 +179,10 @@ class ChannelManager(dict, Printable):
             raise ToolNotFoundError(tool)
 
         # TODO: Use tool versions - here we just take the latest one
+        last = tool_stream_view.last()
+        if last is None:
+            raise ToolNotFoundError(tool)
+
         return tool_stream_view.last().value
 
     def get_tool(self, name, parameters, version=None):

@@ -28,8 +28,11 @@ class ToolChannel(ModuleChannel):
     """
     def get_results(self, stream, time_interval):
         results = super(ToolChannel, self).get_results(stream, time_interval)
-        for timestamp, (version, module_importer) in results:
-            module = module_importer()
-            class_name = stream.stream_id.name.title().replace("_", "")
-            tool_class = getattr(module, class_name)
-            yield StreamInstance(timestamp, tool_class)
+        if results:
+            for timestamp, (version, module_importer) in results:
+                module = module_importer()
+                class_name = stream.stream_id.name.title().replace("_", "")
+                tool_class = getattr(module, class_name)
+                yield StreamInstance(timestamp, tool_class)
+        else:
+            yield None

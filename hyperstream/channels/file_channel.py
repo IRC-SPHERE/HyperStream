@@ -73,19 +73,30 @@ class FileChannel(ReadOnlyMemoryChannel):
                 
                 except ValueError as e:
                     logging.warn('Filename in incorrect format {0}, {1}'.format(file_long_name, e.message))
-    
+
+    @staticmethod
+    def walk(some_dir, level=1):
+        some_dir = some_dir.rstrip(os.path.sep)
+        assert os.path.isdir(some_dir)
+        num_sep = some_dir.count(os.path.sep)
+        for root, dirs, files in os.walk(some_dir):
+            yield root, dirs, files
+            num_sep_this = root.count(os.path.sep)
+            if num_sep + level <= num_sep_this:
+                del dirs[:]
+
     def update_streams(self, up_to_timestamp):
         path = self.path
-        for (long_path, dir_names, file_names) in os.walk(path):
+        for long_path, dir_names, file_names in self.walk(path, level=1):
             file_names = list(filter(lambda ff: not ff.startswith('__'), file_names))
             if len(file_names) == 0:
                 continue
-            
+
             name = long_path[len(path) + 1:]
             if not name:
                 # Empty folder
                 continue
-            
+
             stream_id = StreamId(name=name)
             stream = Stream(channel=self, stream_id=stream_id, calculated_intervals=None, sandbox=None)
             self.streams[stream_id] = stream
