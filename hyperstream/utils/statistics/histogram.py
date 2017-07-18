@@ -27,11 +27,38 @@ def argsort(seq):
     return sorted(range(len(seq)), key=seq.__getitem__)
 
 
-def diff(a):
-    return map(lambda x: x[1] - x[0], zip(a[:-1], a[1:]))
+def diff(a, n=1):
+    """
+    Calculate the n-th discrete difference along given axis.
+    The first difference is given by ``out[n] = a[n+1] - a[n]`` along
+    the given axis, higher differences are calculated by using `diff`
+    recursively.
+
+    :param a: The list to calculate the diff on
+    :param n: The order of the difference
+    :type a: list | tuple
+    :type n: int
+    :return: THe array of nth order differences
+    """
+    if n == 0:
+        return a
+    if n < 0:
+        raise ValueError("order must be non-negative but got " + repr(n))
+
+    b = map(lambda x: x[1] - x[0], zip(a[:-1], a[1:]))
+
+    if n > 1:
+        return diff(b, n-1)
+    return b
 
 
 def accumulate(lis):
+    """
+    Cumulative sum generator
+
+    :param lis: This list to accumulate
+    :return: The sum
+    """
     total = 0
     for x in lis:
         total += x
@@ -39,6 +66,15 @@ def accumulate(lis):
 
 
 def histogram(a, bins):
+    """
+    Compute the histogram of a set of data.
+
+    :param a: Input data
+    :param bins: int or sequence of scalars or str, optional
+    :type a: list | tuple
+    :type bins: int | list[int] | list[str]
+    :return:
+    """
     if any(map(lambda x: x < 0, diff(bins))):
         raise ValueError(
             'bins must increase monotonically.')
