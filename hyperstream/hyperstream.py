@@ -96,7 +96,7 @@ class HyperStream(object):
             host=self.config.mongo['host'],
             port=self.config.mongo['port'],
             db=self.config.mongo['db'],
-            sid=self.current_session.session_id
+            sid=self.current_session.session_id if self.current_session else "<no session>"
         )
 
     def __del__(self):
