@@ -22,6 +22,7 @@ import os
 from datetime import datetime, timedelta
 from contextlib import contextmanager
 import logging
+import math
 
 from hyperstream import HyperStream, UTC
 from treelib.tree import NodeIDAbsentError
@@ -169,8 +170,13 @@ def is_close(a, b, tolerance):
     return abs(a - b) <= tolerance
 
 
-def all_close(a, b, tolerance):
+def assert_all_close(a, b, tolerance):
     if len(a) != len(b):
         return False
 
-    return all(map(lambda x: is_close(x[0], x[1], tolerance), zip(a, b)))
+    prec = int(round(-math.log(tolerance, 10)))
+
+    for i, (x, y) in enumerate(zip(a, b)):
+        if not is_close(x, y, tolerance):
+            raise AssertionError("Elements not equal at location {}. a = {:.{prec}f}, b = {:.{prec}f}"
+                                 .format(i, x, y, prec=prec))
