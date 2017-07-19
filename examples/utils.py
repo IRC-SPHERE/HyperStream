@@ -121,46 +121,46 @@ def plot_multiple_stock(data, time=None, names=None, htype=None, title='title', 
     template = """
      <html>
         <head>
-        <title>highchart</title>
+        <title>{title}</title>
            <script src="./scripts/jquery.min.js"></script>
            <script src="./scripts/highstock.js"></script>
            <script src="./scripts/exporting.js"></script>
         </head>
         <body>
 
-        <div id="container%s" style="width: 800px; height: 600px; margin: 125 auto"></div>
+        <div id="container{randint}" style="width: 800px; height: 600px; margin: 125 auto"></div>
 
         <script language="JavaScript">
-            var seriesOptions = %s;
+            var seriesOptions = {seriesOptions};
 
             /**
              * Create the chart when all data is loaded
-             * @returns {undefined}
+             * @returns {{undefined}}
              */
-            Highcharts.stockChart('container%s', {
-              chart: {
+            Highcharts.stockChart('container{randint}', {{
+              chart: {{
                 zoomType: 'x'
-              },
-              title: {
-                  text: '%s'
-              },
-              plotOptions: {
-                series: {
+              }},
+              title: {{
+                  text: '{title}'
+              }},
+              plotOptions: {{
+                series: {{
                   showInNavigator: true,
-                }
-              },
-                yAxis: {
-                    title: {
-                        text: '%s'
-                    }
-                },
-              tooltip: {
-                pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b>',
+                }}
+              }},
+                yAxis: {{
+                    title: {{
+                        text: '{ylabel}'
+                    }}
+                }},
+              tooltip: {{
+                pointFormat: '<span style="color:{{series.color}}">{{series.name}}</span>:<b>{{point.y}}</b>',
                 valueDecimals: 2,
                 split: true
-              },
+              }},
               series: seriesOptions
-            });
+            }});
         </script>
 
         </body>
@@ -168,6 +168,7 @@ def plot_multiple_stock(data, time=None, names=None, htype=None, title='title', 
     """
 
     r = str(random.randint(0,10000))
-    f = template % (r, seriesOptions, r, title, ylabel)
+    f = template.format(randint=r, seriesOptions=seriesOptions, title=title,
+                        ylabel=ylabel)
 
     display(HTML(f))
