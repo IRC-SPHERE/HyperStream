@@ -1,0 +1,17 @@
+{
+    "mongo": {
+        "host": "localhost",
+        "port": 27017,
+        "tz_aware": true,
+        "db": "hyperstream"
+    },
+    "plugins": [],
+    "online_engine": {
+        "interval": {
+            "start": -60,
+            "end": -10
+        },
+        "sleep": 5,
+        "iterations": 100
+    }
+}

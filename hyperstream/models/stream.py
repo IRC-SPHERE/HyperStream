@@ -20,7 +20,7 @@
 
 from mongoengine import Document, DateTimeField, StringField, DynamicField, EmbeddedDocumentListField, \
     EmbeddedDocument, EmbeddedDocumentField, ListField
-from .time_interval import TimeIntervalModel
+from time_interval import TimeIntervalModel
 from ..time_interval import TimeInterval, TimeIntervals
 
 
@@ -46,26 +46,8 @@ class StreamInstanceModel(Document):
     }
 
 
-# TODO: This needs to be removed and put into plugins
-class SummaryInstanceModel(Document):
-    stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
-    stream_type = StringField(required=False, min_length=1, max_length=512)
-    datetime = DateTimeField(required=True)
-    # tool_version = StringField(required=True, min_length=1, max_length=512)
-    value = DynamicField(required=True)
-
-    meta = {
-        'collection': 'summaries',
-        'indexes': [
-            {'fields': ['stream_id']},
-            {'fields': ['stream_id', 'datetime'], 'unique': True}
-        ],
-        'ordering': ['datetime']
-    }
-
-
 class StreamDefinitionModel(Document):
-    stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)  # , unique=True)
+    stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
     stream_type = StringField(required=False, min_length=1, max_length=512)
     channel_id = StringField(required=True, min_length=1, max_length=512)
     last_updated = DateTimeField(required=False)
@@ -85,4 +67,3 @@ class StreamDefinitionModel(Document):
         if intervals is None:
             intervals = []
         self.calculated_intervals = tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
-

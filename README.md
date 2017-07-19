@@ -10,6 +10,7 @@
 [![Dependency Status](https://www.versioneye.com/user/projects/58e423cb26a5bb005220301e/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/58e423cb26a5bb005220301e)
 [![Test Coverage](https://codeclimate.com/github/IRC-SPHERE/HyperStream/badges/coverage.svg)](https://codeclimate.com/github/IRC-SPHERE/HyperStream/coverage)
 [![Issue Count](https://codeclimate.com/github/IRC-SPHERE/HyperStream/badges/issue_count.svg)](https://codeclimate.com/github/IRC-SPHERE/HyperStream)
+[![Documentation Status](https://readthedocs.org/projects/hyperstream/badge/?version=latest)](http://hyperstream.readthedocs.io/en/latest/?badge=latest)
 
 Hyperstream is a large-scale, flexible and robust software package for processing streaming data.
 
@@ -50,6 +51,10 @@ custom data source. Workflows can have multiple time ranges, which will cause th
 ranges given.
 
 # Installation #
+## Docker images ##
+If you do not want to install all the packages separately you can use our Docker bundle available [here](https://github.com/IRC-SPHERE/Hyperstream-Dockerfiles).
+
+## Local machine ##
 
 ``` Bash
 git clone git@github.com:IRC-SPHERE/HyperStream.git
@@ -110,21 +115,33 @@ brew services start mosquitto
 Super simple example:
 
 ```
-from hyperstream import HyperStream
-hyperstream = HyperStream()
+from hyperstream import HyperStream, StreamId, TimeInterval
+from hyperstream.utils import utcnow, UTC
+from datetime import timedelta
+
+hs = HyperStream(loglevel=20)
+M = hs.channel_manager.memory
+T = hs.channel_manager.tools
+clock = StreamId(name="clock")
+clock_tool = T[clock].window().last().value()
+ticker = M.get_or_create_stream(stream_id=StreamId(name="ticker"))
+now = utcnow()
+before = (now - timedelta(seconds=30)).replace(tzinfo=UTC)
+ti = TimeInterval(before, now)
+clock_tool.execute(sources=[], sink=ticker, interval=ti, alignment_stream=None)
+print(list(ticker.window().tail(5)))
+
+[StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 39, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 39, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 40, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 40, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 41, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 41, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 42, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 42, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 43, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 43, tzinfo=<UTC>))]
 ```
 
-
-```diff
-- TODO: more examples
-```
+- more examples in the [tutorials branch](https://github.com/IRC-SPHERE/HyperStream/tree/tutorials/examples) (to be merged): 
 
 # HyperStream Viewer #
 The [HyperStream Viewer](https://github.com/IRC-SPHERE/HyperStreamViewer) is a python/Flask web-app for interacting with HyperStream. In order to keep HyperStream to a minimum, this web-app is released as a separate repository that takes the core as a dependency.
 
 # License #
 
-This code is released under the [MIT license](https://github.com/IRC-SPHERE/Infer.NET-helpers/blob/master/LICENSE).
+This code is released under the [MIT license](https://github.com/IRC-SPHERE/HyperStream/blob/master/LICENSE).
 
 # Acknowledgements #
 

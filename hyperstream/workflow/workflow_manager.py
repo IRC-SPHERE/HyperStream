@@ -20,14 +20,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
-import pickle
-try:
-    # python 2.7.x
-    import copy_reg
-except ImportError:
-    # python 3.x
-    import copyreg as copy_reg
-
+import copy_reg
 import marshal
 import types
 from copy import deepcopy
@@ -220,23 +213,30 @@ class WorkflowManager(Printable):
         :param workflow_id:
         :return: None
         """
+        deleted = False
+
         with switch_db(WorkflowDefinitionModel, "hyperstream"):
             workflows = WorkflowDefinitionModel.objects(workflow_id=workflow_id)
             if len(workflows) == 1:
                 workflows[0].delete()
+                deleted = True
             else:
-                logging.warn("Workflow with id {} does not exist".format(workflow_id))
+                logging.debug("Workflow with id {} does not exist".format(workflow_id))
 
         with switch_db(WorkflowStatusModel, "hyperstream"):
             workflows = WorkflowStatusModel.objects(workflow_id=workflow_id)
             if len(workflows) == 1:
                 workflows[0].delete()
+                deleted = True
             else:
-                logging.warn("Workflow status with id {} does not exist".format(workflow_id))
+                logging.debug("Workflow status with id {} does not exist".format(workflow_id))
 
         if workflow_id in self.workflows:
             del self.workflows[workflow_id]
-        logging.info("Deleted workflow with id {}".format(workflow_id))
+            deleted = True
+
+        if deleted:
+            logging.info("Deleted workflow with id {}".format(workflow_id))
 
     def commit_workflow(self, workflow_id):
         """
