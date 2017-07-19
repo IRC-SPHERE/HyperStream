@@ -28,7 +28,7 @@ def plot_high_chart(time, data, title="title", yax="Y", type="high_chart"):
     template = """
         <html>
         <head>
-        <title>{0}</title>
+        <title>{title}</title>
            <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>-->
            <!--<script src="https://code.highcharts.com/stock/highstock.js"></script>-->
            <!--<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>-->
@@ -38,24 +38,24 @@ def plot_high_chart(time, data, title="title", yax="Y", type="high_chart"):
         </head>
         <body>
 
-        <div id="container{1}" style="width: 800px; height: 600px; margin: 125 auto"></div>
+        <div id="container{randint}" style="width: 800px; height: 600px; margin: 125 auto"></div>
 
         <script language="JavaScript">
-               var data = {2};
+               var data = {data};
 
-            {3}('container{4}', {{
+            {type_a}('container{randint}', {{
                 chart: {{
                     zoomType: 'x'
                 }},
                 title: {{
-                    text: '{5}'
+                    text: '{title}'
                 }},
                 xAxis: {{
-                    {6}
+                    {type_b}
                 }},
                 yAxis: {{
                     title: {{
-                        text: '{7}'
+                        text: '{yax}'
                     }}
                 }},
                 legend: {{
@@ -64,7 +64,7 @@ def plot_high_chart(time, data, title="title", yax="Y", type="high_chart"):
 
                 series: [{{
                     type: 'spline',
-                    name: '{7}',
+                    name: '{yax}',
                     data: data
                 }}]
             }});
@@ -76,7 +76,8 @@ def plot_high_chart(time, data, title="title", yax="Y", type="high_chart"):
 
     data = [[i,j] for i, j in zip(time, data)]
     data = str(data)
-    f = template.format(title, r, data, type_a, r, title, type_b, yax)
+    f = template.format(title=title, randint=r, data=data, type_a=type_a,
+                        type_b=type_b, yax=yax)
 
     display(HTML(f))
 
