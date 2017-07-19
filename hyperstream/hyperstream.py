@@ -235,4 +235,4 @@ class HyperStream(object):
                     setattr(factor_container, tool_stream.name, create_factory_function(tool_function))
 
                 except (NameError, AttributeError, ImportError) as e:
-                    logging.warn('Error loading tool {}: {}'.format(tool_stream.name, e))
+                    logging.warn('Unable to load tool {}: {}'.format(tool_stream.name, e))
