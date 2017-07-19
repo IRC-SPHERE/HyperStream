@@ -80,8 +80,9 @@ class PlateManager(Printable):
             try:
                 p = PlateDefinitionModel.objects.get(plate_id=plate_id)
                 p.delete()
+                del self.plates[plate_id]
             except DoesNotExist as e:
-                logging.warn(e.message)
+                logging.warn(e)
 
     def create_plate(self, plate_id, description, meta_data_id, values, complement, parent_plate):
         """

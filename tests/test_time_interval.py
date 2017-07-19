@@ -21,7 +21,7 @@
 import unittest
 
 from hyperstream import TimeIntervals, RelativeTimeInterval, TimeInterval
-from helpers import *
+from .helpers import *
 
 
 class HyperStreamTimeIntervalTests(unittest.TestCase):

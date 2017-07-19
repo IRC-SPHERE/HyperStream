@@ -21,6 +21,19 @@
 
 from ..utils import Hashable
 
+import json
+from six import string_types
+
+
+def get_stream_id(item):
+    if isinstance(item, StreamId):
+        return item
+    if isinstance(item, string_types):
+        # Assume this is a simple stream definition with no metadata
+        return StreamId(name=item)
+    # Assume that this is a dict containing the name and metadata
+    return StreamId(**item)
+
 
 class StreamId(Hashable):
     """
@@ -34,10 +47,10 @@ class StreamId(Hashable):
             #     keys = sorted(meta_data.keys())
             #     self.meta_data = tuple(map(lambda key: (key, str(meta_data[key])), keys))
             if isinstance(meta_data, (list, tuple)):
-                if not all(isinstance(x[1], (str, unicode)) for x in meta_data):
+                if not all(isinstance(x[1], string_types) for x in meta_data):
                     self.__init__(name, dict(meta_data))
                 else:
-                    self.meta_data = map(tuple, meta_data)
+                    self.meta_data = tuple(map(tuple, meta_data))
             else:
                 raise ValueError("Expected list or tuple, got {}".format(type(meta_data)))
         else:
@@ -61,6 +74,12 @@ class StreamId(Hashable):
         return isinstance(other, StreamId) and \
                self.name == other.name and \
                sorted(self.meta_data) == sorted(other.meta_data)
+
+    def __hash__(self):
+        return hash(self.to_json())
+
+    def to_json(self):
+        return json.dumps(self.as_dict())
 
     def as_dict(self):
         return dict(name=self.name, meta_data=self.meta_data)

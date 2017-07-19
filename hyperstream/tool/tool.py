@@ -22,9 +22,8 @@
 from . import BaseTool
 from ..time_interval import TimeInterval, TimeIntervals
 from ..stream import Stream
-from ..utils import StreamNotAvailableError, ToolExecutionError
+from ..utils import StreamNotAvailableError
 
-from datetime import timedelta
 import logging
 
 
@@ -47,7 +46,7 @@ class Tool(BaseTool):
         """
         raise NotImplementedError
 
-    def execute(self, sources, sink, alignment_stream, interval):
+    def execute(self, sources, sink, interval, alignment_stream=None):
         """
         Execute the tool over the given time interval.
         If an alignment stream is given, the output instances will be aligned to this stream
@@ -72,13 +71,13 @@ class Tool(BaseTool):
         required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
 
         if not required_intervals.is_empty:
-            produced_data = False
+            document_count = 0
 
             for interval in required_intervals:
                 for stream_instance in self._execute(
                         sources=sources, alignment_stream=alignment_stream, interval=interval):
                     sink.writer(stream_instance)
-                    produced_data = True
+                    document_count += 1
                 sink.calculated_intervals += interval
 
             required_intervals = TimeIntervals([interval]) - sink.calculated_intervals
@@ -87,6 +86,12 @@ class Tool(BaseTool):
                 logging.error("{} execution error for time interval {} on stream {}".format(
                     self.name, interval, sink))
 
-            if not produced_data:
+            if not document_count:
                 logging.debug("{} did not produce any data for time interval {} on stream {}".format(
                     self.name, interval, sink))
+
+            self.write_to_history(
+                interval=interval,
+                tool=self.name,
+                document_count=document_count
+            )

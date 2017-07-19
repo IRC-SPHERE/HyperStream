@@ -18,7 +18,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from ..stream import StreamDict
+from ..stream import StreamDict, get_stream_id
 from ..time_interval import TimeIntervals
 from ..utils import Printable, MAX_DATE, StreamNotFoundError, MultipleStreamsFoundError
 
@@ -46,6 +46,7 @@ class BaseChannel(Printable):
     def execute_tool(self, stream, interval):
         """
         Executes the stream's tool over the given time interval
+
         :param stream: the stream reference
         :param interval: the time interval
         :return: None
@@ -75,10 +76,12 @@ class BaseChannel(Printable):
     def get_or_create_stream(self, stream_id, try_create=True):
         """
         Helper function to get a stream or create one if it's not already defined
+
         :param stream_id: The stream id
         :param try_create: Whether to try to create the stream if not found
         :return: The stream object
         """
+        stream_id = get_stream_id(stream_id)
         if stream_id in self.streams:
             logging.debug("found {}".format(stream_id))
             return self.streams[stream_id]
@@ -97,6 +100,7 @@ class BaseChannel(Printable):
     def find_streams(self, **kwargs):
         """
         Finds streams with the given meta data values. Useful for debugging purposes.
+
         :param kwargs: The meta data as keyword arguments
         :return: The streams found
         """
@@ -119,6 +123,7 @@ class BaseChannel(Printable):
     def find_stream(self, **kwargs):
         """
         Finds a single stream with the given meta data values. Useful for debugging purposes.
+
         :param kwargs: The meta data as keyword arguments
         :return: The stream found
         """
@@ -129,10 +134,12 @@ class BaseChannel(Printable):
             raise MultipleStreamsFoundError(kwargs)
         return found[0]
 
-    def purge_node(self, node_id, sandbox=None):
+    def purge_node(self, node_id, remove_definition=False, sandbox=None):
         """
         Purges a node (collection of streams)
+
         :param node_id: The node identifier
+        :param remove_definition: Whether to remove the stream definition as well
         :param sandbox: The sandbox
         :return: None
         """
@@ -143,9 +150,9 @@ class BaseChannel(Printable):
                 logging.debug("cannot purge the stream with id {} because it has no parent node".format(stream_id))
                 continue
             if stream.parent_node.node_id == node_id:
-                self.purge_stream(stream_id, sandbox=sandbox)
+                self.purge_stream(stream_id, remove_definition=remove_definition, sandbox=sandbox)
 
-    def purge_stream(self, stream_id, sandbox=None):
+    def purge_stream(self, stream_id, remove_definition=False, sandbox=None):
         """
         Must be overridden by deriving classes, purges the stream and removes the calculated intervals
         """
@@ -183,10 +190,10 @@ class BaseChannel(Printable):
         return s
     
     def __getitem__(self, item):
-        return self.streams[item]
+        return self.streams[get_stream_id(item)]
 
     def __setitem__(self, key, value):
-        self.streams[key] = value
+        self.streams[get_stream_id(key)] = value
 
     def __contains__(self, item):
-        return item in self.streams
+        return get_stream_id(item) in self.streams

@@ -20,10 +20,9 @@
 """
 Assets channel module.
 """
-from database_channel import DatabaseChannel
-from hyperstream.utils.errors import StreamAlreadyExistsError, StreamNotFoundError
+from .database_channel import DatabaseChannel
 from ..stream import AssetStream, StreamInstance
-from ..utils import utcnow
+from ..utils import utcnow, StreamNotFoundError, StreamAlreadyExistsError
 
 
 class AssetsChannel(DatabaseChannel):
@@ -33,6 +32,7 @@ class AssetsChannel(DatabaseChannel):
     def __init__(self, channel_id):
         """
         Initialise this channel
+
         :param channel_id: The channel identifier
         """
         super(AssetsChannel, self).__init__(channel_id=channel_id)
@@ -41,23 +41,28 @@ class AssetsChannel(DatabaseChannel):
     def update_streams(self, up_to_timestamp):
         """
         Update the streams
+
         :param up_to_timestamp:
         :return:
         """
         raise NotImplementedError
 
-    def purge_stream(self, stream_id, sandbox=None):
+    def purge_stream(self, stream_id, remove_definition=False, sandbox=None):
         """
         Purge the stream
+
         :param stream_id: The stream identifier
+        :param remove_definition: Whether to remove the stream definition as well
         :param sandbox: The sandbox for this stream
         :return: None
         """
-        super(AssetsChannel, self).purge_stream(stream_id=stream_id, sandbox=sandbox)
+        super(AssetsChannel, self).purge_stream(
+            stream_id=stream_id, remove_definition=remove_definition, sandbox=sandbox)
 
     def create_stream(self, stream_id, sandbox=None):
         """
         Create the stream
+
         :param stream_id: The stream identifier
         :param sandbox: The sandbox for this stream
         :return: None
@@ -76,7 +81,8 @@ class AssetsChannel(DatabaseChannel):
 
     def write_to_stream(self, stream_id, data, sandbox=None):
         """
-        Create the stream
+        Write to the stream
+
         :param stream_id: The stream identifier
         :param data: The stream instances
         :param sandbox: The sandbox for this stream

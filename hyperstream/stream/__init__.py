@@ -18,8 +18,8 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from stream_id import StreamId
-from stream_instance import StreamInstance, StreamMetaInstance
-from stream_view import StreamView
-from stream import Stream, DatabaseStream, AssetStream
-from stream_collections import StreamDict, StreamInstanceCollection
+from .stream_id import StreamId, get_stream_id
+from .stream_instance import StreamInstance, StreamMetaInstance
+from .stream_view import StreamView
+from .stream import Stream, DatabaseStream, AssetStream
+from .stream_collections import StreamDict, StreamInstanceCollection

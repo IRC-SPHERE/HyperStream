@@ -31,6 +31,13 @@ from datetime import datetime, timedelta
 
 
 class HyperStreamTests(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(HyperStreamTests, self).__init__(*args, **kwargs)
+        if not hasattr(self, 'assertItemsEqual'):
+            # patch for python > 3.2
+            # noinspection PyUnresolvedReferences
+            self.assertItemsEqual = self.assertCountEqual
+
     def setUp(self):
         self.hs = HyperStream(loglevel=logging.INFO, file_logger=False,
                               console_logger=False)

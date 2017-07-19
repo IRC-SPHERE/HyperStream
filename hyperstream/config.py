@@ -25,9 +25,9 @@ import logging
 import json
 import os
 
-from utils import Printable
-from plugin_manager import Plugin
-from time_interval import RelativeTimeInterval
+from .utils import Printable, ConfigurationError
+from .plugin_manager import Plugin
+from .time_interval import RelativeTimeInterval
 
 
 class OnlineEngineConfig(Printable):
@@ -40,11 +40,11 @@ class OnlineEngineConfig(Printable):
 
 class HyperStreamConfig(Printable):
     """
-    Wrapper around the hyperstream configuration files (hyperstream_config.json and meta_data.json)
+    Wrapper around the hyperstream configuration file (hyperstream_config.json)
     """
     def __init__(self):
         """
-        Initialise the configuration - currently uses fixed file names (hyperstream_config.json and meta_data.json)
+        Initialise the configuration - currently uses fixed file name (hyperstream_config.json)
         """
         self.mongo = None
 
@@ -54,9 +54,10 @@ class HyperStreamConfig(Printable):
                 logging.info('Reading ' + os.path.abspath(f.name))
                 config = json.load(f)
                 self.mongo = config['mongo']
-                self.output_path = config['output_path'] if 'output_path' in config else 'output'
-                self.plugins = [Plugin(**p) for p in config['plugins']]
+                self.history_channel = config.get('history_channel', 'memory')
+                self.output_path = config.get('output_path', 'output')
+                self.plugins = [Plugin(**p) for p in config.get('plugins', [])]
                 self.online_engine = OnlineEngineConfig(**config["online_engine"])
         except (OSError, IOError, TypeError) as e:
-            # raise
-            logging.error("Configuration error: " + str(e))
+            raise ConfigurationError(str(e))
+            # logging.error("Configuration error: " + str(e))

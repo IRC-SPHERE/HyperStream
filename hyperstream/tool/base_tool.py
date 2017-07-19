@@ -19,9 +19,8 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from ..utils import Printable, Hashable
 from ..models import ToolModel, ToolParameterModel
-from ..utils import func_dump, func_load
+from ..utils import Printable, Hashable, func_dump, func_load, camel_to_snake
 
 import logging
 import pickle
@@ -49,7 +48,7 @@ class BaseTool(Printable, Hashable):
     @property
     def name(self):
         # return self.__class__.__module__
-        return super(BaseTool, self).name
+        return camel_to_snake(super(BaseTool, self).name)
 
     @name.setter
     def name(self, value):
@@ -112,3 +111,10 @@ class BaseTool(Printable, Hashable):
             version="0.0.0",
             parameters=self.parameters_from_dicts(self.parameters)
         )
+
+    @staticmethod
+    def write_to_history(**kwargs):
+        from hyperstream import HyperStream
+        hs = HyperStream()
+        if hs.current_session:
+            hs.current_session.write_to_history(**kwargs)

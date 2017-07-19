@@ -19,9 +19,10 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from mongoengine import Document, StringField, EmbeddedDocumentListField, DateTimeField, BooleanField
-from time_interval import TimeIntervalModel
-from node import NodeDefinitionModel
-from factor import FactorDefinitionModel
+
+from .time_interval import TimeIntervalModel
+from .node import NodeDefinitionModel
+from .factor import FactorDefinitionModel
 
 
 class WorkflowDefinitionModel(Document):

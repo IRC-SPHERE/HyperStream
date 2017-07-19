@@ -18,20 +18,20 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from client import Client
-from config import HyperStreamConfig
-from plate import PlateManager
-from workflow import Workflow, WorkflowManager
-from channels import ChannelManager
-from hyperstream import HyperStream  # , HyperStreamLogger
-from online_engine import OnlineEngine
-from stream import StreamId, Stream, StreamInstance, StreamMetaInstance, DatabaseStream, StreamDict, \
+from .client import Client
+from .config import HyperStreamConfig
+from .plate import PlateManager
+from .workflow import Workflow, WorkflowManager
+from .channels import ChannelManager
+from .hyperstream import HyperStream
+from .online_engine import OnlineEngine
+from .stream import StreamId, Stream, StreamInstance, StreamMetaInstance, DatabaseStream, StreamDict, \
     StreamInstanceCollection, StreamView
-from time_interval import TimeInterval, TimeIntervals, RelativeTimeInterval
-from tool import Tool
-from utils import MIN_DATE, UTC, StreamNotAvailableError, StreamAlreadyExistsError, StreamDataNotAvailableError, \
+from .time_interval import TimeInterval, TimeIntervals, RelativeTimeInterval
+from .tool import Tool
+from .utils import MIN_DATE, UTC, StreamNotAvailableError, StreamAlreadyExistsError, StreamDataNotAvailableError, \
     StreamNotFoundError, IncompatiblePlatesError, ToolNotFoundError, ChannelNotFoundError, ToolExecutionError, \
     ChannelAlreadyExistsError, FactorAlreadyExistsError, FactorDefinitionError, LinkageError, \
     NodeAlreadyExistsError, PlateDefinitionError, PlateEmptyError, MultipleStreamsFoundError
-from version import __version__
+from .version import __version__
 

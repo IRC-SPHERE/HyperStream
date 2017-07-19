@@ -20,13 +20,16 @@
 
 import os
 from datetime import datetime, timedelta
+from contextlib import contextmanager
+import logging
 
-from hyperstream import UTC, StreamId
+from hyperstream import HyperStream, UTC
+from treelib.tree import NodeIDAbsentError
 from subprocess import check_output
 import paho.mqtt.client as mqtt
 
 # os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".."))
-os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
+# os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
 
 # Various constants
 mqtt_ip = "127.0.0.1"
@@ -40,20 +43,70 @@ minute = timedelta(minutes=1)
 second = timedelta(seconds=1)
 zero = timedelta(0)
 
-# Some useful Stream IDs
-environmental = StreamId('environmental', meta_data=(('house', '1'),))
-clock = StreamId('clock')
-aggregate = StreamId('aggregate')
-every30s = StreamId('every30s')
-motion_kitchen_windowed = StreamId('motion_kitchen_windowed')
-env_kitchen_30_s_window = StreamId('env_kitchen_30_s_window')
-kitchen = StreamId("kitchen")
-kitchen_motion = StreamId('kitchen_motion')
-m_kitchen_30_s_window = StreamId('m_kitchen_30_s_window')
-average = StreamId('average')
-count = StreamId('count')
-component = StreamId('component')
-component_filter = StreamId('component_filter')
+
+@contextmanager
+def resource_manager():
+    yield HyperStream(loglevel=logging.CRITICAL)
+
+
+def setup():
+    hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
+    for plate_id, tag in (('T', 'test'), (None, 'test_meta_data'), ('T1', 'test_plate_creation')):
+        try:
+            delete_meta_data(hs, tag)
+        except NodeIDAbsentError:
+            pass
+        if plate_id:
+            delete_plates(hs, plate_id)
+    insert_meta_data(hs, 'test')
+    create_plates(hs, 'T', 'test')
+
+
+def teardown():
+    hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
+    delete_plates(hs, 'T')
+    delete_meta_data(hs, 'test')
+
+
+def insert_meta_data(hs, tag):
+    for data in map(str, range(4)):
+        identifier = '{}_{}'.format(tag, data)
+        hs.plate_manager.meta_data_manager.insert(tag=tag, identifier=identifier, parent='root', data=data)
+
+
+def delete_meta_data(hs, tag):
+    for data in map(str, range(4)):
+        identifier = '{}_{}'.format(tag, data)
+        hs.plate_manager.meta_data_manager.delete(identifier)
+
+
+def get_meta_data(hs, tag):
+    return sorted(x.identifier
+                  for x in hs.plate_manager.meta_data_manager.global_plate_definitions.all_nodes()
+                  if "_".join(x.identifier.split('_')[:-1]) == tag)
+
+
+def create_plates(hs, plate_id, tag):
+    hs.plate_manager.create_plate(
+        plate_id=plate_id,
+        description=tag,
+        meta_data_id=tag,
+        values=[],
+        complement=True,
+        parent_plate=None)
+
+    hs.plate_manager.create_plate(
+        plate_id=plate_id + ".U",
+        description="nested test",
+        meta_data_id="under_" + tag,
+        values=[],
+        complement=True,
+        parent_plate=plate_id)
+
+
+def delete_plates(hs, plate_id):
+    hs.plate_manager.delete_plate(plate_id)
+    hs.plate_manager.delete_plate(plate_id + ".U")
 
 
 class MqttClient(object):
@@ -110,3 +163,14 @@ def mosquitto_is_running():
         except OSError:
             return False
     return True
+
+
+def is_close(a, b, tolerance):
+    return abs(a - b) <= tolerance
+
+
+def all_close(a, b, tolerance):
+    if len(a) != len(b):
+        return False
+
+    return all(map(lambda x: is_close(x[0], x[1], tolerance), zip(a, b)))
