@@ -19,7 +19,7 @@ def plot_high_chart(time, data, title="title", yax="Y", type="high_chart"):
         type_b = "type: 'linear'"
     else:
         type_a = "Highcharts.stockChart"
-        type_b = "type: 'datetime', ordinal: true"
+        type_b = "type: 'datetime', ordinal: false"
         time = [unix_time_miliseconds(parse(dt)) for dt in time]
 
     r = str(random.randint(0,10000))
