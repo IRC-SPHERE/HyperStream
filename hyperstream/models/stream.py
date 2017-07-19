@@ -46,26 +46,8 @@ class StreamInstanceModel(Document):
     }
 
 
-# TODO: This needs to be removed and put into plugins
-class SummaryInstanceModel(Document):
-    stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
-    stream_type = StringField(required=False, min_length=1, max_length=512)
-    datetime = DateTimeField(required=True)
-    # tool_version = StringField(required=True, min_length=1, max_length=512)
-    value = DynamicField(required=True)
-
-    meta = {
-        'collection': 'summaries',
-        'indexes': [
-            {'fields': ['stream_id']},
-            {'fields': ['stream_id', 'datetime'], 'unique': True}
-        ],
-        'ordering': ['datetime']
-    }
-
-
 class StreamDefinitionModel(Document):
-    stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)  # , unique=True)
+    stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)
     stream_type = StringField(required=False, min_length=1, max_length=512)
     channel_id = StringField(required=True, min_length=1, max_length=512)
     last_updated = DateTimeField(required=False)
@@ -85,20 +67,3 @@ class StreamDefinitionModel(Document):
         if intervals is None:
             intervals = []
         self.calculated_intervals = tuple(map(lambda x: TimeIntervalModel(start=x.start, end=x.end), intervals))
-
-# class StreamStatusModel(Document):
-#     """
-#     Stream status model
-#     Note that the calculated intervals is not required, since at first instantiation it is empty, so is equally
-#     represented by None or an empty list
-#     """
-#     stream_id = EmbeddedDocumentField(document_type=StreamIdField, required=True)  # , unique=True)
-#     last_updated = DateTimeField(required=True)
-#     last_accessed = DateTimeField(required=False)
-#     calculated_intervals = EmbeddedDocumentListField(document_type=TimeIntervalModel, required=False)
-#
-#     meta = {
-#         'collection': 'stream_status',
-#         'indexes': [{'fields': ['stream_id'], 'unique': True}],
-#         'ordering': ['last_updated']
-#     }

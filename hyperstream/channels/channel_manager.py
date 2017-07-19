@@ -32,7 +32,7 @@ from hyperstream.models import StreamDefinitionModel
 from hyperstream.stream import StreamId, DatabaseStream, AssetStream
 from hyperstream.utils import Printable, utcnow, MIN_DATE, StreamAlreadyExistsError, ChannelNotFoundError, \
     ToolNotFoundError, ChannelAlreadyExistsError, ToolInitialisationError
-from hyperstream.channels import ToolChannel, MemoryChannel, DatabaseChannel, AssetsChannel, AssetsChannel2
+from hyperstream.channels import ToolChannel, MemoryChannel, DatabaseChannel, AssetsChannel, AssetsFileChannel
 
 
 class ChannelManager(dict, Printable):
@@ -111,7 +111,7 @@ class ChannelManager(dict, Printable):
                 last_updated = s.last_updated if s.last_updated else utcnow()
 
                 if stream_id in channel.streams:
-                    if isinstance(channel, (AssetsChannel, AssetsChannel2)):
+                    if isinstance(channel, (AssetsChannel, AssetsFileChannel)):
                         continue
                     raise StreamAlreadyExistsError(stream_id)
 

@@ -24,5 +24,5 @@ from file_channel import FileChannel
 from module_channel import ModuleChannel
 from database_channel import DatabaseChannel
 from assets_channel import AssetsChannel
-from assets_channel2 import AssetsChannel2
+from assets_channel2 import AssetsFileChannel
 from channel_manager import ChannelManager
