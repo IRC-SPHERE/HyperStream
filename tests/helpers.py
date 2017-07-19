@@ -163,3 +163,14 @@ def mosquitto_is_running():
         except OSError:
             return False
     return True
+
+
+def is_close(a, b, tolerance):
+    return abs(a - b) <= tolerance
+
+
+def all_close(a, b, tolerance):
+    if len(a) != len(b):
+        return False
+
+    return all(map(lambda x: is_close(x[0], x[1], tolerance), zip(a, b)))

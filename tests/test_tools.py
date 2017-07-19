@@ -235,7 +235,8 @@ def rng_helper(tester, hs, ticker, ti, tool_name, **kwargs):
     tool(**kwargs).execute(sources=[], sink=random, interval=ti, alignment_stream=ticker)
     values = random.window().values()
     # print(values)
-    tester.assertListEqual(values, RANDOM_VALUES[tool_name])
+    # tester.assertListEqual(values, RANDOM_VALUES[tool_name])
+    assert all_close(values, RANDOM_VALUES[tool_name], 1e-5)
     return random
 
 
