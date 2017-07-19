@@ -20,7 +20,12 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
-import copy_reg
+try:
+    import copy_reg
+except ImportError:
+    # python 3.X
+    import copyreg as copy_reg
+
 import marshal
 import types
 from copy import deepcopy

@@ -26,8 +26,8 @@ import os
 import sys
 from collections import namedtuple
 
-from utils import Printable, utcnow
-from channels import ToolChannel, AssetsFileChannel
+from .utils import Printable, utcnow
+from .channels import ToolChannel, AssetsFileChannel
 
 
 class Plugin(namedtuple("PluginBase", "channel_id_prefix path channel_names has_tools has_assets"), Printable):

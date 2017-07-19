@@ -17,12 +17,12 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
-from base_channel import BaseChannel
-from memory_channel import MemoryChannel, ReadOnlyMemoryChannel
-from tool_channel import ToolChannel
-from file_channel import FileChannel
-from module_channel import ModuleChannel
-from database_channel import DatabaseChannel
-from assets_channel import AssetsChannel
-from assets_channel2 import AssetsFileChannel
-from channel_manager import ChannelManager
+from .base_channel import BaseChannel
+from .memory_channel import MemoryChannel, ReadOnlyMemoryChannel
+from .tool_channel import ToolChannel
+from .file_channel import FileChannel
+from .module_channel import ModuleChannel
+from .database_channel import DatabaseChannel
+from .assets_channel import AssetsChannel
+from .assets_file_channel import AssetsFileChannel
+from .channel_manager import ChannelManager

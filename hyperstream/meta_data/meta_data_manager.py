@@ -104,7 +104,11 @@ class MetaDataManager(Printable):
         :return: None
         """
 
-        node = self.global_plate_definitions[identifier]
+        try:
+            node = self.global_plate_definitions[identifier]
+        except NodeIDAbsentError:
+            return
+
         self.global_plate_definitions.remove_node(identifier)
 
         with switch_db(MetaDataModel, 'hyperstream'):

@@ -22,14 +22,16 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import logging
-import os
-import sys
+from .errors import StreamNotFoundError
+from .time_utils import json_serial
 
-import json
+from datetime import datetime
+import logging
+import sys
 from bidict import bidict, ValueDuplicationError
 from future.utils import python_2_unicode_compatible
 from treelib.tree import Tree, NodePropertyAbsentError, NodeIDAbsentError
+import json
 
 
 # To restore default stdout and stderr channels after reloading sys
@@ -41,9 +43,12 @@ default_stderr = sys.stderr
 # The next two lines are to fix the "UnicodeDecodeError: 'ascii' codec can't
 # decode byte" error
 # http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
-reload(sys)
-# noinspection PyUnresolvedReferences
-sys.setdefaultencoding('utf8')
+try:
+    reload(sys)  # Python 2.7
+    # noinspection PyUnresolvedReferences
+    sys.setdefaultencoding('utf8')
+except NameError:
+    pass
 
 # Restoring references to the previous stdout and stderr
 sys.stdout = default_stdout
@@ -152,8 +157,20 @@ class Printable(object):
 
     def __repr__(self):
         name = self.__class__.__name__
-        values = ", ".join("{}={}".format(k, repr(v)) for k, v in sorted(self.__dict__.items()) if k[0] != "_")
+        values = ", ".join("{}={}".format(k, self.format(v)) for k, v in sorted(self.__dict__.items()) if k[0] != "_")
         return "{}({})".format(name, values)
+
+    @staticmethod
+    def format(v):
+        if isinstance(v, datetime):
+            if v.tzname() == 'UTC':
+                return 'datetime.datetime({}, {}, {}, {}, {}, {}, {}, tzinfo={}'.format(
+                    v.year, v.month, v.day, v.hour, v.minute, v.second, v.microsecond, 'UTC'
+                )
+            else:
+                return repr(v)
+        else:
+            return repr(v)
 
 
 class Hashable(object):
@@ -173,7 +190,7 @@ class Hashable(object):
 
     def __hash__(self):
         try:
-            return hash((self.name, json.dumps(self.__dict__, sort_keys=True)))
+            return hash((self.name, json.dumps(self.__dict__, sort_keys=True, default=json_serial)))
         except TypeError:
             return hash((self.name, repr(sorted(self.__dict__.items()))))
 
@@ -211,9 +228,9 @@ class TypedBiDict(Printable):
             raise TypeError("expected {}, got {}".format(self.key_type, type(key)))
         try:
             return self._store[key]
-        except KeyError as e:
+        except KeyError:
             # for debugging
-            raise e
+            raise StreamNotFoundError(repr(key))
 
     def __setitem__(self, key, value):
         if not isinstance(key, self.key_type):
@@ -225,6 +242,10 @@ class TypedBiDict(Printable):
         except ValueDuplicationError as e:
             # TODO: debugging
             raise e
+
+    def __delitem__(self, key):
+        self._store.__delitem__(key)
+        # del self._store[key]
 
     def __contains__(self, item):
         return item in self._store
@@ -263,8 +284,7 @@ class FrozenKeyDict(dict):
                                     .format(key, self[key], value))
                         except ValueError:
                             try:
-                                # TODO: possible bug below - using all() on bool?
-                                if not all(value[k] == old[k]):
+                                if not all(map(lambda a, b: a == b, zip(value[k], old[k]))):
                                     raise KeyError(
                                         "Key {} has already been set with value {}, new value {}"
                                         .format(key, self[key], value))
@@ -296,21 +316,41 @@ class TypedFrozenKeyDict(FrozenKeyDict):
         super(TypedFrozenKeyDict, self).__setitem__(key, value)
 
 
-def touch(full_name, times=None):
-    """
-    Touch the file
-    
-    :type full_name: str | unicode
-    :type times: tuple | None
-    :param full_name: The full file path
-    :param times: Tuple of (atime, mtime) access and modified time of the file
-    """
-    with open(full_name, 'a'):
-        os.utime(full_name, times)
+class Singleton(type):
+    # noinspection PyInitNewSignature
+    def __init__(cls, name, bases, dict):
+        super(Singleton, cls).__init__(name, bases, dict)
+        cls.instance = None
+
+    def __call__(cls, *args, **kwargs):
+        if cls.instance is None:
+            cls.instance = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls.instance
 
 
-def handle_exception(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, KeyboardInterrupt):
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+class ToolContainer(Printable):
+    """
+    Dummy class for holding tool objects for easy access
+    """
+    pass
+
+
+class FactorContainer(Printable):
+    """
+    Dummy class for holding factor creation functions
+    """
+
+
+class PluginContainer(Printable):
+    """
+    Dummy class for holding plugins
+    """
+
+
+class PluginWrapper(Printable):
+    """
+    Dummy class for a plugins containing tool objects for easy access
+    """
+    def __init__(self):
+        self.tools = ToolContainer()
+        self.factors = FactorContainer()

@@ -23,7 +23,8 @@ from datetime import datetime, timedelta
 from contextlib import contextmanager
 import logging
 
-from hyperstream import HyperStream, UTC, NodeIDAbsentError
+from hyperstream import HyperStream, UTC
+from treelib.tree import NodeIDAbsentError
 from subprocess import check_output
 import paho.mqtt.client as mqtt
 
