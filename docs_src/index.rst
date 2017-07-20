@@ -14,9 +14,9 @@ Tutorials:
 
 - `Introduction <http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_01.ipynb>`_
 - `Your own tools <http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_02.ipynb>`_
-- `Stream composition <http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_03.ipynb`_
-- `Real-time streams <http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_04.ipynb`_
-- `Workflows <http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_05.ipynb`_
+- `Stream composition <http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_03.ipynb>`_
+- `Real-time streams <http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_04.ipynb>`_
+- `Workflows <http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_05.ipynb>`_
 
 
 Contents:
