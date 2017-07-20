@@ -24,12 +24,19 @@ Running the tests:
 Run the following command
 
 >>> nosetests
-Note that for the MQTT logging test to succeed, you will need to have an MQTT broker running (e.g. Mosquitto). For example:
 
+Note that for the MQTT logging test to succeed, you will need to have an MQTT broker running (e.g. Mosquitto).
+For example:
+
+```bash
 docker run -ti -p 1883:1883 -p 9001:9001 toke/mosquitto
+```
+
 or on OSX you will need pidof and mosquitto:
 
+```bash
 brew install pidof
 brew install mosquitto
 brew services start mosquitto
+```
 """
