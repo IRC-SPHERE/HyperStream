@@ -41,7 +41,8 @@ class MetaDataManager(Printable):
             if passes > 1000:
                 raise NodeIDAbsentError("Nodes absent for ids {}"
                                         .format(", ".join(map(lambda x: x['identifier'], to_be_added.values()))))
-            for i, item in to_be_added.items():
+            items = list(to_be_added.items())
+            for i, item in items:
                 try:
                     self.global_plate_definitions.create_node(**item)
                     del to_be_added[i]
@@ -103,11 +104,16 @@ class MetaDataManager(Printable):
         :return: None
         """
 
-        node = self.global_plate_definitions[identifier]
+        try:
+            node = self.global_plate_definitions[identifier]
+        except NodeIDAbsentError:
+            return
+
         self.global_plate_definitions.remove_node(identifier)
 
         with switch_db(MetaDataModel, 'hyperstream'):
             meta_data = MetaDataModel.objects(tag=node.tag, data=node.data, parent=node.bpointer).first()
-            meta_data.delete()
+            if meta_data is not None:
+                meta_data.delete()
 
         logging.info("Meta data {} deleted".format(identifier))

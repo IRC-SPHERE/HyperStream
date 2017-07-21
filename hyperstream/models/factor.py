@@ -19,7 +19,8 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 from mongoengine import EmbeddedDocument, EmbeddedDocumentField, ListField, StringField, BooleanField
-from tool import ToolModel
+
+from .tool import ToolModel
 
 
 class OutputPlateDefinitionModel(EmbeddedDocument):

@@ -5,6 +5,7 @@
         "tz_aware": true,
         "db": "hyperstream"
     },
+    "history_channel": "mongo",
     "plugins": [{
         "channel_id_prefix": "example",
         "channel_names": [],

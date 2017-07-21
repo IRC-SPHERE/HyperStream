@@ -27,12 +27,13 @@ import logging
 # from mongoengine import DoesNotExist, MultipleObjectsReturned
 from mongoengine.context_managers import switch_db
 import os
+from six import string_types
 
 from hyperstream.models import StreamDefinitionModel
 from hyperstream.stream import StreamId, DatabaseStream, AssetStream
 from hyperstream.utils import Printable, utcnow, MIN_DATE, StreamAlreadyExistsError, ChannelNotFoundError, \
     ToolNotFoundError, ChannelAlreadyExistsError, ToolInitialisationError
-from hyperstream.channels import ToolChannel, MemoryChannel, DatabaseChannel, AssetsChannel, AssetsChannel2
+from hyperstream.channels import ToolChannel, MemoryChannel, DatabaseChannel, AssetsChannel, AssetsFileChannel
 
 
 class ChannelManager(dict, Printable):
@@ -105,13 +106,21 @@ class ChannelManager(dict, Printable):
                 except AttributeError as e:
                     raise e
                 logging.debug("Processing {}".format(stream_id))
-                channel = self.get_channel(s.channel_id)
+
+                try:
+                    # This can fail if a plugin has been defined by a different instantiation of HyperStream on the same
+                    # database.
+                    channel = self.get_channel(s.channel_id)
+                except ChannelNotFoundError as e:
+                    logging.warn(e)
+                    continue
+
                 # calculated_intervals = TimeIntervals(map(lambda x: (x.start, x.end), s.calculated_intervals))
                 last_accessed = utcnow()
                 last_updated = s.last_updated if s.last_updated else utcnow()
 
                 if stream_id in channel.streams:
-                    if isinstance(channel, (AssetsChannel, AssetsChannel2)):
+                    if isinstance(channel, (AssetsChannel, AssetsFileChannel)):
                         continue
                     raise StreamAlreadyExistsError(stream_id)
 
@@ -136,30 +145,6 @@ class ChannelManager(dict, Printable):
                 else:
                     logging.warn("Unable to parse stream {}".format(stream_id))
 
-    def populate_assets(self, tool_id):
-        """
-        TODO: Unused?
-        """
-        tool_stream_view = None
-
-        # Look in the main tool channel first
-        if tool_id in self.tools:
-            tool_stream_view = self.tools[tool_id].window((MIN_DATE, self.tools.up_to_timestamp))
-        else:
-            # Otherwise look through all the channels in the order they were defined
-            for tool_channel in self.tool_channels:
-                if tool_channel == self.tools:
-                    continue
-                if tool_id in tool_channel:
-                    # noinspection PyTypeChecker
-                    tool_stream_view = tool_channel[tool_id].window((MIN_DATE, tool_channel.up_to_timestamp))
-
-        if tool_stream_view is None:
-            raise ToolNotFoundError(tool_id)
-
-        # TODO: Use tool versions - here we just take the latest one
-        return tool_stream_view.last().value
-
     def get_tool_class(self, tool):
         """
         Gets the actual class which can then be instantiated with its parameters
@@ -169,7 +154,7 @@ class ChannelManager(dict, Printable):
         :rtype: Tool | MultiOutputTool
         :return: The tool class
         """
-        if isinstance(tool, (str, unicode)):
+        if isinstance(tool, string_types):
             tool_id = StreamId(tool)
         elif isinstance(tool, StreamId):
             tool_id = tool
@@ -194,6 +179,10 @@ class ChannelManager(dict, Printable):
             raise ToolNotFoundError(tool)
 
         # TODO: Use tool versions - here we just take the latest one
+        last = tool_stream_view.last()
+        if last is None:
+            raise ToolNotFoundError(tool)
+
         return tool_stream_view.last().value
 
     def get_tool(self, name, parameters, version=None):

@@ -24,6 +24,7 @@ from hyperstream.utils import Printable
 
 import itertools
 from collections import deque, namedtuple
+from six import string_types
 
 
 PlateValue = namedtuple("PlateValue", "plate value")
@@ -200,7 +201,7 @@ class Plate(Printable):
         :return: The combined plate values
         """
         if parent_plate_value:
-            if isinstance(plate_value[0], (str, unicode)):
+            if isinstance(plate_value[0], string_types):
                 combined_plate_value = parent_plate_value + (plate_value,)
             elif isinstance(plate_value[0], tuple):
                 combined_plate_value = parent_plate_value + plate_value

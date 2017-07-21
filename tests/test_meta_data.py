@@ -21,35 +21,27 @@
 
 import unittest
 
-from helpers import *
-from hyperstream import HyperStream, NodeIDAbsentError
+from .helpers import *
 
 
 class TestMetaData(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super(TestMetaData, self).__init__(*args, **kwargs)
-        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
-        try:
-            delete_meta_data(hs)
-            delete_plates(hs)
-        except NodeIDAbsentError:
-            pass
-
     def test_meta_data(self):
-        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
-        insert_meta_data(hs)
-        self.assertListEqual(get_meta_data(hs), ['root', 'test_0', 'test_1', 'test_2', 'test_3'])
-        delete_meta_data(hs)
-        self.assertListEqual(get_meta_data(hs), ['root'])
+        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
+            tag = 'test_meta_data'
+            insert_meta_data(hs, tag)
+            self.assertListEqual(get_meta_data(hs, tag), ["{}_{}".format(tag, i) for i in range(4)])
+            delete_meta_data(hs, tag)
+            self.assertListEqual(get_meta_data(hs, tag), [])
 
     def test_plate_creation(self):
-        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
-        insert_meta_data(hs)
-        create_plates(hs)
-        expected = [(('test', '0'),), (('test', '1'),), (('test', '2'),), (('test', '3'),)]
-        self.assertListEqual(hs.plate_manager.plates["T"].values, expected)
-        delete_plates(hs)
-        delete_meta_data(hs)
+        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
+            tag = 'test_plate_creation'
+            insert_meta_data(hs, tag)
+            create_plates(hs, "T1", tag)
+            expected = [((tag, str(i)),) for i in range(4)]
+            self.assertListEqual(sorted(hs.plate_manager.plates["T1"].values), expected)
+            delete_plates(hs, "T1")
+            delete_meta_data(hs, tag)
 
 
 if __name__ == '__main__':

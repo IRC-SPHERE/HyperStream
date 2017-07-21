@@ -21,12 +21,12 @@
 Tool package. Defines Tool, MultiOutputTool and SelectorTool base classes.
 """
 
-from base_tool import BaseTool
-from tool import Tool
-from aggregate_tool import AggregateTool
-from multi_output_tool import MultiOutputTool
-from selector_tool import SelectorTool
-from plate_creation_tool import PlateCreationTool
+from .base_tool import BaseTool
+from .tool import Tool
+from .aggregate_tool import AggregateTool
+from .multi_output_tool import MultiOutputTool
+from .selector_tool import SelectorTool
+from .plate_creation_tool import PlateCreationTool
 
 # The following import is for backwards compatibility: this has been moved into the utils package
 # noinspection PyUnresolvedReferences

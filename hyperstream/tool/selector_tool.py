@@ -94,3 +94,9 @@ class SelectorTool(BaseTool):
                         logging.debug("{} did not produce any data for time interval {} on sink {}".format(
                             self.name, interval, sink))
                     sink.calculated_intervals += interval
+
+                self.write_to_history(
+                    interval=interval,
+                    tool=self.name,
+                    document_count=len(produced_data)
+                )

@@ -19,20 +19,31 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
 from hyperstream.stream import StreamInstance
-from hyperstream.tool import Tool, check_input_stream_count
-from StringIO import StringIO
+from hyperstream.tool import SelectorTool
+from collections import Counter
 
-class DataFrameToCsvString(Tool):
+
+def safe_key(item):
+    k, v = item
+    return str(k).replace(".", "__dot__").replace("$", "__dollar__"), v
+
+
+class PercentilesToCsv(SelectorTool):
     """
-    Converts the value part of the stream instances to json format
+    For each document assumed to be a list of numbers, calculate the histogram
     """
-    def __init__(self):
-        super(DataFrameToCsvString, self).__init__()
+    def __init__(self,selector_meta_data=None):
+        super(PercentilesToCsv, self).__init__(selector_meta_data=selector_meta_data)
 
-    @check_input_stream_count(1)
-    def _execute(self, sources, alignment_stream, interval):
-        for time, data in sources[0].window(interval, force_calculation=True):
-            s = StringIO()
-            data.to_csv(s)
-            yield StreamInstance(time, s.getvalue())
-
+    def _execute(self, sources, interval):
+        if self.categorical:
+            for t, d in sources[0].window(interval, force_calculation=True):
+                yield StreamInstance(t, dict(map(safe_key, Counter(d).items())))
+        else:
+            if self.breaks is not None:
+                breaks = self.breaks
+            else:
+                breaks = [self.first_break+i*self.break_width for i in range(self.n_breaks)]
+            breaks = [-float('inf')] + breaks + [float('inf')]
+            for t, d in sources[0].window(interval, force_calculation=True):
+                yield StreamInstance(t, np.histogram(d, breaks)[0].tolist())

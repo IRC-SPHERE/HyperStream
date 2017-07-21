@@ -107,3 +107,4 @@ config.json
 output/
 .Rhistory
 docs_tmp
+venv3

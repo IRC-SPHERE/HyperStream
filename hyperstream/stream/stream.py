@@ -22,11 +22,11 @@
 from ..time_interval import TimeInterval, TimeIntervals, RelativeTimeInterval, parse_time_tuple
 from ..utils import Hashable, utcnow
 from . import StreamView, StreamId
-from ..models import TimeIntervalModel, StreamDefinitionModel
+from ..models import StreamDefinitionModel
 
 from collections import Iterable
 from mongoengine.context_managers import switch_db
-from mongoengine.errors import NotUniqueError, DoesNotExist
+from mongoengine.errors import DoesNotExist
 import logging
 
 
@@ -78,6 +78,9 @@ class Stream(Hashable):
 
     def __eq__(self, other):
         return str(self) == str(other)
+
+    def __hash__(self):
+        return hash(str(self))
 
     @property
     def parent_node(self):
@@ -197,7 +200,6 @@ class DatabaseStream(Stream):
         """
         Saves the stream definition to the database. This assumes that the definition doesn't already exist, and will
         raise an exception if it does.
-        :type upsert: bool
         :return: None
         """
         with switch_db(StreamDefinitionModel, 'hyperstream'):

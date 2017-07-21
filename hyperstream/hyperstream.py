@@ -22,58 +22,59 @@
 Main HyperStream class
 """
 
-from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager
-from . import Client, Workflow
-from version import __version__
-from utils import HyperStreamLogger, ToolContainer, PluginContainer, PluginWrapper, FactorContainer
+from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, Client, Workflow
+from .version import __version__
+from .utils import HyperStreamLogger, ToolContainer, PluginContainer, PluginWrapper, FactorContainer, Singleton
+from .session import Session
 
 import logging
 
 
 class HyperStream(object):
-    """ HyperStream class
-
-    This class can be instantiated simply with hyperstream = HyperStream() for
-    default operation
+    # noinspection PyUnresolvedReferences
     """
-    def __init__(self, loglevel=logging.DEBUG, file_logger=True,
-                 console_logger=True, mqtt_logger=None):
-        """Initialise the HyperStream class.
+    HyperStream class: can be instantiated simply with hyperstream = HyperStream() for default operation.
+    Use in the following way to create a session (and store history of execution etc).
+    >>> with Hyperstream():
+    >>>    pass
 
-        This starts the logger, loads the config files, connects to the main
-        mongodb, and initialises the managers (channels, plates, workflows).
+    Note that HyperStream uses the singleton pattern described here: https://stackoverflow.com/a/33201/1038264
+    """
+    __metaclass__ = Singleton
+
+    def __init__(self, loglevel=logging.INFO, file_logger=True, console_logger=True, mqtt_logger=None):
+        """
+        Initialise the HyperStream class. This starts the logger, loads the config files, connects to the main mongodb,
+        and initialises the managers (channels, plates, workflows).
 
         :type console_logger: bool | dict | None
         :type file_logger: bool | dict | None
         :type mqtt_logger: dict | None
         :param loglevel: The default logging level
-        :param file_logger: Whether to use a file logger. Either specify "True"
-        in which case defaults are used, otherwise a dict optionally containing
-        path, filename, loglevel
-        :param console_logger: The console logger. Either specify "True" in
-        which case defaults are used, otherwise a dict optionally containing
-        loglevel
-        :param mqtt_logger: Dict containing mqtt server, topic, and optionally
-        loglevel
+        :param file_logger: Whether to use a file logger. Either specify "True" in which case defaults are used,
+        otherwise a dict optionally containing path, filename, loglevel
+        :param console_logger: The console logger. Either specify "True" in which case defaults are used,
+        otherwise a dict optionally containing loglevel
+        :param mqtt_logger: Dict containing mqtt server, topic, and optionally loglevel
         """
-        self.parameters = dict(loglevel=loglevel,
-                               file_logger=file_logger,
-                               console_logger=console_logger,
-                               mqtt_logger=mqtt_logger)
+        self._session = None
 
-        self.logger = HyperStreamLogger(default_loglevel=loglevel,
-                                        file_logger=file_logger,
-                                        console_logger=console_logger,
-                                        mqtt_logger=mqtt_logger)
+        self.parameters = dict(
+            loglevel=loglevel,
+            file_logger=file_logger,
+            console_logger=console_logger,
+            mqtt_logger=mqtt_logger
+        )
+
+        self.logger = HyperStreamLogger(
+            default_loglevel=loglevel, file_logger=file_logger, console_logger=console_logger, mqtt_logger=mqtt_logger)
         self.config = HyperStreamConfig()
         self.client = Client(self.config.mongo)
 
         # Define some managers
         self.channel_manager = ChannelManager(self.config.plugins)
         self.plate_manager = PlateManager()
-        self.workflow_manager = WorkflowManager(
-                channel_manager=self.channel_manager,
-                plate_manager=self.plate_manager)
+        self.workflow_manager = WorkflowManager(channel_manager=self.channel_manager, plate_manager=self.plate_manager)
         self.plugins = PluginContainer()
 
         # The following are to keep pep happy - will be populated below
@@ -90,18 +91,19 @@ class HyperStream(object):
         return "{}({})".format(name, values)
 
     def __str__(self):
-        return ("HyperStream version {version}, connected to "
-                "mongodb://{host}:{port}/{db}").format(
-                    version=__version__,
-                    host=self.config.mongo['host'],
-                    port=self.config.mongo['port'],
-                    db=self.config.mongo['db']
+        return "HyperStream version {version}, connected to mongodb://{host}:{port}/{db}, session id {sid}".format(
+            version=__version__,
+            host=self.config.mongo['host'],
+            port=self.config.mongo['port'],
+            db=self.config.mongo['db'],
+            sid=self.current_session.session_id if self.current_session else "<no session>"
         )
 
     def __del__(self):
         self._cleanup()
 
     def __enter__(self):
+        self.new_session()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -112,26 +114,54 @@ class HyperStream(object):
         """
         Clean-up operations
         """
+        if self.current_session is not None:
+            self.current_session.close()
+            self.current_session = None
+
         for handler in list(self.logger.root_logger.handlers):
             self.logger.root_logger.removeHandler(handler)
             handler.flush()
             handler.close()
 
-    def create_workflow(self, workflow_id, name, owner, description,
-                        online=False, monitor=False):
-        """Create a new workflow.
+    def new_session(self):
+        self.current_session = Session(self, history_channel=self.config.history_channel)
+        return self.current_session
 
-        Simple wrapper for creating a workflow and adding it to the workflow
-        manager.
+    @property
+    def sessions(self):
+        return list(Session.get_sessions(self))
+
+    @property
+    def current_session(self):
+        return self._session
+
+    @current_session.setter
+    def current_session(self, session):
+        if self._session is None:
+            self._session = session
+        else:
+            if session is None or self._session.session_id != session.session_id:
+                self._session.active = False
+                self._session = session
+
+    def clear_sessions(self, inactive_only=True, clear_history=False):
+        """
+        Clears all stored sessions, optionally excluding active sessions
+        """
+        Session.clear_sessions(self, inactive_only, clear_history)
+
+    def create_workflow(self, workflow_id, name, owner, description, online=False, monitor=False):
+        """
+        Create a new workflow. Simple wrapper for creating a workflow and adding it to the workflow manager.
 
         :param workflow_id: The workflow id
         :param name: The workflow name
         :param owner: The owner/creator of the workflow
         :param description: A human readable description
-        :param online: Whether this workflow should be executed by the online
-        engine
+        :param online: Whether this workflow should be executed by the online engine
         :param monitor:
         :return: The workflow
+
         """
         w = Workflow(
             channels=self.channel_manager,
@@ -151,7 +181,9 @@ class HyperStream(object):
     def populate_tools_and_factors(self):
         """
         Function to populate factory functions for the tools and factors for ease of access.
+
         :return: None
+
         """
         for tool_channel in self.channel_manager.tool_channels:
             if tool_channel.channel_id == "tools":
@@ -173,26 +205,29 @@ class HyperStream(object):
                     tool_function = self.channel_manager.get_tool_class(tool_stream.name)
                     setattr(tool_container, tool_stream.name, tool_function)
 
-                    def create_factory_function(tool_function):
+                    def create_factory_function(tool_func):
                         """
                         This wrapper is needed to capture the tool_function closure
 
-                        :param tool_function:
-                        :return:
+                        :param tool_func: The tool function
+                        :return: The factory function
+
                         """
                         def factory_function(w, sources, alignment_node=None, **parameters):
                             """
                             Factory function for creating factors inside a workflow
+
                             :param w: workflow
                             :param sources: source nodes
                             :param alignment_node: alignment node
                             :return: the created factor
                             :type w: Workflow
                             :type sources: list[Node] | tuple[Node] | None
+
                             """
                             return dict(
                                 workflow=w,
-                                tool=tool_function(**parameters),
+                                tool=tool_func(**parameters),
                                 sources=sources,
                                 alignment_node=alignment_node)
                         return factory_function
@@ -200,4 +235,4 @@ class HyperStream(object):
                     setattr(factor_container, tool_stream.name, create_factory_function(tool_function))
 
                 except (NameError, AttributeError, ImportError) as e:
-                    logging.warn('Error loading tool {}: {}'.format(tool_stream.name, e))
+                    logging.warn('Unable to load tool {}: {}'.format(tool_stream.name, e))

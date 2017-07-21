@@ -19,5 +19,5 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from plate import Plate
-from plate_manager import PlateManager, PlateDefinitionError, PlateDefinitionModel
+from .plate import Plate
+from .plate_manager import PlateManager, PlateDefinitionError, PlateDefinitionModel

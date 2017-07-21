@@ -35,9 +35,9 @@ from dateutil.parser import parse
 cls = namedtuple("LongFilenameTimestamp", "long_filename timestamp")
 
 
-class AssetsChannel2(FileChannel):
+class AssetsFileChannel(FileChannel):
     """
-    Assets Channel. Special kind of file channel for static assets and user input data (workflow parameters etc)
+    Assets File Channel. Special kind of file channel for static assets and user input data (workflow parameters etc)
     """
 
     def __init__(self, channel_id, path, up_to_timestamp):
@@ -46,7 +46,7 @@ class AssetsChannel2(FileChannel):
         :param channel_id: The channel identifier
         :param up_to_timestamp: The time that this channel is valid up to
         """
-        super(AssetsChannel2, self).__init__(channel_id=channel_id, path=path, up_to_timestamp=up_to_timestamp)
+        super(AssetsFileChannel, self).__init__(channel_id=channel_id, path=path, up_to_timestamp=up_to_timestamp)
         # self.update_streams(utcnow())
 
     def update_streams(self, up_to_timestamp):
@@ -71,10 +71,13 @@ class AssetsChannel2(FileChannel):
 
             filename_no_extension, extension = os.path.splitext(file_long_name)
             if extension != ".json":
-                logging.warn('Filename in incorrect format {0}'.format(file_long_name))
+                logging.debug('Filename in incorrect format {0}'.format(file_long_name))
 
-            if filename_no_extension != '__init__' and extension != '.pyc':
-                yield cls(file_long_name, parse(filename_no_extension).replace(tzinfo=UTC))
+            if filename_no_extension != '__init__' and extension == '.json':
+                try:
+                    yield cls(file_long_name, parse(filename_no_extension).replace(tzinfo=UTC))
+                except ValueError as e:
+                    logging.warn("Failed to load {}: {}".format(file_long_name, e.message))
 
     def data_loader(self, short_path, file_info):
         filename = os.path.join(self.path, short_path, file_info.long_filename)
