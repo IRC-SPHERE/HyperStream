@@ -39,13 +39,15 @@ class SplitterOfDictFromStream(MultiOutputTool):
 
         if isinstance(splitting_stream, AssetStream):
             time_interval = TimeInterval(MIN_DATE, interval.end)
-            splitter = splitting_stream.window(time_interval, force_calculation=True).last()
+            splitter = splitting_stream.window(time_interval,
+                                               force_calculation=True).last()
         else:
-            splitter = splitting_stream.window(interval, force_calculation=True).last()
+            splitter = splitting_stream.window(interval,
+                                               force_calculation=True).last()
 
         if not splitter:
             logging.debug("No assets found for source {} and splitter {}"
-                        .format(source.stream_id, splitting_stream.stream_id))
+                          .format(source.stream_id, splitting_stream.stream_id))
             return
 
         mapping = splitter.value
