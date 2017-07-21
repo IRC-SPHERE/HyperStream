@@ -1,37 +1,38 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
-<svg width="40cm" height="11cm" viewBox="149 20 789 212" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="42cm" height="11cm" viewBox="62 20 831 212" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <g>
-    <rect style="fill: #ffffff" x="174" y="21.25" width="598" height="209"/>
-    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="174" y="21.25" width="598" height="209"/>
+    <rect style="fill: #ffffff" x="95.7338" y="21.25" width="633.534" height="209"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="95.7338" y="21.25" width="633.534" height="209"/>
   </g>
   <g>
-    <rect style="fill: #ffffff" x="189" y="28" width="363" height="184.25"/>
-    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="189" y="28" width="363" height="184.25"/>
+    <rect style="fill: #ffffff" x="222.978" y="28" width="294.906" height="184.25"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="222.978" y="28" width="294.906" height="184.25"/>
   </g>
   <g>
-    <ellipse style="fill: #ffffff" cx="239.43" cy="55.8793" rx="23.4304" ry="22.6993"/>
-    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="239.43" cy="55.8793" rx="23.4304" ry="22.6993"/>
-    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="239.43" y="58.6349">
-      <tspan x="239.43" y="58.6349">Temp</tspan>
+    <ellipse style="fill: #ffffff" cx="265.593" cy="54.7133" rx="23.4304" ry="22.6993"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="265.593" cy="54.7133" rx="23.4304" ry="22.6993"/>
+    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="265.593" y="57.4689">
+      <tspan x="265.593" y="57.4689">Temp</tspan>
     </text>
   </g>
   <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="319.694" y="95.4842">
     <tspan x="319.694" y="95.4842">correlation</tspan>
   </text>
   <g>
-    <rect style="fill: #000000" x="150.918" y="50.8792" width="10" height="10"/>
-    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="150.918" y="50.8792" width="10" height="10"/>
+    <rect style="fill: #000000" x="63.5788" y="49.7133" width="10" height="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="63.5788" y="49.7133" width="10" height="10"/>
   </g>
-  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="149.918" y="46.243">
-    <tspan x="149.918" y="46.243">CSV</tspan>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="62.5788" y="36.7294">
+    <tspan x="62.5788" y="36.7294">csv</tspan>
+    <tspan x="62.5788" y="45.196">reader</tspan>
   </text>
   <g>
-    <ellipse style="fill: #ffffff" cx="241.919" cy="177.826" rx="29.4989" ry="28.0003"/>
-    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="241.919" cy="177.826" rx="29.4989" ry="28.0003"/>
-    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="241.919" y="174.937">
-      <tspan x="241.919" y="174.937">Rain-</tspan>
-      <tspan x="241.919" y="186.226">fall</tspan>
+    <ellipse style="fill: #ffffff" cx="268.081" cy="178.55" rx="29.4989" ry="28.0003"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="268.081" cy="178.55" rx="29.4989" ry="28.0003"/>
+    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="268.081" y="175.661">
+      <tspan x="268.081" y="175.661">Rain-</tspan>
+      <tspan x="268.081" y="186.95">fall</tspan>
     </text>
   </g>
   <g>
@@ -43,27 +44,27 @@
       <tspan x="421.539" y="130.911">fall</tspan>
     </text>
   </g>
-  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="370.5" y="120.125">
-    <tspan x="370.5" y="120.125"></tspan>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="370.431" y="120.125">
+    <tspan x="370.431" y="120.125"></tspan>
   </text>
-  <text font-size="16.9333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="504" y="204">
-    <tspan x="504" y="204">City</tspan>
+  <text font-size="16.9333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="470.931" y="204">
+    <tspan x="470.931" y="204">City</tspan>
   </text>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="161.922" y1="55.8792" x2="210.522" y2="55.8793"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="206.758,58.8793 212.758,55.8793 206.758,52.8793 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="74.5203" y1="54.7133" x2="111.74" y2="54.7133"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="107.976,57.7133 113.976,54.7133 107.976,51.7133 "/>
   </g>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="259.433" y1="69.466" x2="319.532" y2="110.289"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="314.733,110.656 321.382,111.546 318.104,105.693 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="282.811" y1="71.5339" x2="320.013" y2="107.877"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="315.225,107.393 321.613,109.439 319.417,103.101 "/>
   </g>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="455.675" y1="116.867" x2="505.414" y2="116.867"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="501.65,119.867 507.65,116.867 501.65,113.867 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="455.703" y1="116.867" x2="471.528" y2="116.867"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="467.764,119.867 473.764,116.867 467.764,113.867 "/>
   </g>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="266.493" y1="160.666" x2="319.56" y2="123.609"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="318.192,128.224 321.394,122.329 314.757,123.304 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="288.992" y1="157.452" x2="320.12" y2="126.044"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="319.601,130.829 321.694,124.456 315.34,126.606 "/>
   </g>
   <g>
     <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="335.223" y1="116.867" x2="382.941" y2="116.867"/>
@@ -72,158 +73,206 @@
   <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="545" y="223">
     <tspan x="545" y="223"></tspan>
   </text>
-  <text font-size="16.9333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="696" y="224">
-    <tspan x="696" y="224">Country</tspan>
+  <text font-size="16.9333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="652.389" y="224">
+    <tspan x="652.389" y="224">Country</tspan>
   </text>
   <g>
-    <ellipse style="fill: #ffffff" cx="610.085" cy="116.867" rx="40.5071" ry="40.0666"/>
-    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="610.085" cy="116.867" rx="40.5071" ry="40.0666"/>
-    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="610.085" y="113.978">
-      <tspan x="610.085" y="113.978">Avg. Temp/</tspan>
-      <tspan x="610.085" y="125.267">Rainfall</tspan>
+    <ellipse style="fill: #ffffff" cx="578.961" cy="116.867" rx="40.5071" ry="40.0666"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="578.961" cy="116.867" rx="40.5071" ry="40.0666"/>
+    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="578.961" y="113.978">
+      <tspan x="578.961" y="113.978">Avg. Temp/</tspan>
+      <tspan x="578.961" y="125.267">Rainfall</tspan>
     </text>
   </g>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="521.877" y1="116.867" x2="564.113" y2="116.867"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="560.349,119.867 566.349,116.867 560.349,113.867 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="487.989" y1="116.867" x2="532.992" y2="116.867"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="529.228,119.867 535.228,116.867 529.228,113.867 "/>
   </g>
   <g>
-    <ellipse style="fill: #ffffff" cx="834.912" cy="116.867" rx="39.9561" ry="39.9561"/>
-    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="834.912" cy="116.867" rx="39.9561" ry="39.9561"/>
-    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="834.912" y="113.978">
-      <tspan x="834.912" y="113.978">Avg. Temp/</tspan>
-      <tspan x="834.912" y="125.267">Rainfall</tspan>
+    <ellipse style="fill: #ffffff" cx="788.923" cy="116.867" rx="39.9561" ry="39.9561"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="788.923" cy="116.867" rx="39.9561" ry="39.9561"/>
+    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="788.923" y="113.978">
+      <tspan x="788.923" y="113.978">Avg. Temp/</tspan>
+      <tspan x="788.923" y="125.267">Rainfall</tspan>
     </text>
   </g>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="706.445" y1="116.867" x2="789.998" y2="116.867"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="786.234,119.867 792.234,116.867 786.234,113.867 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="713.341" y1="116.867" x2="743.493" y2="116.867"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="739.729,119.867 745.729,116.867 739.729,113.867 "/>
   </g>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="651.585" y1="116.867" x2="690.157" y2="116.867"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="686.393,119.867 692.393,116.867 686.393,113.867 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="620.468" y1="116.867" x2="697.859" y2="116.867"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="694.095,119.867 700.095,116.867 694.095,113.867 "/>
   </g>
-  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="149.918" y="168.621">
-    <tspan x="149.918" y="168.621">CSV</tspan>
+  <g>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="74.5715" y1="178.55" x2="107.75" y2="178.55"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="103.986,181.55 109.986,178.55 103.986,175.55 "/>
+  </g>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="699.146" y="104">
+    <tspan x="699.146" y="104">Avg.</tspan>
   </text>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="161.905" y1="177.825" x2="207.948" y2="177.825"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="204.184,180.825 210.184,177.825 204.184,174.825 "/>
-  </g>
-  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="692" y="104">
-    <tspan x="692" y="104">Avg.</tspan>
-  </text>
-  <g>
-    <ellipse style="fill: #ffffff" cx="668.485" cy="55.8794" rx="26.9148" ry="26.9148"/>
-    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="668.485" cy="55.8794" rx="26.9148" ry="26.9148"/>
-    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="668.485" y="52.9905">
-      <tspan x="668.485" y="52.9905">Avg.</tspan>
-      <tspan x="668.485" y="64.2794">Temp</tspan>
+    <ellipse style="fill: #ffffff" cx="637.361" cy="54.7133" rx="26.9148" ry="26.9148"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="637.361" cy="54.7133" rx="26.9148" ry="26.9148"/>
+    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="637.361" y="51.8244">
+      <tspan x="637.361" y="51.8244">Avg.</tspan>
+      <tspan x="637.361" y="63.1133">Temp</tspan>
     </text>
   </g>
   <g>
-    <ellipse style="fill: #ffffff" cx="673.418" cy="177.826" rx="33.4184" ry="32.6745"/>
-    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="673.418" cy="177.826" rx="33.4184" ry="32.6745"/>
-    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="673.418" y="169.292">
-      <tspan x="673.418" y="169.292">Avg.</tspan>
-      <tspan x="673.418" y="180.581">Rain-</tspan>
-      <tspan x="673.418" y="191.87">fall</tspan>
+    <ellipse style="fill: #ffffff" cx="642.294" cy="178.55" rx="33.4184" ry="32.6745"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="642.294" cy="178.55" rx="33.4184" ry="32.6745"/>
+    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="642.294" y="170.016">
+      <tspan x="642.294" y="170.016">Avg.</tspan>
+      <tspan x="642.294" y="181.305">Rain-</tspan>
+      <tspan x="642.294" y="192.594">fall</tspan>
     </text>
   </g>
   <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="476" y="44">
     <tspan x="476" y="44">Avg.</tspan>
   </text>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="263.862" y1="55.8793" x2="471.777" y2="55.8792"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="468.014,58.8792 474.014,55.8792 468.014,52.8792 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="290.015" y1="54.7133" x2="471.525" y2="54.7133"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="467.761,57.7133 473.761,54.7133 467.761,51.7133 "/>
   </g>
-  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="364" y="164">
-    <tspan x="364" y="164">Avg.</tspan>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="476" y="164">
+    <tspan x="476" y="164">Avg.</tspan>
   </text>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="272.424" y1="177.825" x2="358.29" y2="177.825"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="354.526,180.825 360.526,177.825 354.526,174.825 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="298.373" y1="178.55" x2="471.548" y2="178.55"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="467.784,181.55 473.784,178.55 467.784,175.55 "/>
   </g>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="374.735" y1="177.825" x2="634.534" y2="177.826"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="630.77,180.826 636.77,177.826 630.77,174.826 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="487.997" y1="178.55" x2="603.697" y2="178.55"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="599.933,181.55 605.933,178.55 599.933,175.55 "/>
   </g>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="488.163" y1="55.8792" x2="636.141" y2="55.8794"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="632.377,58.8793 638.377,55.8794 632.377,52.8793 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="488.002" y1="54.7133" x2="605.579" y2="54.7133"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="601.815,57.7133 607.815,54.7133 601.815,51.7133 "/>
   </g>
-  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="722" y="42">
-    <tspan x="722" y="42">Avg.</tspan>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="699.146" y="42">
+    <tspan x="699.146" y="42">Avg.</tspan>
   </text>
-  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="740" y="164">
-    <tspan x="740" y="164">Avg.</tspan>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="699.146" y="164">
+    <tspan x="699.146" y="164">Avg.</tspan>
   </text>
   <g>
-    <ellipse style="fill: #ffffff" cx="887.441" cy="55.8794" rx="26.9148" ry="26.9148"/>
-    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="887.441" cy="55.8794" rx="26.9148" ry="26.9148"/>
-    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="887.441" y="52.9905">
-      <tspan x="887.441" y="52.9905">Avg.</tspan>
-      <tspan x="887.441" y="64.2794">Temp</tspan>
+    <ellipse style="fill: #ffffff" cx="841.452" cy="54.7133" rx="26.9148" ry="26.9148"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="841.452" cy="54.7133" rx="26.9148" ry="26.9148"/>
+    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="841.452" y="51.8244">
+      <tspan x="841.452" y="51.8244">Avg.</tspan>
+      <tspan x="841.452" y="63.1133">Temp</tspan>
     </text>
   </g>
   <g>
-    <ellipse style="fill: #ffffff" cx="904.44" cy="177.826" rx="33.4184" ry="32.6745"/>
-    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="904.44" cy="177.826" rx="33.4184" ry="32.6745"/>
-    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="904.44" y="169.292">
-      <tspan x="904.44" y="169.292">Avg.</tspan>
-      <tspan x="904.44" y="180.581">Rain-</tspan>
-      <tspan x="904.44" y="191.87">fall</tspan>
+    <ellipse style="fill: #ffffff" cx="858.451" cy="178.55" rx="33.4184" ry="32.6745"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="858.451" cy="178.55" rx="33.4184" ry="32.6745"/>
+    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="858.451" y="170.016">
+      <tspan x="858.451" y="170.016">Avg.</tspan>
+      <tspan x="858.451" y="181.305">Rain-</tspan>
+      <tspan x="858.451" y="192.594">fall</tspan>
     </text>
   </g>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="707.706" y1="177.825" x2="739.607" y2="177.825"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="735.844,180.825 741.844,177.825 735.844,174.825 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="676.663" y1="178.55" x2="696.887" y2="178.55"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="693.123,181.55 699.123,178.55 693.123,175.55 "/>
   </g>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="756.08" y1="177.825" x2="865.551" y2="177.825"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="861.788,180.825 867.788,177.825 861.788,174.825 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="713.341" y1="178.55" x2="819.579" y2="178.55"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="815.815,181.55 821.815,178.55 815.815,175.55 "/>
   </g>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="696.34" y1="55.8793" x2="720.977" y2="55.8792"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="717.213,58.8792 723.213,55.8792 717.213,52.8792 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="665.263" y1="54.7133" x2="697.133" y2="54.7133"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="693.369,57.7133 699.369,54.7133 693.369,51.7133 "/>
   </g>
   <g>
-    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="737.431" y1="55.8792" x2="855.073" y2="55.8793"/>
-    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="851.309,58.8793 857.309,55.8793 851.309,52.8793 "/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="713.346" y1="54.7133" x2="809.068" y2="54.7133"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="805.304,57.7133 811.304,54.7133 805.304,51.7133 "/>
   </g>
   <g>
-    <rect style="fill: #000000" x="150.918" y="172.825" width="10" height="10"/>
-    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="150.918" y="172.825" width="10" height="10"/>
+    <rect style="fill: #000000" x="63.5788" y="173.55" width="10" height="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="63.5788" y="173.55" width="10" height="10"/>
   </g>
   <g>
     <rect style="fill: #000000" x="324.216" y="111.867" width="10" height="10"/>
     <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="324.216" y="111.867" width="10" height="10"/>
   </g>
   <g>
-    <rect style="fill: #000000" x="477.252" y="50.8792" width="10" height="10"/>
-    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="477.252" y="50.8792" width="10" height="10"/>
+    <rect style="fill: #000000" x="477" y="49.7133" width="10" height="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="477" y="49.7133" width="10" height="10"/>
   </g>
   <g>
-    <rect style="fill: #000000" x="510.886" y="111.867" width="10" height="10"/>
-    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="510.886" y="111.867" width="10" height="10"/>
+    <rect style="fill: #000000" x="477" y="111.867" width="10" height="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="477" y="111.867" width="10" height="10"/>
   </g>
   <g>
-    <rect style="fill: #000000" x="363.738" y="172.825" width="10" height="10"/>
-    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="363.738" y="172.825" width="10" height="10"/>
+    <rect style="fill: #000000" x="477" y="173.55" width="10" height="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="477" y="173.55" width="10" height="10"/>
   </g>
   <g>
-    <rect style="fill: #000000" x="695.454" y="111.867" width="10" height="10"/>
-    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="695.454" y="111.867" width="10" height="10"/>
+    <rect style="fill: #000000" x="702.346" y="111.867" width="10" height="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="702.346" y="111.867" width="10" height="10"/>
   </g>
   <g>
-    <rect style="fill: #000000" x="726.452" y="50.8792" width="10" height="10"/>
-    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="726.452" y="50.8792" width="10" height="10"/>
+    <rect style="fill: #000000" x="702.346" y="49.7133" width="10" height="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="702.346" y="49.7133" width="10" height="10"/>
   </g>
   <g>
-    <rect style="fill: #000000" x="745.078" y="172.825" width="10" height="10"/>
-    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="745.078" y="172.825" width="10" height="10"/>
+    <rect style="fill: #000000" x="702.346" y="173.55" width="10" height="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="702.346" y="173.55" width="10" height="10"/>
   </g>
-  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="510.995" y="106.783">
-    <tspan x="510.995" y="106.783">Avg.</tspan>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="476" y="106.783">
+    <tspan x="476" y="106.783">Avg.</tspan>
+  </text>
+  <g>
+    <ellipse style="fill: #ffffff" cx="143.692" cy="54.7133" rx="26.4817" ry="27.0474"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="143.692" cy="54.7133" rx="26.4817" ry="27.0474"/>
+    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="143.692" y="51.8244">
+      <tspan x="143.692" y="51.8244">Raw</tspan>
+      <tspan x="143.692" y="63.1133">Temp</tspan>
+    </text>
+  </g>
+  <g>
+    <ellipse style="fill: #ffffff" cx="147.001" cy="178.55" rx="33.7854" ry="32.069"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="147.001" cy="178.55" rx="33.7854" ry="32.069"/>
+    <text font-size="9.03111" style="fill: #000000;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="147.001" y="170.016">
+      <tspan x="147.001" y="170.016">Raw</tspan>
+      <tspan x="147.001" y="181.305">Rain-</tspan>
+      <tspan x="147.001" y="192.594">fall</tspan>
+    </text>
+  </g>
+  <g>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="209.627" y1="54.7133" x2="236.795" y2="54.7133"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="233.031,57.7133 239.031,54.7133 233.031,51.7133 "/>
+  </g>
+  <g>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="209.624" y1="178.55" x2="233.106" y2="178.55"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="229.342,181.55 235.342,178.55 229.342,175.55 "/>
+  </g>
+  <g>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="171.174" y1="54.7133" x2="194.156" y2="54.7133"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="190.392,57.7133 196.392,54.7133 190.392,51.7133 "/>
+  </g>
+  <g>
+    <rect style="fill: #000000" x="198.629" y="49.7133" width="10" height="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="198.629" y="49.7133" width="10" height="10"/>
+  </g>
+  <g>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" x1="181.739" y1="178.55" x2="194.156" y2="178.55"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #888888" points="190.392,181.55 196.392,178.55 190.392,175.55 "/>
+  </g>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="187.229" y="167.937">
+    <tspan x="187.229" y="167.937">Splitter</tspan>
+  </text>
+  <g>
+    <rect style="fill: #000000" x="198.629" y="173.55" width="10" height="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="198.629" y="173.55" width="10" height="10"/>
+  </g>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="187.229" y="43.2496">
+    <tspan x="187.229" y="43.2496">Splitter</tspan>
+  </text>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="62.5788" y="160.386">
+    <tspan x="62.5788" y="160.386">csv</tspan>
+    <tspan x="62.5788" y="168.853">reader</tspan>
   </text>
 </svg>
