@@ -75,11 +75,12 @@ class FileChannel(ReadOnlyMemoryChannel):
                     logging.warn('Filename in incorrect format {0}, {1}'.format(file_long_name, e.message))
 
     @staticmethod
-    def walk(some_dir, level=1):
-        some_dir = some_dir.rstrip(os.path.sep)
-        assert os.path.isdir(some_dir)
-        num_sep = some_dir.count(os.path.sep)
-        for root, dirs, files in os.walk(some_dir):
+    def walk(directory, level=1):
+        directory = directory.rstrip(os.path.sep)
+        if not os.path.isdir(directory):
+            raise ValueError("Invalid path: {}".format(directory))
+        num_sep = directory.count(os.path.sep)
+        for root, dirs, files in os.walk(directory):
             yield root, dirs, files
             num_sep_this = root.count(os.path.sep)
             if num_sep + level <= num_sep_this:

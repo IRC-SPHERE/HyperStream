@@ -18,7 +18,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .misc import camel_to_snake, touch
+from .misc import camel_to_snake, snake_to_camel, touch
 from .containers import MetaDataTree, Hashable, Printable, TypedBiDict, FrozenKeyDict, TypedFrozenKeyDict, \
     ToolContainer, PluginContainer, PluginWrapper, FactorContainer, Singleton
 from .hyperstream_logger import HyperStreamLogger

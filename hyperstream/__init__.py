@@ -28,7 +28,7 @@ from .online_engine import OnlineEngine
 from .stream import StreamId, Stream, StreamInstance, StreamMetaInstance, DatabaseStream, StreamDict, \
     StreamInstanceCollection, StreamView
 from .time_interval import TimeInterval, TimeIntervals, RelativeTimeInterval
-from .tool import Tool
+from .tool import Tool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
 from .utils import MIN_DATE, UTC, StreamNotAvailableError, StreamAlreadyExistsError, StreamDataNotAvailableError, \
     StreamNotFoundError, IncompatiblePlatesError, ToolNotFoundError, ChannelNotFoundError, ToolExecutionError, \
     ChannelAlreadyExistsError, FactorAlreadyExistsError, FactorDefinitionError, LinkageError, \

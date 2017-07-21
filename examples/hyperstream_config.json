@@ -11,6 +11,18 @@
         "path": "plugins/example",
         "has_tools": true,
         "has_assets": false
+    }, {
+        "channel_id_prefix": "data_importers",
+        "channel_names": [],
+        "path": "../plugins/data_importers",
+        "has_tools": true,
+        "has_assets": false
+    }, {
+        "channel_id_prefix": "data_generators",
+        "channel_names": [],
+        "path": "../plugins/data_generators",
+        "has_tools": true,
+        "has_assets": false
     }],
     "online_engine": {
         "interval": {

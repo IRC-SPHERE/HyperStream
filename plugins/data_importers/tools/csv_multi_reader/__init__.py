@@ -18,32 +18,3 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
-
-import re
-import os
-
-
-FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')
-ALL_CAP_RE = re.compile('([a-z0-9])([A-Z])')
-
-
-def camel_to_snake(name):
-    s1 = FIRST_CAP_RE.sub(r'\1_\2', name)
-    return ALL_CAP_RE.sub(r'\1_\2', s1).lower()
-
-
-def snake_to_camel(name):
-    return ''.join(word.capitalize() for word in name.split('_'))
-
-
-def touch(full_name, times=None):
-    """
-    Touch the file
-
-    :type full_name: str | unicode
-    :type times: tuple | None
-    :param full_name: The full file path
-    :param times: Tuple of (atime, mtime) access and modified time of the file
-    """
-    with open(full_name, 'a'):
-        os.utime(full_name, times)
