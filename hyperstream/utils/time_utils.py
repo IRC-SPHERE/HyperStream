@@ -29,9 +29,6 @@ class UTC(pytz.UTC):
         return "UTC"
 
 
-UTC = utc = UTC()  # UTC is a singleton
-
-
 MIN_DATE = datetime.min.replace(tzinfo=UTC)
 MAX_DATE = datetime.max.replace(tzinfo=UTC).replace(microsecond=0)
 
