@@ -23,9 +23,13 @@ from datetime import datetime, date, timedelta
 import udatetime
 
 
+# noinspection PyClassHasNoInit
 class UTC(pytz.UTC):
     def __repr__(self):
         return "UTC"
+
+
+UTC = utc = UTC()  # UTC is a singleton
 
 
 MIN_DATE = datetime.min.replace(tzinfo=UTC)
