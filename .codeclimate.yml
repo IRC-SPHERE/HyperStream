@@ -1,15 +1,10 @@
 ---
 engines:
-#  csslint:
-#    enabled: true
   duplication:
     enabled: true
     config:
       languages:
-#      - ruby
-#      - javascript
       - python
-#      - php
   eslint:
     enabled: true
   fixme:
@@ -20,18 +15,9 @@ engines:
       python_version: 2
   pep8:
     enabled: true
-    max_line_length: 120
-    max-line-length: 120
 ratings:
   paths:
-#  - "**.css"
-#  - "**.inc"
-#  - "**.js"
-#  - "**.jsx"
-#  - "**.module"
-#  - "**.php"
   - "**.py"
-#  - "**.rb"
 exclude_paths:
 - tests/
 - docs/
