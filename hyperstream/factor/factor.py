@@ -153,7 +153,9 @@ class Factor(FactorBase):
                                           alignment_stream=self.get_alignment_stream(None, None))
                 else:
                     if len(self.sources) != 1 and not all(s.plates == self.plates for s in self.sources):
-                        if list(sorted(itertools.chain(*[s.plates for s in self.sources]))) == self.plates:
+                        source_plates = sorted(p.plate_id for s in self.sources for p in s.plates)
+                        self_plates = sorted(p.plate_id for p in self.plates)
+                        if source_plates == self_plates:
                             # This is the case where the sources are all on separate plates and the sink is the
                             # combination
                             for pv in sorted(itertools.product(*([x[0] for x in p.values] for p in self.plates))):
