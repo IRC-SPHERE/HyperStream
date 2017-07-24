@@ -25,10 +25,10 @@ from hyperstream.stream import StreamInstance
 class Product(Tool):
     @check_input_stream_count(2)
     def _execute(self, sources, alignment_stream, interval):
-        s1 = next(sources[1])
-        
-        # TODO: should the loop below be: for (t, data1) in sources[0].execute(interval)?
-        for (t, data1) in sources[0]:
-            (_, data2) = next(s1)
-            # TODO: type checking key/value pairs?
-            yield StreamInstance(t, data1 * data2)
+        s0 = sources[0].window(interval, force_calculation=True)
+        s1 = sources[1].window(interval, force_calculation=True)
+
+        for (d0, d1) in zip(s0, s1):
+            if d0.timestamp != d1.timestamp:
+                raise ValueError("{} tool expects aligned timestamps".format(self.name))
+            yield StreamInstance(d0.timestamp, d0.value * d1.value)

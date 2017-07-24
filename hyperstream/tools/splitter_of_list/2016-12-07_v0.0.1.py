@@ -27,9 +27,8 @@ import logging
 class SplitterOfList(MultiOutputTool):
     def __init__(self, mapping):
         super(SplitterOfList, self).__init__(mapping=mapping)
-        self.mapping = mapping
 
-    def _execute(self, source, splitting_stream, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
         if splitting_stream is not None:
             raise NotImplementedError("Splitting stream not supported for this tool")
 
@@ -37,7 +36,8 @@ class SplitterOfList(MultiOutputTool):
             for i in range(len(self.mapping)):
                 plate_value = self.mapping[i]
                 try:
-                    yield StreamMetaInstance((timestamp, value[i]), (output_plate.meta_data_id, plate_value))
-                except:
-                    logging.warn("List too short to slice at {} with meta data {} in SplitterOfList".format(i,plate_value))
+                    yield StreamMetaInstance((timestamp, value[i]), (meta_data_id, plate_value))
+                except (ValueError, AttributeError, KeyError):
+                    logging.warn("List too short to slice at {} with meta data {} in SplitterOfList"
+                                 .format(i, plate_value))
 

@@ -34,11 +34,12 @@ class SplitterFromStream(MultiOutputTool):
     be a dict with keys corresponding to plate values, the respective values
     will then be written into corresponding streams
     """
+
     def __init__(self, element=None, use_mapping_keys_only=False):
         super(SplitterFromStream, self).__init__(element=element,
                                                  use_mapping_keys_only=use_mapping_keys_only)
 
-    def _execute(self, source, splitting_stream, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
         if splitting_stream is None:
             raise ValueError("Splitting stream required for this tool")
 
@@ -57,15 +58,15 @@ class SplitterFromStream(MultiOutputTool):
 
         mapping = splitter.value
 
-        try: # try if mapping is a dict
-            if len(mapping.keys())==0:
+        try:  # try if mapping is a dict
+            if len(mapping.keys()) == 0:
                 logging.warn("""The mapping provided to splitter_from_stream by
                                 the last element of the splitting stream is
                                 empty""")
             if self.use_mapping_keys_only:
-                mapping = dict([(x,x) for x in mapping.keys()])
-        except: # assume that mapping is a list
-            mapping = dict([(x,x) for x in mapping])
+                mapping = dict([(x, x) for x in mapping.keys()])
+        except:  # assume that mapping is a list
+            mapping = dict([(x, x) for x in mapping])
 
         for timestamp, value in source.window(interval, force_calculation=True):
             if self.element is None:
@@ -76,7 +77,7 @@ class SplitterFromStream(MultiOutputTool):
                         continue
                     plate_value = mapping[meta_data]
                     yield StreamMetaInstance((timestamp, sub_value),
-                                             (output_plate.meta_data_id, plate_value))
+                                             (meta_data_id, plate_value))
             else:
                 if self.element not in value:
                     logging.debug("Mapping element {} not in instance"
@@ -89,4 +90,4 @@ class SplitterFromStream(MultiOutputTool):
                                  .format(meta_data, self.element))
                     continue
                 plate_value = mapping[meta_data]
-                yield StreamMetaInstance((timestamp, value), (output_plate.meta_data_id, plate_value))
+                yield StreamMetaInstance((timestamp, value), (meta_data_id, plate_value))

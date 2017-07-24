@@ -28,20 +28,21 @@ class TestMetaData(unittest.TestCase):
     def test_meta_data(self):
         with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
             tag = 'test_meta_data'
-            insert_meta_data(hs, tag)
-            self.assertListEqual(get_meta_data(hs, tag), ["{}_{}".format(tag, i) for i in range(4)])
-            delete_meta_data(hs, tag)
+            values = map(str, range(4))
+            insert_meta_data(hs, tag, values)
+            self.assertListEqual(get_meta_data(hs, tag), ["{}_{}".format(tag, i) for i in values])
+            delete_meta_data(hs, tag, values)
             self.assertListEqual(get_meta_data(hs, tag), [])
 
     def test_plate_creation(self):
         with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
             tag = 'test_plate_creation'
-            insert_meta_data(hs, tag)
-            create_plates(hs, "T1", tag)
-            expected = [((tag, str(i)),) for i in range(4)]
+            values = map(str, range(4))
+            insert_meta_data(hs, tag, values)
+            create_plate(hs, "T1", tag)
+            expected = [((tag, i),) for i in values]
             self.assertListEqual(sorted(hs.plate_manager.plates["T1"].values), expected)
-            delete_plates(hs, "T1")
-            delete_meta_data(hs, tag)
+            delete_plate(hs, "T1")  # note this now deletes meta data as well
 
 
 if __name__ == '__main__':

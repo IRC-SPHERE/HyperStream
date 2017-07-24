@@ -134,6 +134,28 @@ class Workflow(Printable):
         self._add_node(node)
         return node
 
+    def create_factor_general(self, *args, **kwargs):
+        """
+        General signature for factor creation that tries each of the factor creation types using duck typing
+
+        :param args: The positional arguments
+        :param kwargs: The named arguments
+        :return: The created factor
+        """
+        try:
+            return self.create_factor(*args, **kwargs)
+        except TypeError:
+            pass
+        try:
+            return self.create_multi_output_factor(*args, **kwargs)
+        except TypeError:
+            pass
+        try:
+            return self.create_node_creation_factor(*args, **kwargs)
+        except TypeError:
+            pass
+        raise FactorDefinitionError("Could not find a matching signature")
+
     def create_factor(self, tool, sources, sink, alignment_node=None):
         """
         Creates a factor. Instantiates a single tool for all of the plates, and connects the source and sink nodes with

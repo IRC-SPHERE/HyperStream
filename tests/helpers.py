@@ -44,6 +44,13 @@ minute = timedelta(minutes=1)
 second = timedelta(seconds=1)
 zero = timedelta(0)
 
+items = {
+    '0': ['A', 'B', 'C'],
+    '1': ['C', 'D'],
+    '2': ['A', 'B', 'C', 'D'],
+    '3': ['A']
+}
+
 
 @contextmanager
 def resource_manager():
@@ -51,34 +58,50 @@ def resource_manager():
 
 
 def setup():
-    hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
-    for plate_id, tag in (('T', 'test'), (None, 'test_meta_data'), ('T1', 'test_plate_creation')):
-        try:
-            delete_meta_data(hs, tag)
-        except NodeIDAbsentError:
-            pass
-        if plate_id:
-            delete_plates(hs, plate_id)
-    insert_meta_data(hs, 'test')
-    create_plates(hs, 'T', 'test')
+    hs = teardown()
+
+    insert_meta_data(hs, 'test', items)
+    insert_meta_data(hs, 'test_overlap', items)
+    for data in items:
+        insert_meta_data(hs, 'nested_test', items[data], 'test_' + data)
+    create_plate(hs, 'T', 'test')
+    create_plate(hs, 'T.U', 'nested_test', 'T')
+    create_plate(hs, 'V', 'test_overlap')
 
 
 def teardown():
     hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
-    delete_plates(hs, 'T')
-    delete_meta_data(hs, 'test')
+    for plate_id, tag in ((None, 'test_meta_data'), ('T1', 'test_plate_creation')):
+        # delete_meta_data(hs, tag, items)
+        delete_plate(hs, plate_id)
+
+    # Note that this deletes the nested items as well
+    # delete_meta_data(hs, 'test', items)
+    # for data in items:
+    #     delete_meta_data(hs, 'nested_test', items[data], 'test_' + data)
+    delete_plate(hs, 'T.U')
+    delete_plate(hs, 'T')
+    delete_plate(hs, 'V')
+    return hs
 
 
-def insert_meta_data(hs, tag):
-    for data in map(str, range(4)):
+def insert_meta_data(hs, tag, values, parent='root'):
+    for data in values:
         identifier = '{}_{}'.format(tag, data)
-        hs.plate_manager.meta_data_manager.insert(tag=tag, identifier=identifier, parent='root', data=data)
+        if parent != 'root':
+            identifier = parent + '.' + identifier
+        hs.plate_manager.meta_data_manager.insert(tag=tag, identifier=identifier, parent=parent, data=data)
 
 
-def delete_meta_data(hs, tag):
-    for data in map(str, range(4)):
+def delete_meta_data(hs, tag, values, parent='root'):
+    for data in values:
         identifier = '{}_{}'.format(tag, data)
-        hs.plate_manager.meta_data_manager.delete(identifier)
+        if parent != 'root':
+            identifier = parent + '.' + identifier
+        try:
+            hs.plate_manager.meta_data_manager.delete(identifier)
+        except NodeIDAbsentError:
+            pass
 
 
 def get_meta_data(hs, tag):
@@ -87,27 +110,20 @@ def get_meta_data(hs, tag):
                   if "_".join(x.identifier.split('_')[:-1]) == tag)
 
 
-def create_plates(hs, plate_id, tag):
+def create_plate(hs, plate_id, tag, parent_plate=None):
     hs.plate_manager.create_plate(
         plate_id=plate_id,
-        description=tag,
+        description=' '.join(tag.split('_')),
         meta_data_id=tag,
         values=[],
         complement=True,
-        parent_plate=None)
-
-    hs.plate_manager.create_plate(
-        plate_id=plate_id + ".U",
-        description="nested test",
-        meta_data_id="under_" + tag,
-        values=[],
-        complement=True,
-        parent_plate=plate_id)
+        parent_plate=parent_plate)
 
 
-def delete_plates(hs, plate_id):
-    hs.plate_manager.delete_plate(plate_id)
-    hs.plate_manager.delete_plate(plate_id + ".U")
+def delete_plate(hs, plate_id):
+    if not plate_id:
+        return
+    hs.plate_manager.delete_plate(plate_id, delete_meta_data=True)
 
 
 class MqttClient(object):
@@ -130,7 +146,7 @@ class MqttClient(object):
     def __exit__(self, exc_type, exc_value, traceback):
         if exc_type is not None:
             # print exc_type, exc_value, traceback
-            return False # uncomment to pass exception through
+            return False  # uncomment to pass exception through
         self.client.loop_stop(force=True)
         return self
 

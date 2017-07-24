@@ -26,8 +26,10 @@ from . import ChannelManager, HyperStreamConfig, PlateManager, WorkflowManager, 
 from .version import __version__
 from .utils import HyperStreamLogger, ToolContainer, PluginContainer, PluginWrapper, FactorContainer, Singleton
 from .session import Session
+from .tool import Tool, MultiOutputTool, SelectorTool, AggregateTool, PlateCreationTool
 
 import logging
+from contextlib import contextmanager
 
 
 class HyperStream(object):
@@ -81,6 +83,7 @@ class HyperStream(object):
         self.tools = None
         self.factors = None
 
+        self._current_workflow = None  # Used in the new API - the current workflow being defined
         self.populate_tools_and_factors()
 
     def __repr__(self):
@@ -150,6 +153,7 @@ class HyperStream(object):
         """
         Session.clear_sessions(self, inactive_only, clear_history)
 
+    @contextmanager
     def create_workflow(self, workflow_id, name, owner, description, online=False, monitor=False):
         """
         Create a new workflow. Simple wrapper for creating a workflow and adding it to the workflow manager.
@@ -163,20 +167,23 @@ class HyperStream(object):
         :return: The workflow
 
         """
-        w = Workflow(
-            channels=self.channel_manager,
-            plate_manager=self.plate_manager,
-            workflow_id=workflow_id,
-            name=name,
-            owner=owner,
-            description=description,
-            online=online,
-            monitor=monitor
-        )
+        try:
+            w = Workflow(
+                channels=self.channel_manager,
+                plate_manager=self.plate_manager,
+                workflow_id=workflow_id,
+                name=name,
+                owner=owner,
+                description=description,
+                online=online,
+                monitor=monitor
+            )
 
-        self.workflow_manager.add_workflow(w)
-
-        return w
+            self.workflow_manager.add_workflow(w)
+            self._current_workflow = w
+            yield w
+        finally:
+            self._current_workflow = None
 
     def populate_tools_and_factors(self):
         """
@@ -213,24 +220,113 @@ class HyperStream(object):
                         :return: The factory function
 
                         """
-                        def factory_function(w, sources, alignment_node=None, **parameters):
-                            """
-                            Factory function for creating factors inside a workflow
+                        base = tool_function.__init__.im_class.__bases__[0]
+                        if base == Tool:
+                            def tool_factory_function(sources, alignment_node=None, **parameters):
+                                """
+                                Factory function for creating factors inside a workflow
 
-                            :param w: workflow
-                            :param sources: source nodes
-                            :param alignment_node: alignment node
-                            :return: the created factor
-                            :type w: Workflow
-                            :type sources: list[Node] | tuple[Node] | None
+                                :param sources: source nodes
+                                :param alignment_node: alignment node
+                                :return: the created factor
+                                :type sources: list[Node] | tuple[Node] | None
 
-                            """
-                            return dict(
-                                workflow=w,
-                                tool=tool_func(**parameters),
-                                sources=sources,
-                                alignment_node=alignment_node)
-                        return factory_function
+                                """
+                                if not self._current_workflow:
+                                    raise ValueError("No workflow context - use create_workflow first")
+
+                                return dict(
+                                    workflow=self._current_workflow,
+                                    tool=tool_func(**parameters),
+                                    sources=sources,
+                                    alignment_node=alignment_node)
+
+                            return tool_factory_function
+                        elif base == MultiOutputTool:
+                            def tool_factory_function(source, splitting_node=None, **parameters):
+                                """
+                                Factory function for creating factors inside a workflow
+
+                                :param source: source node
+                                :param splitting_node: splitting node
+                                :return: the created factor
+                                :type source: Node
+
+                                """
+                                if not self._current_workflow:
+                                    raise ValueError("No workflow context - use create_workflow first")
+
+                                return dict(
+                                    workflow=self._current_workflow,
+                                    tool=tool_func(**parameters),
+                                    source=source,
+                                    splitting_node=splitting_node)
+
+                            return tool_factory_function
+
+                        elif base == AggregateTool:
+                            def tool_factory_function(sources, alignment_node, aggregation_meta_data, **parameters):
+                                """
+                                Factory function for creating factors inside a workflow
+
+                                :param aggregation_meta_data: the meta data to aggregate over
+                                :param sources: source nodes
+                                :param alignment_node: alignment node
+                                :return: the created factor
+                                :type sources: list[Node] | tuple[Node] | None
+
+                                """
+                                if not self._current_workflow:
+                                    raise ValueError("No workflow context - use create_workflow first")
+
+                                return dict(
+                                    workflow=self._current_workflow,
+                                    tool=tool_func(aggregation_meta_data=aggregation_meta_data, **parameters),
+                                    sources=sources,
+                                    alignment_node=alignment_node)
+
+                            return tool_factory_function
+                        elif base == SelectorTool:
+                            def tool_factory_function(sources, selector_meta_data, **parameters):
+                                """
+                                Factory function for creating factors inside a workflow
+
+                                :param selector_meta_data: the meta data to select over
+                                :param sources: source nodes
+                                :return: the created factor
+                                :type sources: list[Node] | tuple[Node] | None
+
+                                """
+                                if not self._current_workflow:
+                                    raise ValueError("No workflow context - use create_workflow first")
+
+                                return dict(
+                                    workflow=self._current_workflow,
+                                    tool=tool_func(selector_meta_data=selector_meta_data, **parameters),
+                                    sources=sources)
+
+                            return tool_factory_function
+                        elif base == PlateCreationTool:
+                            def tool_factory_function(source, **parameters):
+                                """
+                                Factory function for creating factors inside a workflow
+
+                                :param source: source node
+                                :return: the created factor
+                                :type source: Node
+
+                                """
+                                if not self._current_workflow:
+                                    raise ValueError("No workflow context - use create_workflow first")
+
+                                return dict(
+                                    workflow=self._current_workflow,
+                                    tool=tool_func(**parameters),
+                                    source=source)
+
+                            return tool_factory_function
+                        else:
+                            raise NotImplementedError
 
                     setattr(factor_container, tool_stream.name, create_factory_function(tool_function))
 

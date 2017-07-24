@@ -33,11 +33,11 @@ class CsvMultiReader(MultiOutputTool):
             skip_rows=skip_rows
         )
 
-    def _execute(self, source, splitting_stream, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
 
         # Let's make the assumption that the first field is the timestamp
 
-        for pv in output_plate.values:
+        for pv in output_plate_values:
             count = 0
 
             if len(pv) > 1:

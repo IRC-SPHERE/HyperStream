@@ -28,13 +28,14 @@ class AssetSplitter(MultiOutputTool):
     def __init__(self, element=None, filters=None):
         """
         Special tool to extract data from the asset channel
+
         :param element: The element to extract
         :param filters: Filters for which meta data are used. If this is None or empty, then all meta data will be used,
         otherwise these filters will act as a white-list
         """
         super(AssetSplitter, self).__init__(element=element, filters=filters)
 
-    def _execute(self, source, splitting_stream, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
         for timestamp, data in source.window(interval, force_calculation=True):
             if self.element is None:
                 data_element = data
@@ -47,8 +48,7 @@ class AssetSplitter(MultiOutputTool):
                 if not self.filters or key in self.filters:
                     if self.filters:
                         logging.debug('Filtered in  for {} from {}'.format(key, self.filters))
-                    yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value),
-                                             (output_plate.meta_data_id, key))
+                    yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value), (meta_data_id, key))
                 else:
                     if self.filters:
                         logging.debug('Filtered out for {} from {}'.format(key, self.filters))

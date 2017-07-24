@@ -23,6 +23,7 @@ from hyperstream.tool import MultiOutputTool
 from hyperstream.stream import StreamInstance, StreamMetaInstance, AssetStream
 from hyperstream.time_interval import TimeInterval, MIN_DATE
 
+from copy import deepcopy
 import logging
 
 
@@ -34,7 +35,7 @@ class StreamBroadcasterFromStream(MultiOutputTool):
     def __init__(self, func):
         super(StreamBroadcasterFromStream, self).__init__(func=func)
 
-    def _execute(self, source, splitting_stream, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
         if splitting_stream is None:
             raise ValueError("Splitting stream required for this tool")
 
@@ -53,7 +54,7 @@ class StreamBroadcasterFromStream(MultiOutputTool):
         except TypeError:
             raise
 
-        data = self.func(source.window(interval, force_calculation=True))
+        data = self.func(map(deepcopy, source.window(interval, force_calculation=True)))
 
         if data is None:
             logging.debug("{} found no data for interval {} for source {} and splitter {}"
@@ -65,4 +66,4 @@ class StreamBroadcasterFromStream(MultiOutputTool):
 
         for doc in data:
             for vv in output_plate_values:
-                yield StreamMetaInstance(doc, (output_plate.meta_data_id, str(vv)))
+                yield StreamMetaInstance(doc, (meta_data_id, str(vv)))

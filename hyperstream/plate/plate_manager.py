@@ -68,13 +68,25 @@ class PlateManager(Printable):
             for p in PlateDefinitionModel.objects:
                 self.add_plate(p)
                 
-    def delete_plate(self, plate_id):
+    def delete_plate(self, plate_id, delete_meta_data=False):
         """
         Delete a plate from the database
         
-        :param plate_id:
-        :return:
+        :param plate_id: The plate id
+        :param delete_meta_data: Optionally delete all meta data associated with this plate as well
+        :return: None
         """
+
+        if plate_id not in self.plates:
+            logging.info("Plate {} not found for deletion".format(plate_id))
+            return
+
+        plate = self.plates[plate_id]
+
+        if delete_meta_data:
+            for pv in plate.values:
+                identifier = ".".join(map(lambda x: "_".join(x), pv))
+                self.meta_data_manager.delete(identifier=identifier)
 
         with switch_db(PlateDefinitionModel, "hyperstream"):
             try:
@@ -83,6 +95,7 @@ class PlateManager(Printable):
                 del self.plates[plate_id]
             except DoesNotExist as e:
                 logging.warn(e)
+        logging.info("Plate {} deleted".format(plate_id))
 
     def create_plate(self, plate_id, description, meta_data_id, values, complement, parent_plate):
         """
