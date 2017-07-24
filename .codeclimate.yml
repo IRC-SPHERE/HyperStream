@@ -20,6 +20,7 @@ engines:
       python_version: 2
   pep8:
     enabled: true
+    max_line_length: 120
     max-line-length: 120
 ratings:
   paths:
