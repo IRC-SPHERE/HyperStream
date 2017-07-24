@@ -207,19 +207,21 @@ class Node(Printable):
         """
         # TODO: Check that the plate value is valid
         self.check_compatible(key, self.plates)
-        # value['workflow'].create_factor(
-        #     tool=value['tool'],
-        #     sources=value['sources'],
-        #     sink=self,
-        #     alignment_node=value['alignment_node'])
         w = value.pop('workflow')
 
-        if key not in self._plate_cache:
+        try:
+            plates = key.plate if key is not None else None
+        except AttributeError:
+            # Multiple plates
+            plates = tuple(map(lambda x: x.plate, key))
+
+        if plates not in self._plate_cache:
+            # Only create the factor once per plate
             w.create_factor_general(
                 sink=self,
                 **value
             )
 
-            self._plate_cache.add(key)
+            self._plate_cache.add(plates)
 
         return self

@@ -33,6 +33,11 @@ class StreamBroadcasterFromStream(MultiOutputTool):
     splitting (asset) stream
     """
     def __init__(self, func, use_keys_not_values=False):
+        """
+        Stream broadcaster from stream
+
+        :param func: The function to be applied to the value in each document
+        """
         super(StreamBroadcasterFromStream, self).__init__(func=func, use_keys_not_values=use_keys_not_values)
 
     def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):

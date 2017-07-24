@@ -220,7 +220,7 @@ class HyperStream(object):
                         :return: The factory function
 
                         """
-                        base = tool_function.__init__.im_class.__bases__[0]
+                        base = tool_function.__bases__[0]
                         if base == Tool:
                             def tool_factory_function(sources, alignment_node=None, **parameters):
                                 """

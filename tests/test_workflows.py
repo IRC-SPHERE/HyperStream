@@ -154,7 +154,7 @@ class HyperStreamWorkflowTests(unittest.TestCase):
             h1 = random_repeated1.streams[(pv[0],)].window(time_interval).values()
             h2 = random_repeated2.streams[(pv[1],)].window(time_interval).values()
             hp = random_product.streams[pv].window(time_interval).values()
-            self.assertListEqual(map(lambda (a, b): a * b, zip(h1, h2)), hp)
+            self.assertListEqual(map(lambda z: z[0] * z[1], zip(h1, h2)), hp)
 
 
 if __name__ == '__main__':

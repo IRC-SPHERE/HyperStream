@@ -26,7 +26,16 @@ from copy import deepcopy
 
 
 class StreamBroadcaster(MultiOutputTool):
+    """
+    Broadcasts the streams onto the output plate using the function provided applied to the document values
+    """
+
     def __init__(self, func):
+        """
+        Stream broadcaster
+
+        :param func: The function to be applied to the value in each document
+        """
         super(StreamBroadcaster, self).__init__(func=func)
 
     def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
