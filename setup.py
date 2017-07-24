@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from distutils.util import convert_path
 
-with open("README.md", 'r') as f:
+with open("README", 'r') as f:
     long_description = f.read()
 
 main_ns = {}
@@ -24,6 +24,7 @@ authors = [
     'Niall Twomey',
     'Kacper Sokol',
     'Hao Song',
+    'Miquel Perello-Nieto',
     'Emma Tonkin',
     'Peter Flach'
 ]
