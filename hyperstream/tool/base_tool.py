@@ -57,7 +57,7 @@ class BaseTool(Printable, Hashable):
         """
         Get the execution message
 
-        :param interval: THe time interval
+        :param interval: The time interval
         :return: The execution message
         """
         return '{} running from {} to {}'.format(self.__class__.__name__, str(interval.start), str(interval.end))
