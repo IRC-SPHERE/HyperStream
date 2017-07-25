@@ -110,7 +110,6 @@ class MultiOutputTool(BaseTool):
                     except StopIteration:
                         logging.warn("A multi-output tool has produced a value {} "
                                      "which does not belong to the output plate".format(meta_data))
-                        raise
                         continue
                     except TypeError:
                         logging.error("A multi-output tool has produced a value {} "

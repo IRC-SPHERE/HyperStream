@@ -154,7 +154,7 @@ class HyperStream(object):
         Session.clear_sessions(self, inactive_only, clear_history)
 
     @contextmanager
-    def create_workflow(self, workflow_id, name, owner, description, online=False, monitor=False):
+    def create_workflow(self, workflow_id, name, owner, description, online=False, monitor=False, safe=True):
         """
         Create a new workflow. Simple wrapper for creating a workflow and adding it to the workflow manager.
 
@@ -182,6 +182,12 @@ class HyperStream(object):
             self.workflow_manager.add_workflow(w)
             self._current_workflow = w
             yield w
+        except KeyError as e:
+            if safe:
+                raise e
+            else:
+                self._current_workflow = self.workflow_manager.workflows[workflow_id]
+                yield self.workflow_manager.workflows[workflow_id]
         finally:
             self._current_workflow = None
 
