@@ -60,7 +60,7 @@ class MetaDataTree(Tree):
     (ROOT, DEPTH, WIDTH, ZIGZAG) = list(range(4))
 
     def __str__(self):
-        self.reader = "\n"
+        self.reader = u"\n"
 
         def write(line):
             self.reader += line.decode('utf-8') + "\n"
@@ -77,7 +77,7 @@ class MetaDataTree(Tree):
 
     # noinspection PyPep8Naming,SpellCheckingInspection
     def _Tree__print_backend(self, nid=None, level=ROOT, idhidden=True, queue_filter=None,
-                             key=None, reverse=False, line_type='ascii-ex',
+                             key=None, reverse=False, line_type='ascii-emv',
                              data_property=None, func=print, iflast=None):
         """
         Another implementation of printing tree using Stack
