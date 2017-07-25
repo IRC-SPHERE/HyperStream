@@ -55,6 +55,14 @@ class BaseTool(Printable, Hashable):
         self._name = value
 
     @property
+    def parameters_dict(self):
+        d = {}
+        for k, v in self.__dict__.items():
+            if not k.startswith("_"):
+                d[k] = v
+        return d
+
+    @property
     def parameters(self):
         parameters = []
         for k, v in self.__dict__.items():

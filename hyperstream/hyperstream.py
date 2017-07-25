@@ -206,6 +206,7 @@ class HyperStream(object):
                 plugin = getattr(self.plugins, plugin_name)
                 tool_container = plugin.tools
                 factor_container = plugin.factors
+
             for tool_stream in tool_channel.streams:
                 try:
                     # This is the tool initializer
@@ -235,9 +236,21 @@ class HyperStream(object):
                                 if not self._current_workflow:
                                     raise ValueError("No workflow context - use create_workflow first")
 
+                                # find matching tools (possibly different parameters)
+                                matches = [f for f in self._current_workflow.factors if f.tool.__class__ == tool_func]
+                                # make sure parameters are all the same
+                                full_matches = [m for m in matches if m.sources == sources
+                                                and m.alignment_node == alignment_node
+                                                and dict(m.tool.parameters_dict) == parameters]
+
+                                if len(full_matches) == 1:
+                                    tool = full_matches[0].tool
+                                else:
+                                    tool = tool_func(**parameters)
+
                                 return dict(
                                     workflow=self._current_workflow,
-                                    tool=tool_func(**parameters),
+                                    tool=tool,
                                     sources=sources,
                                     alignment_node=alignment_node)
 
@@ -256,9 +269,22 @@ class HyperStream(object):
                                 if not self._current_workflow:
                                     raise ValueError("No workflow context - use create_workflow first")
 
+                                # find matching tools (possibly different parameters)
+                                matches = [f for f in self._current_workflow.factors if
+                                           f.tool.__class__ == tool_func]
+                                # make sure parameters are all the same
+                                full_matches = [m for m in matches if m.source == source
+                                                and m.splitting_node == splitting_node
+                                                and dict(m.tool.parameters_dict) == parameters]
+
+                                if len(full_matches) == 1:
+                                    tool = full_matches[0].tool
+                                else:
+                                    tool = tool_func(**parameters)
+
                                 return dict(
                                     workflow=self._current_workflow,
-                                    tool=tool_func(**parameters),
+                                    tool=tool,
                                     source=source,
                                     splitting_node=splitting_node)
 
@@ -279,9 +305,22 @@ class HyperStream(object):
                                 if not self._current_workflow:
                                     raise ValueError("No workflow context - use create_workflow first")
 
+                                # find matching tools (possibly different parameters)
+                                matches = [f for f in self._current_workflow.factors if
+                                           f.tool.__class__ == tool_func]
+                                # make sure parameters are all the same
+                                full_matches = [m for m in matches if m.sources == sources
+                                                and m.alignment_node == alignment_node
+                                                and dict(m.tool.parameters_dict) == parameters]
+
+                                if len(full_matches) == 1:
+                                    tool = full_matches[0].tool
+                                else:
+                                    tool = tool_func(aggregation_meta_data=aggregation_meta_data, **parameters)
+
                                 return dict(
                                     workflow=self._current_workflow,
-                                    tool=tool_func(aggregation_meta_data=aggregation_meta_data, **parameters),
+                                    tool=tool,
                                     sources=sources,
                                     alignment_node=alignment_node)
 
@@ -300,9 +339,22 @@ class HyperStream(object):
                                 if not self._current_workflow:
                                     raise ValueError("No workflow context - use create_workflow first")
 
+                                # find matching tools (possibly different parameters)
+                                matches = [f for f in self._current_workflow.factors if
+                                           f.tool.__class__ == tool_func]
+                                # make sure parameters are all the same
+                                full_matches = [m for m in matches if m.sources == sources
+                                                and m.selector_meta_data == selector_meta_data
+                                                and dict(m.tool.parameters_dict) == parameters]
+
+                                if len(full_matches) == 1:
+                                    tool = full_matches[0].tool
+                                else:
+                                    tool = tool_func(selector_meta_data=selector_meta_data, **parameters)
+
                                 return dict(
                                     workflow=self._current_workflow,
-                                    tool=tool_func(selector_meta_data=selector_meta_data, **parameters),
+                                    tool=tool,
                                     sources=sources)
 
                             return tool_factory_function
