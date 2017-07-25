@@ -17,3 +17,25 @@
 #  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
+
+import logging
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'hyperstream_core'))
+sys.path.append(path)
+
+
+if __name__ == '__main__':
+    from hyperstream import HyperStream
+    from hyperstream.online_engine import OnlineEngine
+    from hyperstream.utils.hyperstream_logger import MON, SenMLFormatter
+
+    # noinspection PyTypeChecker
+    mqtt_logger = dict(host='127.0.0.1', port=1883, loglevel=MON, topic='SPHERE/MON/SHG/ML', qos=1,
+                       formatter=SenMLFormatter())
+
+    hyperstream = HyperStream(loglevel=logging.INFO, file_logger=False, console_logger=True, mqtt_logger=mqtt_logger)
+    online_engine = OnlineEngine(hyperstream)
+    online_engine.execute()

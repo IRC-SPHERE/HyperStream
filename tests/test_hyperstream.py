@@ -56,12 +56,12 @@ class HyperStreamTests(unittest.TestCase):
         name = 'test_workflow'
         owner = 'unittest'
         description = 'test of workflow'
-        w = self.hs.create_workflow(workflow_id, name, owner, description)
-        self.assertIs(type(w), Workflow)
-        self.assertEqual(w.workflow_id, workflow_id)
-        self.assertEqual(w.name, name)
-        self.assertEqual(w.owner, owner)
-        self.assertEqual(w.description, description)
+        with self.hs.create_workflow(workflow_id, name, owner, description) as w:
+            self.assertIs(type(w), Workflow)
+            self.assertEqual(w.workflow_id, workflow_id)
+            self.assertEqual(w.name, name)
+            self.assertEqual(w.owner, owner)
+            self.assertEqual(w.description, description)
 
     def test_usecase_1(self):
         M = self.hs.channel_manager.memory

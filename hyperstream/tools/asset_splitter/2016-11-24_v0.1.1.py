@@ -26,11 +26,12 @@ class AssetSplitter(MultiOutputTool):
     def __init__(self, element=None):
         """
         Special tool to extract data from the asset channel
+
         :param element: The element to extract
         """
         super(AssetSplitter, self).__init__(element=element)
 
-    def _execute(self, source, splitting_stream, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
         for timestamp, data in source.window(interval, force_calculation=True):
             if self.element is None:
                 data_element = data
@@ -40,5 +41,4 @@ class AssetSplitter(MultiOutputTool):
                 else:
                     continue
             for key, value in data_element.items():
-                yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value),
-                                         (output_plate.meta_data_id, key))
+                yield StreamMetaInstance(StreamInstance(timestamp=timestamp, value=value), (meta_data_id, key))

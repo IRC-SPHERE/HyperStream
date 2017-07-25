@@ -22,26 +22,20 @@
 from hyperstream.tool import MultiOutputTool
 from hyperstream.stream import StreamMetaInstance
 from hyperstream.time_interval import TimeInterval, TimeIntervals
-from hyperstream import IncompatiblePlatesError
 
 import logging
 
 
 class SplitterTimeAware(MultiOutputTool):
-    def __init__(self, time_intervals, meta_data_id):
-        super(SplitterTimeAware, self).__init__(time_intervals=time_intervals, meta_data_id=meta_data_id)
-        self.time_intervals = time_intervals
-        self.meta_data_id = meta_data_id
+    def __init__(self, time_intervals):
+        super(SplitterTimeAware, self).__init__(time_intervals=time_intervals)
 
-    def _execute(self, source, splitting_stream, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
         if splitting_stream is not None:
             raise NotImplementedError("This tool expects the splitting to be provided as a parameter")
 
         # time intervals could be a TimeIntervals object, a list of TimeInterval objects,
         # or a list of tuples of plate ids and TimeInterval objects
-        if output_plate.meta_data_id != self.meta_data_id:
-            raise IncompatiblePlatesError("Output plate does not match the specified meta data id")
-
         mapping = {}
         if isinstance(self.time_intervals, (tuple, list, TimeIntervals)):
             for i, el in enumerate(self.time_intervals):
@@ -73,7 +67,7 @@ class SplitterTimeAware(MultiOutputTool):
             found_data = False
             for instance in source.window(ti, force_calculation=True):
                 found_data = True
-                yield StreamMetaInstance(instance, (self.meta_data_id, pv))
+                yield StreamMetaInstance(instance, (meta_data_id, pv))
             if not found_data:
                 logging.debug("{}: no data for source {} with plate value {} and time interval {}"
                               .format(self.name, source, pv, ti))

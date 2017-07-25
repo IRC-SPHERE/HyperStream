@@ -33,22 +33,24 @@ class MultiOutputTool(BaseTool):
     Note that no alignment stream is required here.
     Also note that we don't subclass Tool due to different calling signatures
     """
-    def _execute(self, source, splitting_stream, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
         """
         Tool implementations should override this function to actually perform computations
 
         :param source: The source stream
         :param splitting_stream: The stream over which to split
         :param interval: The time interval over which to calculate
-        :param output_plate: The plate where data is put onto
+        :param meta_data_id: The meta data id of the output plate
+        :param output_plate_values: The values of the plate where data is put onto
         :type source: Stream
         :type interval: TimeInterval
-        :type output_plate: Plate
+        :type meta_data_id: str
+        :type output_plate_values: list | tuple
         :return: None
         """
         raise NotImplementedError
 
-    def execute(self, source, splitting_stream, sinks, interval, input_plate_value, output_plate):
+    def execute(self, source, splitting_stream, sinks, interval, meta_data_id, output_plate_values):
         """
         Execute the tool over the given time interval.
 
@@ -56,13 +58,13 @@ class MultiOutputTool(BaseTool):
         :param splitting_stream: The stream over which to split
         :param sinks: The sink streams
         :param interval: The time interval
-        :param input_plate_value: The value of the plate where data comes from (can be None)
-        :param output_plate: The plate where data is put onto
+        :param meta_data_id: The meta data id of the output plate
+        :param output_plate_values: The values of the plate where data is put onto
         :type source: Stream
         :type sinks: list[Stream] | tuple[Stream]
         :type interval: TimeInterval
-        :type input_plate_value: tuple[tuple[str, str]] | None
-        :type output_plate: Plate
+        :type meta_data_id: str
+        :type output_plate_values: list | tuple
         :return: None
         """
         if not isinstance(interval, TimeInterval):
@@ -92,10 +94,15 @@ class MultiOutputTool(BaseTool):
             document_count = 0
 
             for interval in required_intervals:
-                for item in self._execute(source=source, splitting_stream=splitting_stream,
-                                          interval=interval, output_plate=output_plate):
+                for item in self._execute(
+                        source=source,
+                        splitting_stream=splitting_stream,
+                        interval=interval,
+                        meta_data_id=meta_data_id,
+                        output_plate_values=output_plate_values):
                     # Join the output meta data with the parent plate meta data
-                    meta_data = input_plate_value + (item.meta_data,) if input_plate_value else (item.meta_data, )
+                    # meta_data = input_plate_value + (item.meta_data,) if input_plate_value else (item.meta_data, )
+                    meta_data = item.meta_data
                     try:
                         sink = next(s for s in sinks if set(s.stream_id.meta_data) == set(meta_data))
                         sink.writer(item.stream_instance)

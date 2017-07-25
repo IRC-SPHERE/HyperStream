@@ -21,28 +21,28 @@
 
 from hyperstream.tool import MultiOutputTool
 from hyperstream.stream import StreamInstance, StreamMetaInstance
-from hyperstream.time_interval import TimeInterval, MIN_DATE
+
+from copy import deepcopy
 
 
 class StreamBroadcaster(MultiOutputTool):
-    def __init__(self, func, output_plate_values):
-        super(StreamBroadcaster, self).__init__(func=func, output_plate_values=output_plate_values)
+    """
+    Broadcasts the streams onto the output plate using the function provided applied to the document values
+    """
 
-    def _execute(self, source, splitting_stream, interval, output_plate):
+    def __init__(self, func):
+        """
+        Stream broadcaster
+
+        :param func: The function to be applied to the value in each document
+        """
+        super(StreamBroadcaster, self).__init__(func=func)
+
+    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
         if splitting_stream is not None:
-            raise NotImplementedError("Splitting stream not supported for this tool")
+            raise ValueError("Splitting stream not supported for this tool")
 
-        # TODO: This factor does use the time interval, but only applies a function on the stream.
-        # Will need to change this in future instances
-        time_interval = TimeInterval(MIN_DATE, interval.end)
-        data = self.func(source.window(time_interval, force_calculation=True))
-
-        if data is None:
-            return
-
-        if isinstance(data, StreamInstance):
-            data = [data]
-
-        for doc in data:
-            for vv in self.output_plate_values:
-                yield StreamMetaInstance(doc, (output_plate.meta_data_id, str(vv)))
+        for doc in source.window(interval, force_calculation=True):
+            for vv in output_plate_values:
+                data = self.func(deepcopy(doc.value))
+                yield StreamMetaInstance(StreamInstance(doc.timestamp, data), vv)

@@ -31,7 +31,7 @@ class Splitter(MultiOutputTool):
         self.element = element
         self.mapping = mapping
 
-    def _execute(self, source, splitting_stream, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
         if splitting_stream is not None:
             raise NotImplementedError("Splitting stream not supported for this tool")
 
@@ -45,4 +45,4 @@ class Splitter(MultiOutputTool):
                 logging.warn("Unknown value {} for meta data {}".format(meta_data, self.element))
                 continue
             plate_value = self.mapping[meta_data]
-            yield StreamMetaInstance((timestamp, value), (output_plate.meta_data_id, plate_value))
+            yield StreamMetaInstance((timestamp, value), (meta_data_id, plate_value))

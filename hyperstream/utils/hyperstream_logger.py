@@ -48,7 +48,7 @@ class HyperStreamLogger(Printable):
         otherwise a dict optionally containing loglevel
         :param mqtt_logger: Dict containing mqtt server, topic, and optionally loglevel
         """
-        log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
+        log_formatter = logging.Formatter(u"%(asctime)s [%(levelname)-5.5s]  %(message)s")
         self.root_logger = logging.getLogger()
         self.root_logger.setLevel(default_loglevel)
 

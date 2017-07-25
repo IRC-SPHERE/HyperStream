@@ -107,7 +107,13 @@ class MetaDataManager(Printable):
         try:
             node = self.global_plate_definitions[identifier]
         except NodeIDAbsentError:
+            logging.info("Meta data {} not present during deletion".format(identifier))
             return
+
+        # First delete any children of the node: REMOVED as this seemed to be unreliable
+        # It's now better to call delete_plate with delete_meta_data=True
+        # for child in node.fpointer:
+        #     self.delete(child)
 
         self.global_plate_definitions.remove_node(identifier)
 

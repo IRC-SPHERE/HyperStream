@@ -30,7 +30,7 @@ class SplitterOfDict(MultiOutputTool):
         super(SplitterOfDict, self).__init__(mapping=mapping)
         self.mapping = mapping
 
-    def _execute(self, source, splitting_stream, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
         if splitting_stream is not None:
             raise NotImplementedError("Splitting stream not supported for this tool")
 
@@ -40,4 +40,4 @@ class SplitterOfDict(MultiOutputTool):
                     logging.warn("Unknown value {} for meta data in SplitterOfDict".format(key))
                     continue
                 plate_value = self.mapping[key]
-                yield StreamMetaInstance((timestamp, value[key]), (output_plate.meta_data_id, plate_value))
+                yield StreamMetaInstance((timestamp, deepcopy(value[key])), (meta_data_id, plate_value))

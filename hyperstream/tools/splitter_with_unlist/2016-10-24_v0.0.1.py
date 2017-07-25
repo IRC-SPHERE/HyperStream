@@ -29,7 +29,7 @@ class SplitterWithUnlist(MultiOutputTool):
     def __init__(self, element, subelement, mapping):
         super(SplitterWithUnlist, self).__init__(element=element, subelement=subelement, mapping=mapping)
 
-    def _execute(self, source, splitting_stream, interval, output_plate):
+    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
         if splitting_stream is not None:
             raise NotImplementedError("Splitting stream not supported for this tool")
 
@@ -50,4 +50,4 @@ class SplitterWithUnlist(MultiOutputTool):
                     continue
                 plate_value = self.mapping[meta_data]
                 subvalue.update(value)
-                yield StreamMetaInstance((timestamp, subvalue), (output_plate.meta_data_id, plate_value))
+                yield StreamMetaInstance((timestamp, subvalue), (meta_data_id, plate_value))

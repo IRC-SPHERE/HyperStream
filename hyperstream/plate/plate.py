@@ -73,14 +73,14 @@ class Plate(Printable):
     def value_tuples(self):
         return [PlateValue(self, v) for v in self.values]
 
-    def _get_identifier(self, current=None):
-        if not current:
-            current = []
-        current.insert(0, self.identifier)
-
-    @property
-    def identifier(self):
-        return None
+    # def _get_identifier(self, current=None):
+    #     if not current:
+    #         current = []
+    #     current.insert(0, self.identifier)
+    #
+    # @property
+    # def identifier(self):
+    #     return None
 
     def _get_ancestors(self, current=None):
         """
@@ -318,7 +318,18 @@ class Plate(Printable):
         """
         Iterator that returns tuples of self and value so that for ... in notation can be used
         
-        :return: Plate
+        :return: iterator over the value tuples
         """
-        # return iter(self.value_tuples)
-        yield self
+        return iter(self.value_tuples)
+        # yield self
+
+    def __getitem__(self, item):
+        """
+        Used in the new API to select the child plate values given the parent plate value
+
+        :param item: The ancestor
+        :return: iterator over the value tuples
+        """
+        if item.plate not in self.ancestor_plates:
+            raise ValueError("Plate {} not in ancestor plates of {}".format(item.plate, self))
+        return iter(PlateValue(self, v[1:]) for v in self.values if v[0] == item.value[0])

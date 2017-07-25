@@ -177,6 +177,8 @@ class TimeIntervals(Printable):
     def __sub__(self, other):
         if self == other:
             return TimeIntervals([])
+        if not other:
+            other = TimeIntervals([])
 
         self_points = [point for interval in self.intervals for point in (interval.start, interval.end)]
         other_points = [point for interval in other.intervals for point in (interval.start, interval.end)]
@@ -192,7 +194,9 @@ class TimeIntervals(Printable):
 
     # @profile
     def __eq__(self, other):
-        return isinstance(other, TimeIntervals) and len(self.intervals)==len(other.intervals) and all(z[0] == z[1] for z in zip(self.intervals, other.intervals))
+        return isinstance(other, TimeIntervals) \
+               and len(self.intervals) == len(other.intervals) \
+               and all(z[0] == z[1] for z in zip(self.intervals, other.intervals))
 
     # @profile
     def __ne__(self, other):

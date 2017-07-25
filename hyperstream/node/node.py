@@ -25,8 +25,9 @@ Nodes are a collection of streams defined by shared meta-data keys (plates), and
 computational graph by factors.
 """
 import logging
+import itertools
 
-from ..plate import Plate
+from ..plate import Plate, PlateValue
 from ..stream import StreamId
 from ..utils import Printable, IncompatiblePlatesError
 
@@ -35,6 +36,7 @@ class Node(Printable):
     """
     A node in the graph. This consists of a set of streams defined over a set of plates
     """
+
     def __init__(self, channel, node_id, streams, plates):
         """
         Initialise the node
@@ -59,6 +61,7 @@ class Node(Printable):
         self._factor = None  # reference to the factor that defines this node. Required for upstream computation
         self.plates = plates if plates else []
         self._is_leaf = True  # All nodes are leaf nodes until they are declared as a source node in a factor
+        self._plate_cache = set()  # used in the new API when doing repeated get/set operations for nested plates
 
     @property
     def streams(self):
@@ -115,7 +118,7 @@ class Node(Printable):
         counts = map(len, diff)
         # is_sub_plate = counts == [1, 1] and diff[1][0].is_sub_plate(diff[0][0])
         is_sub_plate = counts == [1, 1] and diff[0][0].is_sub_plate(diff[1][0])  # MK fixed
-        if len(other.plates)==1 and counts==[1,0] and diff[0][0].parent==other.plates[0].parent:
+        if len(other.plates) == 1 and counts == [1, 0] and diff[0][0].parent == other.plates[0].parent:
             is_sub_plate = True
         return diff, counts, is_sub_plate
 
@@ -161,6 +164,37 @@ class Node(Printable):
         if not found:
             print_func("No streams found for the given plate values")
 
+    @staticmethod
+    def check_compatible(item, plates, check_count=True):
+        if isinstance(item, PlateValue):
+            item = [item]
+
+        if check_count:
+            if item is None:
+                if len(plates) != 0:
+                    raise IncompatiblePlatesError("No plates given but node expects {} plates".format(len(plates)))
+            else:
+                if len(item) != len(plates):
+                    raise IncompatiblePlatesError("{} does not match the number of plates".format(map(str, item)))
+
+        if item is not None and not all(p.plate in plates for p in item):
+            raise IncompatiblePlatesError("{} plate mismatch for node".format(map(str, item)))
+
+    def __getitem__(self, item):
+        """
+        This is used in the new API to help write workflows, so that you can write e.g.:
+
+        rss_raw[house] = hs.factors.sphere(sources=None, channel=memory, modality="wearable", elements={"rss"})
+
+        :param item: the plate value
+        :return: self
+        """
+        # TODO: Check that the plate value is valid
+
+        ancestors = list(itertools.chain(*[p.ancestor_plates for p in self.plates]))
+        self.check_compatible(item, ancestors, False)
+        return self
+
     def __setitem__(self, key, value):
         """
         This is used in the new API to help write workflows, so that you can write e.g.:
@@ -169,14 +203,25 @@ class Node(Printable):
         
         :param key: the plate value
         :param value: the Lazily initialised factor 
-        :return: The NodeView object on the given plate
+        :return: self
         """
         # TODO: Check that the plate value is valid
-        if key not in self.plates:
-            raise IncompatiblePlatesError("{} not in plates for node {}".format(key, self))
+        self.check_compatible(key, self.plates)
+        w = value.pop('workflow')
 
-        value['workflow'].create_factor(
-            tool=value['tool'],
-            sources=value['sources'],
-            sink=self,
-            alignment_node=value['alignment_node'])
+        try:
+            plates = key.plate if key is not None else None
+        except AttributeError:
+            # Multiple plates
+            plates = tuple(map(lambda x: x.plate, key))
+
+        if plates not in self._plate_cache:
+            # Only create the factor once per plate
+            w.create_factor_general(
+                sink=self,
+                **value
+            )
+
+            self._plate_cache.add(plates)
+
+        return self
