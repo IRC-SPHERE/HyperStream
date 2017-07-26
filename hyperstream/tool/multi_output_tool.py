@@ -102,7 +102,7 @@ class MultiOutputTool(BaseTool):
                         output_plate_values=output_plate_values):
                     # Join the output meta data with the parent plate meta data
                     # meta_data = input_plate_value + (item.meta_data,) if input_plate_value else (item.meta_data, )
-                    meta_data = (item.meta_data,)
+                    meta_data = item.meta_data if isinstance(item.meta_data[0], tuple) else (item.meta_data,)
                     try:
                         sink = next(s for s in sinks if set(s.stream_id.meta_data) == set(meta_data))
                         sink.writer(item.stream_instance)
