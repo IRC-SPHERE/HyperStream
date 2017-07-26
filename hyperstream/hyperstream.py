@@ -163,7 +163,8 @@ class HyperStream(object):
         :param owner: The owner/creator of the workflow
         :param description: A human readable description
         :param online: Whether this workflow should be executed by the online engine
-        :param monitor:
+        :param monitor: Whether the workflow computations should be monitored
+        :param safe: If safe=True, will throw an error if the workflow already exists
         :return: The workflow
 
         """
