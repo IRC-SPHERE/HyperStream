@@ -55,6 +55,7 @@ class CsvMultiReader(MultiOutputTool):
                         continue
                     elements = line.split(',')
                     dt = self.datetime_parser(elements[self.datetime_column])
+                    del elements[self.datetime_column]
                     if dt in interval:
-                        instance = StreamInstance(dt, map(float, elements[1:]))
+                        instance = StreamInstance(dt, map(float, elements))
                         yield StreamMetaInstance(instance, (meta_data_id, plate_value))
