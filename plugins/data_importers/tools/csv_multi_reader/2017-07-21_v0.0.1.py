@@ -25,12 +25,14 @@ from dateutil.parser import parse
 
 
 class CsvMultiReader(MultiOutputTool):
-    def __init__(self, filename_template, datetime_parser=parse, datetime_column=0, skip_rows=0):
+    def __init__(self, filename_template, datetime_parser=parse,
+                 datetime_column=0, skip_rows=0, header=True):
         super(CsvMultiReader, self).__init__(
             filename_template=filename_template,
             datetime_parser=datetime_parser,
             datetime_column=datetime_column,
-            skip_rows=skip_rows
+            skip_rows=skip_rows,
+            header=header
         )
 
     def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
@@ -50,6 +52,12 @@ class CsvMultiReader(MultiOutputTool):
 
             with open(filename, 'rU') as f:
                 for line in f.readlines():
+                    if count == 0:
+                        if self.header:
+                            colnames = [name.replace('\n', '') for name in line.split(',')]
+                            del colnames[self.datetime_column]
+                        count += 1
+                        continue
                     count += 1
                     if count < self.skip_rows + 1:
                         continue
@@ -57,5 +65,9 @@ class CsvMultiReader(MultiOutputTool):
                     dt = self.datetime_parser(elements[self.datetime_column])
                     del elements[self.datetime_column]
                     if dt in interval:
-                        instance = StreamInstance(dt, map(float, elements))
+                        if self.header:
+                            values = dict(zip(colnames, map(float, elements)))
+                        else:
+                            values = map(float, elements)
+                        instance = StreamInstance(dt, values)
                         yield StreamMetaInstance(instance, (meta_data_id, plate_value))
