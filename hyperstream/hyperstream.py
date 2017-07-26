@@ -87,6 +87,11 @@ class HyperStream(object):
         self.populate_tools_and_factors()
 
     def __repr__(self):
+        """
+        Get a string representation of this object that matches the creation syntax
+
+        :return: The string representation
+        """
         name = self.__class__.__name__
         # values = ", ".join("{}={}".format(k, repr(v)) for k, v in sorted(self.__dict__.items())
         #                    if k[0] != "_" and not k.endswith('manager'))
@@ -94,6 +99,11 @@ class HyperStream(object):
         return "{}({})".format(name, values)
 
     def __str__(self):
+        """
+        Get a string representation of this object
+
+        :return: The string representation
+        """
         return "HyperStream version {version}, connected to mongodb://{host}:{port}/{db}, session id {sid}".format(
             version=__version__,
             host=self.config.mongo['host'],
@@ -103,19 +113,44 @@ class HyperStream(object):
         )
 
     def __del__(self):
+        """
+        Called when the hyperstream object is disposed of
+
+        :return: None
+        """
         self._cleanup()
 
     def __enter__(self):
+        """
+        Entry point. Using the "with" syntax starts a new session
+
+        :return: self
+        """
         self.new_session()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Exit point
+
+        :param exc_type: exception type
+        :param exc_value: exception value
+        :param traceback: exception traceback
+        :return: self
+        """
         self._cleanup()
+
+        # Re-raise the error
+        if exc_type is not None:
+            return None
+
         return self
 
     def _cleanup(self):
         """
-        Clean-up operations
+        Clean-up operations. Closes the session and flushes and closes the loggers
+
+        :return: None
         """
         if self.current_session is not None:
             self.current_session.close()
@@ -127,19 +162,40 @@ class HyperStream(object):
             handler.close()
 
     def new_session(self):
+        """
+        Start a new session to record computation history
+
+        :return: the created session
+        """
         self.current_session = Session(self, history_channel=self.config.history_channel)
         return self.current_session
 
     @property
     def sessions(self):
+        """
+        Get the list of sessions
+
+        :return: the sessions
+        """
         return list(Session.get_sessions(self))
 
     @property
     def current_session(self):
+        """
+        Get the current session
+
+        :return: the current session
+        """
         return self._session
 
     @current_session.setter
     def current_session(self, session):
+        """
+        Set the current session
+
+        :param session: the session
+        :return: None
+        """
         if self._session is None:
             self._session = session
         else:
@@ -150,6 +206,10 @@ class HyperStream(object):
     def clear_sessions(self, inactive_only=True, clear_history=False):
         """
         Clears all stored sessions, optionally excluding active sessions
+
+        :param inactive_only: Whether to clear inactive sessions only
+        :param clear_history: Whether to also clear session history
+        :return: None
         """
         Session.clear_sessions(self, inactive_only, clear_history)
 
@@ -197,7 +257,6 @@ class HyperStream(object):
         Function to populate factory functions for the tools and factors for ease of access.
 
         :return: None
-
         """
         for tool_channel in self.channel_manager.tool_channels:
             if tool_channel.channel_id == "tools":

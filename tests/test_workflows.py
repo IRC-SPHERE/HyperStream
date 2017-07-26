@@ -24,6 +24,7 @@ from __future__ import print_function
 
 import sys
 import unittest
+import simplejson as json
 
 from hyperstream import TimeInterval, IncompatiblePlatesError
 from .helpers import *
@@ -156,6 +157,37 @@ class HyperStreamWorkflowTests(unittest.TestCase):
             hp = random_product.streams[pv].window(time_interval).values()
             self.assertListEqual(list(map(lambda z: z[0] * z[1], zip(h1, h2))), hp)
 
+    def test_json_output(self):
+        hs = HyperStream(file_logger=False, console_logger=False, mqtt_logger=None)
+        dg = hs.plugins.data_generators
+        M = hs.channel_manager.memory
+
+        workflow_id = sys._getframe().f_code.co_name
+
+        with hs.create_workflow(workflow_id=workflow_id, **get_workflow_parameters(" json output")) as w:
+            ticker = w.create_node("ticker", channel=M, plate_ids=[])
+
+            random_repeated1 = w.create_node(stream_name="rr1", channel=M, plate_ids=["T"])
+            random_repeated2 = w.create_node(stream_name="rr2", channel=M, plate_ids=["V"])
+            random_product = w.create_node(stream_name="rp", channel=M, plate_ids=["T", "V"])
+
+            ticker[None] = hs.factors.clock(sources=[])  # The ticker is outside the plate
+            for t in hs.plate_manager.plates["T"]:
+                random_repeated1[t] = dg.factors.random(sources=[], alignment_node=ticker, seed=1)
+            for v in hs.plate_manager.plates["V"]:
+                random_repeated2[v] = dg.factors.random(sources=[], alignment_node=ticker, seed=2)
+            for t in hs.plate_manager.plates["T"]:
+                for v in hs.plate_manager.plates["V"]:
+                    random_product[t, v] = hs.factors.product(sources=[random_repeated1[t], random_repeated2[v]])
+
+            d = w.to_dict()
+            j = w.to_json()
+
+            assert j == json.dumps(d)
+
+            j = w.to_json('factorgraph-viz')
+
+            raise NotImplementedError
 
 if __name__ == '__main__':
     unittest.main()

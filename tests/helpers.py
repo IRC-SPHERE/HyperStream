@@ -75,6 +75,10 @@ def teardown():
         # delete_meta_data(hs, tag, items)
         delete_plate(hs, plate_id)
 
+    tag = 'test_meta_data'
+    values = map(str, range(4))
+    delete_meta_data(hs, tag, values)
+
     # Note that this deletes the nested items as well
     # delete_meta_data(hs, 'test', items)
     # for data in items:
@@ -82,6 +86,7 @@ def teardown():
     delete_plate(hs, 'T.U')
     delete_plate(hs, 'T')
     delete_plate(hs, 'V')
+    delete_plate(hs, "T1")  # note this now deletes meta data as well
     return hs
 
 

@@ -317,9 +317,13 @@ class TypedFrozenKeyDict(FrozenKeyDict):
 
 
 class Singleton(type):
+    """
+    Singleton class
+    See https://stackoverflow.com/a/33201/1038264
+    """
     # noinspection PyInitNewSignature
-    def __init__(cls, name, bases, dict):
-        super(Singleton, cls).__init__(name, bases, dict)
+    def __init__(cls, name, bases, dictionary):
+        super(Singleton, cls).__init__(name, bases, dictionary)
         cls.instance = None
 
     def __call__(cls, *args, **kwargs):

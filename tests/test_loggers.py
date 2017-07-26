@@ -20,12 +20,12 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 import unittest
-import logging
 from time import sleep
 import json
 import mqtthandler
 
-from hyperstream.utils.hyperstream_logger import MON, SenMLFormatter
+from hyperstream.utils import utcnow
+from hyperstream.utils.hyperstream_logger import HyperStreamLogger, MON, SenMLFormatter
 from .helpers import *
 
 
@@ -43,14 +43,23 @@ class HyperStreamLoggingTests(unittest.TestCase):
         # assert(mosquitto_is_running())
         logging.raiseExceptions = True
 
-        # noinspection PyTypeChecker
         mqtt_logger = dict(host=mqtt_ip, port=1883, topic="topics/test", loglevel=MON, qos=1)
 
-        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=mqtt_logger):
+        with HyperStream() as hs:
+            hs.logger = HyperStreamLogger(
+                default_loglevel=logging.DEBUG,
+                file_logger=False,
+                console_logger=False,
+                mqtt_logger=mqtt_logger,
+                close_existing=True)
+
             with MqttClient() as client:
-                # client.client.publish("topics/test", "{} ABC".format(utcnow()))
+                # Make sure the client is publishing
+                client.client.publish("topics/test", "{} ABC".format(utcnow()))
+
                 logging.monitor("1234567890")
                 sleep(1)
+                print(client.last_messages)
                 print(client.last_messages["topics/test"])
                 assert(client.last_messages["topics/test"][24:] == '[MON  ]  1234567890')
 
@@ -66,6 +75,7 @@ class HyperStreamLoggingTests(unittest.TestCase):
         # assert (mosquitto_is_running())
         logging.raiseExceptions = True
 
+        # noinspection PyPep8Naming
         def handleError(self, record):
             raise
 
@@ -75,9 +85,18 @@ class HyperStreamLoggingTests(unittest.TestCase):
         mqtt_logger = dict(host=mqtt_ip, port=1883, topic="topics/test", loglevel=MON, qos=1,
                            formatter=SenMLFormatter())
 
-        with HyperStream(file_logger=False, console_logger=False, mqtt_logger=mqtt_logger):
+        with HyperStream() as hs:
+            hs.logger = HyperStreamLogger(
+                default_loglevel=logging.DEBUG,
+                file_logger=False,
+                console_logger=False,
+                mqtt_logger=mqtt_logger,
+                close_existing=True)
+
             with MqttClient() as client:
-                # client.client.publish("topics/test", "{} ABC".format(utcnow()))
+                # Make sure the client is publishing
+                client.client.publish("topics/test", "{} ABC".format(utcnow()))
+
                 logging.monitor("1234567890", extra=dict(n="blah"))
                 sleep(1)
                 # print(client.last_messages["topics/test"])

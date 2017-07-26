@@ -34,25 +34,38 @@ from .misc import touch
 
 
 class HyperStreamLogger(Printable):
-    def __init__(self, default_loglevel=logging.DEBUG, console_logger=None, file_logger=None, mqtt_logger=None):
+    def __init__(self, default_loglevel=logging.DEBUG, console_logger=None, file_logger=None, mqtt_logger=None,
+                 close_existing=True):
         """
         Initialise the hyperstream logger
         
         :type console_logger: bool | dict | None
         :type file_logger: bool | dict | None
         :type mqtt_logger: dict | None
-        :param default_loglevel: The default logging level 
+        :type close_existing: bool
+        :param default_loglevel: The default logging level
         :param file_logger: Whether to use a file logger. Either specify "True" in which case defaults are used, 
         otherwise a dict optionally containing path, filename, loglevel
         :param console_logger: The console logger. Either specify "True" in which case defaults are used, 
         otherwise a dict optionally containing loglevel
         :param mqtt_logger: Dict containing mqtt server, topic, and optionally loglevel
+        :param close_existing: Whether to close existing loggers
         """
+        # noinspection SpellCheckingInspection
         log_formatter = logging.Formatter(u"%(asctime)s [%(levelname)-5.5s]  %(message)s")
         self.root_logger = logging.getLogger()
+
+        if close_existing:
+            for handler in list(self.root_logger.handlers):
+                # Close any existing logging handlers
+                self.root_logger.removeHandler(handler)
+                handler.flush()
+                handler.close()
+
         self.root_logger.setLevel(default_loglevel)
 
         # Note that if we are doing unit tests there will be a memory handler as follows:
+        # noinspection SpellCheckingInspection
         nose_handler_only = len(self.root_logger.handlers) == 1 \
             and str(type(self.root_logger.handlers[0])) == \
             "<class \'nose.plugins.logcapture.MyMemoryHandler\'>"
@@ -180,17 +193,25 @@ class SenMLFormatter(logging.Formatter):
     def format(self, record):
         """
         The formatting function
-        :param record: The record object 
+
+        :param record: The record object
         :return: The string representation of the record 
         """
 
-        if not hasattr(record, 'n'):
-            record.n = 'default'
+        try:
+            n = record.n
+        except AttributeError:
+            n = 'default'
+
+        try:
+            message = record.message
+        except AttributeError:
+            message = record.msg
 
         senml = OrderedDict(
             uid="hyperstream",
             bt=datetime.utcfromtimestamp(record.created).isoformat()[:-3] + 'Z',
-            e=[OrderedDict(n=record.n, v=record.message)]
+            e=[OrderedDict(n=n, v=message)]
         )
 
         formatted_json = json.dumps(senml)

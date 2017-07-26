@@ -94,4 +94,4 @@ class TestChannels(unittest.TestCase):
             clock_tool.execute(sources=[], sink=ticker, interval=ti)
             dummy_tool.execute(sources=[ticker], sink=ticker_copy, interval=ti)
 
-            assert (all(map(lambda old, new: old.value == new.value, zip(ticker.window(), ticker_copy.window()))))
+            assert (all(map(lambda (old, new): old.value == new.value, zip(ticker.window(), ticker_copy.window()))))

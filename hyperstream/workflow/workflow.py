@@ -24,6 +24,8 @@ Workflow and WorkflowMonitor definitions.
 import itertools
 import logging
 from mongoengine.context_managers import switch_db
+import simplejson as json
+from collections import defaultdict
 
 from ..factor import Factor, MultiOutputFactor, NodeCreationFactor
 from ..plate import Plate
@@ -89,10 +91,24 @@ class Workflow(Printable):
                     factor.execute(time_interval)
 
     def _add_node(self, node):
+        """
+        Add a node to the workflow
+
+        :param node: The node object
+        :type node: Node
+        :return: None
+        """
         self.nodes[node.node_id] = node
         logging.info("Added node with id {} containing {} streams".format(node.node_id, len(node.streams)))
 
     def _add_factor(self, factor):
+        """
+        Add a factor to the workflow
+
+        :param factor: The factor object
+        :type factor: Factor | MultiOutputFactor | NodeCreationFactor
+        :return: None
+        """
         self.factors.append(factor)
         logging.info("Added factor with tool {} ".format(factor.tool))
 
@@ -350,6 +366,7 @@ class Workflow(Printable):
         """
         Creates a factor that itself creates an output node, and ensures that the plate for the output node exists
         along with all relevant meta-data
+
         :param tool: The tool
         :param source: The source node
         :param output_plate: The details of the plate that will be created (dict)
@@ -418,6 +435,14 @@ class Workflow(Printable):
 
     @staticmethod
     def check_multi_output_plate_compatibility(source_plates, sink_plate):
+        """
+        Check multi-output plate compatibility. This ensures that the source plates and sink plates match for a multi-
+        output plate
+
+        :param source_plates: The source plates
+        :param sink_plate: The sink plate
+        :return: True if the plates are compatible
+        """
         if len(source_plates) == 0:
             if sink_plate.parent is not None:
                 return False
@@ -431,6 +456,11 @@ class Workflow(Printable):
 
     @property
     def requested_intervals(self):
+        """
+        Get the requested intervals (from the database)
+
+        :return: The requested intervals
+        """
         with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
             workflow_statuses = WorkflowStatusModel.objects(workflow_id=self.workflow_id)
             if len(workflow_statuses) == 1:
@@ -441,6 +471,13 @@ class Workflow(Printable):
 
     @requested_intervals.setter
     def requested_intervals(self, intervals):
+        """
+        Set the requested intervals (to the database)
+
+        :param intervals: The intervals
+        :type intervals: TimeIntervals
+        :return: None
+        """
         with switch_db(WorkflowStatusModel, db_alias='hyperstream'):
             workflow_statuses = WorkflowStatusModel.objects(workflow_id=self.workflow_id)
             if len(workflow_statuses) != 1:
@@ -459,6 +496,57 @@ class Workflow(Printable):
 
             workflow_status.save()
 
+    def to_dict(self):
+        """
+        Get a representation of the workflow as a dictionary for display purposes
+
+        :return: The dictionary of nodes, factors and plates
+        """
+        d = dict(nodes=[], factors=[], plates=defaultdict(list))
+        for node in self.nodes:
+            node_id = self.nodes[node].node_id
+            d['nodes'].append({'id': node_id})
+            for plate_id in self.nodes[node].plate_ids:
+                d['plates'][plate_id].append({'id': node_id, 'type': 'node'})
+        for factor in self.factors:
+            tool = str(factor.tool)
+            d['factors'].append({
+                'id': tool,
+                'sources': [s.node_id for s in factor.sources],
+                'sink': factor.sink.node_id})
+            if factor.plates:
+                for plate in factor.plates:
+                    d['plates'][plate.plate_id].append({'id': tool, 'type': 'factor'})
+            else:
+                d['plates']['root'].append({'id': tool, 'type': 'factor'})
+        return d
+
+    def to_json(self, formatter=None):
+        """
+        Get a JSON representation of the workflow
+
+        :param formatter: The formatting function
+        :return: A JSON string
+        """
+        d = self.to_dict()
+        if formatter:
+            d = formatter(d)
+        return json.dumps(d)
+
+    @staticmethod
+    def factorgraph_viz(d):
+        """
+        Map the dictionary into factorgraph-viz format. See https://github.com/mbforbes/factorgraph-viz
+
+        :param d: The dictionary
+        :return: The formatted dictionary
+        """
+        mapping = {'nodes': 'nodes', 'factors': 'links', 'source': 'source', 'sink': 'target'}
+        m = {}
+        for k, v in d.items():
+            m[mapping[k]] = v
+        return m
+
 
 # noinspection PyUnresolvedReferences
 class WorkflowMonitor(object):
@@ -476,15 +564,30 @@ class WorkflowMonitor(object):
         self.name = workflow.name
 
     def __enter__(self):
+        """
+        Entry point - called when workflow computation starts
+
+        :return: self
+        """
         if self.monitor:
             try:
                 logging.monitor(self.name, extra=dict(n="workflow_start"))
             except AttributeError:
                 pass
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Exit point - called when workflow computation ends
+
+        :param exc_type: exception type
+        :param exc_val: exception value
+        :param exc_tb: exception traceback
+        :return: self
+        """
         if self.monitor:
             try:
                 logging.monitor(self.name, extra=dict(n="workflow_end"))
             except AttributeError:
                 pass
+        return self
