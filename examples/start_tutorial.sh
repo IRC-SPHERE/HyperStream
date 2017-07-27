@@ -35,8 +35,8 @@ function start_container
 
 DOCKER_ARGUMENTS='-d -p 27017:27017 library/mongo'
 start_container "hs_mongodb" "${DOCKER_ARGUMENTS}" 27017
-DOCKER_ARGUMENTS='-d -ti -p 1883:1883 -p 9001:9001 toke/mosquitto'
-start_container "hs_mqtt" "${DOCKER_ARGUMENTS}" 9001
+#DOCKER_ARGUMENTS='-d -ti -p 1883:1883 -p 9001:9001 toke/mosquitto'
+#start_container "hs_mqtt" "${DOCKER_ARGUMENTS}" 9001
 
 jupyter notebook --no-browser
 
@@ -54,4 +54,4 @@ jupyter notebook --no-browser
 #done
 
 stop_container "hs_mqtt"
-stop_container "hs_mongodb"
+#stop_container "hs_mongodb"

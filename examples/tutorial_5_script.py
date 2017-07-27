@@ -82,6 +82,13 @@ with Workflow(workflow_id='tutorial_05', name='tutorial_05', owner='tutorials',
             city_node[cc] = hs.factors.splitter_from_stream(
                 source=country_node[c], splitting_node=country_node[c], use_mapping_keys_only=True)
 
+    ## Only one iteration on each loop is effectively used
+    #c = C.__iter__().next()
+    #country_node[c] = hs.plugins.data_importers.factors.csv_multi_reader(source=None, **csv_params)
+    #cc = CC[c].__iter__().next()
+    #city_node[cc] = hs.factors.splitter_from_stream(
+    #            source=country_node[c], splitting_node=country_node[c], use_mapping_keys_only=True)
+
     w.execute(ti_all)
 
 for stream in country_node.streams:
