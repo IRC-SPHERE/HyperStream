@@ -507,10 +507,15 @@ class Workflow(Printable):
 
             workflow_status.save()
 
-    def to_dict(self):
+    def to_dict(self, tool_long_names=True):
         """
         Get a representation of the workflow as a dictionary for display purposes
 
+        :param tool_long_names: Indicates whether to use long names, such as
+                                SplitterFromStream(element=None, use_mapping_keys_only=True)
+                                or short names, such as
+                                splitter_from_stream
+        :type tool_long_names: bool
         :return: The dictionary of nodes, factors and plates
         """
         d = dict(nodes=[], factors=[], plates=defaultdict(list))
@@ -520,16 +525,29 @@ class Workflow(Printable):
             for plate_id in self.nodes[node].plate_ids:
                 d['plates'][plate_id].append({'id': node_id, 'type': 'node'})
         for factor in self.factors:
-            tool = str(factor.tool)
+            tool = str(factor.tool) if tool_long_names else factor.tool.name
+
+            try:
+                sources = [s.node_id for s in factor.sources]
+            except AttributeError:
+                if factor.source:
+                    sources = [factor.source.node_id]
+                else:
+                    sources = []
+
             d['factors'].append({
                 'id': tool,
-                'sources': [s.node_id for s in factor.sources],
+                'sources': sources,
                 'sink': factor.sink.node_id})
-            if factor.plates:
-                for plate in factor.plates:
-                    d['plates'][plate.plate_id].append({'id': tool, 'type': 'factor'})
-            else:
-                d['plates']['root'].append({'id': tool, 'type': 'factor'})
+
+            try:
+                if factor.plates:
+                    for plate in factor.plates:
+                        d['plates'][plate.plate_id].append({'id': tool, 'type': 'factor'})
+                else:
+                    d['plates']['root'].append({'id': tool, 'type': 'factor'})
+            except AttributeError:
+                pass
 
         d['plates'] = dict(d['plates'])
         return d
