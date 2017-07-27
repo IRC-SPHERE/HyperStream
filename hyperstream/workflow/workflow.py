@@ -552,15 +552,19 @@ class Workflow(Printable):
         d['plates'] = dict(d['plates'])
         return d
 
-    def to_json(self, formatter=None, **kwargs):
+    def to_json(self, formatter=None, tool_long_names=True, **kwargs):
         """
         Get a JSON representation of the workflow
 
+        :param tool_long_names: Indicates whether to use long names, such as
+                                SplitterFromStream(element=None, use_mapping_keys_only=True)
+                                or short names, such as
+                                splitter_from_stream
         :param formatter: The formatting function
         :param kwargs: Keyword arguments for the json output
         :return: A JSON string
         """
-        d = self.to_dict()
+        d = self.to_dict(tool_long_names=tool_long_names)
         if formatter:
             d = formatter(d)
         return json.dumps(d, **kwargs)
