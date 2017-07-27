@@ -98,24 +98,44 @@ The following tutorials show how to use HyperStream in a step-by-step guide.
 - [Tutorial 4: Real-time streams][5]
 - [Tutorial 5: Workflows][6]
 
+It is possible to run all the tutorials in your own machine ussing Docker containers defined in [IRC-SPHERE/Hyperstream-Dockerfiles](https://github.com/IRC-SPHERE/HyperStream-Dockerfiles). You can do that by running the following commands:
+
+```bash
+git clone https://github.com/IRC-SPHERE/Hyperstream-Dockerfiles.git
+cd Hyperstream-Dockerfiles
+docker-compose -f docker-compose-tutorials.yml -p hyperstream-tutorials up
+```
+
+And then open the url http://0.0.0.0:8888/tree in a web-browser
+
+## Simple use-case #
+
 ```Python
-    from hyperstream import HyperStream, StreamId, TimeInterval
-    from hyperstream.utils import utcnow, UTC
-    from datetime import timedelta
+from hyperstream import HyperStream, StreamId, TimeInterval
+from hyperstream.utils import utcnow, UTC
+from datetime import timedelta
 
-    hs = HyperStream(loglevel=20)
-    M = hs.channel_manager.memory
-    T = hs.channel_manager.tools
-    clock = StreamId(name="clock")
-    clock_tool = T[clock].window().last().value()
-    ticker = M.get_or_create_stream(stream_id=StreamId(name="ticker"))
-    now = utcnow()
-    before = (now - timedelta(seconds=30)).replace(tzinfo=UTC)
-    ti = TimeInterval(before, now)
-    clock_tool.execute(sources=[], sink=ticker, interval=ti, alignment_stream=None)
-    print(list(ticker.window().tail(5)))
+hs = HyperStream(loglevel=20)
+M = hs.channel_manager.memory
+T = hs.channel_manager.tools
+clock = StreamId(name="clock")
+clock_tool = T[clock].window().last().value()
+ticker = M.get_or_create_stream(stream_id=StreamId(name="ticker"))
+now = utcnow()
+before = (now - timedelta(seconds=30)).replace(tzinfo=UTC)
+ti = TimeInterval(before, now)
+clock_tool.execute(sources=[], sink=ticker, interval=ti, alignment_stream=None)
+list(ticker.window().tail(5))
+```
 
-    [StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 39, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 39, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 40, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 40, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 41, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 41, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 42, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 42, tzinfo=<UTC>)), StreamInstance(timestamp=datetime.datetime(2017, 6, 30, 16, 23, 43, tzinfo=<UTC>), value=datetime.datetime(2017, 6, 30, 16, 23, 43, tzinfo=<UTC>))]
+The last list contains
+
+```Python
+[StreamInstance(timestamp=datetime.datetime(2017, 7, 27, 10, 33, 45, tzinfo=<UTC>), value=datetime.datetime(2017, 7, 27, 10, 33, 45, tzinfo=<UTC>)),
+ StreamInstance(timestamp=datetime.datetime(2017, 7, 27, 10, 33, 46, tzinfo=<UTC>), value=datetime.datetime(2017, 7, 27, 10, 33, 46, tzinfo=<UTC>)),
+ StreamInstance(timestamp=datetime.datetime(2017, 7, 27, 10, 33, 47, tzinfo=<UTC>), value=datetime.datetime(2017, 7, 27, 10, 33, 47, tzinfo=<UTC>)),
+ StreamInstance(timestamp=datetime.datetime(2017, 7, 27, 10, 33, 48, tzinfo=<UTC>), value=datetime.datetime(2017, 7, 27, 10, 33, 48, tzinfo=<UTC>)),
+ StreamInstance(timestamp=datetime.datetime(2017, 7, 27, 10, 33, 49, tzinfo=<UTC>), value=datetime.datetime(2017, 7, 27, 10, 33, 49, tzinfo=<UTC>))]
 ```
 
 # HyperStream Viewer #
