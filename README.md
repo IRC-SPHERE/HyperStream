@@ -15,7 +15,7 @@
 Hyperstream is a large-scale, flexible and robust software package for processing streaming data.
 
 * HyperStream [homepage](https://irc-sphere.github.io/HyperStream/)
-* Tutorial [notebooks](http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/)
+* Tutorial [notebooks](http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/master/examples/)
 * Gitter [chat room](https://gitter.im/IRC-SPHERE-HyperStream/Lobby)
 * Developer [documentation](http://hyperstream.readthedocs.io/en/latest/)
 
@@ -152,8 +152,8 @@ This work has been funded by the UK Engineering and Physical Sciences Research C
 
 [1]: https://docs.mongodb.com/manual/installation/
 
-[2]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_01.ipynb
-[3]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_02.ipynb
-[4]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_03.ipynb
-[5]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_04.ipynb
-[6]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/tutorials/examples/tutorial_05.ipynb
+[2]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/master/examples/tutorial_01.ipynb
+[3]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/master/examples/tutorial_02.ipynb
+[4]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/master/examples/tutorial_03.ipynb
+[5]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/master/examples/tutorial_04.ipynb
+[6]: https://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/master/examples/tutorial_05.ipynb
