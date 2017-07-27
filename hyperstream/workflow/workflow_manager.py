@@ -102,7 +102,7 @@ class WorkflowManager(Printable):
                 workflow.create_node(
                     stream_name=n.stream_name,
                     channel=self.channel_manager.get_channel(n.channel_id),
-                    plates=[self.plate_manager[p] for p in n.plate_ids])
+                    plates=[self.plate_manager.plates[p] for p in n.plate_ids])
 
             for f in workflow_definition.factors:
                 source_nodes = [workflow.nodes[node_id] for node_id in f.sources] if f.sources else []
