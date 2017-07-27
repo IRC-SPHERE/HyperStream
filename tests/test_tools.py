@@ -290,6 +290,7 @@ SEA_ICE_SUMS = [
 
 def rng_helper(hs, ticker, ti, tool_name, **kwargs):
     random = hs.channel_manager.memory.get_or_create_stream(tool_name)
+    random.purge()
     tool = getattr(hs.plugins.data_generators.tools, tool_name)
     tool(**kwargs).execute(sources=[], sink=random, interval=ti, alignment_stream=ticker)
     values = random.window().values()
@@ -384,4 +385,4 @@ class TestTools(unittest.TestCase):
 
             # print(sea_ice_sums.window().values())
 
-            assert_all_close(sea_ice_sums.window().values(), map(sum, sea_ice.window().values()), 1e-5)
+            assert_all_close(sea_ice_sums.window().values(), list(map(sum, sea_ice.window().values())), 1e-5)

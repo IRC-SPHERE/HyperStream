@@ -28,7 +28,7 @@ class TestMetaData(unittest.TestCase):
     def test_meta_data(self):
         with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
             tag = 'test_meta_data'
-            values = map(str, range(4))
+            values = list(map(str, range(4)))
             insert_meta_data(hs, tag, values)
             self.assertListEqual(get_meta_data(hs, tag), ["{}_{}".format(tag, i) for i in values])
             delete_meta_data(hs, tag, values)
@@ -37,7 +37,7 @@ class TestMetaData(unittest.TestCase):
     def test_plate_creation(self):
         with HyperStream(file_logger=False, console_logger=False, mqtt_logger=None) as hs:
             tag = 'test_plate_creation'
-            values = map(str, range(4))
+            values = list(map(str, range(4)))
             insert_meta_data(hs, tag, values)
             create_plate(hs, "T1", tag)
             expected = [((tag, i),) for i in values]

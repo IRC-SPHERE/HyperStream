@@ -316,20 +316,34 @@ class TypedFrozenKeyDict(FrozenKeyDict):
         super(TypedFrozenKeyDict, self).__setitem__(key, value)
 
 
-class Singleton(type):
+class _Singleton(type):
     """
-    Singleton class
-    See https://stackoverflow.com/a/33201/1038264
+    Singleton class, py2k and p3k compatible
+    See:
+        https://stackoverflow.com/a/33201/1038264
+        https://stackoverflow.com/questions/6760685/creating-a-singleton-in-python
     """
     # noinspection PyInitNewSignature
     def __init__(cls, name, bases, dictionary):
-        super(Singleton, cls).__init__(name, bases, dictionary)
+        super(_Singleton, cls).__init__(name, bases, dictionary)
         cls.instance = None
 
     def __call__(cls, *args, **kwargs):
         if cls.instance is None:
-            cls.instance = super(Singleton, cls).__call__(*args, **kwargs)
+            cls.instance = super(_Singleton, cls).__call__(*args, **kwargs)
         return cls.instance
+
+
+class Singleton(type):
+    # noinspection PyInitNewSignature
+    def __init__(cls, name, bases, dictionary):
+        super(Singleton, cls).__init__(name, bases, dictionary)
+        cls._instance = None
+
+    def __call__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instance
 
 
 class ToolContainer(Printable):

@@ -60,8 +60,8 @@ class HyperStreamLoggingTests(unittest.TestCase):
                 logging.monitor("1234567890")
                 sleep(1)
                 print(client.last_messages)
-                print(client.last_messages["topics/test"])
-                assert(client.last_messages["topics/test"][24:] == '[MON  ]  1234567890')
+                print(client.last_messages["topics/test"][24:])
+                assert(str(client.last_messages["topics/test"].decode("utf8")[24:]) == '[MON  ]  1234567890')
 
     def test_mqtt_logger_json(self):
         """

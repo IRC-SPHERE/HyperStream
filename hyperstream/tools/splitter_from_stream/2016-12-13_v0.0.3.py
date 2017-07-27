@@ -45,11 +45,9 @@ class SplitterFromStream(MultiOutputTool):
 
         if isinstance(splitting_stream, AssetStream):
             time_interval = TimeInterval(MIN_DATE, interval.end)
-            splitter = splitting_stream.window(time_interval,
-                                               force_calculation=True).last()
+            splitter = splitting_stream.window(time_interval, force_calculation=True).last()
         else:
-            splitter = splitting_stream.window(interval,
-                                               force_calculation=True).last()
+            splitter = splitting_stream.window(interval, force_calculation=True).last()
 
         if not splitter:
             logging.debug("No assets found for source {} and splitter {}"
@@ -65,7 +63,7 @@ class SplitterFromStream(MultiOutputTool):
                                 empty""")
             if self.use_mapping_keys_only:
                 mapping = dict([(x, x) for x in mapping.keys()])
-        except:  # assume that mapping is a list
+        except (AttributeError, ValueError, KeyError):  # assume that mapping is a list
             mapping = dict([(x, x) for x in mapping])
 
         for timestamp, value in source.window(interval, force_calculation=True):

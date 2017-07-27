@@ -104,7 +104,8 @@ class MultiOutputTool(BaseTool):
                     # meta_data = input_plate_value + (item.meta_data,) if input_plate_value else (item.meta_data, )
                     meta_data = item.meta_data if isinstance(item.meta_data[0], tuple) else (item.meta_data,)
                     try:
-                        sink = next(s for s in sinks if set(s.stream_id.meta_data) == set(meta_data))
+                        # sink = next(s for s in sinks if set(s.stream_id.meta_data) == set(meta_data))
+                        sink = next(s for s in sinks if all(m in s.stream_id.meta_data for m in meta_data))
                         sink.writer(item.stream_instance)
                         document_count += 1
                     except StopIteration:

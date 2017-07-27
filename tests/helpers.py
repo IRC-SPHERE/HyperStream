@@ -201,3 +201,7 @@ def assert_all_close(a, b, tolerance):
         if not is_close(x, y, tolerance):
             raise AssertionError("Elements not equal at location {}. a = {:.{prec}f}, b = {:.{prec}f}"
                                  .format(i, x, y, prec=prec))
+
+
+def assert_dict_equal(a, b):
+    return sorted(a.items()) == sorted(b.items())

@@ -90,8 +90,6 @@ class WorkflowManager(Printable):
                 logging.warn("Attempted to load workflow with id {}, but not found".format(workflow_id))
 
             workflow = Workflow(
-                channels=self.channel_manager,
-                plate_manager=self.plate_manager,
                 workflow_id=workflow_id,
                 name=workflow_definition.name,
                 description=workflow_definition.description,
@@ -104,7 +102,7 @@ class WorkflowManager(Printable):
                 workflow.create_node(
                     stream_name=n.stream_name,
                     channel=self.channel_manager.get_channel(n.channel_id),
-                    plate_ids=n.plate_ids)
+                    plates=[self.plate_manager[p] for p in n.plate_ids])
 
             for f in workflow_definition.factors:
                 source_nodes = [workflow.nodes[node_id] for node_id in f.sources] if f.sources else []
@@ -114,7 +112,8 @@ class WorkflowManager(Printable):
                 output_plate = f.output_plate
 
                 parameters = Tool.parameters_from_model(f.tool.parameters)
-                tool = dict(name=f.tool.name, parameters=parameters)
+                # tool = dict(name=f.tool.name, parameters=parameters)
+                tool = self.channel_manager.get_tool(f.tool.name, parameters, version=None)
 
                 if f.factor_type == "Factor":
                     if len(sink_nodes) != 1:

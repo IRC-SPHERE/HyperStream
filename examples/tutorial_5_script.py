@@ -1,7 +1,7 @@
 import sys
 sys.path.append("../") # Add parent dir in the Path
 
-from hyperstream import HyperStream
+from hyperstream import HyperStream, Workflow
 from hyperstream import TimeInterval
 from hyperstream.utils import UTC
 import hyperstream
@@ -32,7 +32,7 @@ countries_list = ['Asia', 'Australia', 'NZ', 'USA']
 countries_dict = {
     'Asia': ['BangkokMin', 'BangkokMax', 'HongKongMax', 'HongKongMin', 'KualaLumpurMax', 'KualaLumpurMin',
              'NewDelhiMax', 'NewDelhiMin', 'TokyoMax', 'TokyoMin'],
-    'Australia': ['BrisbaneMax', 'BrisbaneMin', 'CanberraMax', 'CanberraMin', 'GoldCoastMax', 'GodCoastMin',
+    'Australia': ['BrisbaneMax', 'BrisbaneMin', 'Canberramax', 'CanberraMin', 'GoldCoastMax', 'GoldCoastMin',
                   'MelbourneMin', 'Melbournemax',  'SydneyMax', 'SydneyMin'],
     'NZ': ['AucklandMax', 'AucklandMin', 'ChristchurchMax', 'ChristchurchMin', 'DunedinMax', 'DunedinMin',
            'HamiltonMax', 'HamiltonMin','WellingtonMax', 'WellingtonMin'],
@@ -65,24 +65,22 @@ CC = hs.plate_manager.create_plate(plate_id="C.C", description="Cities", values=
 
 print hs.plate_manager.meta_data_manager.global_plate_definitions
 
-csv_reader = hs.plugins.data_importers.tools.csv_multi_reader(
-                filename_template='data/TimeSeriesDatasets_130207/Temp{}.csv',
-                datetime_parser=dateparser, skip_rows=1)
+csv_params = dict(
+    filename_template='data/TimeSeriesDatasets_130207/Temp{}.csv',
+    datetime_parser=dateparser, skip_rows=1)
 
-# TODO use this tool to separate the raw values of each country into their respective city
-splitter_tool = hs.tools.splitter_from_stream(element=None, use_mapping_keys_only=True)
+with Workflow(workflow_id='tutorial_05', name='tutorial_05', owner='tutorials',
+              description='Tutorial 5 workflow', online=False) as w:
 
-with hs.create_workflow(workflow_id='tutorial_05', name='tutorial_05', owner='tutorials',
-                    description='Tutorial 5 workflow', online=False, safe=False) as w:
-    country_node = w.create_node(stream_name='raw_data', channel=M, plate_ids=['C'])
+    country_node = w.create_node(stream_name='raw_data', channel=M, plates=[C])
+    city_node = w.create_node(stream_name='temperature', channel=M, plates=[CC])
 
-    w.create_multi_output_factor(source=None, sink=country_node, splitting_node=None, tool=csv_reader)
+    for c in C:
+        country_node[c] = hs.plugins.data_importers.factors.csv_multi_reader(source=None, **csv_params)
 
-    city_node = w.create_node(stream_name='temperature', channel=M, plate_ids=['C.C'])
-
-    # TODO split the countries raw data into cities
-    w.create_multi_output_factor(source=country_node, sink=city_node, splitting_node=country_node,
-                                 tool=splitter_tool)
+        for cc in CC[c]:
+            city_node[cc] = hs.factors.splitter_from_stream(
+                source=country_node[c], splitting_node=country_node[c], use_mapping_keys_only=True)
 
     w.execute(ti_all)
 

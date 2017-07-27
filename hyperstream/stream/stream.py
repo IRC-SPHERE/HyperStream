@@ -36,6 +36,8 @@ class Stream(Hashable):
     """
     def __init__(self, channel, stream_id, calculated_intervals, sandbox):
         """
+        Initialize the stream
+
         :param channel: The channel to which this stream belongs
         :param stream_id: The unique identifier for this string
         :param calculated_intervals: The time intervals in which this has been calculated
@@ -61,13 +63,22 @@ class Stream(Hashable):
         self.sandbox = sandbox
         self._node = None  # Back reference to node
 
-        # Here we define the output type. When modifiers are applied, this changes
-        # self.output_format = 'doc_gen'
+    def set_tool_reference(self, tool_reference):
+        """
+        Set the back reference to the tool that populates this stream.
+        This is needed to traverse the graph outside of workflows
 
-    def set_tool_reference(self, tool_reference):  # needed to traverse the graph outside of workflows
+        :param tool_reference: The toool
+        :return: None
+        """
         self.tool_reference = tool_reference
 
     def __str__(self):
+        """
+        Get a string representation of this object
+
+        :return: String representation
+        """
         return "{}(stream_id={}, channel_id={})".format(
             self.__class__.__name__,
             self.stream_id,
@@ -95,6 +106,7 @@ class Stream(Hashable):
         """
         Get the calculated intervals
         This will be read from the stream_status collection if it's in the database channel
+
         :return: The calculated intervals
         """
         return self._calculated_intervals
@@ -104,6 +116,7 @@ class Stream(Hashable):
         """
         Set the calculated intervals
         This will be written to the stream_status collection if it's in the database channel
+
         :param value: The calculated intervals
         :type value: TimeIntervals, TimeInterval, list[TimeInterval]
         """
@@ -126,6 +139,14 @@ class Stream(Hashable):
 
         self._calculated_intervals = value
 
+    def purge(self):
+        """
+        Purge the stream. This removes all data and clears the calculated intervals
+
+        :return: None
+        """
+        self.channel.purge_stream(self.stream_id, remove_definition=False, sandbox=None)
+
     @property
     def writer(self):
         return self.channel.get_stream_writer(self)
@@ -133,6 +154,7 @@ class Stream(Hashable):
     def window(self, time_interval=None, force_calculation=False):
         """
         Gets a view on this stream for the time interval given
+
         :param time_interval: either a TimeInterval object or (start, end) tuple of type str or datetime
         :param force_calculation: Whether we should force calculation for this stream view if data does not exist
         :type time_interval: None | Iterable | TimeInterval
@@ -190,6 +212,7 @@ class DatabaseStream(Stream):
     def load(self):
         """
         Load the stream definition from the database
+
         :return: None
         """
         with switch_db(StreamDefinitionModel, 'hyperstream'):
@@ -200,6 +223,7 @@ class DatabaseStream(Stream):
         """
         Saves the stream definition to the database. This assumes that the definition doesn't already exist, and will
         raise an exception if it does.
+
         :return: None
         """
         with switch_db(StreamDefinitionModel, 'hyperstream'):
@@ -209,6 +233,7 @@ class DatabaseStream(Stream):
     def calculated_intervals(self):
         """
         Gets the calculated intervals from the database
+
         :return: The calculated intervals
         """
         if self._calculated_intervals is None:
@@ -221,6 +246,7 @@ class DatabaseStream(Stream):
     def calculated_intervals(self, intervals):
         """
         Updates the calculated intervals in the database. Performs an upsert
+
         :param intervals: The calculated intervals
         :return: None
         """
@@ -233,6 +259,7 @@ class DatabaseStream(Stream):
     def last_accessed(self):
         """
         Gets the last accessed time from the database
+
         :return: The last accessed time
         """
         self.load()
@@ -242,6 +269,7 @@ class DatabaseStream(Stream):
     def last_accessed(self, dt):
         """
         Updates the last accessed time in the database. Performs an upsert
+
         :param dt: The last accessed time
         :return: None
         """
@@ -251,6 +279,7 @@ class DatabaseStream(Stream):
     def last_updated(self):
         """
         Gets the last updated time from the database
+
         :return: The last updated time
         """
         self.load()
@@ -260,6 +289,7 @@ class DatabaseStream(Stream):
     def last_updated(self, dt):
         """
         Updates the last updated time in the database. Performs an upsert
+
         :param dt: The last updated time
         :return: None
         """
@@ -278,6 +308,7 @@ class AssetStream(DatabaseStream):
     def calculated_intervals(self, intervals):
         """
         Updates the calculated intervals in the database. Performs an upsert
+
         :param intervals: The calculated intervals
         :return: None
         """

@@ -46,6 +46,7 @@ class Factor(FactorBase):
     def __init__(self, tool, source_nodes, sink_node, alignment_node, plates):
         """
         Initialise this factor
+
         :param tool: The tool
         :param source_nodes: The source nodes
         :param sink_node: The sink node
@@ -92,6 +93,7 @@ class Factor(FactorBase):
     def execute(self, time_interval):
         """
         Execute the factor over the given time interval
+
         :param time_interval:
         :return:
         """
@@ -188,6 +190,7 @@ class Factor(FactorBase):
         Gets the source streams for a given plate value on a plate.
         Also populates with source streams that are valid for the parent plates of this plate,
         with the appropriate meta-data for the parent plate.
+
         :param plate: The plate being operated on
         :param plate_value: The specific plate value of interest
         :param sources: The currently found sources (for recursion)
@@ -223,6 +226,7 @@ class Factor(FactorBase):
     def get_global_sources(self):
         """
         Gets streams that live outside of the plates
+
         :return: Global streams
         """
         sources = []
@@ -235,6 +239,7 @@ class Factor(FactorBase):
     def get_alignment_stream(self, plate=None, plate_value=None):
         """
         Gets the alignment stream for a particular plate value
+
         :param plate: The plate on which the alignment node lives
         :param plate_value: The plate value to select the stream from the node
         :return: The alignment stream
@@ -258,6 +263,7 @@ class MultiOutputFactor(FactorBase):
     def __init__(self, tool, source_node, splitting_node, sink_node, input_plate, output_plates):
         """
         Initialise this factor
+
         :param tool: The tool
         :param source_node: The source node
         :param splitting_node: The node over which to split
@@ -301,8 +307,9 @@ class MultiOutputFactor(FactorBase):
 
     def execute(self, time_interval):
         """
-        Execute the factor over the given time interval. Note that this is normally done by the workspace,
+        Execute the factor over the given time interval. Note that this is normally done by the workflow,
         but can also be done on the factor directly
+
         :param time_interval: The time interval
         :return: self (for chaining)
         """
@@ -311,15 +318,25 @@ class MultiOutputFactor(FactorBase):
 
         input_plate_values = self.input_plate.values if self.input_plate else [None]
         output_plate_values = self.sink.plate_values
+        meta_data_ids = [p.meta_data_id for p in self.sink.plates]
+
+        def belongs(plate_value):
+            return all(ii in plate_value for ii in input_plate_value)
+
+        def meta_data_matches(plate_value):
+            return filter(lambda x: x[0] in meta_data_ids, plate_value)
 
         for input_plate_value in input_plate_values:
             if input_plate_value:
                 # Select only the valid output plate values based on the input plate value
-                filtered = filter(lambda x: all(ii in x for ii in input_plate_value), output_plate_values)
+                # filtered = filter(belongs, output_plate_values)
+                filtered = filter(belongs, output_plate_values)
             else:
                 filtered = output_plate_values
 
             sinks = [self.sink.streams[s] for s in filtered]
+
+            sub_plate_values_only = map(meta_data_matches, filtered)
 
             if not self.source:
                 source = None
@@ -349,7 +366,7 @@ class MultiOutputFactor(FactorBase):
                 interval=time_interval,
                 splitting_stream=splitting_stream,
                 meta_data_id=self.output_plates[0].meta_data_id,
-                output_plate_values=filtered)
+                output_plate_values=sub_plate_values_only)
             self.update_computed_intervals(sinks, time_interval)
 
         return self
@@ -414,11 +431,13 @@ class MultiOutputFactor(FactorBase):
             sink.calculated_intervals += time_interval
             required_intervals = TimeIntervals([time_interval]) - sink.calculated_intervals
             if not required_intervals.is_empty:
-                raise RuntimeError('Tool execution did not cover the time interval {}.'.format(required_intervals))
+                raise RuntimeError('Tool execution did not cover the time interval {}'
+                                   .format(required_intervals))
 
     def get_alignment_stream(self, plate=None, plate_value=None):
         """
         Gets the alignment stream for a particular plate value
+
         :param plate: The plate on which the alignment node lives
         :param plate_value: The plate value to select the stream from the node
         :return: The alignment stream
@@ -435,6 +454,7 @@ class NodeCreationFactor(FactorBase):
     def __init__(self, tool, source_node, input_plate, output_plate, plate_manager):
         """
         Initialise this factor
+
         :param tool: The tool
         :param source_node: The source node
         :param input_plate: The plate over which this factor is defined
@@ -465,8 +485,9 @@ class NodeCreationFactor(FactorBase):
 
     def execute(self, time_interval):
         """
-        Execute the factor over the given time interval. Note that this is normally done by the workspace,
+        Execute the factor over the given time interval. Note that this is normally done by the workflow,
         but can also be done on the factor directly
+
         :param time_interval: The time interval
         :return: self (for chaining)
         """

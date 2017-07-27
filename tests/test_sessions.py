@@ -20,9 +20,9 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 import unittest
-import logging
 
-from hyperstream import HyperStream, TimeInterval
+from hyperstream import TimeInterval
+from .helpers import *
 
 
 def print_sessions(hs):
@@ -62,14 +62,25 @@ class SessionTests(unittest.TestCase):
             assert (len(hs.sessions) == 1)
             assert hs.current_session.active
 
+            M = hs.channel_manager.memory
+            dg = hs.plugins.data_generators
+
+            ticker = M.get_or_create_stream("ticker")
+            random = M.get_or_create_stream("random")
+
+            ti = TimeInterval(t1, t1 + minute)
+
+            hs.tools.clock().execute(sources=[], sink=ticker, interval=ti)
+            dg.tools.random().execute(sources=[], sink=random, interval=ti, alignment_stream=ticker)
+
             history = hs.current_session.history
             for item in history:
                 print(item)
 
-            assert (history[0].value.tool == 'clock')
-            assert (history[1].value.tool == 'random')
-            assert (history[0].value.document_count == 60)
-            assert (history[1].value.document_cunt == 60)
+            assert (history[0].value['tool'] == 'clock')
+            assert (history[1].value['tool'] == 'random')
+            assert (history[0].value['document_count'] == 60)
+            assert (history[1].value['document_count'] == 60)
 
         print("exit ...")
 

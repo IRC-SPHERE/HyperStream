@@ -32,8 +32,7 @@ from ..plate import Plate
 from ..node import Node
 from ..stream import StreamId
 from ..tool import BaseTool, Tool, MultiOutputTool, AggregateTool, SelectorTool, PlateCreationTool
-from ..utils import Printable, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError, utcnow, \
-    PlateNotFoundError
+from ..utils import Printable, IncompatiblePlatesError, FactorDefinitionError, NodeDefinitionError, utcnow
 from ..models import TimeIntervalModel, WorkflowStatusModel
 from ..time_interval import TimeIntervals, TimeInterval
 
@@ -43,13 +42,11 @@ class Workflow(Printable):
     Workflow.
     This defines the graph of operations through "nodes" and "factors".
     """
+    def __init__(self, workflow_id, name, description, owner, online=False, monitor=False):
 
-    def __init__(self, channels, plate_manager, workflow_id, name, description, owner, online=False, monitor=False):
         """
         Initialise the workflow
 
-        :param channels: The channels used by this workflow
-        :param plate_manager: The plate manager
         :param workflow_id: The workflow id
         :param name: The name of the workflow
         :param description: A human readable description
@@ -57,8 +54,6 @@ class Workflow(Printable):
         :param online: Whether this workflow should be executed by the online engine
         :param monitor: Whether to log monitoring messages for this workflow
         """
-        self.channels = channels
-        self.plate_manager = plate_manager
         self.workflow_id = workflow_id
         self.name = name
         self.description = description
@@ -68,7 +63,26 @@ class Workflow(Printable):
         self.online = online
         self.monitor = monitor
 
+        self._hyperstream = None
+
         logging.info("New workflow created with id {}".format(workflow_id))
+
+    def __enter__(self):
+        # Pick up the singleton. Need to use a late import here to avoid a circular reference 
+        from ..hyperstream import HyperStream
+        self._hyperstream = HyperStream()
+        self._hyperstream.current_workflow = self
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._hyperstream.current_workflow = None
+        # To squash exceptions do something like the following:
+        # if exc_val is not None:
+        #     logging.warning("Workflow definition failed: {}".format(repr(exc_val)))
+        # return True
+
+        # Re-raise the error
+        return exc_val is None
 
     def execute(self, time_interval):
         """
@@ -80,6 +94,8 @@ class Workflow(Printable):
         """
         # TODO: What if the leaf nodes have different time intervals?
 
+        # if not self._hyperstream:
+        #     raise ValueError("")
         with WorkflowMonitor(self):
             # First look for asset writers
             for factor in self.factors[::-1]:
@@ -112,25 +128,20 @@ class Workflow(Printable):
         self.factors.append(factor)
         logging.info("Added factor with tool {} ".format(factor.tool))
 
-    def create_node(self, stream_name, channel, plate_ids):
+    def create_node(self, stream_name, channel, plates):
         """
         Create a node in the graph. Note: assumes that the streams already exist
 
         :param stream_name: The name of the stream
         :param channel: The channel where this stream lives
-        :param plate_ids: The plate ids. The stream meta-data will be auto-generated from these
+        :param plates: The plates. The stream meta-data will be auto-generated from these
         :return: The streams associated with this node
         """
         streams = {}
 
-        try:
-            plates = [self.plate_manager.plates[p] for p in plate_ids] if plate_ids else None
-        except KeyError as e:
-            raise PlateNotFoundError(e)
-
         plate_values = Plate.get_overlapping_values(plates)
 
-        if plate_ids:
+        if plates:
             if not plate_values:
                 raise NodeDefinitionError("No overlapping plate values found")
             for pv in plate_values:
@@ -191,8 +202,8 @@ class Workflow(Printable):
         :type alignment_node: Node | None
         :rtype: Factor
         """
-        if isinstance(tool, dict):
-            tool = self.channels.get_tool(**tool)
+        # if isinstance(tool, dict):
+        #     tool = self.channels.get_tool(**tool)
 
         if not isinstance(tool, BaseTool):
             raise ValueError("Expected Tool, got {}".format(type(tool)))
@@ -262,7 +273,7 @@ class Workflow(Printable):
                     for p in source_plates:
                         if p not in set(sink.plate_ids):
                             raise IncompatiblePlatesError("{} not in sink plates".format(p))
-            plates = [self.plate_manager.plates[plate_id] for plate_id in sink.plate_ids]
+            plates = sink.plates
         else:
             plates = None
 
@@ -289,7 +300,7 @@ class Workflow(Printable):
         :param sink: The sink node
         :return: The factor object
         :type tool: MultiOutputTool | dict
-        :type source: Node
+        :type source: Node | None
         :type sink: Node
         :rtype: Factor
         """
@@ -299,15 +310,15 @@ class Workflow(Printable):
         if not isinstance(sink, Node):
             raise ValueError("Expected Node, got {}".format(type(sink)))
 
-        if isinstance(tool, dict):
-            tool = self.channels.get_tool(**tool)
+        # if isinstance(tool, dict):
+        #     tool = self.channels.get_tool(**tool)
 
         if not isinstance(tool, MultiOutputTool):
             raise ValueError("Expected MultiOutputTool, got {}".format(type(tool)))
 
         # Check that the input_plate are compatible - note this is the opposite way round to a normal factor
-        input_plates = [self.plate_manager.plates[plate_id] for plate_id in source.plate_ids] if source else []
-        output_plates = [self.plate_manager.plates[plate_id] for plate_id in sink.plate_ids]
+        input_plates = source.plates if source else []
+        output_plates = sink.plates
 
         if len(input_plates) > 1:
             raise NotImplementedError
@@ -375,13 +386,13 @@ class Workflow(Printable):
         :type plate_manager: PlateManager
         :return: The created factor
         """
-        if isinstance(tool, dict):
-            tool = self.channels.get_tool(**tool)
+        # if isinstance(tool, dict):
+        #     tool = self.channels.get_tool(**tool)
 
         if not isinstance(tool, PlateCreationTool):
             raise ValueError("Expected PlateCreationTool, got {}".format(type(tool)))
 
-        input_plates = [self.plate_manager.plates[plate_id] for plate_id in source.plate_ids] if source else []
+        input_plates = source.plates if source else []
 
         if len(input_plates) > 1:
             raise NotImplementedError
@@ -519,19 +530,22 @@ class Workflow(Printable):
                     d['plates'][plate.plate_id].append({'id': tool, 'type': 'factor'})
             else:
                 d['plates']['root'].append({'id': tool, 'type': 'factor'})
+
+        d['plates'] = dict(d['plates'])
         return d
 
-    def to_json(self, formatter=None):
+    def to_json(self, formatter=None, **kwargs):
         """
         Get a JSON representation of the workflow
 
         :param formatter: The formatting function
+        :param kwargs: Keyword arguments for the json output
         :return: A JSON string
         """
         d = self.to_dict()
         if formatter:
             d = formatter(d)
-        return json.dumps(d)
+        return json.dumps(d, **kwargs)
 
     @staticmethod
     def factorgraph_viz(d):
@@ -541,11 +555,32 @@ class Workflow(Printable):
         :param d: The dictionary
         :return: The formatted dictionary
         """
-        mapping = {'nodes': 'nodes', 'factors': 'links', 'source': 'source', 'sink': 'target'}
-        m = {}
-        for k, v in d.items():
-            m[mapping[k]] = v
-        return m
+        m = defaultdict(list)
+
+        for node in d['nodes']:
+            m['nodes'].append(dict(
+                id=node['id'],
+                type='rv'
+            ))
+
+        for factor in d['factors']:
+            m['nodes'].append(dict(
+                id=factor['id'],
+                type='fac'
+            ))
+
+            for source in factor['sources']:
+                m['links'].append(dict(
+                    source=source,
+                    target=factor['id']
+                ))
+            if factor['sink']:
+                m['links'].append(dict(
+                    source=factor['id'],
+                    target=factor['sink']
+                ))
+
+        return dict(m)
 
 
 # noinspection PyUnresolvedReferences
@@ -590,4 +625,6 @@ class WorkflowMonitor(object):
                 logging.monitor(self.name, extra=dict(n="workflow_end"))
             except AttributeError:
                 pass
-        return self
+
+        # Re-raise any other errors
+        return exc_val is None

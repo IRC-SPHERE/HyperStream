@@ -93,6 +93,10 @@ class Node(Printable):
     def is_leaf(self, value):
         self._is_leaf = value
 
+    def purge(self):
+        for stream in self.streams.values():
+            stream.purge()
+
     def intersection(self, meta):
         """
         Get the intersection between the meta data given and the meta data contained within the plates.

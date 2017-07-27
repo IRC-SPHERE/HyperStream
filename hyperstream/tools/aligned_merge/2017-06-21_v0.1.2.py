@@ -54,7 +54,7 @@ class AlignedMerge(Tool):
                 return
 
             # If one of the streams doesn't have this timestamp, it's a misalignment
-            matches = map(lambda t: t == timestamp, tt)
+            matches = list(map(lambda t: t == timestamp, tt))
             if all(matches):
                 if not self.names:
                     yield StreamInstance(timestamp, values)

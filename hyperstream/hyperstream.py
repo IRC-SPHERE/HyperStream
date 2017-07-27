@@ -30,8 +30,10 @@ from .tool import Tool, MultiOutputTool, SelectorTool, AggregateTool, PlateCreat
 
 import logging
 from contextlib import contextmanager
+from six import add_metaclass
 
 
+@add_metaclass(Singleton)
 class HyperStream(object):
     # noinspection PyUnresolvedReferences
     """
@@ -40,10 +42,11 @@ class HyperStream(object):
     >>> with Hyperstream():
     >>>    pass
 
-    Note that HyperStream uses the singleton pattern described here: https://stackoverflow.com/a/33201/1038264
+    Note that HyperStream uses the singleton pattern described here:
+        https://stackoverflow.com/a/33201/1038264
+    For py2k/py3k compatability we use the six decorator add_metaclass:
+        https://pythonhosted.org/six/#six.add_metaclass
     """
-    __metaclass__ = Singleton
-
     def __init__(self, loglevel=logging.INFO, file_logger=True, console_logger=True, mqtt_logger=None):
         """
         Initialise the HyperStream class. This starts the logger, loads the config files, connects to the main mongodb,
@@ -83,7 +86,7 @@ class HyperStream(object):
         self.tools = None
         self.factors = None
 
-        self._current_workflow = None  # Used in the new API - the current workflow being defined
+        self.current_workflow = None  # Used in the new API - the current workflow being defined
         self.populate_tools_and_factors()
 
     def __repr__(self):
@@ -230,8 +233,6 @@ class HyperStream(object):
         """
         try:
             w = Workflow(
-                channels=self.channel_manager,
-                plate_manager=self.plate_manager,
                 workflow_id=workflow_id,
                 name=name,
                 owner=owner,
@@ -241,16 +242,26 @@ class HyperStream(object):
             )
 
             self.workflow_manager.add_workflow(w)
-            self._current_workflow = w
+            self.current_workflow = w
             yield w
         except KeyError as e:
             if safe:
                 raise e
             else:
-                self._current_workflow = self.workflow_manager.workflows[workflow_id]
+                self.current_workflow = self.workflow_manager.workflows[workflow_id]
                 yield self.workflow_manager.workflows[workflow_id]
         finally:
-            self._current_workflow = None
+            self.current_workflow = None
+
+    def add_workflow(self, workflow):
+        """
+        Add the workflow to the workflow manager
+
+        :param workflow: The workflow
+        :type workflow: Workflow
+        :return: None
+        """
+        self.workflow_manager.add_workflow(workflow)
 
     def populate_tools_and_factors(self):
         """
@@ -299,11 +310,11 @@ class HyperStream(object):
                                 :type sources: list[Node] | tuple[Node] | None
 
                                 """
-                                if not self._current_workflow:
+                                if not self.current_workflow:
                                     raise ValueError("No workflow context - use create_workflow first")
 
                                 # find matching tools (possibly different parameters)
-                                matches = [f for f in self._current_workflow.factors if f.tool.__class__ == tool_func]
+                                matches = [f for f in self.current_workflow.factors if f.tool.__class__ == tool_func]
                                 # make sure parameters are all the same
                                 full_matches = [m for m in matches if m.sources == sources
                                                 and m.alignment_node == alignment_node
@@ -315,7 +326,7 @@ class HyperStream(object):
                                     tool = tool_func(**parameters)
 
                                 return dict(
-                                    workflow=self._current_workflow,
+                                    workflow=self.current_workflow,
                                     tool=tool,
                                     sources=sources,
                                     alignment_node=alignment_node)
@@ -332,11 +343,11 @@ class HyperStream(object):
                                 :type source: Node
 
                                 """
-                                if not self._current_workflow:
+                                if not self.current_workflow:
                                     raise ValueError("No workflow context - use create_workflow first")
 
                                 # find matching tools (possibly different parameters)
-                                matches = [f for f in self._current_workflow.factors if
+                                matches = [f for f in self.current_workflow.factors if
                                            f.tool.__class__ == tool_func]
                                 # make sure parameters are all the same
                                 full_matches = [m for m in matches if m.source == source
@@ -349,7 +360,7 @@ class HyperStream(object):
                                     tool = tool_func(**parameters)
 
                                 return dict(
-                                    workflow=self._current_workflow,
+                                    workflow=self.current_workflow,
                                     tool=tool,
                                     source=source,
                                     splitting_node=splitting_node)
@@ -368,11 +379,11 @@ class HyperStream(object):
                                 :type sources: list[Node] | tuple[Node] | None
 
                                 """
-                                if not self._current_workflow:
+                                if not self.current_workflow:
                                     raise ValueError("No workflow context - use create_workflow first")
 
                                 # find matching tools (possibly different parameters)
-                                matches = [f for f in self._current_workflow.factors if
+                                matches = [f for f in self.current_workflow.factors if
                                            f.tool.__class__ == tool_func]
                                 # make sure parameters are all the same
                                 full_matches = [m for m in matches if m.sources == sources
@@ -385,7 +396,7 @@ class HyperStream(object):
                                     tool = tool_func(aggregation_meta_data=aggregation_meta_data, **parameters)
 
                                 return dict(
-                                    workflow=self._current_workflow,
+                                    workflow=self.current_workflow,
                                     tool=tool,
                                     sources=sources,
                                     alignment_node=alignment_node)
@@ -402,11 +413,11 @@ class HyperStream(object):
                                 :type sources: list[Node] | tuple[Node] | None
 
                                 """
-                                if not self._current_workflow:
+                                if not self.current_workflow:
                                     raise ValueError("No workflow context - use create_workflow first")
 
                                 # find matching tools (possibly different parameters)
-                                matches = [f for f in self._current_workflow.factors if
+                                matches = [f for f in self.current_workflow.factors if
                                            f.tool.__class__ == tool_func]
                                 # make sure parameters are all the same
                                 full_matches = [m for m in matches if m.sources == sources
@@ -419,7 +430,7 @@ class HyperStream(object):
                                     tool = tool_func(selector_meta_data=selector_meta_data, **parameters)
 
                                 return dict(
-                                    workflow=self._current_workflow,
+                                    workflow=self.current_workflow,
                                     tool=tool,
                                     sources=sources)
 
@@ -434,11 +445,11 @@ class HyperStream(object):
                                 :type source: Node
 
                                 """
-                                if not self._current_workflow:
+                                if not self.current_workflow:
                                     raise ValueError("No workflow context - use create_workflow first")
 
                                 return dict(
-                                    workflow=self._current_workflow,
+                                    workflow=self.current_workflow,
                                     tool=tool_func(**parameters),
                                     source=source)
 
