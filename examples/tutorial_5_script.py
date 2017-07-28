@@ -65,30 +65,53 @@ CC = hs.plate_manager.create_plate(plate_id="C.C", description="Cities", values=
 
 print hs.plate_manager.meta_data_manager.global_plate_definitions
 
+from hyperstream import Workflow
+
+# parameters for the csv_mutli_reader tool
 csv_params = dict(
     filename_template='data/TimeSeriesDatasets_130207/Temp{}.csv',
-    datetime_parser=dateparser, skip_rows=1)
+    datetime_parser=dateparser, skip_rows=0, header=True)
+
+sum_values = lambda x: sum(x.values())
 
 with Workflow(workflow_id='tutorial_05', name='tutorial_05', owner='tutorials',
               description='Tutorial 5 workflow', online=False) as w:
 
     country_node = w.create_node(stream_name='raw_data', channel=M, plates=[C])
     city_node = w.create_node(stream_name='temperature', channel=M, plates=[CC])
+    # FIXME Are these correct?
+    country_node_avg_temp = w.create_node(stream_name='avg_temp', channel=M, plates=[C])
+    # FIXME Should I create a node outside the plates?
+    world_node_avg_temp = w.create_node(stream_name='avg_temp', channel=M, plates=[])
 
     for c in C:
         country_node[c] = hs.plugins.data_importers.factors.csv_multi_reader(source=None, **csv_params)
-
         for cc in CC[c]:
-            city_node[cc] = hs.factors.splitter_from_stream(
-                source=country_node[c], splitting_node=country_node[c], use_mapping_keys_only=True)
-
-    ## Only one iteration on each loop is effectively used
-    #c = C.__iter__().next()
-    #country_node[c] = hs.plugins.data_importers.factors.csv_multi_reader(source=None, **csv_params)
-    #cc = CC[c].__iter__().next()
-    #city_node[cc] = hs.factors.splitter_from_stream(
-    #            source=country_node[c], splitting_node=country_node[c], use_mapping_keys_only=True)
-
+            city_node[cc] = hs.factors.splitter_from_stream(source=country_node[c],
+                                                            splitting_node=country_node[c],
+                                                            use_mapping_keys_only=True)
+        ## FIXME tool_factory_function() takes 3 arguments... 0 given?
+        ##      87         if alignment_node and alignment_node.plates:
+        ##     88             # TODO: Need to implement alignment nodes that live inside plates
+        ##---> 89             raise NotImplementedError("Currently only alignment nodes outside of plates are supported")
+        ##     90
+        ##     91         self.alignment_node = alignment_node
+        ##
+        ##NotImplementedError: Currently only alignment nodes outside of plates are supported
+        #country_node_avg_temp[c] = hs.factors.aggregate(sources=[city_node],
+        #                                               alignment_node=country_node_avg_temp,
+        #                                               aggregation_meta_data='city',
+        #                                               func=sum)
+        ## FIXME This is tryingo to use aggregate_into_dict. Does not work neither
+        #country_node_avg_temp[c] = hs.factors.aggregate_into_dict_and_apply(sources=[city_node],
+        #                                               alignment_node=country_node_avg_temp,
+        #                                                aggregation_meta_data='city',
+        #                                                func=sum_values)
+    # FIXME Should I create a node for a stream outside the plates?
+    world_node_avg_temp = hs.factors.aggregate_into_dict_and_apply(sources=[city_node],
+                                                        alignment_node=country_node_avg_temp,
+                                                        aggregation_meta_data='city',
+                                                        func=sum_values)
     w.execute(ti_all)
 
 for stream in country_node.streams:
@@ -98,3 +121,6 @@ for stream in country_node.streams:
 for stream in city_node.streams:
     print(stream)
     print(city_node.streams[stream].window().first())
+
+for key, value in world_node_avg_temp.iteritems():
+    print("[{}]: {}".format(key, value))
