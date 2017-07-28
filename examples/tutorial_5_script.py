@@ -99,28 +99,32 @@ with Workflow(workflow_id='tutorial_05', name='tutorial_05', owner='tutorials',
         ##
         ##NotImplementedError: Currently only alignment nodes outside of plates are supported
         #country_node_avg_temp[c] = hs.factors.aggregate(sources=[city_node],
-        #                                               alignment_node=country_node_avg_temp,
-        #                                               aggregation_meta_data='city',
-        #                                               func=sum)
-        ## FIXME This is tryingo to use aggregate_into_dict. Does not work neither
-        #country_node_avg_temp[c] = hs.factors.aggregate_into_dict_and_apply(sources=[city_node],
-        #                                               alignment_node=country_node_avg_temp,
+        #                                                alignment_node=None,
         #                                                aggregation_meta_data='city',
-        #                                                func=sum_values)
+        #                                                func=float)
+        ## FIXME This is tryingo to use aggregate_into_dict. Does not work neither
+        country_node_avg_temp[c] = hs.factors.aggregate_into_dict_and_apply(sources=[city_node],
+                                                       alignment_node=None,
+                                                        aggregation_meta_data='city',
+                                                        func=float)
     # FIXME Should I create a node for a stream outside the plates?
     world_node_avg_temp = hs.factors.aggregate_into_dict_and_apply(sources=[city_node],
-                                                        alignment_node=country_node_avg_temp,
+                                                        alignment_node=None,
                                                         aggregation_meta_data='city',
-                                                        func=sum_values)
+                                                        func=float)
     w.execute(ti_all)
 
-for stream in country_node.streams:
-    print(stream)
-    print(country_node.streams[stream].window().first())
+for stream_id, stream in country_node.streams.iteritems():
+    print(stream_id)
+    print(stream.window().first())
 
-for stream in city_node.streams:
-    print(stream)
-    print(city_node.streams[stream].window().first())
+for stream_id, stream in city_node.streams.iteritems():
+    print(stream_id)
+    print(stream.window().first())
+
+for stream_id, stream in country_node_avg_temp.streams.iteritems():
+    print(stream_id)
+    print(stream.window().first())
 
 for key, value in world_node_avg_temp.iteritems():
     print("[{}]: {}".format(key, value))
