@@ -72,7 +72,8 @@ csv_params = dict(
     filename_template='data/TimeSeriesDatasets_130207/Temp{}.csv',
     datetime_parser=dateparser, skip_rows=0, header=True)
 
-sum_values = lambda x: sum(x.values())
+def mean(x):
+    return float(sum(x)) / max(len(x), 1)
 
 with Workflow(workflow_id='tutorial_05', name='tutorial_05', owner='tutorials',
               description='Tutorial 5 workflow', online=False) as w:
@@ -90,28 +91,15 @@ with Workflow(workflow_id='tutorial_05', name='tutorial_05', owner='tutorials',
             city_node[cc] = hs.factors.splitter_from_stream(source=country_node[c],
                                                             splitting_node=country_node[c],
                                                             use_mapping_keys_only=True)
-        ## FIXME tool_factory_function() takes 3 arguments... 0 given?
-        ##      87         if alignment_node and alignment_node.plates:
-        ##     88             # TODO: Need to implement alignment nodes that live inside plates
-        ##---> 89             raise NotImplementedError("Currently only alignment nodes outside of plates are supported")
-        ##     90
-        ##     91         self.alignment_node = alignment_node
-        ##
-        ##NotImplementedError: Currently only alignment nodes outside of plates are supported
-        #country_node_avg_temp[c] = hs.factors.aggregate(sources=[city_node],
-        #                                                alignment_node=None,
-        #                                                aggregation_meta_data='city',
-        #                                                func=float)
-        ## FIXME This is tryingo to use aggregate_into_dict. Does not work neither
-        country_node_avg_temp[c] = hs.factors.aggregate_into_dict_and_apply(sources=[city_node],
-                                                       alignment_node=None,
-                                                        aggregation_meta_data='city',
-                                                        func=float)
-    # FIXME Should I create a node for a stream outside the plates?
-    world_node_avg_temp = hs.factors.aggregate_into_dict_and_apply(sources=[city_node],
+        country_node_avg_temp[c] = hs.factors.aggregate(sources=[city_node],
                                                         alignment_node=None,
                                                         aggregation_meta_data='city',
-                                                        func=float)
+                                                        func=mean)
+    # FIXME Should I create a node for a stream outside the plates?
+    world_node_avg_temp = hs.factors.aggregate(sources=[country_node_avg_temp],
+                                               alignment_node=None,
+                                               aggregation_meta_data='country',
+                                               func=mean)
     w.execute(ti_all)
 
 for stream_id, stream in country_node.streams.iteritems():
