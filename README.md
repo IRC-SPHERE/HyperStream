@@ -98,6 +98,8 @@ The following tutorials show how to use HyperStream in a step-by-step guide.
 - [Tutorial 4: Real-time streams][5]
 - [Tutorial 5: Workflows][6]
 
+## Running the tutorials in a docker container #
+
 It is possible to run all the tutorials in your own machine ussing Docker containers defined in [IRC-SPHERE/Hyperstream-Dockerfiles](https://github.com/IRC-SPHERE/HyperStream-Dockerfiles). You can do that by running the following commands:
 
 ```bash
@@ -107,6 +109,32 @@ docker-compose -f docker-compose-tutorials.yml -p hyperstream-tutorials up
 ```
 
 And then open the url http://0.0.0.0:8888/tree in a web-browser
+
+## Running the tutorials in the cloned folder  #
+
+To run the tutorials in the cloned repository you will need to install
+additional dependencies. First you should activate the virtual
+environment and installed the general requirements to run HyperStream following
+the instructions above. After that, install the dependencies for the tutorial
+with
+
+``` Bash
+pip install -r requirements_tutorial.txt
+```
+
+and go to the experiments folder
+
+```Bash
+cd experiments
+```
+
+And run a Jupyter notebook
+
+```Bash
+jupyter notebook
+```
+
+Now you can follow the instructions from the first tutorial.
 
 ## Simple use-case #
 

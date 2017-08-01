@@ -1,0 +1,2 @@
+watermark>=1.4.0
+jupyter
