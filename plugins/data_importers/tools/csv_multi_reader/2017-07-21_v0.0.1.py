@@ -19,10 +19,16 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
+import os
 from hyperstream import MultiOutputTool, StreamInstance, StreamMetaInstance
 
 from dateutil.parser import parse
 
+def my_float(x):
+    try:
+        return float(x)
+    except:
+        return None
 
 class CsvMultiReader(MultiOutputTool):
     def __init__(self, filename_template, datetime_parser=parse,
@@ -35,7 +41,8 @@ class CsvMultiReader(MultiOutputTool):
             header=header
         )
 
-    def _execute(self, source, splitting_stream, interval, meta_data_id, output_plate_values):
+    def _execute(self, source, splitting_stream, interval, meta_data_id,
+                 output_plate_values):
 
         # Let's make the assumption that the first field is the timestamp
 
@@ -49,6 +56,9 @@ class CsvMultiReader(MultiOutputTool):
             ((meta_data_id, plate_value),) = pv
 
             filename = self.filename_template.format(plate_value)
+
+            if not os.path.isfile(filename):
+                continue
 
             with open(filename, 'rU') as f:
                 for line in f.readlines():
@@ -66,7 +76,7 @@ class CsvMultiReader(MultiOutputTool):
                     del elements[self.datetime_column]
                     if dt in interval:
                         if self.header:
-                            values = dict(zip(colnames, map(float, elements)))
+                            values = dict(zip(colnames, map(my_float, elements)))
                         else:
                             values = map(float, elements)
                         instance = StreamInstance(dt, values)

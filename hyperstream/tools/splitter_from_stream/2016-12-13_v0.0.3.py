@@ -74,6 +74,10 @@ class SplitterFromStream(MultiOutputTool):
                                      .format(meta_data))
                         continue
                     plate_value = mapping[meta_data]
+                    # TODO MPN: I removed elements with value None but I am not
+                    # sure about all the possible implications
+                    if sub_value is None:
+                        continue
                     yield StreamMetaInstance((timestamp, sub_value),
                                              (meta_data_id, plate_value))
             else:

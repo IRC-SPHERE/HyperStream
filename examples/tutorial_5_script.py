@@ -32,7 +32,8 @@ countries_dict = {
     'Australia': ['BrisbaneMax', 'BrisbaneMin', 'Canberramax', 'CanberraMin', 'GoldCoastMax', 'GoldCoastMin',
                   'MelbourneMin', 'Melbournemax',  'SydneyMax', 'SydneyMin'],
     'NZ': ['AucklandMax', 'AucklandMin', 'ChristchurchMax', 'ChristchurchMin', 'DunedinMax', 'DunedinMin',
-           'HamiltonMax', 'HamiltonMin','WellingtonMax', 'WellingtonMin'],
+           'HamiltonMax', 'HamiltonMin','WellingtonMax', 'WellingtonMin',
+           'Auckland', 'Christchurch', 'Dunedin', 'Hamilton','Wellington'],
     'USA': ['ChicagoMin', 'ChicagoMax', 'HoustonMax', 'HoustonMin', 'LosAngelesMax', 'LosAngelesMin',
             'NYMax', 'NYMin', 'SeattleMax', 'SeattleMin']
 }
@@ -69,8 +70,14 @@ csv_temp_params = dict(
     filename_template='data/TimeSeriesDatasets_130207/Temp{}.csv',
     datetime_parser=dateparser, skip_rows=0, header=True)
 
+csv_rain_params = dict(
+    filename_template='data/TimeSeriesDatasets_130207/{}Rainfall.csv',
+    datetime_parser=dateparser, skip_rows=0, header=True)
+
 def mean(x):
+    x = [value for value in x if value is not None]
     return float(sum(x)) / max(len(x), 1)
+
 
 with Workflow(workflow_id='tutorial_05',
               name='tutorial_05',
@@ -79,21 +86,35 @@ with Workflow(workflow_id='tutorial_05',
               online=False) as w:
 
     country_node_raw_temp = w.create_node(stream_name='raw_temp_data', channel=M, plates=[C])
+    country_node_raw_rain = w.create_node(stream_name='raw_rain_data', channel=M, plates=[C])
     city_node_temp = w.create_node(stream_name='city_temp', channel=M, plates=[CC])
+    city_node_rain = w.create_node(stream_name='city_rain', channel=M, plates=[CC])
     country_node_avg_temp = w.create_node(stream_name='country_avg_temp', channel=M, plates=[C])
+    country_node_avg_rain = w.create_node(stream_name='country_avg_rain', channel=M, plates=[C])
     # FIXME Should I create a node outside the plates?
-    world_node_avg_temp = w.create_node(stream_name='world_avg_temp', channel=M, plates=[])
+    world_node_avg_temp = w.create_node(stream_name='world_avg_temp',
+                                        channel=M, plates=None)
 
     for c in C:
         country_node_raw_temp[c] = hs.plugins.data_importers.factors.csv_multi_reader(
                 source=None, **csv_temp_params)
+        country_node_raw_rain[c] = hs.plugins.data_importers.factors.csv_multi_reader(
+                source=None, **csv_rain_params)
         for cc in CC[c]:
             city_node_temp[cc] = hs.factors.splitter_from_stream(
                                     source=country_node_raw_temp[c],
                                     splitting_node=country_node_raw_temp[c],
                                     use_mapping_keys_only=True)
+            city_node_rain[cc] = hs.factors.splitter_from_stream(
+                                    source=country_node_raw_rain[c],
+                                    splitting_node=country_node_raw_rain[c],
+                                    use_mapping_keys_only=True)
         country_node_avg_temp[c] = hs.factors.aggregate(
                                     sources=[city_node_temp],
+                                    alignment_node=None,
+                                    aggregation_meta_data='city', func=mean)
+        country_node_avg_rain[c] = hs.factors.aggregate(
+                                    sources=[city_node_rain],
                                     alignment_node=None,
                                     aggregation_meta_data='city', func=mean)
     # FIXME Should I create a node for a stream outside the plates?
@@ -103,26 +124,21 @@ with Workflow(workflow_id='tutorial_05',
                                                func=mean)
     w.execute(ti_all)
 
-print("\n#### Printing city node temperatures ####")
-for stream_id, stream in city_node_temp.streams.iteritems():
-    print(stream_id)
-    print(stream.window().first())
-
 print("\n#### Printing country node avg temperatures ####")
-print("\n==== Access by node                         ====")
-for stream_id, stream in country_node_avg_temp.streams.iteritems():
-    print(stream_id)
-    print(stream.window().first())
-print("\n==== Access by find_streams                 ====")
 for stream_id, stream in M.find_streams(name='country_avg_temp').iteritems():
     print stream_id
     print [instance.value for instance in stream.window(ti_sample).items()]
 
+print("\n#### Printing country node avg rainfall ####")
+for stream_id, stream in M.find_streams(name='country_avg_rain').iteritems():
+    print stream_id
+    print [instance.value for instance in stream.window(ti_sample).items()]
+
 print("\n#### Printing world node avg temperatures   ####")
-print("\n==== Access by node                         ====")
-for key, value in world_node_avg_temp.iteritems():
-    print("[{}]: {}".format(key, value))
-print("\n==== Access by find_streams                 ====")
 for stream_id, stream in M.find_streams(name='world_avg_temp').iteritems():
     print stream_id
     print [instance.value for instance in stream.window(ti_sample).items()]
+
+print(w.to_json(w.factorgraph_viz, tool_long_names=False, indent=4))
+from pprint import pprint
+pprint(w.to_dict(tool_long_names=False))
