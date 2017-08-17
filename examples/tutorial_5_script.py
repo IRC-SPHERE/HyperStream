@@ -104,6 +104,9 @@ with Workflow(workflow_id='tutorial_05',
     city_node_rain = w.create_node(stream_name='city_rain', channel=M, plates=[CC])
     country_node_avg_rain = w.create_node(stream_name='country_avg_rain', channel=M, plates=[C])
 
+    city_node_temp_rain = w.create_node(stream_name='city_temp_rain', channel=M, plates=[CC])
+    country_node_avg_temp_rain = w.create_node(stream_name='country_avg_temp_rain', channel=M, plates=[C])
+
     for c in C:
         country_node_raw_temp[c] = hs.plugins.data_importers.factors.csv_multi_reader(
                 source=None, **csv_temp_params)
@@ -126,12 +129,21 @@ with Workflow(workflow_id='tutorial_05',
                                     source=country_node_raw_rain[c],
                                     splitting_node=country_node_raw_rain[c],
                                     use_mapping_keys_only=True)
+
+            city_node_temp_rain[cc] = hs.plugins.example.factors.aligned_correlation(
+                                    sources=[city_node_avg_temp[cc],
+                                             city_node_rain[cc]],
+                                    use_mapping_keys_only=True)
         country_node_avg_temp[c] = hs.factors.aggregate(
                                     sources=[city_node_avg_temp],
                                     alignment_node=None,
                                     aggregation_meta_data='city', func=mean)
         country_node_avg_rain[c] = hs.factors.aggregate(
                                     sources=[city_node_rain],
+                                    alignment_node=None,
+                                    aggregation_meta_data='city', func=mean)
+        country_node_avg_temp_rain[c] = hs.factors.aggregate(
+                                    sources=[city_node_temp_rain],
                                     alignment_node=None,
                                     aggregation_meta_data='city', func=mean)
     w.execute(ti_all)
@@ -143,6 +155,11 @@ for stream_id, stream in M.find_streams(name='temp_data').iteritems():
 
 print("\n#### Printing city node temperatures ####")
 for stream_id, stream in M.find_streams(name='city_temp').iteritems():
+    print stream_id
+    print [instance.value for instance in stream.window(ti_sample).items()]
+
+print("\n#### Printing city node temp/rain ####")
+for stream_id, stream in M.find_streams(name='city_temp_rain').iteritems():
     print stream_id
     print [instance.value for instance in stream.window(ti_sample).items()]
 
