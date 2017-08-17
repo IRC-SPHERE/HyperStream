@@ -27,15 +27,10 @@ ti_sample = TimeInterval(datetime(2007, 1, 1).replace(tzinfo=UTC),
 M = hs.channel_manager.memory
 
 countries_dict = {
-    'Asia': ['BangkokMin', 'BangkokMax', 'HongKongMax', 'HongKongMin', 'KualaLumpurMax', 'KualaLumpurMin',
-             'NewDelhiMax', 'NewDelhiMin', 'TokyoMax', 'TokyoMin'],
-    'Australia': ['BrisbaneMax', 'BrisbaneMin', 'Canberramax', 'CanberraMin', 'GoldCoastMax', 'GoldCoastMin',
-                  'MelbourneMin', 'Melbournemax',  'SydneyMax', 'SydneyMin'],
-    'NZ': ['AucklandMax', 'AucklandMin', 'ChristchurchMax', 'ChristchurchMin', 'DunedinMax', 'DunedinMin',
-           'HamiltonMax', 'HamiltonMin','WellingtonMax', 'WellingtonMin',
-           'Auckland', 'Christchurch', 'Dunedin', 'Hamilton','Wellington'],
-    'USA': ['ChicagoMin', 'ChicagoMax', 'HoustonMax', 'HoustonMin', 'LosAngelesMax', 'LosAngelesMin',
-            'NYMax', 'NYMin', 'SeattleMax', 'SeattleMin']
+    'Asia': ['Bangkok', 'HongKong', 'KualaLumpur', 'NewDelhi', 'Tokyo'],
+    'Australia': ['Brisbane', 'Canberra', 'GoldCoast', 'Melbourne',  'Sydney'],
+    'NZ': ['Auckland', 'Christchurch', 'Dunedin', 'Hamilton','Wellington'],
+    'USA': ['Chicago', 'Houston', 'LosAngeles', 'NY', 'Seattle']
 }
 
 # delete_plate requires the deletion to be first childs and then parents
@@ -78,6 +73,20 @@ def mean(x):
     x = [value for value in x if value is not None]
     return float(sum(x)) / max(len(x), 1)
 
+def dict_mean(d):
+    x = d.values()
+    x = [value for value in x if value is not None]
+    return float(sum(x)) / max(len(x), 1)
+
+def split_temperatures(d):
+    new_d = {}
+    for name, value in d.iteritems():
+        key = name[-3:].lower()
+        name = name[:-3]
+        if name not in new_d:
+            new_d[name] = {}
+        new_d[name][key] = value
+    return new_d
 
 with Workflow(workflow_id='tutorial_05',
               name='tutorial_05',
@@ -86,43 +95,56 @@ with Workflow(workflow_id='tutorial_05',
               online=False) as w:
 
     country_node_raw_temp = w.create_node(stream_name='raw_temp_data', channel=M, plates=[C])
-    country_node_raw_rain = w.create_node(stream_name='raw_rain_data', channel=M, plates=[C])
+    country_node_temp = w.create_node(stream_name='temp_data', channel=M, plates=[C])
     city_node_temp = w.create_node(stream_name='city_temp', channel=M, plates=[CC])
-    city_node_rain = w.create_node(stream_name='city_rain', channel=M, plates=[CC])
+    city_node_avg_temp = w.create_node(stream_name='city_avg_temp', channel=M, plates=[CC])
     country_node_avg_temp = w.create_node(stream_name='country_avg_temp', channel=M, plates=[C])
+
+    country_node_raw_rain = w.create_node(stream_name='raw_rain_data', channel=M, plates=[C])
+    city_node_rain = w.create_node(stream_name='city_rain', channel=M, plates=[CC])
     country_node_avg_rain = w.create_node(stream_name='country_avg_rain', channel=M, plates=[C])
-    # FIXME Should I create a node outside the plates?
-    world_node_avg_temp = w.create_node(stream_name='world_avg_temp',
-                                        channel=M, plates=None)
 
     for c in C:
         country_node_raw_temp[c] = hs.plugins.data_importers.factors.csv_multi_reader(
                 source=None, **csv_temp_params)
+        country_node_temp[c] = hs.factors.apply(
+                sources=[country_node_raw_temp[c]],
+                func=split_temperatures)
+
         country_node_raw_rain[c] = hs.plugins.data_importers.factors.csv_multi_reader(
                 source=None, **csv_rain_params)
         for cc in CC[c]:
             city_node_temp[cc] = hs.factors.splitter_from_stream(
-                                    source=country_node_raw_temp[c],
-                                    splitting_node=country_node_raw_temp[c],
+                                    source=country_node_temp[c],
+                                    splitting_node=country_node_temp[c],
                                     use_mapping_keys_only=True)
+            city_node_avg_temp[cc] = hs.factors.apply(
+                                    sources=[city_node_temp[c]],
+                                    func=dict_mean)
+
             city_node_rain[cc] = hs.factors.splitter_from_stream(
                                     source=country_node_raw_rain[c],
                                     splitting_node=country_node_raw_rain[c],
                                     use_mapping_keys_only=True)
         country_node_avg_temp[c] = hs.factors.aggregate(
-                                    sources=[city_node_temp],
+                                    sources=[city_node_avg_temp],
                                     alignment_node=None,
                                     aggregation_meta_data='city', func=mean)
         country_node_avg_rain[c] = hs.factors.aggregate(
                                     sources=[city_node_rain],
                                     alignment_node=None,
                                     aggregation_meta_data='city', func=mean)
-    # FIXME Should I create a node for a stream outside the plates?
-    world_node_avg_temp = hs.factors.aggregate(sources=[country_node_avg_temp],
-                                               alignment_node=None,
-                                               aggregation_meta_data='country',
-                                               func=mean)
     w.execute(ti_all)
+
+print("\n#### Printing city node temperatures ####")
+for stream_id, stream in M.find_streams(name='temp_data').iteritems():
+    print stream_id
+    print [instance.value for instance in stream.window(ti_sample).items()]
+
+print("\n#### Printing city node temperatures ####")
+for stream_id, stream in M.find_streams(name='city_temp').iteritems():
+    print stream_id
+    print [instance.value for instance in stream.window(ti_sample).items()]
 
 print("\n#### Printing country node avg temperatures ####")
 for stream_id, stream in M.find_streams(name='country_avg_temp').iteritems():
