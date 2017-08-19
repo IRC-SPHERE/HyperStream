@@ -176,13 +176,23 @@ class Factor(FactorBase):
                                           alignment_stream=self.get_alignment_stream(None, None))
         else:
             if isinstance(self.tool, AggregateTool):
-                raise ValueError("Cannot execute an AggregateTool if no plates are defined for the factor")
-            
-            # sources = [source.streams[None] for source in self.sources] if self.sources else None
-            sources = self.get_global_sources()
-            sink = self.sink.streams[None]
-            self.tool.execute(sources=sources, sink=sink, interval=time_interval,
-                              alignment_stream=self.get_alignment_stream(None, None))
+                # raise ValueError("Cannot execute an AggregateTool if no plates are defined for the factor")
+                # Here we're trying to aggregate off a plate. This is only allowed for a single non-overlapping plate.
+                if len(self.sources) != 1:
+                    raise ValueError("Currently only a single source node is valid for an Aggregate Tool")
+                if self.alignment_node:
+                    raise ValueError("Currently an alignment node cannot be used with an Aggregate Tool")
+
+                sources = self.sources[0].streams.values()
+                sink = self.sink.streams[None]
+                self.tool.execute(sources=sources, sink=sink, interval=time_interval, alignment_stream=None)
+
+            else:
+                # sources = [source.streams[None] for source in self.sources] if self.sources else None
+                sources = self.get_global_sources()
+                sink = self.sink.streams[None]
+                self.tool.execute(sources=sources, sink=sink, interval=time_interval,
+                                  alignment_stream=self.get_alignment_stream(None, None))
         return self
     
     def get_sources(self, plate, plate_value, sources=None):
