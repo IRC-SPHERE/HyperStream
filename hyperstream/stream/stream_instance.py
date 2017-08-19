@@ -21,9 +21,8 @@
 
 from datetime import datetime
 from collections import namedtuple
-import logging
 
-from ..utils import utcnow
+from ..utils import utcnow, remove_microseconds
 
 
 class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
@@ -34,6 +33,9 @@ class StreamInstance(namedtuple("StreamInstance", "timestamp value")):
     def __new__(cls, timestamp, value):
         if not isinstance(timestamp, datetime):
             raise ValueError("Timestamp must be datetime.datetime")
+
+        # HyperStream operates at millisecond precision
+        timestamp = remove_microseconds(timestamp)
 
         if timestamp > utcnow():
             raise ValueError("Timestamp {} should not be in the future!".format(timestamp))

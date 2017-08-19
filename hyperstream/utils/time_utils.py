@@ -33,14 +33,18 @@ MIN_DATE = datetime.min.replace(tzinfo=UTC)
 MAX_DATE = datetime.max.replace(tzinfo=UTC).replace(microsecond=0)
 
 
+def remove_microseconds(ts):
+    milliseconds = int(ts.microsecond / 1000 * 1000)
+    return datetime(ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, milliseconds, UTC)
+
+
 def utcnow():
     """
     Gets the current datetime in UTC format with millisecond precision
     :return:
     """
     now = udatetime.utcnow().replace(tzinfo=UTC)
-    milliseconds = int(now.microsecond / 1000 * 1000)
-    return datetime(now.year, now.month, now.day, now.hour, now.minute, now.second, milliseconds, UTC)
+    return remove_microseconds(now)
 
 
 def get_timedelta(value):

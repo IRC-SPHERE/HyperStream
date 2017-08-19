@@ -21,7 +21,7 @@
 Module for dealing with time intervals containing TimeInterval, TimeIntervals, and RelativeTimeInterval
 """
 
-from .utils import MIN_DATE, MAX_DATE, utcnow, UTC, Printable, get_timedelta, is_naive
+from .utils import MIN_DATE, MAX_DATE, utcnow, UTC, Printable, get_timedelta, is_naive, remove_microseconds
 
 from datetime import date, datetime, timedelta
 import ciso8601
@@ -279,6 +279,10 @@ class TimeInterval(namedtuple("TimeInterval", "start end")):
             self._start = self._start.replace(tzinfo=UTC)
         if is_naive(self._end):
             self._end = self._end.replace(tzinfo=UTC)
+
+        # Remove the microseconds, since HyperStream is only millisecond precise
+        self._start = remove_microseconds(self._start)
+        self._end = remove_microseconds(self._end)
 
         try:
             if self._start >= self._end:
