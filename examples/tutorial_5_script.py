@@ -107,6 +107,9 @@ with Workflow(workflow_id='tutorial_05',
     city_node_temp_rain = w.create_node(stream_name='city_temp_rain', channel=M, plates=[CC])
     country_node_avg_temp_rain = w.create_node(stream_name='country_avg_temp_rain', channel=M, plates=[C])
 
+    world_node_avg_temp = w.create_node(stream_name='world_avg_temp',
+                                        channel=M, plates=[])
+
     for c in C:
         country_node_raw_temp[c] = hs.plugins.data_importers.factors.csv_multi_reader(
                 source=None, **csv_temp_params)
@@ -146,6 +149,10 @@ with Workflow(workflow_id='tutorial_05',
                                     sources=[city_node_temp_rain],
                                     alignment_node=None,
                                     aggregation_meta_data='city', func=mean)
+    world_node_avg_temp[None] = hs.factors.aggregate(sources=[country_node_avg_temp],
+                                           alignment_node=None,
+                                           aggregation_meta_data='country',
+                                           func=mean)
     w.execute(ti_all)
 
 print("\n#### Printing city node temperatures ####")
