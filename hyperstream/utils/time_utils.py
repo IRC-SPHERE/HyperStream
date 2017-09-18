@@ -20,7 +20,11 @@
 import json
 import pytz
 from datetime import datetime, date, timedelta
-import udatetime
+import os
+if os.name != 'nt':
+    import udatetime
+else:
+    from datetime import datetime as udatetime
 
 
 # noinspection PyClassHasNoInit
