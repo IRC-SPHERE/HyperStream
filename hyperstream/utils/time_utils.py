@@ -24,7 +24,7 @@ import os
 if os.name != 'nt':
     import udatetime
 else:
-    from datetime import datetime as udatetime
+    udatetime = datetime
 
 
 # noinspection PyClassHasNoInit
