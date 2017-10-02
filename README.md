@@ -15,7 +15,7 @@
 Hyperstream is a large-scale, flexible and robust software package for processing streaming data.
 
 * HyperStream [homepage](https://irc-sphere.github.io/HyperStream/)
-* Tutorial [notebooks](http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/master/examples/)
+* Tutorial [notebooks](http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/master/examples/index.ipynb)
 * Gitter [chat room](https://gitter.im/IRC-SPHERE-HyperStream/Lobby)
 * Developer [documentation](http://hyperstream.readthedocs.io/en/latest/)
 
