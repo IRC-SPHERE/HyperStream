@@ -67,6 +67,24 @@ Once the MongoDB server is installed, it can be started with the following comma
 service mongod start
 ```
 
+If installing MongoDB on OSX
+
+``` Bash
+brew install mongodb
+```
+
+then 
+
+``` Bash
+ln -sfv /usr/local/opt/mongodb/*.plist ~/Library/LaunchAgents
+```
+
+run MongoDB service with
+
+``` Bash
+launchctl load ~/Library/LaunchAgents/homebrew.mxcl.mongodb.plist
+```
+
 # Running tests #
 
 Run the following command
