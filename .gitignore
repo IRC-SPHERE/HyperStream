@@ -108,3 +108,4 @@ output/
 .Rhistory
 docs_tmp
 venv3
+.idea/

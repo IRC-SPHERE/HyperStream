@@ -47,7 +47,8 @@ class HyperStream(object):
     For py2k/py3k compatability we use the six decorator add_metaclass:
         https://pythonhosted.org/six/#six.add_metaclass
     """
-    def __init__(self, loglevel=logging.INFO, file_logger=True, console_logger=True, mqtt_logger=None):
+    def __init__(self, loglevel=logging.INFO, file_logger=True, console_logger=True, mqtt_logger=None,
+                 config_filename="hyperstream_config.json"):
         """
         Initialise the HyperStream class. This starts the logger, loads the config files, connects to the main mongodb,
         and initialises the managers (channels, plates, workflows).
@@ -61,7 +62,9 @@ class HyperStream(object):
         :param console_logger: The console logger. Either specify "True" in which case defaults are used,
         otherwise a dict optionally containing loglevel
         :param mqtt_logger: Dict containing mqtt server, topic, and optionally loglevel
+        :param config_filename: Configuration file
         """
+        self.config_filename = config_filename
         self._session = None
 
         self.parameters = dict(
@@ -73,7 +76,7 @@ class HyperStream(object):
 
         self.logger = HyperStreamLogger(
             default_loglevel=loglevel, file_logger=file_logger, console_logger=console_logger, mqtt_logger=mqtt_logger)
-        self.config = HyperStreamConfig()
+        self.config = HyperStreamConfig(filename=config_filename)
         self.client = Client(self.config.mongo)
 
         # Define some managers

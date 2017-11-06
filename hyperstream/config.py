@@ -40,16 +40,16 @@ class OnlineEngineConfig(Printable):
 
 class HyperStreamConfig(Printable):
     """
-    Wrapper around the hyperstream configuration file (hyperstream_config.json)
+    Wrapper around the hyperstream configuration file
     """
-    def __init__(self):
+    def __init__(self, filename="hyperstream_config.json"):
         """
         Initialise the configuration - currently uses fixed file name (hyperstream_config.json)
         """
         self.mongo = None
 
         try:
-            with open('hyperstream_config.json', 'r') as f:
+            with open(filename, 'r') as f:
                 logging.getLogger("hyperstream")
                 logging.info('Reading ' + os.path.abspath(f.name))
                 config = json.load(f)
