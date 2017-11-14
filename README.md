@@ -55,7 +55,14 @@ python -c 'from hyperstream import HyperStream'
 
 Additionally, one of the requirements to run Hyperstream is a MongoDB server. By default, Hyperstream tries to connect to the port 27017 on the localhost.
 
-To see the installation steps of MongoDB go to the [official documentation][1]. E.g. in a Debian OS it is possible to install with the following command
+To access via a cloud provider, you might try mLab, MongoDB Atlas, or search for a different one. If you are using mLab, here are a few notes:
+
+- Set up an account via the mLab web site instructions. When asked to pick a server type (e.g. Amazon, Google, etc) you can just choose free option of 500MB. This is more than enough to get started.
+- mLab will ask you to create a database; any name is fine, but make sure you write down what it is.
+- After creating a database, note that you’ll need to create at least one database user in order to access the database.
+- You can test your database connection using MongoDB’s built-in command line tools
+
+To install MongoDB locally go to the [official documentation][1]. E.g. in a Debian OS it is possible to install with the following command
 
 ``` Bash
 sudo apt-get install mongodb
