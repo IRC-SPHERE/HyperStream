@@ -8,7 +8,7 @@
 [![Join the chat at https://gitter.im/IRC-SPHERE-HyperStream/Lobby](https://badges.gitter.im/IRC-SPHERE-HyperStream/Lobby.svg)](https://gitter.im/IRC-SPHERE-HyperStream/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/IRC-SPHERE/HyperStream.svg?branch=master)](https://travis-ci.org/IRC-SPHERE/HyperStream)
 [![Dependency Status](https://www.versioneye.com/user/projects/58e423cb26a5bb005220301e/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/58e423cb26a5bb005220301e)
-[![Test Coverage](https://codeclimate.com/github/IRC-SPHERE/HyperStream/badges/coverage.svg)](https://codeclimate.com/github/IRC-SPHERE/HyperStream/coverage)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/test_coverage)](https://codeclimate.com/github/codeclimate/codeclimate/test_coverage)
 [![Issue Count](https://codeclimate.com/github/IRC-SPHERE/HyperStream/badges/issue_count.svg)](https://codeclimate.com/github/IRC-SPHERE/HyperStream)
 [![Documentation Status](https://readthedocs.org/projects/hyperstream/badge/?version=latest)](http://hyperstream.readthedocs.io/en/latest/?badge=latest)
 
