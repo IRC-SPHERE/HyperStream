@@ -1,3 +1,8 @@
+
+env:
+  global:
+    - CC_TEST_REPORTER_ID=494e5448387409f38ba3d761e1673e401abd5695e0aee464e675481481d0bd86
+
 language: python
 python:
   - "2.7"
@@ -21,11 +26,17 @@ services:
 
 #before_script: mosquitto
 
-before_script: docker run -dti -p 1883:1883 -p 9001:9001 toke/mosquitto
+before_script:
+  - docker run -dti -p 1883:1883 -p 9001:9001 toke/mosquitto
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
 
 # command to run tests
 script:
   - nosetests --with-coverage
 
-after_sucess:
-  - CODECLIMATE_REPO_TOKEN=494e5448387409f38ba3d761e1673e401abd5695e0aee464e675481481d0bd86 codeclimate-test-reporter
+#after_sucess:
+#  - CODECLIMATE_REPO_TOKEN=494e5448387409f38ba3d761e1673e401abd5695e0aee464e675481481d0bd86 codeclimate-test-reporter
+after_script:
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi
