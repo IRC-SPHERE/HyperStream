@@ -160,13 +160,19 @@ class Factor(FactorBase):
                         if source_plates == self_plates:
                             # This is the case where the sources are all on separate plates and the sink is the
                             # combination
-                            for pv in sorted(itertools.product(*([x[0] for x in p.values] for p in self.plates))):
+                            search = [[x[0] for x in p.values] for p in self.plates]
+                            _pv = sorted(itertools.product(*search))
+                            for pv in _pv:
                                 # Here we're selecting the streams that have the partial match of the plate value
                                 sources = [source.streams[s] for source in self.sources
                                            for s in source.streams if (s[0] in pv)]
-                                sink = self.sink.streams[pv]
-                                self.tool.execute(sources=sources, sink=sink, interval=time_interval,
+                                try:
+                                    sink = self.sink.streams[pv]
+                                    self.tool.execute(sources=sources, sink=sink, interval=time_interval,
                                                   alignment_stream=self.get_alignment_stream(None, None))
+                                except KeyError as e:
+                                    continue
+
                         else:
                             raise NotImplementedError
                     for pv in Plate.get_overlapping_values(self.plates):
