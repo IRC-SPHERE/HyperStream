@@ -64,7 +64,7 @@ class MemoryChannel(BaseChannel):
 
         :return: None
         """
-        for stream_id in self.streams.keys():
+        for stream_id in list(self.streams.keys()):
             self.purge_stream(stream_id, remove_definition=remove_definitions)
 
     def update_streams(self, up_to_timestamp):

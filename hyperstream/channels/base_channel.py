@@ -143,7 +143,7 @@ class BaseChannel(Printable):
         :param sandbox: The sandbox
         :return: None
         """
-        for stream_id in self.streams:
+        for stream_id in list(self.streams):
             stream = self.streams[stream_id]
             if not stream.parent_node:
                 # This can happen if streams have been defined outside of nodes - generally nothing to worry about
@@ -190,7 +190,8 @@ class BaseChannel(Printable):
         return s
     
     def __getitem__(self, item):
-        return self.streams[get_stream_id(item)]
+        # return self.streams[get_stream_id(item)]
+        return self.get_or_create_stream(get_stream_id(item))
 
     def __setitem__(self, key, value):
         self.streams[get_stream_id(key)] = value
