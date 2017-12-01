@@ -284,14 +284,14 @@ class FrozenKeyDict(dict):
                                     .format(key, self[key], value))
                         except ValueError:
                             try:
-                                if not all(map(lambda a, b: a == b, zip(value[k], old[k]))):
+                                if not all(map(lambda x: x[0] == x[1], zip(value[k], old[k]))):
                                     raise KeyError(
                                         "Key {} has already been set with value {}, new value {}"
                                         .format(key, self[key], value))
                             except ValueError as e:
                                 logging.error('Unable to compare values for key {}:'
                                               ' old {}, new {}, error {}, overwriting'
-                                              .format(key, self[key], value, e.message))
+                                              .format(key, self[key], value, e))
                                 self[key][k] = value[k]
                         continue
                     self[key][k] = value[k]
