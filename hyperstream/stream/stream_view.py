@@ -25,6 +25,7 @@ from . import StreamInstance
 
 import logging
 from collections import deque
+from itertools import islice
 
 
 class StreamView(Printable):
@@ -117,6 +118,9 @@ class StreamView(Printable):
 
     def tail(self, n):
         return iter(deque(self, maxlen=n))
+
+    def islice(self, start, stop=None, step=1):
+        return islice(self, start, stop, step)
 
     def component(self, key):
         # TODO: is this needed now we have a Component() tool?
