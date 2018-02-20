@@ -116,15 +116,23 @@ class TimeIntervals(Printable):
 
     @profile
     def split(self, points):
-        if len(points) == 0:
-            return
-        p = points[-1]
-        for i in range(len(self.intervals)):
-            if (self.intervals[i].start < p) and (self.intervals[i].end > p):
-                self.intervals = self.intervals[:i] \
-                                 + [TimeInterval(self.intervals[i].start, p), TimeInterval(p, self.intervals[i].end)] \
-                                 + self.intervals[(i + 1):]
-        self.split(points[:-1])
+        '''Splits the list of time intervals in the specified points
+
+        The function assumes that the time intervals do not overlap and ignores
+        points that are not inside of any interval.
+
+        Parameters
+        ==========
+        points: list of datetime
+        '''
+        for p in points:
+            for i in range(len(self.intervals)):
+                if (self.intervals[i].start < p) and (self.intervals[i].end > p):
+                    self.intervals = (self.intervals[:i]
+                                     + [TimeInterval(self.intervals[i].start, p),
+                                        TimeInterval(p, self.intervals[i].end)]
+                                     + self.intervals[(i + 1):])
+                    break
 
     # @profile
     def compress(self):
@@ -464,7 +472,7 @@ def parse_time_tuple(start, end):
         start_time = start.replace(tzinfo=UTC)
     else:
         start_time = ciso8601.parse_datetime(start).replace(tzinfo=UTC)
-    
+
     if isinstance(end, int):
         # TODO: add check for future (negative values) and ensure that start < end
         if not isinstance(start_time, timedelta):

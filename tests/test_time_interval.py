@@ -21,6 +21,7 @@
 import unittest
 
 from hyperstream import TimeIntervals, RelativeTimeInterval, TimeInterval
+from hyperstream.utils import UTC
 from .helpers import *
 
 
@@ -28,31 +29,31 @@ class HyperStreamTimeIntervalTests(unittest.TestCase):
     def test_constructors(self):
         # TODO: is something supposed to go here?
         pass
-    
+
     def test_time_interval(self):
         i1 = TimeIntervals([
             TimeInterval(now, now + hour),
             TimeInterval(now + 2 * hour, now + 3 * hour),
         ])
-        
+
         i2 = TimeIntervals([
             TimeInterval(now + 30 * minute, now + 30 * minute + 2 * hour),
         ])
-        
+
         # print(i1)
         assert (i1 == TimeIntervals(intervals=[TimeInterval(start=datetime(2016, 1, 1, 0, 0),
                                                             end=datetime(2016, 1, 1, 1, 0)),
                                                TimeInterval(start=datetime(2016, 1, 1, 2, 0),
                                                             end=datetime(2016, 1, 1, 3, 0))]))
-        
+
         # print(i2)
         # print()
         s = i1 + i2
         assert (s == TimeIntervals(intervals=[TimeInterval(start=datetime(2016, 1, 1, 0, 0),
                                                            end=datetime(2016, 1, 1, 3, 0))]))
-        
+
         d = i1 - i2
-        
+
         assert (d == TimeIntervals(intervals=[TimeInterval(start=datetime(2016, 1, 1, 0, 0),
                                                            end=datetime(2016, 1, 1, 0, 30)),
                                               TimeInterval(start=datetime(2016, 1, 1, 2, 30),
@@ -65,6 +66,31 @@ class HyperStreamTimeIntervalTests(unittest.TestCase):
         # TODO ... write some tests here
         r1 = RelativeTimeInterval(-30 * second, zero)
         pass
+
+
+    def test_split(self):
+        intervals = [TimeInterval(start=datetime(2016, 1, 1, 0, 0),
+                                  end=datetime(2016, 2, 1, 0, 0)),
+                     TimeInterval(start=datetime(2017, 1, 1, 0, 0),
+                                  end=datetime(2017, 2, 1, 0, 0))]
+        t = TimeIntervals(intervals=intervals)
+        t.split([datetime(2016, 1, 15, 0, 0, tzinfo=UTC),
+                 datetime(2017, 1, 18, 0, 0, tzinfo=UTC)])
+
+
+        expected = [TimeInterval(start=datetime(2016, 1, 1, 0, 0),
+                                 end=datetime(2016, 1, 15, 0, 0)),
+                    TimeInterval(start=datetime(2016, 1, 15, 0, 0),
+                                 end=datetime(2016, 2, 1, 0, 0)),
+                    TimeInterval(start=datetime(2017, 1, 1, 0, 0),
+                                 end=datetime(2017, 1, 18, 0, 0)),
+                    TimeInterval(start=datetime(2017, 1, 18, 0, 0),
+                                 end=datetime(2017, 2, 1, 0, 0))]
+
+        assert(len(t) == len(expected))
+        for i, e in enumerate(expected):
+            assert(e == t[i])
+
 
 if __name__ == '__main__':
     unittest.main()
