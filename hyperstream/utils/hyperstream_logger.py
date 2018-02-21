@@ -52,7 +52,7 @@ class HyperStreamLogger(Printable):
         :param close_existing: Whether to close existing loggers
         """
         # noinspection SpellCheckingInspection
-                if default_loglevel == logging.DEBUG:
+        if default_loglevel == logging.DEBUG:
             log_formatter = logging.Formatter(u"%(asctime)s [%(levelname)-5.5s] %(filename)s:%(lineno)d %(message)s")
         else:
             log_formatter = logging.Formatter(u"%(asctime)s [%(levelname)-5.5s]  %(message)s")
