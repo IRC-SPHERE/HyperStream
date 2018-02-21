@@ -1,16 +1,16 @@
 # The MIT License (MIT)
 # Copyright (c) 2014-2017 University of Bristol
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -38,21 +38,25 @@ class HyperStreamLogger(Printable):
                  close_existing=True):
         """
         Initialise the hyperstream logger
-        
+
         :type console_logger: bool | dict | None
         :type file_logger: bool | dict | None
         :type mqtt_logger: dict | None
         :type close_existing: bool
         :param default_loglevel: The default logging level
-        :param file_logger: Whether to use a file logger. Either specify "True" in which case defaults are used, 
+        :param file_logger: Whether to use a file logger. Either specify "True" in which case defaults are used,
         otherwise a dict optionally containing path, filename, loglevel
-        :param console_logger: The console logger. Either specify "True" in which case defaults are used, 
+        :param console_logger: The console logger. Either specify "True" in which case defaults are used,
         otherwise a dict optionally containing loglevel
         :param mqtt_logger: Dict containing mqtt server, topic, and optionally loglevel
         :param close_existing: Whether to close existing loggers
         """
         # noinspection SpellCheckingInspection
-        log_formatter = logging.Formatter(u"%(asctime)s [%(levelname)-5.5s]  %(message)s")
+                if default_loglevel == logging.DEBUG:
+            log_formatter = logging.Formatter(u"%(asctime)s [%(levelname)-5.5s] %(filename)s:%(lineno)d %(message)s")
+        else:
+            log_formatter = logging.Formatter(u"%(asctime)s [%(levelname)-5.5s]  %(message)s")
+
         self.root_logger = logging.getLogger()
 
         if close_existing:
@@ -156,12 +160,12 @@ logging.addLevelName(MON, "MON")
 def monitor(self, message, *args, **kws):
     """
     Define a monitoring logger that will be added to Logger
-    
-    :param self: The logging object 
+
+    :param self: The logging object
     :param message: The logging message
     :param args: Positional arguments
     :param kws: Keyword arguments
-    :return: 
+    :return:
     """
     if self.isEnabledFor(MON):
         # Yes, logger takes its '*args' as 'args'.
@@ -195,7 +199,7 @@ class SenMLFormatter(logging.Formatter):
         The formatting function
 
         :param record: The record object
-        :return: The string representation of the record 
+        :return: The string representation of the record
         """
 
         try:
