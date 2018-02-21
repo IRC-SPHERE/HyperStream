@@ -47,7 +47,7 @@ class HyperStreamLoggingTests(unittest.TestCase):
 
         with HyperStream() as hs:
             hs.logger = HyperStreamLogger(
-                default_loglevel=logging.DEBUG,
+                default_loglevel=logging.INFO,
                 file_logger=False,
                 console_logger=False,
                 mqtt_logger=mqtt_logger,
@@ -87,7 +87,7 @@ class HyperStreamLoggingTests(unittest.TestCase):
 
         with HyperStream() as hs:
             hs.logger = HyperStreamLogger(
-                default_loglevel=logging.DEBUG,
+                default_loglevel=logging.INFO,
                 file_logger=False,
                 console_logger=False,
                 mqtt_logger=mqtt_logger,
