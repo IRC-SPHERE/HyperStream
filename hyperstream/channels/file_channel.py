@@ -36,8 +36,12 @@ class FileDateTimeVersion(Printable):
     def __init__(self, filename, split_char='_'):
         self.long_filename = filename
         self.filename_no_extension, self.extension = os.path.splitext(filename)
-        self.timestamp, self.version = self.filename_no_extension.split(split_char, 1)
-        self.timestamp = ciso8601.parse_datetime(self.timestamp).replace(tzinfo=UTC)
+        timestamp, self.version = self.filename_no_extension.split(split_char, 1)
+        self.timestamp = ciso8601.parse_datetime(timestamp)
+        if self.timestamp is None:
+            raise ValueError('timestamp [%s] can not be converted to datetime' %
+                             timestamp)
+        self.timestamp = self.timestamp.replace(tzinfo=UTC)
         self.version = Version(self.version[1:])
     
     @property
@@ -66,11 +70,10 @@ class FileChannel(ReadOnlyMemoryChannel):
             if file_long_name[:11] != '__init__.py' and file_long_name[-3:] != 'pyc':
                 try:
                     tool_info = FileDateTimeVersion(file_long_name)
-                    
-                    yield tool_info
-                
                 except ValueError as e:
                     logging.warn('Filename in incorrect format {0}, {1}'.format(file_long_name, e.message))
+                    continue
+                yield tool_info
     
     def update_streams(self, up_to_timestamp):
         path = self.path
