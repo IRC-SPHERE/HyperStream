@@ -66,5 +66,29 @@ class HyperStreamTimeIntervalTests(unittest.TestCase):
         r1 = RelativeTimeInterval(-30 * second, zero)
         pass
 
+    def test_split(self):
+        intervals = [TimeInterval(start=datetime(2016, 1, 1, 0, 0),
+                                  end=datetime(2016, 2, 1, 0, 0)),
+                     TimeInterval(start=datetime(2017, 1, 1, 0, 0),
+                                  end=datetime(2017, 2, 1, 0, 0))]
+        t = TimeIntervals(intervals=intervals)
+        t.split([datetime(2016, 1, 15, 0, 0, tzinfo=UTC),
+                 datetime(2017, 1, 18, 0, 0, tzinfo=UTC)])
+
+
+        expected = [TimeInterval(start=datetime(2016, 1, 1, 0, 0, tzinfo=UTC),
+                                 end=datetime(2016, 1, 15, 0, 0, tzinfo=UTC)),
+                    TimeInterval(start=datetime(2016, 1, 15, 0, 0, tzinfo=UTC),
+                                 end=datetime(2016, 2, 1, 0, 0, tzinfo=UTC)),
+                    TimeInterval(start=datetime(2017, 1, 1, 0, 0, tzinfo=UTC),
+                                 end=datetime(2017, 1, 18, 0, 0, tzinfo=UTC)),
+                    TimeInterval(start=datetime(2017, 1, 18, 0, 0, tzinfo=UTC),
+                                 end=datetime(2017, 2, 1, 0, 0, tzinfo=UTC))]
+
+        assert(len(t) == len(expected))
+        for i, e in enumerate(expected):
+            assert(e == t[i])
+
+
 if __name__ == '__main__':
     unittest.main()
