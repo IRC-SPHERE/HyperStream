@@ -8,7 +8,7 @@
 [![Join the chat at https://gitter.im/IRC-SPHERE-HyperStream/Lobby](https://badges.gitter.im/IRC-SPHERE-HyperStream/Lobby.svg)](https://gitter.im/IRC-SPHERE-HyperStream/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Documentation Status](https://readthedocs.org/projects/hyperstream/badge/?version=latest)](http://hyperstream.readthedocs.io/en/latest/?badge=latest)
 
-Hyperstream is a large-scale, flexible and robust software package for processing streaming data.
+Hyperstream is a lightweight, flexible and robust software package for processing streaming data.
 
 * HyperStream [homepage](https://irc-sphere.github.io/HyperStream/)
 * Tutorial [notebooks](http://nbviewer.jupyter.org/github/IRC-SPHERE/HyperStream/blob/master/examples/index.ipynb)
